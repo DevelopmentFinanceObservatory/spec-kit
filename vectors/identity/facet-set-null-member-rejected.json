@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "name": "facet-set-null-member-rejected",
+  "description": "A facet set binding refuses a null member: only a value binding on measurementMethod or unit may carry a null ref.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.null-ref.set-member-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "measurementMethod": {
+        "state": "set",
+        "refs": [
+          null,
+          "Estimated"
+        ]
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

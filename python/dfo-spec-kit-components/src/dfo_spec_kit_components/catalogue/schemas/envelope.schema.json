@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/presentation/schema/v1/envelope.schema.json",
+  "title": "Presentation envelope",
+  "description": "Every resolved component payload has this one shape (Contract - Presentation Primitive, \"The envelope\"). `component` is closed to the members this catalogue release ships (line_chart, bar_chart, table, stat_card, note_narration, source_card); a member added later is a new catalogue release, per \"The union is closed per release\".",
+  "type": "object",
+  "additionalProperties": false,
+  "unevaluatedProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_version",
+    "component_id",
+    "revision",
+    "provenance",
+    "component"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "the integer version of the catalogue schema this payload was generated against"
+    },
+    "catalog_version": {
+      "$ref": "#/$defs/catalog_version"
+    },
+    "component_id": {
+      "type": "string",
+      "pattern": "^cmp_[A-Za-z0-9]{8,32}$",
+      "description": "globally unique, minted at creation; the id every edit tool targets"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "increments on every applied edit; revisions are immutable once minted"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "component": {
+      "oneOf": [
+        {
+          "$ref": "https://developmentfinance.org/presentation/schema/v1/component/line_chart.schema.json"
+        },
+        {
+          "$ref": "https://developmentfinance.org/presentation/schema/v1/component/bar_chart.schema.json"
+        },
+        {
+          "$ref": "https://developmentfinance.org/presentation/schema/v1/component/table.schema.json"
+        },
+        {
+          "$ref": "https://developmentfinance.org/presentation/schema/v1/component/stat_card.schema.json"
+        },
+        {
+          "$ref": "https://developmentfinance.org/presentation/schema/v1/component/note_narration.schema.json"
+        },
+        {
+          "$ref": "https://developmentfinance.org/presentation/schema/v1/component/source_card.schema.json"
+        }
+      ]
+    }
+  },
+  "if": {
+    "properties": {
+      "component": {
+        "properties": {
+          "type": {
+            "const": "note_narration"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    "required": [
+      "component"
+    ]
+  },
+  "else": {
+    "$comment": "Every member but note_narration resolves a frame, so provenance.inputs names at least the one frame it resolved; note_narration carries no frame_ref and its own inputs stays empty, the base bound (minItems 0) the $defs/provenance schema declares.",
+    "properties": {
+      "provenance": {
+        "properties": {
+          "inputs": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "catalog_version": {
+      "type": "string",
+      "$comment": "Calver, provisional; redefined in place pre-freeze rather than bumped, until a first real freeze fixes it.",
+      "pattern": "^[0-9]{4}\\.[0-9]{1,2}\\.[0-9]+$",
+      "maxLength": 32
+    },
+    "spec_id": {
+      "type": "string",
+      "$comment": "spec_ (Datasets) or ops_ (Analysis Toolkit) prefix per \"Frame and series references\"; hex-length bound is loose because the contract itself calls identifier spellings illustrative pending the identifier decision.",
+      "pattern": "^(spec|ops)_[0-9a-f]{6,64}$"
+    },
+    "content_version": {
+      "type": "string",
+      "$comment": "cv_ (Datasets) or ocv_ (Analysis Toolkit) prefix per \"Frame and series references\", matching the prefixes `spec_id` accepts; hex-length bound is loose for the same reason.",
+      "pattern": "^(cv|ocv)_[0-9a-f]{6,64}$"
+    },
+    "data_commons_id": {
+      "type": "string",
+      "enum": [
+        "dfo",
+        "base",
+        "un_system"
+      ]
+    },
+    "named_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "inputs",
+        "execution_ref",
+        "sources",
+        "freshness",
+        "warnings",
+        "generated_at",
+        "citation",
+        "refreshed_from"
+      ],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "description": "empty for a component with no frame_ref (note_narration); every other member names at least the one frame it resolved.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "unevaluatedProperties": false,
+            "required": [
+              "spec_id",
+              "content_version"
+            ],
+            "properties": {
+              "spec_id": {
+                "$ref": "#/$defs/spec_id"
+              },
+              "content_version": {
+                "$ref": "#/$defs/content_version"
+              }
+            }
+          }
+        },
+        "execution_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200,
+          "description": "content-addressed identity of the Analysis Toolkit execution behind derived values; null for a direct read"
+        },
+        "sources": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "unevaluatedProperties": false,
+            "required": [
+              "id",
+              "name",
+              "url",
+              "licence",
+              "retrieved"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^src_[a-z0-9_]{1,60}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2048
+              },
+              "licence": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "retrieved": {
+                "type": "string",
+                "format": "date"
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "the Data Commons provenance dcid this entry was built from (for example `provenance/OECDCreditorReportingSystem` or `dc/base/WorldDevelopmentIndicators`), so a renderer can look the source up in the graph; absent on components minted before platforms wrote it"
+              },
+              "source": {
+                "$ref": "#/$defs/named_ref",
+                "description": "the Data Commons Source node behind the provenance (for a UN System Data Commons series, the agency provenance itself); absent on dataset versions minted before the origin catalogue"
+              },
+              "data_commons": {
+                "type": "object",
+                "additionalProperties": false,
+                "unevaluatedProperties": false,
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "properties": {
+                  "id": {
+                    "$ref": "#/$defs/data_commons_id"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "description": "the Data Commons the provenance is served from; absent on dataset versions minted before the origin catalogue"
+              }
+            }
+          }
+        },
+        "freshness": {
+          "type": "object",
+          "additionalProperties": false,
+          "unevaluatedProperties": false,
+          "required": [
+            "data_through",
+            "last_refreshed",
+            "next_expected",
+            "partial_period"
+          ],
+          "properties": {
+            "data_through": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "$comment": "nullable: the upstream frame may not yet supply a coverage-through period.",
+              "maxLength": 10
+            },
+            "last_refreshed": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "next_expected": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "$comment": "nullable: not every source publishes a refresh cadence.",
+              "maxLength": 10
+            },
+            "partial_period": {
+              "type": "boolean"
+            }
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "unevaluatedProperties": false,
+            "required": [
+              "kind",
+              "detail"
+            ],
+            "properties": {
+              "kind": {
+                "$comment": "Closed vocabulary drawn from the contract's own examples (\"provisional status, estimates, imputations, coverage gaps, comparability breaks\"); the taxonomy is seam-owed to the Datasets/Analysis layers that populate it.",
+                "enum": [
+                  "provisional",
+                  "estimated",
+                  "imputed",
+                  "coverage_gap",
+                  "comparability_break"
+                ]
+              },
+              "detail": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "the payload's generation timestamp, stamped by the assembler"
+        },
+        "citation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "ready-to-paste string the assembler generates from the structured provenance fields"
+        },
+        "refreshed_from": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "the revision (of this same component_id) this one was minted from on data refresh, null otherwise"
+        }
+      }
+    }
+  }
+}

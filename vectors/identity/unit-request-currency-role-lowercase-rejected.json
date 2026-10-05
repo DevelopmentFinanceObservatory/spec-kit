@@ -1,0 +1,46 @@
+{
+  "format_version": 1,
+  "name": "unit-request-currency-role-lowercase-rejected",
+  "description": "A currency role spelled in the wrong case ('observationabout' rather than 'observationAbout') is a distinct, unrecognised string under the closed role enum -- the role match is exact-case, with no case-folding.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.currency-role-case"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": {
+            "role": "observationabout"
+          },
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

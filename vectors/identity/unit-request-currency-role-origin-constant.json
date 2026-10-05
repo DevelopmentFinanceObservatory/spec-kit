@@ -1,0 +1,84 @@
+{
+  "format_version": 1,
+  "name": "unit-request-currency-role-origin-constant",
+  "description": "A unit conversion request naming the currency by the 'origin' entity role, constant prices with a base_year -- the role shape's positive case for the constant arm.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "unit-request.currency-role"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": {
+            "role": "origin"
+          },
+          "prices": "constant",
+          "base_year": 2020
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": {
+            "role": "origin"
+          },
+          "prices": "constant",
+          "base_year": 2020
+        }
+      }
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c22666163657473223a7b22756e6974223a7b2272657175657374223a7b22626173655f79656172223a323032302c2263757272656e6379223a7b22726f6c65223a226f726967696e227d2c22707269636573223a22636f6e7374616e74227d2c227374617465223a2276616c7565227d7d2c226964656e746974795f76657273696f6e223a227370656331222c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b7b2262696e64696e67223a7b22726566223a224d616c61726961222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365227d5d7d",
+  "spec_id": "spec_2c755ead04c38dc7ac1208e648c541f7"
+}

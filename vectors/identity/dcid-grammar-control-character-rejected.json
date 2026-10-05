@@ -1,0 +1,27 @@
+{
+  "format_version": 1,
+  "name": "dcid-grammar-control-character-rejected",
+  "description": "A shape schema member value containing a Unicode control character (category Cc) is not a valid bare dcid and is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "dcid-grammar.control-character-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "development\u0001FinanceFlow"
+    },
+    "slots": [],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

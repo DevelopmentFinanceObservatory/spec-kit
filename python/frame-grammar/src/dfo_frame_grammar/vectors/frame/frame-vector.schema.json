@@ -1,0 +1,433 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ONEcampaign/dfo-spec-kit/main/python/frame-grammar/src/dfo_frame_grammar/vectors/frame/frame-vector.schema.json",
+  "title": "Frame grammar vector record",
+  "description": "One language-neutral conformance fixture for the frame grammar and content_version minting defined by docs/frame-grammar-v1.md: either a frame's role_keys/rows against its canonical bytes and minted content_version, a content_version preimage's inputs against its minted token, or a collection's members against its minted token -- or, for a negative vector, the same kind of input against the stable category it is refused under. See the README beside this schema for field semantics, the positive/negative split, the three record kinds, and the frozen failure_category vocabulary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "name",
+    "description",
+    "kind",
+    "classification",
+    "coverage"
+  ],
+  "properties": {
+    "format_version": {
+      "description": "The vector record format's own version. Pinned to the version this schema validates; a vector claiming a different format_version must validate against that version's own schema instead. Distinct from FRAME_GRAMMAR_VERSION (the published grammar document's own semver) and from frame_version/identity_version (the byte-rule domain separators hashed into canonical bytes).",
+      "const": 1
+    },
+    "name": {
+      "description": "The vector's stable, unique, kebab-case id. Matches the stem of the file it lives in, so a file rename is a rename of the vector.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "description": {
+      "description": "One-line, human-readable statement of what the vector proves.",
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "description": "Which of the three record shapes this vector carries. \"frame\": role_keys/rows exercised through Frame.build and canonical_frame_bytes, then through content_version minting. \"content_version\": a content_version preimage's inputs (frame_sha256 plus the same content_version_input shape) exercised through content_version minting alone, independent of any frame -- used for preimage-level refusals that a full frame build would never reach. \"collection_content_version\": a collection's members exercised through collection-level minting.",
+      "enum": [
+        "frame",
+        "content_version",
+        "collection_content_version"
+      ]
+    },
+    "classification": {
+      "description": "positive: the input builds (and, where applicable, mints a token) without refusal. negative: the input is refused, and no expected output exists to check.",
+      "enum": [
+        "positive",
+        "negative"
+      ]
+    },
+    "coverage": {
+      "description": "Non-normative dot-separated tags naming what this vector exercises (e.g. \"columns.reserved-collision\", \"rows.duplicate-key\"). Free to grow; not a frozen vocabulary like failure_category.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)*$"
+      }
+    },
+    "notes": {
+      "description": "Optional free-form context: why the vector is shaped this way, a pointer to the grammar rule it enforces, or a caveat for a reader of the fixture.",
+      "type": "string"
+    },
+    "role_keys": {
+      "description": "kind: \"frame\" only. The shape's declared entity role property references, in whatever order they were declared -- column order is a derived property, not an input.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rows": {
+      "description": "kind: \"frame\" only. The frame's input rows: a JSON array of objects, each keyed by column name. This is the frame's pre-canonicalisation input, in whatever order the vector author chose to type it in; input row order carries no meaning.",
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "expected_columns": {
+      "description": "kind: \"frame\", positive only. The exact columns array a conformant implementation must derive from role_keys.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "canonical_bytes": {
+      "description": "kind: \"frame\", positive only. The exact JCS bytes of expected_document, lossless hex-encoded.",
+      "type": "string",
+      "pattern": "^([0-9a-f]{2})+$"
+    },
+    "expected_document": {
+      "description": "kind: \"frame\", positive only. The fully normalised closed frame document ({frame_version, columns, rows}) canonical_bytes must be the JCS serialisation of -- present so a reader, or the standalone validator, can check canonical_bytes independently of any particular implementation's row-construction logic. Compared by structural JSON equality; key order here is not meaningful. Byte-for-byte comparison only enters at canonical_bytes itself.",
+      "type": "object",
+      "required": [
+        "frame_version",
+        "columns",
+        "rows"
+      ]
+    },
+    "expected_frame_sha256": {
+      "description": "kind: \"frame\", positive only. The full 64 lowercase hex SHA-256 digest of the bytes decoded from canonical_bytes -- also the frame_sha256 member a conformant content_version preimage must carry.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "content_version_input": {
+      "description": "kind: \"frame\" (positive only) or \"content_version\" (either classification). The content_version preimage inputs beyond frame_sha256: graph_revision, source_revisions, facets, and optionally conversion (the record object or a manifest trace's one-entry conversion array) -- exactly the named-argument shape content_version minting accepts. Left loosely typed here (not further constrained by this schema) because a negative content_version vector's whole point is to carry a shape this schema's own domain rules would otherwise have to duplicate and could get out of step with.",
+      "type": "object"
+    },
+    "frame_sha256": {
+      "description": "kind: \"content_version\" only. The frame_sha256 supplied directly as a content_version minting input, since this kind exercises preimage-level rules independent of any actual frame.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "expected_preimage": {
+      "description": "kind: \"frame\" or \"content_version\" (positive only): the closed content_version preimage document minting must build from frame_sha256 plus content_version_input. kind: \"collection_content_version\" (positive only): the closed collection preimage document ({identity_version, members}) built from members, sorted by spec_id. Present so canonical_bytes-equivalent independence holds one level up: expected_content_version must be exactly \"cv_\" plus the first 32 lowercase hex characters of SHA-256(JCS(expected_preimage)).",
+      "type": "object"
+    },
+    "expected_content_version": {
+      "description": "Positive only, any kind. The full public cv_-prefixed token minting must produce.",
+      "type": "string",
+      "pattern": "^cv_[0-9a-f]{32}$"
+    },
+    "members": {
+      "description": "kind: \"collection_content_version\" only. An array of two-element [spec_id, content_version] arrays, each carrying a full public token string, in whatever order the vector author chose to type them in. Left loosely typed (plain strings, no token-shape pattern) so a negative vector can carry a deliberately malformed token.",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "failure_category": {
+      "description": "Negative only. The stable failure category the input is refused under. See the README beside this schema for the frozen vocabulary, each category's definition, and which module raises it.",
+      "enum": [
+        "schema_violation",
+        "lone_surrogate",
+        "non_finite_number",
+        "invalid_time_period",
+        "invalid_unit",
+        "duplicate_row_key",
+        "unknown_member",
+        "invalid_digest",
+        "invalid_facet_axis",
+        "invalid_facet_basis",
+        "invalid_facet_ref",
+        "duplicate_source",
+        "duplicate_axis",
+        "conversion_null",
+        "duplicate_spec_id",
+        "invalid_spec_id",
+        "invalid_member_content_version"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "frame"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "role_keys",
+          "rows"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "members"
+              ]
+            },
+            {
+              "required": [
+                "frame_sha256"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "content_version"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "content_version_input",
+          "frame_sha256"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "members"
+              ]
+            },
+            {
+              "required": [
+                "role_keys"
+              ]
+            },
+            {
+              "required": [
+                "rows"
+              ]
+            },
+            {
+              "required": [
+                "expected_columns"
+              ]
+            },
+            {
+              "required": [
+                "canonical_bytes"
+              ]
+            },
+            {
+              "required": [
+                "expected_document"
+              ]
+            },
+            {
+              "required": [
+                "expected_frame_sha256"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "collection_content_version"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "members"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "role_keys"
+              ]
+            },
+            {
+              "required": [
+                "rows"
+              ]
+            },
+            {
+              "required": [
+                "expected_columns"
+              ]
+            },
+            {
+              "required": [
+                "canonical_bytes"
+              ]
+            },
+            {
+              "required": [
+                "expected_document"
+              ]
+            },
+            {
+              "required": [
+                "expected_frame_sha256"
+              ]
+            },
+            {
+              "required": [
+                "content_version_input"
+              ]
+            },
+            {
+              "required": [
+                "frame_sha256"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "frame"
+          },
+          "classification": {
+            "const": "positive"
+          }
+        },
+        "required": [
+          "kind",
+          "classification"
+        ]
+      },
+      "then": {
+        "required": [
+          "expected_columns",
+          "canonical_bytes",
+          "expected_document",
+          "expected_frame_sha256",
+          "content_version_input",
+          "expected_preimage",
+          "expected_content_version"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "content_version"
+          },
+          "classification": {
+            "const": "positive"
+          }
+        },
+        "required": [
+          "kind",
+          "classification"
+        ]
+      },
+      "then": {
+        "required": [
+          "expected_preimage",
+          "expected_content_version"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "collection_content_version"
+          },
+          "classification": {
+            "const": "positive"
+          }
+        },
+        "required": [
+          "kind",
+          "classification"
+        ]
+      },
+      "then": {
+        "required": [
+          "expected_preimage",
+          "expected_content_version"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "positive"
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "failure_category"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "failure_category"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "expected_columns"
+              ]
+            },
+            {
+              "required": [
+                "canonical_bytes"
+              ]
+            },
+            {
+              "required": [
+                "expected_document"
+              ]
+            },
+            {
+              "required": [
+                "expected_frame_sha256"
+              ]
+            },
+            {
+              "required": [
+                "expected_preimage"
+              ]
+            },
+            {
+              "required": [
+                "expected_content_version"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

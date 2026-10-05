@@ -1,0 +1,42 @@
+{
+  "format_version": 1,
+  "name": "duplicate-slot-property-rejected",
+  "description": "Two slots naming the same property, one bound and one unbound, are refused: the property sort is not a total order over duplicates, so retaining both would let input order pick a winner.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "slots.duplicate-property"
+  ],
+  "notes": "Pairs one bound and one unbound slot on the same property, rather than two bound slots, because slot retention keeps the unbound entry in the projection: the refusal has to hold for every binding-state combination sharing a property, not only the both-bound case.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      },
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "unbound"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

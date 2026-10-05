@@ -1,0 +1,38 @@
+{
+  "format_version": 1,
+  "name": "window-range-reversed",
+  "description": "An ordinary negative case: a requested_window of kind range with both endpoints present but start_year greater than end_year is refused as invalid input, independent of every other well-formed member.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "window.range.reversed"
+  ],
+  "notes": "Reuses the developmentFinanceFlow shape member value and refs from the identity specification's own worked examples -- see schemas/vectors/README.md's fixture vocabulary.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2024,
+      "end_year": 2015
+    }
+  },
+  "failure_category": "reversed_range"
+}

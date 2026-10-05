@@ -1,0 +1,13 @@
+{
+  "format_version": 1,
+  "name": "identity-version-unrecognised-rejected",
+  "description": "identity_version present but naming a version this parser does not implement (spec2) is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "version.unrecognised"
+  ],
+  "notes": "unsupported_identity_version is checked at the strict parse stage, before schema validation. An input vector starts execution at schema validation (see schemas/vectors/README.md, input vs input_bytes), so it never reaches the version gate -- this vector must use input_bytes to genuinely exercise it.",
+  "input_bytes": "7b0a2020226964656e746974795f76657273696f6e223a20227370656332222c0a20202273686170655f6964223a2022646576656c6f706d656e7446696e616e6365466c6f77222c0a202022736c6f7473223a205b0a202020207b0a2020202020202270726f7065727479223a2022446576656c6f706d656e7446696e616e6365507572706f7365222c0a2020202020202262696e64696e67223a207b0a2020202020202020227374617465223a202276616c7565222c0a202020202020202022726566223a20224d616c61726961220a2020202020207d0a202020207d0a20205d2c0a202022656e746974696573223a207b0a20202020226f726967696e223a205b0a20202020202022636f756e7472792f465241220a202020205d0a20207d2c0a2020227265717565737465645f77696e646f77223a207b0a20202020226b696e64223a2022616c6c220a20207d0a7d0a",
+  "failure_category": "unsupported_identity_version"
+}

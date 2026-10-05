@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "name": "unknown-top-level-member-rejected",
+  "description": "A top-level member the identity-core schema does not declare is rejected (additionalProperties: false).",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "closed-object.top-level"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    },
+    "unexpected_member": "should not be here"
+  },
+  "failure_category": "unknown_member"
+}

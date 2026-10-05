@@ -1,0 +1,144 @@
+# Compatibility policy for the dataset-spec family: python/spec-kit's own
+# exports, schemas/spec/, vectors/identity/, and registries/codes.json.
+#
+# "Released" below means reachable from the most recent git tag on this
+# repo (pattern v*, found the same way `git describe --tags --abbrev=0`
+# does) -- the identical release point `tools/validate_registry.py` already
+# diffs the working registry against. Before the first tag, nothing below
+# is enforceable yet and every artifact may change freely; every artifact
+# family's own SemVer (each Python package's own CHANGELOG.md; a future
+# schemas/spec/ and vectors/identity/ version once either needs one) is
+# what actually carries the bump this file requires.
+format_version = 1
+family = "dataset-spec"
+
+[release]
+mechanism = "git tag, pattern v*, the most recent one reachable from HEAD"
+
+# ---------------------------------------------------------------------------
+# 1. python/spec-kit's own exports (the manifest in python/spec-kit/EXPORTS.md)
+# ---------------------------------------------------------------------------
+
+[artifacts.exports]
+path = "python/spec-kit/"
+governed_by = "python/spec-kit/EXPORTS.md"
+description = """
+Every name python/spec-kit/EXPORTS.md manifests. A change is scoped to one
+manifested symbol at a time; the bump level below is the minimum for that
+symbol's own change, and the release as a whole bumps by the highest level
+any single change in it requires.
+"""
+
+immutable_once_released = [
+  "a manifested symbol's name, module, and kind",
+  "a stable symbol's already-published required parameters and return shape (functions), or already-published field name/type/presence (models)",
+  "a stable closed union's already-published arm set",
+  "IdentityError's already-published category spellings and what each one means",
+  "IDENTITY_VERSION's value",
+]
+
+major = [
+  "removing any manifested symbol, stable or provisional -- a real caller does not care which label the manifest gave it, only that it is gone",
+  "narrowing a stable function's parameter types, or its return shape",
+  "removing or narrowing a stable model's field, or adding a new required field to one",
+  "adding a new arm to a stable closed union, or removing one",
+  "redefining or removing an IdentityError category, or changing what a published category means",
+  "changing IDENTITY_VERSION's value",
+]
+
+minor = [
+  "adding a new symbol to the manifest, in a module already on the closed modules list",
+  "adding a new module to the closed modules list itself, and the symbols it introduces",
+  "adding an optional field to a stable model, or a new optional keyword-only parameter to a stable function",
+  "adding a new IdentityError category",
+  "any shape change at all to a provisional symbol, including a change that would be major were the symbol stable -- provisional trades a smaller bump for a real, still-mandatory one",
+  "reclassifying a symbol's own stability label (provisional -> stable, or the reverse) with no change to its shape",
+]
+
+patch = [
+  "a contract description's own wording, with no change to the symbol's actual shape or behaviour",
+]
+
+# ---------------------------------------------------------------------------
+# 2. Generated JSON Schema (schemas/spec/)
+# ---------------------------------------------------------------------------
+
+[artifacts.generated_schema]
+path = "schemas/spec/"
+governed_by = "schemas/spec/README.md"
+description = """
+JSON Schema generated from the pydantic models behind python/spec-kit's
+BaseIdentity/SpecDefinition exports. This artifact has no compatibility
+rule of its own: every file under schemas/spec/ moves at exactly the bump
+level `[artifacts.exports]` assigns to the model it was generated from,
+because it carries no information the model itself does not already carry.
+CI fails when a committed file here drifts from what codegen would produce
+from the current models -- that check enforces this artifact stays a pure
+function of `exports`, it does not add a bump rule of its own.
+"""
+
+immutable_once_released = [
+  "a published schema file's own $id",
+]
+
+# ---------------------------------------------------------------------------
+# 3. Identity vector suite (vectors/identity/)
+# ---------------------------------------------------------------------------
+
+[artifacts.vectors]
+path = "vectors/identity/"
+governed_by = "vectors/identity/README.md"
+description = """
+The identity scheme's conformance fixtures: one record per case, record
+shape enforced by schemas/vectors/identity-vector.schema.json. Each vector
+is a regression pin against this repo's own reference implementation, not
+an independent spec -- see vectors/identity/README.md's own precedence
+rule for what that means when this repo's prose and a vector disagree.
+"""
+
+immutable_once_released = [
+  "an already-published vector's name",
+  "an already-published vector's input (input or input_bytes)",
+  "an already-published vector's expected outcome (expected_projection, canonical_bytes, and spec_id for a positive vector; expected_failure_category for a negative one)",
+]
+
+major = [
+  "changing what an already-published vector expects for the identical input -- this is only legal alongside the exports-level major bump for the identity behaviour change it pins, never on its own",
+]
+
+minor = [
+  "adding a failure_category spelling to the closed vocabulary this suite's own record schema enforces -- only legal alongside the corresponding IdentityError category addition in [artifacts.exports]",
+]
+
+patch = [
+  "adding a new vector case for behaviour this repo's implementation and prose already specify",
+]
+
+# ---------------------------------------------------------------------------
+# 4. The code registry (registries/codes.json)
+# ---------------------------------------------------------------------------
+
+[artifacts.code_registry]
+path = "registries/codes.json"
+governed_by = "schemas/registry/README.md"
+description = """
+The platform's own warning/refusal code catalogue. schemas/registry/README.md
+already states this artifact's addition rule in full; this entry only maps
+that rule onto the bump classes the other three artifacts above use, it
+does not restate the rule itself.
+"""
+
+immutable_once_released = [
+  "a published entry's fields other than lifecycle",
+  "the active -> retired direction of lifecycle -- it never moves retired -> active",
+]
+
+forbidden = [
+  "reusing a retired code's spelling for a new meaning",
+  "changing what a published code means",
+]
+
+minor = [
+  "adding a new code entry",
+  "moving a published entry's lifecycle from active to retired",
+]

@@ -1,0 +1,4297 @@
+{
+  "format_version": 1,
+  "entries": [
+    {
+      "code": "alternates_unevaluated",
+      "classification": "warning",
+      "definition": "An alternate reading of the question that passed admission was not evaluated because the presence read its default scope needs did not complete (no worker free, an upstream failure, or a timeout). The elected answer is served, a near-neighbour tie with that reading stays stated, the message states the cause in plain words, and the response is not cached.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "artifact_expired",
+      "classification": "refusal",
+      "definition": "Every listable artifact of this version aged out of the working tier unpinned, so none remains servable.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 410
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "artifact_not_found",
+      "classification": "refusal",
+      "definition": "The named artifact_digest is not among this version's artifacts.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "availability_probe_failed",
+      "classification": "warning",
+      "definition": "The sibling-availability probe that checks whether a denominator candidate has data at the resolved place failed to complete, so every candidate's place availability was reset to unknown rather than pruned on a stale or partial result.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "base_identity_mismatch",
+      "classification": "refusal",
+      "definition": "The supplied base_identity does not canonicalise and hash to the named base_spec_id.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "base_not_found",
+      "classification": "refusal",
+      "definition": "A spec-resubmit names a base_spec_id absent from the registry and supplies no base_identity to reconstruct it from.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "binding_folded",
+      "classification": "warning",
+      "definition": "Several parts of a query resolved to the same shape, so the engine merged them onto one spec and folded every binding but the first into that spec's slot options; the part carrying this warning is answered by the merged spec.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "binding_invalid",
+      "classification": "refusal",
+      "definition": "The intent's select names a dimension the referenced frame does not offer, or a value the frame does not observe for that dimension.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "binding_mismatch",
+      "classification": "refusal",
+      "definition": "The variable resolved and graph-confirmed StatVars exist, but none satisfies the requested slot bindings: a resolved value on a bound property mismatched, or the StatVar's value on a bound property is present but could not be read (an unresolvable dcid).",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "candidates_collapsed_definite",
+      "classification": "warning",
+      "definition": "A replayed candidate set collapsed to exactly one survivor, so the part is reported as a definite answer to the replayed selection rather than as the candidate set the caller posted.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "candidates_collapsed_no_data",
+      "classification": "warning",
+      "definition": "A replayed candidate set collapsed to no survivor at all, so the part is reported as no_data rather than as the candidate set the caller posted.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "capability_unavailable",
+      "classification": "refusal",
+      "definition": "A well-formed request asks for a format, reshape, or conversion class this deployment does not enable.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 501
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "child_places_clamped",
+      "classification": "warning",
+      "definition": "The set of child places expanded from a named region exceeded the per-region cap and was truncated.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "children_anchor_ambiguous",
+      "classification": "refusal",
+      "definition": "The options request's children scope binds more than one distinct anchor entity, but children scope descends from exactly one place and has no order-invariant way to choose among several.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "children_anchor_required",
+      "classification": "refusal",
+      "definition": "The options request asks for children scope but binds no entity to descend from; children scope, unlike peers scope, has no identity-derivable default to fall back to.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "code_ambiguous",
+      "classification": "refusal",
+      "definition": "One or more supplied source codes each match more than one source or StatVar.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "code_not_found",
+      "classification": "refusal",
+      "definition": "This registry has no entry for the requested code.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "platform.codes",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "collection_probe_ceiling",
+      "classification": "refusal",
+      "definition": "The collection's facet probe would exceed the cap on StatVar and entity pairs it may ask the graph for, so no probe is issued.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "column_not_droppable",
+      "classification": "refusal",
+      "definition": "The requested column selection drops a grain, unit, or provenance column.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "column_unknown",
+      "classification": "refusal",
+      "definition": "The requested columns, pivot, or enrichment options reference a column the frame does not hold at this reshape point.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "conjunction_cross_shape",
+      "classification": "warning",
+      "definition": "The parts of a conjunction query grounded to different shapes, so the returned specs measure structurally distinct things.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "retired"
+    },
+    {
+      "code": "conjunction_part_ambiguous",
+      "classification": "warning",
+      "definition": "One part of a conjunction query could not resolve to a single confident interpretation.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "retired"
+    },
+    {
+      "code": "conjunction_part_no_data",
+      "classification": "warning",
+      "definition": "One part of a conjunction query resolved but returned no data.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "retired"
+    },
+    {
+      "code": "constraint_filter_fell_back",
+      "classification": "warning",
+      "definition": "A constraint filter could not apply as requested and fell back to a looser matching rule.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "retired"
+    },
+    {
+      "code": "constraint_violation",
+      "classification": "refusal",
+      "definition": "The resolved component would violate one of the catalogue's named cross-field constraints: comparable units across series, positive values under a log scale, a visible range that contains the plotted data, or a stat_card change computed only from observed periods.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "coverage_below_scope",
+      "classification": "warning",
+      "definition": "The served coverage falls short of the requested scope.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "currency_unmapped_omitted",
+      "classification": "warning",
+      "definition": "A conversion into each entity's own currency left out the rows of the entities that no single currency names through nationalCurrencyOf, and the warning names those entities. It applies when at least one row of the request converts; a request with no convertible row refuses instead.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "date_coverage_partial",
+      "classification": "warning",
+      "definition": "The returned series' observations do not fully cover the requested window.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "default_facet_undefined",
+      "classification": "refusal",
+      "definition": "An unbound facet axis has no probed candidate to draw a default from.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "default_not_declared",
+      "classification": "warning",
+      "definition": "A unit request member was completed at binding time from the engine's deterministic fallback because no declared default policy exists for it.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "definition_not_reproducible",
+      "classification": "refusal",
+      "definition": "A registered definition does not reproduce its own id against the graph's current account of its StatVar.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "deflator_missing_omitted",
+      "classification": "warning",
+      "definition": "A constant-price conversion left out the rows of each entity in the years the deflator table holds no value for it on the recipe's deflator role, and every row of an entity it holds no value for in the base year, and the warning names those entities and years. It applies when at least one row of the request converts; a request with no convertible row refuses with rate_coverage_gap and cause deflator_missing instead.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "deflator_projected",
+      "classification": "warning",
+      "definition": "A converted observation's exchange rate or price deflator at the observation year or the base year came from a projection facet rather than an actual.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "degenerate_binding_detected",
+      "classification": "warning",
+      "definition": "A drafted slot binding names an axis but asserts no value, which is schema-valid but would silently answer a broader question than the one the query asked, so the query is refused rather than resolved as though the axis were unbound.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "denominator_not_available",
+      "classification": "refusal",
+      "definition": "The request asks for a normalised form and no denominator-bearing variable exists for it.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "direction_discarded",
+      "classification": "warning",
+      "definition": "A named place's flow direction could not be carried by the elected shape, so the direction was dropped and the place answered as the shape's own subject. The warning is minted only by the text pipeline's place-binding phase, which dataset_resubmit's identity and candidates entries do not run; those entries refuse with role_incompatible instead of discarding a direction.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "directional_children_unsupported",
+      "classification": "refusal",
+      "definition": "A flow role's options were requested with a children scope, but a flow axis has no containment hierarchy to expand and serves its members from one availability read.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "door_not_implemented",
+      "classification": "refusal",
+      "definition": "The request names an input door the contract defines but this deployment does not yet serve.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 501
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "edit_conflict",
+      "classification": "refusal",
+      "definition": "A revise_component request targets a revision that is no longer the component's current one.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "edit_incomplete",
+      "classification": "refusal",
+      "definition": "A spec-resubmit edit leaves a facet axis or entity role that the base definition bound neither re-sent nor named in removed, or names a part in removed that the base does not bind.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "elected_shape_no_data",
+      "classification": "warning",
+      "definition": "The interpretation's own elected shape returned no data, and only a non-elected alternate shape survived with data.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "empty_result",
+      "classification": "warning",
+      "definition": "The materialised frame holds zero observations.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "enrichment_unavailable",
+      "classification": "warning",
+      "definition": "A requested enrichment is unavailable for one or more rows.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entities_unbound",
+      "classification": "refusal",
+      "definition": "The request binds no entity dcid to probe for a facet candidate set.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_ambiguous",
+      "classification": "refusal",
+      "definition": "A named entity in the request matched two or more graph nodes with equal standing, and the request did not say which one it meant. The detail lists the candidates.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_label_unresolved",
+      "classification": "warning",
+      "definition": "A resolved entity's dcid was graph-confirmed but no display label could be found for it, so the entity is presented with a dcid-echo label rather than being dropped.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_not_resolved",
+      "classification": "refusal",
+      "definition": "A named entity in the request could not be resolved to a graph node.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_role_disabled",
+      "classification": "warning",
+      "definition": "A directional preposition was detected in the request, but the place-as-constraint seam is off, so role assignment is disabled and the collapse to plain subjects silently changed the request's interpretation.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_role_not_admitted",
+      "classification": "refusal",
+      "definition": "A named entity resolved to a graph node whose type no shape of the requested variable can admit in any of its declared roles; for example an organisation named against a variable observed only about places.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_set_too_large",
+      "classification": "refusal",
+      "definition": "A named entity in the request resolved to a set of member entities larger than the engine binds in one request. The entity itself was graph-confirmed; its membership count, not its resolution, is what exceeds the bound.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "exact_binding_unsupported",
+      "classification": "refusal",
+      "definition": "A slot binding declares state 'exact', the deliberate parent-only ask on a hierarchical code, and this deployment does not accept it.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 501
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "excel_illegal_character",
+      "classification": "refusal",
+      "definition": "A cell contains a character that is illegal in Excel's XML file format.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "excel_limit",
+      "classification": "refusal",
+      "definition": "The table exceeds one of Excel's row, column, or cell-character limits.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "excluded_by_registry",
+      "classification": "refusal",
+      "definition": "The requested variable has data at the requested places only under provenances the origin registry does not admit; the refusal names those provenances.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "facet_binding_unsupported",
+      "classification": "refusal",
+      "definition": "The requested facet axis is recognised, but this deployment cannot honour it.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "unsupported_code"
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 501
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "facet_default_selected",
+      "classification": "warning",
+      "definition": "An unbound facet axis had more than one candidate value, DFO precedence did not decide between them, and this deployment's default policy chose one. The policy ranks candidates holding a point in the requested window first, then DFO precedence, then the places or role tuples covered, then the requested years covered, then observation count, the latest date, and a deterministic tie-break.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "facet_not_available",
+      "classification": "refusal",
+      "definition": "The requested facet binding is valid, but no observations match it under the definition's other bindings.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "facet_probe_ceiling",
+      "classification": "refusal",
+      "definition": "The bound facet combinations the request asks for would exceed the cap on facet probes the deployment may issue, so no probe is issued.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "family_total_absent",
+      "classification": "warning",
+      "definition": "The StatVar a part names is not its family's total: the total has no data at the place, or the family holds no total. The message names the member shown, and the total and the place when the family holds one.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "frame_unavailable",
+      "classification": "refusal",
+      "definition": "The frame the intent's frame_ref names cannot be read at request time.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "identity_collision",
+      "classification": "refusal",
+      "definition": "A registry write found byte-different content already held at this id.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 500
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "identity_quarantined",
+      "classification": "refusal",
+      "definition": "This id already has byte-different content collision-quarantined under it, so registration is refused until the quarantine is resolved.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 500
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "internal_error",
+      "classification": "refusal",
+      "definition": "An unclassified, non-retryable failure occurred while handling the request.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "platform.any",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 500
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "invalid_role_ref",
+      "classification": "refusal",
+      "definition": "A structured role reference names an entity that does not exist in the graph.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "member_not_resolvable",
+      "classification": "refusal",
+      "definition": "A StatVar did not resolve to exactly one registered shape.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "members_deduplicated",
+      "classification": "warning",
+      "definition": "Two or more collection members resolve to the same specification after applying scope.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "members_not_held",
+      "classification": "refusal",
+      "definition": "One or more StatVars a definition names have no node in the knowledge graph, so its frame cannot be retrieved. The refusal lists the ones in the rejected fetch, and others the definition names may also be absent. The status is 500 because the fault is operator-side data drift, which must count in error rates.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 500
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "membership_unverified",
+      "classification": "warning",
+      "definition": "A role-bearing answer reads the series Search recalled, because the member walk the Datasets mint runs did not settle them: no walk ran, or it ran past its bound, a graph read failed, or it left candidates unread. The mint may resolve other series for the same identity, so the response cache does not store the answer.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "method_not_allowed",
+      "classification": "refusal",
+      "definition": "The request's HTTP method is not supported for this path; the response's Allow header lists the methods that are.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "platform.any",
+          "channel": "problem_details",
+          "http_status": 405
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "mixed_peers_anchor_types",
+      "classification": "refusal",
+      "definition": "The options request's peers scope binds several anchor entities whose resolved types are not all the same, so no single shared type can be chosen for the peers universe.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "multi_recipient_truncated",
+      "classification": "warning",
+      "definition": "The number of resolved entities for a multi-value role exceeded the cap and was truncated.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "near_neighbor_ambiguous",
+      "classification": "warning",
+      "definition": "A semantically distinct alternate interpretation scored close enough to the chosen one that the two are treated as ambiguous.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "near_neighbor_pool_widened",
+      "classification": "warning",
+      "definition": "A near-tied alternate interpretation had no data, so the search widened past its initial margin to find a distinct alternative that does have data.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "no_matching_slice",
+      "classification": "refusal",
+      "definition": "The variable matched, but the requested combination of bindings was never published as a series.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "no_member_asserts_bound_properties",
+      "classification": "refusal",
+      "definition": "No place entity was named in the request, and no member of the matched variable's family asserts every bound constraint property, so the nearest real match is surfaced as a flagged alternative instead of a confident answer.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "flagged_match_gate"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "no_member_has_data_at_place",
+      "classification": "refusal",
+      "definition": "No member of the matched variable's family has observations at the resolved place, so the nearest real match is surfaced as a flagged alternative instead of a confident answer.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "flagged_match_gate"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "no_observations",
+      "classification": "refusal",
+      "definition": "The matching series exists but holds no observations at the resolved entity and window.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "node_not_held",
+      "classification": "refusal",
+      "definition": "This deployment's graph does not hold the requested node.",
+      "owning_contract": "graph",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "graph.node",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "not_found",
+      "classification": "refusal",
+      "definition": "No route matches the request path, or the referenced resource is not visible to this caller.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "platform.any",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observation_attributes_in_notes",
+      "classification": "warning",
+      "definition": "Per-observation qualifications a source flags on published rows ride the bundle README and descriptor metadata instead of frame columns.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_bulk_fetch_failed",
+      "classification": "warning",
+      "definition": "The bulk fetch that populates observation series across a defaulted place scope failed, so coverage stands unchanged and no series were populated.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_clients_unavailable",
+      "classification": "refusal",
+      "definition": "No graph or SDMX client was available to fetch an observations preview through, so no fetch was attempted. Names an absent capability rather than an upstream condition; a live deployment always supplies both.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "observations_omission_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_converted_scope_unsupported",
+      "classification": "warning",
+      "definition": "The request binds a unit request, and the resolved scope is served by a bulk read that merges facets across stat_vars and cannot convert them, so no observation preview was fetched.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "observations_omission_reason"
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "observations_omission_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_no_dispatchable_facet",
+      "classification": "warning",
+      "definition": "The merged bulk scope resolved no facet that could be dispatched, so no observation preview was fetched. Fires before any upstream call.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_no_matching_source",
+      "classification": "warning",
+      "definition": "A resubmit named a source-axis constraint, but none of the fetched facets matched the requested source across any resolved series.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "done_event_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_no_points",
+      "classification": "refusal",
+      "definition": "Every pair or candidate the observations preview actually dispatched or read came back with no points and no active facet filter to explain the gap, even though the same selection's coverage reports a nonzero count. Lets a client render that observations are recorded but none returned in the preview, rather than asserting the slice itself is empty.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "observations_omission_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_nothing_to_probe",
+      "classification": "refusal",
+      "definition": "There was nothing to probe for an observations preview: no confirmed statistical variable, no entity to observe, or a role-bearing query's role tuple could not be completed because a declared role carried no bound entity. Fires before any pair is built, let alone dispatched.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "observations_omission_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_omitted",
+      "classification": "warning",
+      "definition": "Observations were requested on a part the engine has not committed to, a candidates part, so no values were fetched; promoting the candidate through a resubmit with observations included returns them.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_preview_too_large",
+      "classification": "warning",
+      "definition": "The number of (statistical variable, role) pairs an observations preview would need to fetch, or under an elected combination the number of dispatch items, exceeded the preview's configured ceiling before a single pair was fetched. The request's own shape crossed the bound, not an upstream failure; the omission carries the pair count and the ceiling it crossed.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "done_event_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "observations_omission_reason"
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "observations_omission_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_probe_failed",
+      "classification": "warning",
+      "definition": "The trailing fetch that previews observations for a returned spec failed.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "done_event_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_scope_partial",
+      "classification": "warning",
+      "definition": "Some places in the resolved scope carry no data on the selected observation facet, so they are absent from the delivered series.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_series_truncated",
+      "classification": "warning",
+      "definition": "The series shipped are a ranked subset of the confirmed series, and the message names how many are shown against the total. Covers both role-bearing answers and standard groups.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_timed_out",
+      "classification": "warning",
+      "definition": "The trailing fetch that previews observations for a returned spec did not complete before the request deadline.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "done_event_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_unavailable",
+      "classification": "refusal",
+      "definition": "The observations read cannot build from this version: it holds no stored frame, a converted series lacks its per-series conversion record, the version does not store its default place scope, or it is a collapsed version.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "observations_windowed_scope_unsupported",
+      "classification": "warning",
+      "definition": "A scope-defaulted standard query carried a window. The bulk branch serves a single latest point per place and cannot honour a window at any scope size, so no preview was fetched -- independent of how many (stat_var, entity) pairs the scope resolves to. Fires before any upstream call; drop the date range or query a specific place to see observations.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "observations_omission_reason"
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "observations_omission_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "only_alternate_has_data",
+      "classification": "refusal",
+      "definition": "The interpretation's own elected shape has no data at the resolved place, and only a non-elected alternate shape does, so the alternate is surfaced as a flagged match instead of a confident answer.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "flagged_match_gate"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "operation_failed",
+      "classification": "refusal",
+      "definition": "The operation ran and did not complete successfully; the poll response carries this code as the RFC 9457 body in place of a manifest.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.operations",
+          "channel": "problem_details",
+          "http_status": 500
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "operation_not_found",
+      "classification": "refusal",
+      "definition": "No operation exists with this id, or the operation envelope is dormant on this deployment.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.operations",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "option_coverage_probe_failed",
+      "classification": "warning",
+      "definition": "The trailing probe that enriches option items with observation counts failed.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "done_event_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "option_coverage_timed_out",
+      "classification": "warning",
+      "definition": "The trailing probe that enriches option items with observation counts did not complete before the request deadline.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "done_event_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "option_target_invalid",
+      "classification": "refusal",
+      "definition": "The options request's for target names a role that none of the resolved StatVars declare.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "origin_catalogue_stale",
+      "classification": "warning",
+      "definition": "The loaded origin catalogue is more than 14 days old.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "over_ceiling",
+      "classification": "refusal",
+      "definition": "This request exceeds the sync materialisation size ceiling.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "parquet_size_bound",
+      "classification": "refusal",
+      "definition": "The written Parquet artifact would exceed its configured size bound.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "part_restated",
+      "classification": "warning",
+      "definition": "This part was restated from a no_data or unsupported outcome the client posted back, not re-resolved: the engine rebuilt a stub from the posted status and reason so the surrounding parts could be composed and folded across the whole result, and made no graph or model call for it.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "pin_not_permitted",
+      "classification": "refusal",
+      "definition": "The authenticated caller lacks the pin permission, or programmatic pinning is not live on this deployment.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "pivot_not_homogeneous",
+      "classification": "refusal",
+      "definition": "The requested pivot would merge rows that differ on a grain, unit, or provenance column it drops.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "pivot_not_unique",
+      "classification": "refusal",
+      "definition": "The requested pivot produces duplicate cells under its index and column keys.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "pivot_over_cell_cap",
+      "classification": "refusal",
+      "definition": "The requested pivot's dense output would exceed this deployment's output-cell cap.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "pivot_over_column_cap",
+      "classification": "refusal",
+      "definition": "The requested pivot's output width exceeds the target format's column cap.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "place_constraint_seam_off",
+      "classification": "warning",
+      "definition": "The place-as-constraint seam is off for this request, so every resolved entity is treated as a plain subject regardless of any directional evidence in the query.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "place_scope_defaulted",
+      "classification": "warning",
+      "definition": "No place was named in the request, so the answer was resolved across a default place scope rather than a single named place.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "place_type_not_covered",
+      "classification": "refusal",
+      "definition": "A named place matched a real graph node, but its place type is not one the engine covers for expansion (e.g. a continental union such as the European Union). Retired: admission is read from the graph's declared role ranges, and a sub-national place is admitted wherever the graph declares it, so this trigger no longer exists.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "retired"
+    },
+    {
+      "code": "population_empty",
+      "classification": "refusal",
+      "definition": "The identity's own shape resolves to no StatVar population at all, from either the packaged code index or a graph enumeration.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "processing_level_undeclared",
+      "classification": "warning",
+      "definition": "A source StatVar lacks a processing-level declaration, so the citation names the source alone.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "provider_ambiguous",
+      "classification": "refusal",
+      "definition": "The options request's dev-finance provider role binds more than one distinct entity, but at most one provider is supported.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "publish_conflict",
+      "classification": "refusal",
+      "definition": "A publish call names an identity pair that is already held, and what is held differs from what the call carries, either in the frame's bytes or in the derivation recorded for it. The publish is refused rather than overwriting either one.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "publish_not_permitted",
+      "classification": "refusal",
+      "definition": "The authenticated caller is not the principal permitted to publish, or programmatic publishing is not live on this deployment.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "qualifier_not_bound",
+      "classification": "refusal",
+      "definition": "The variable resolved to a series family, but a narrowing term the variable phrase named bound no constraint slot: no code system in the packaged index carries it, or its registered rows landed in no binding.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "query_qualifier_dropped",
+      "classification": "warning",
+      "definition": "Raw-text extraction recognised a query qualifier that cannot be represented in the v1 identity, so the resolver answered the remaining request without applying that qualifier.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "query_too_long",
+      "classification": "refusal",
+      "definition": "A raw-text query exceeds the maximum allowed length.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rate_coverage_gap",
+      "classification": "refusal",
+      "definition": "The declared conversion recipe is missing rate or deflator inputs for part of this slice.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "recipe_not_declared",
+      "classification": "refusal",
+      "definition": "No declared conversion recipe satisfies the requested unit natively.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "unsupported_code"
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "redundant_binding_dropped",
+      "classification": "warning",
+      "definition": "A drafted slot binding was dropped as a redundant, never-mentioned spelling of an axis the family can already answer under its other spelling, so the query is not refused for an axis it never actually named.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "release_mismatch",
+      "classification": "refusal",
+      "definition": "The request names a catalogue or grammar release this deployment does not serve.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "request_invalid",
+      "classification": "refusal",
+      "definition": "The request body is malformed: it uses an unknown input kind, an unknown or extra field, fails schema validation such as a missing shape-declared slot key or a window whose start exceeds its end, omits base_spec_id while carrying removed, or names a part in removed that the posted definition still binds.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "graph.node",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "graph.resolve",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "skills.resource",
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "resolution_ambiguous",
+      "classification": "refusal",
+      "definition": "More than one tuple family satisfies the definition and no declared discriminator distinguishes them.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "resource_exhausted",
+      "classification": "refusal",
+      "definition": "The requested component exceeds this deployment's bounds on selected values, series, or points.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "retrieval_score_weak",
+      "classification": "warning",
+      "definition": "The winning interpretation's retrieval score is low enough that confidence in the match is reduced.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "revision_unavailable",
+      "classification": "warning",
+      "definition": "Graph and source revision data are unavailable.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_declaration_unverified",
+      "classification": "warning",
+      "definition": "The graph read that would confirm which roles a candidate's members declare did not complete, so the candidate was kept on the roles already read rather than dropped on an unproven one.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_incompatible",
+      "classification": "refusal",
+      "definition": "The role is a real property, but the resolved StatVar does not declare it.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_not_resolved",
+      "classification": "refusal",
+      "definition": "The request names a role the engine could not resolve.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_scope_defaulted",
+      "classification": "warning",
+      "definition": "No entity was named on the open role axis of a flow query, so the answer was resolved across every entity with data on that axis, discovered from the data cube under the request's bindings and window.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_signature_incompatible",
+      "classification": "refusal",
+      "definition": "The resolved StatVars carry incompatible role signatures.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_text_not_recognised",
+      "classification": "warning",
+      "definition": "An entity's role text in a parsed-door request did not match any recognised role lexicon entry, so the entity is treated as undirected instead of being refused.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rollup_not_summable",
+      "classification": "refusal",
+      "definition": "The requested groupby roll-up fails summability or one of its preconditions.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "schema_invalid",
+      "classification": "refusal",
+      "definition": "The intent fails the presentation intent grammar's structural validation before any semantic judgment is applied.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "scope_too_broad",
+      "classification": "refusal",
+      "definition": "The discovered role scope could not be established within the deployment's limits on members, response bytes, or window length; the detail names the limit reached and the remedy is to bind an entity on the open axis, narrow the window, or bind a facet.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "unsupported_code"
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "service_unavailable",
+      "classification": "refusal",
+      "definition": "The service cannot handle the request right now, typically because a dedicated capacity or connection pool has no room left; a retry is expected to succeed.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "graph.node",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "graph.resolve",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "skills.list",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "skills.resource",
+          "channel": "problem_details",
+          "http_status": 503
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "shape_mismatch",
+      "classification": "refusal",
+      "definition": "A spec-resubmit's definition names a different shape_id than its base. A shape change is a new construction and must be posted without a base.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_attachment_kind_unconfirmed",
+      "classification": "warning",
+      "definition": "The read that classifies one of the skill's declared attachment points stopped at its bound before settling what kind it is, so the attachment contributes nothing to what the skill matches on this build and the skill's reach understates what it covers.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_attachment_rejected",
+      "classification": "warning",
+      "definition": "One of the skill's declared attachment points is not a kind the platform accepts, so it contributes nothing to what the skill matches.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_breadth_high",
+      "classification": "warning",
+      "definition": "The skill's reach covers more served statistical variables than the breadth bound, so the skill matches very broadly and may be attached higher in the hierarchy than intended.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_build_unconfirmed",
+      "classification": "warning",
+      "definition": "A read this skill's build depends on did not complete, whether it failed outright or ran out of its own budget. When the read is of the skill's own node, the skill is left out of the catalogue on this build and the warning, keyed by its dcid, joins the corpus warnings. Otherwise the skill stays served and is excluded from matching on this build. Nothing is known to be wrong with the skill, and a later build may include it.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_content_absent",
+      "classification": "warning",
+      "definition": "The skill's node carries no body, so the skill is left out of the catalogue.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_content_too_large",
+      "classification": "warning",
+      "definition": "The skill's decoded body exceeds the size ceiling this deployment publishes, so the skill is left out of the catalogue.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_content_undecodable",
+      "classification": "warning",
+      "definition": "The skill's stored body is not a valid escaped Markdown value, so the skill is left out of the catalogue.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_frontmatter_invalid",
+      "classification": "warning",
+      "definition": "The skill's body has front matter that is missing, cannot be parsed, lacks a string name or description, uses a YAML anchor or alias, or carries a name that differs from the skill's id, so the skill is left out of the catalogue.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_not_found",
+      "classification": "refusal",
+      "definition": "The requested skill is not published on this deployment.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.fetch",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "skills.resource",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_reach_read_truncated",
+      "classification": "warning",
+      "definition": "A read inside the skill's reach stopped at its result bound, so the reach understates what the skill covers.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_reach_too_deep",
+      "classification": "warning",
+      "definition": "The skill's reach extends past the depth bound, so the skill is excluded from matching until its attachment points are narrowed.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_reach_too_large",
+      "classification": "warning",
+      "definition": "The skill's reach holds more nodes than the bound allows, so the skill is excluded from matching until its attachment points are narrowed.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_resource_not_found",
+      "classification": "refusal",
+      "definition": "The named skill publishes no resource at the requested bundle-relative path.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.resource",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skill_resource_rejected",
+      "classification": "warning",
+      "definition": "A resource the skill declares is not published: its identifier does not sit under the skill's own, its path breaches the addressing rules, it carries no content, it breaches the size ceiling this deployment publishes, or it does not declare the resource type the platform requires.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        },
+        {
+          "endpoint": "skills.fetch",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skills_corpus_budget_exhausted",
+      "classification": "warning",
+      "definition": "The index build reached the corpus-wide budget for retained skill content before this skill's turn, so the skill is left out of the catalogue. Nothing is known to be wrong with the skill, and a later build may include it once the corpus fits within the budget.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skills_index_incomplete",
+      "classification": "warning",
+      "definition": "Skills were requested and matches were returned, but the index generation those matches were read from may omit skills the platform publishes, because its roster read stopped at a bound or one of its build steps failed, so the matches are not a complete account of which skills apply.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skills_index_unavailable",
+      "classification": "warning",
+      "definition": "Skills were requested but the skills index had not finished a build, so the response carries no skill matches and that absence says nothing about which skills exist or what they apply to.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skills_not_matchable",
+      "classification": "warning",
+      "definition": "Skills were requested on a part that resolved to no spec, so the part binds no graph nodes and there was nothing to match a skill against.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skills_roster_entry_unaddressable",
+      "classification": "warning",
+      "definition": "A published skill's dcid is unaddressable: it carries a character the Skills API's addressing grammar cannot express, it runs past the length that grammar admits, or it collides with a reserved platform meta name, so the index names it and leaves it out of the catalogue rather than publishing an identifier that answers nothing.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "skills_roster_truncated",
+      "classification": "warning",
+      "definition": "The read that enumerates published skills stopped at its result bound, so the catalogue may omit skills this deployment publishes.",
+      "owning_contract": "skills",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "skills.list",
+          "channel": "skills_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "slot_defaulted",
+      "classification": "warning",
+      "definition": "The query named a constraint slot by its plain name, such as flow, without naming a value for it, and a declared default in the packaged code index fixed that slot to one value, so the answer covers that value alone. The message names the slot and the default value.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "snapshot_not_found",
+      "classification": "refusal",
+      "definition": "This id is known, but no version was ever materialised at the given content_version.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "snapshot_revoked",
+      "classification": "refusal",
+      "definition": "This snapshot was taken down and stays revoked.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 410
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "spec_id_mismatch",
+      "classification": "refusal",
+      "definition": "The supplied definition or member list does not hash to the id beside it.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "spec_not_exportable",
+      "classification": "refusal",
+      "definition": "This spec resolves to a breadth-only coverage region with no enumerable member series.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "spec_not_found",
+      "classification": "refusal",
+      "definition": "No definition or collection is registered at this id, and none was supplied beside it.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "standard_probe_places_clamped",
+      "classification": "warning",
+      "definition": "The flattened set of place probes a multi-place query expands into exceeded the overall cap, independent of any per-region child-place clamp.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "starved_axis_binding_restored",
+      "classification": "warning",
+      "definition": "A constraint axis the availability floor had starved to an empty value set, because every place-available member is silent on it, is restored because the query names one of the axis's own unscoped values. The floor had hidden the axis from the binder.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "stat_vars_summed",
+      "classification": "warning",
+      "definition": "The series sums observations from more than one StatVar in the requested family, and carries the family's reference as its stat_var.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "time_text_not_parsed",
+      "classification": "warning",
+      "definition": "A free-form time phrase in a parsed-door request did not match any recognised date grammar, so it is treated as dateless instead of being refused.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "time_window_defaulted",
+      "classification": "warning",
+      "definition": "No time window was named on the request, so the answer was resolved across the series' whole published history. Distinct from time_text_not_parsed, which reports a window that was named but not understood.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "timeout",
+      "classification": "refusal",
+      "definition": "The request did not complete before its deadline.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "platform.any",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 504
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "un_system_unavailable",
+      "classification": "warning",
+      "definition": "The UN System Data Commons did not answer for part of the request: either the resolve, so the answer holds no UN candidates, or reads for named places, so the answer holds no UN data for the places the warning names.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unit_conversion_unavailable",
+      "classification": "warning",
+      "definition": "The API could not load its conversion catalogue, so this answer states no unit_conversion offer even though its data may convert. The absent offer says nothing about which conversions the data supports.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unit_not_resolved",
+      "classification": "refusal",
+      "definition": "The unit phrase cannot be parsed by the binder's grammar, carries tokens its lexicons do not consume, or names an ambiguous currency with no declared alias.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unit_request_unsupported",
+      "classification": "refusal",
+      "definition": "The unit phrase parses but names something the request grammar cannot express, such as PPP terms, a non-currency unit, or a per-capita form.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "unsupported_code"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unsupported_children_anchor_type",
+      "classification": "refusal",
+      "definition": "The options request's children scope binds an anchor entity whose type has no children-scope mapping in this deployment.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unsupported_peers_anchor_type",
+      "classification": "refusal",
+      "definition": "The options request's peers scope binds an anchor entity whose type has no peers-scope mapping in this deployment.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unsupported_schema_version",
+      "classification": "refusal",
+      "definition": "The request names a schema_version other than the one supported, an identity_version the server does not mint, or a definition binding an axis key that belongs to a higher schema_version than the request declares.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "graph.resolve",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "upstream_error",
+      "classification": "refusal",
+      "definition": "A call to an upstream data source failed or returned an error.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "search.options",
+          "doors": [
+            "options"
+          ],
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "graph.node",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "graph.resolve",
+          "channel": "problem_details",
+          "http_status": 502
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "upstream_version_changed",
+      "classification": "refusal",
+      "definition": "The upstream source refreshed mid-materialisation and the retry did not converge.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 503
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "variable_not_resolved",
+      "classification": "refusal",
+      "definition": "No StatVar matched the requested variable text.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "variable_text_entity_like",
+      "classification": "warning",
+      "definition": "A parsed-door part carried no structured entities array and its variable_text contains a capitalised token that looks like a place or organisation name, which degrades recall scoring. Advisory: the name is not extracted from the text.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "variables_clamped",
+      "classification": "warning",
+      "definition": "The number of variables extracted from the query exceeded the cap and was truncated to the first allowed variables.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "withheld_by_registry",
+      "classification": "warning",
+      "definition": "A series came back empty because every facet for it sits under a provenance the origin registry does not admit; the warning names those provenances.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "search.resolve",
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "write_refused",
+      "classification": "refusal",
+      "definition": "A revise of a component, or an append into an existing composition, carries no write token or one that does not match the draft's. Drafts created before write tokens hold none and refuse every revise.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    }
+  ]
+}

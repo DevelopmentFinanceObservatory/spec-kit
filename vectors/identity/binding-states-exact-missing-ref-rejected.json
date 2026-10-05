@@ -1,0 +1,35 @@
+{
+  "format_version": 1,
+  "name": "binding-states-exact-missing-ref-rejected",
+  "description": "An exact-state slot binding carrying neither 'ref' nor 'refs' is refused as schema_violation: exact's one required member is absent, and no sibling shape is present to prefer a more specific category over it.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "binding-states.exact-missing-ref-rejected"
+  ],
+  "notes": "Contrasts with binding-states-exact-with-refs-rejected, where the wrong-family sibling ('refs') is present alongside the missing 'ref' and invalid_binding_shape wins; here nothing but 'state' is present, so the plain missing-required-member path applies.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "exact"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

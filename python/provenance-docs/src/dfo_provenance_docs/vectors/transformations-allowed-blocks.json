@@ -1,0 +1,12 @@
+{
+  "id": "transformations-allowed-blocks",
+  "description": "Paragraphs join their soft wraps; lists, fences, indented code and block quotes keep their source lines.",
+  "function": "parse_transformations",
+  "input": "## Step\\n\\nFirst line\\n   indented continuation \\nlast.\\n\\n- one\\n  wrapped\\n- two\\n\\n\\n1. first\\n2. second\\n\\n```python\\nx = 1\\n```\\n\\n    indented code\\n\\n> quoted\\n> text\\n",
+  "expect": [
+    {
+      "title": "Step",
+      "description": "First line indented continuation last.\n\n- one\n  wrapped\n- two\n\n1. first\n2. second\n\n```python\nx = 1\n```\n\n    indented code\n\n> quoted\n> text"
+    }
+  ]
+}

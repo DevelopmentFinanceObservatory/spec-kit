@@ -1,0 +1,42 @@
+{
+  "id": "changelog-every-kind",
+  "description": "All six groups parse in document order, with several bullets per group.",
+  "function": "parse_changelog",
+  "input": "## 2026-10-01 Every kind\\n\\n### Security\\n\\n- Tightened access.\\n\\n### Added\\n\\n- One.\\n- Two.\\n\\n### Changed\\n\\n* Changed.\\n\\n### Deprecated\\n\\n- Old field.\\n\\n### Removed\\n\\n- Gone.\\n\\n### Fixed\\n\\n- A bug,\\n  wrapped.\\n",
+  "expect": [
+    {
+      "date": "2026-10-01",
+      "title": "Every kind",
+      "changes": [
+        {
+          "kind": "security",
+          "note": "Tightened access."
+        },
+        {
+          "kind": "added",
+          "note": "One."
+        },
+        {
+          "kind": "added",
+          "note": "Two."
+        },
+        {
+          "kind": "changed",
+          "note": "Changed."
+        },
+        {
+          "kind": "deprecated",
+          "note": "Old field."
+        },
+        {
+          "kind": "removed",
+          "note": "Gone."
+        },
+        {
+          "kind": "fixed",
+          "note": "A bug, wrapped."
+        }
+      ]
+    }
+  ]
+}

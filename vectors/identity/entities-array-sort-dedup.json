@@ -1,0 +1,120 @@
+{
+  "format_version": 1,
+  "name": "entities-array-sort-dedup",
+  "description": "An ordinary positive case: a slot array out of property-dcid order and an entity role array with two out-of-order distinct refs plus a duplicate all normalise before hashing, while a second bound facet axis and a full range window pass through unchanged.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "binding-states.value",
+    "entities.sort-dedup",
+    "slots.sort-by-property",
+    "facets.non-sparse",
+    "window.range.full"
+  ],
+  "notes": "Reuses the developmentFinanceFlow shape member value and refs from the identity specification's own worked examples -- see schemas/vectors/README.md's fixture vocabulary.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinanceScheme",
+        "binding": {
+          "state": "value",
+          "ref": "GrantsScheme"
+        }
+      },
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "destination": [
+        "country/TGO"
+      ],
+      "origin": [
+        "country/USA",
+        "country/FRA",
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "constant"
+        }
+      },
+      "provenance": {
+        "state": "value",
+        "ref": "OECD_DAC2A"
+      }
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2015,
+      "end_year": 2024
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      },
+      {
+        "property": "DevelopmentFinanceScheme",
+        "binding": {
+          "state": "value",
+          "ref": "GrantsScheme"
+        }
+      }
+    ],
+    "entities": {
+      "destination": [
+        "country/TGO"
+      ],
+      "origin": [
+        "country/FRA",
+        "country/USA"
+      ]
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2015,
+      "end_year": 2024
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": "EUR",
+          "prices": "constant",
+          "base_year": 2023
+        }
+      },
+      "provenance": {
+        "state": "value",
+        "ref": "OECD_DAC2A"
+      }
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b2264657374696e6174696f6e223a5b22636f756e7472792f54474f225d2c226f726967696e223a5b22636f756e7472792f465241222c22636f756e7472792f555341225d7d2c22666163657473223a7b2270726f76656e616e6365223a7b22726566223a224f4543445f4441433241222c227374617465223a2276616c7565227d2c22756e6974223a7b2272657175657374223a7b22626173655f79656172223a323032332c2263757272656e6379223a22455552222c22707269636573223a22636f6e7374616e74227d2c227374617465223a2276616c7565227d7d2c226964656e746974795f76657273696f6e223a227370656331222c227265717565737465645f77696e646f77223a7b22656e645f79656172223a323032342c226b696e64223a2272616e6765222c2273746172745f79656172223a323031357d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b7b2262696e64696e67223a7b22726566223a224d616c61726961222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365227d2c7b2262696e64696e67223a7b22726566223a224772616e7473536368656d65222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365536368656d65227d5d7d",
+  "spec_id": "spec_a06797c214fbc3f8def092bf34eed788"
+}

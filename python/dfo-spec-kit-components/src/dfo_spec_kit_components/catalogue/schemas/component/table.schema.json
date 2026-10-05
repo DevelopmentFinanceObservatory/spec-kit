@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/presentation/schema/v1/component/table.schema.json",
+  "title": "table component",
+  "description": "Resolved payload for the `table` catalogue member: one row per (selected coordinate, period), the cross-product of every arrayed selection.",
+  "type": "object",
+  "additionalProperties": false,
+  "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "title",
+    "columns",
+    "rows"
+  ],
+  "properties": {
+    "type": {
+      "const": "table"
+    },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "text",
+        "authorship"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "authorship": {
+          "enum": [
+            "model"
+          ]
+        }
+      }
+    },
+    "columns": {
+      "description": "One entry per selected dimension, in select order, followed by period and value.",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/column"
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2000,
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "period": {
+      "type": "string",
+      "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+      "maxLength": 10
+    },
+    "observed_period": {
+      "$comment": "A point at year, month or day grain, or a closed span `start/end` whose two ends share one grain. The frame grammar's period rule also requires start before end, which a pattern cannot compare.",
+      "type": "string",
+      "pattern": "^([0-9]{4}(/[0-9]{4})?|[0-9]{4}-(0[1-9]|1[0-2])(/[0-9]{4}-(0[1-9]|1[0-2]))?|[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))?)$",
+      "maxLength": 21
+    },
+    "column": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "key",
+        "label"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "unit": {
+      "$comment": "Pass-through unit slot: null, an opaque graph-ref string, or a structured object. No conversion happens in Presentation; the structured object's own field set is seam-owed to the upstream unit design.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        {
+          "$ref": "#/$defs/structured_unit"
+        }
+      ]
+    },
+    "structured_unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "magnitude": {
+          "type": "string",
+          "enum": [
+            "units",
+            "thousands",
+            "millions",
+            "billions",
+            "trillions"
+          ]
+        },
+        "prices": {
+          "enum": [
+            "current",
+            "constant"
+          ]
+        },
+        "base_year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1900,
+          "maximum": 2100
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "dimensions",
+        "period",
+        "source_ref",
+        "unit"
+      ],
+      "properties": {
+        "series_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,64}$",
+          "description": "the series identity the row belongs to, equal to the id a bar or line series would carry for the same coordinates"
+        },
+        "dimensions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "period": {
+          "$ref": "#/$defs/observed_period"
+        },
+        "source_ref": {
+          "type": "string",
+          "pattern": "^src_[a-z0-9_]{1,60}$"
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        },
+        "value": {
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "missing",
+            "suppressed",
+            "not_applicable"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "status": false
+          }
+        },
+        {
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "value": false
+          }
+        }
+      ]
+    }
+  }
+}

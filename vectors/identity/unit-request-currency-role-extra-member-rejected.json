@@ -1,0 +1,47 @@
+{
+  "format_version": 1,
+  "name": "unit-request-currency-role-extra-member-rejected",
+  "description": "A currency role object carrying a member beyond 'role' violates the closed one-member shape -- the same additionalProperties-style refusal every other closed object in this scheme enforces, regardless of nesting depth.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.currency-role-extra-member"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": {
+            "role": "origin",
+            "extra": "x"
+          },
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "unknown_member"
+}

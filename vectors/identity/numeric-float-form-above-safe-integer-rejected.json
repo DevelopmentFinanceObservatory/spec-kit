@@ -1,0 +1,14 @@
+{
+  "format_version": 1,
+  "name": "numeric-float-form-above-safe-integer-rejected",
+  "description": "A float-form literal (1e16, value 10^16) above 2^53-1, I-JSON's safely representable integer bound, is refused as number_out_of_range regardless of spelling -- the same rejection numeric-above-safe-integer-rejected proves for the plain integer spelling.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "numeric.out-of-range",
+    "numeric.above-safe-integer"
+  ],
+  "notes": "1e16 evaluates to 10^16, larger than 2^53-1 (Number.MAX_SAFE_INTEGER), the bound number_out_of_range's own definition names. Distinct integer literals above the bound collapse to one IEEE-754 double, so accepting them would break the injectivity of literal to id.",
+  "input_bytes": "7b226964656e746974795f76657273696f6e223a227370656331222c2273686170655f6964223a22646576656c6f706d656e7446696e616e6365466c6f77222c22736c6f7473223a5b7b2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365222c2262696e64696e67223a7b227374617465223a2276616c7565222c22726566223a224d616c61726961227d7d5d2c22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c227265717565737465645f77696e646f77223a7b226b696e64223a2272616e6765222c2273746172745f79656172223a316531367d7d",
+  "failure_category": "number_out_of_range"
+}

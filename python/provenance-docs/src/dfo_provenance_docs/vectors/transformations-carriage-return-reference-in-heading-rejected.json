@@ -1,0 +1,10 @@
+{
+  "id": "transformations-carriage-return-reference-in-heading-rejected",
+  "description": "A character reference that decodes to a carriage return in a heading is rejected.",
+  "function": "parse_transformations",
+  "input": "## A&#13;B\\n\\nBody.\\n",
+  "error": {
+    "reason": "heading_not_plain_text",
+    "line": 1
+  }
+}

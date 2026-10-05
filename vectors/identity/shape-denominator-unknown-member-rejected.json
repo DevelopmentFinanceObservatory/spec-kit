@@ -1,0 +1,39 @@
+{
+  "format_version": 1,
+  "name": "shape-denominator-unknown-member-rejected",
+  "description": "A measurement_denominator carrying a member outside ref and unresolved is refused: the sub-union is a closed object, checked ahead of the ref-vs-unresolved discriminator.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "shape.denominator.unknown-member-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow",
+      "measurement_denominator": {
+        "ref": "Count_Person",
+        "bogus": "y"
+      }
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "unknown_member"
+}

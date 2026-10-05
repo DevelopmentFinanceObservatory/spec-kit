@@ -1,0 +1,41 @@
+{
+  "format_version": 1,
+  "name": "facet-null-ref-provenance-rejected",
+  "description": "A provenance facet bound to a null ref is refused: every facet carries a provenance, so the ref names nothing.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.null-ref.provenance-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "provenance": {
+        "state": "value",
+        "ref": null
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

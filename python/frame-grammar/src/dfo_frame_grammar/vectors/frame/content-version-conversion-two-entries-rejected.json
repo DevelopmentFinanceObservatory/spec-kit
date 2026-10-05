@@ -1,0 +1,53 @@
+{
+  "format_version": 1,
+  "name": "content-version-conversion-two-entries-rejected",
+  "description": "A conversion array holding two entries is refused as schema_violation: one frame converts under one recipe and table-version pair, so the minter refuses to pick one entry or merge them.",
+  "kind": "content_version",
+  "classification": "negative",
+  "coverage": [
+    "preimage.conversion.trace-entry.multiple"
+  ],
+  "frame_sha256": "762594fb05dfb9d9cf17cb2133511f05f08d7fc93ea0ce2f1d38f2b2f346b5ae",
+  "content_version_input": {
+    "graph_revision": "graph-rev-2024-04",
+    "source_revisions": [],
+    "facets": [],
+    "conversion": [
+      {
+        "recipe": "fx_convert",
+        "rate_table_version": "fx-2024-04",
+        "members": [],
+        "fallback": {
+          "count": 0,
+          "examples": [],
+          "truncated": false
+        },
+        "projected": {
+          "count": 1,
+          "examples": [
+            "2025"
+          ],
+          "truncated": false
+        }
+      },
+      {
+        "recipe": "fx_convert",
+        "rate_table_version": "fx-2024-05",
+        "members": [],
+        "fallback": {
+          "count": 0,
+          "examples": [],
+          "truncated": false
+        },
+        "projected": {
+          "count": 1,
+          "examples": [
+            "2025"
+          ],
+          "truncated": false
+        }
+      }
+    ]
+  },
+  "failure_category": "schema_violation"
+}

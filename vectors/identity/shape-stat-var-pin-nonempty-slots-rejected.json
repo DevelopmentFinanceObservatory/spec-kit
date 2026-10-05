@@ -1,0 +1,35 @@
+{
+  "format_version": 1,
+  "name": "shape-stat-var-pin-nonempty-slots-rejected",
+  "description": "A pinned arm (kind: stat_var) beside a non-empty slots array is refused: the pin already carries every narrowing, and a parallel slot-level description would give one intent two spellings.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "shape.stat-var.pin-nonempty-slots-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "stat_var",
+      "id": "Count_Person_Female"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

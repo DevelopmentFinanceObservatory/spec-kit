@@ -1,0 +1,46 @@
+{
+  "format_version": 1,
+  "name": "binding-states-no-slots-declared-diverges-from-all-unbound",
+  "description": "A document declaring no slots at all, sharing the same shape/entities/window as binding-states-all-unbound-retained, mints a different id from that all-unbound sibling.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "binding-states.no-slots-declared",
+    "projection.unbound-slot-retention"
+  ],
+  "notes": "Pins the divergence binding-states-all-unbound-retained's notes describe: a shape carrying two declared-but-unbound slots and a shape carrying none are different identities, so their ids differ even though both projections carry an empty or two-entry slots array over otherwise identical shape/entities/window.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c226964656e746974795f76657273696f6e223a227370656331222c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b5d7d",
+  "spec_id": "spec_effba3716f4434354042a7df9c8d6f3f"
+}

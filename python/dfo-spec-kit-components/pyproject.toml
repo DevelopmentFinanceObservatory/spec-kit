@@ -1,0 +1,139 @@
+[project]
+name = "dfo-spec-kit-components"
+version = "0.1.0"
+description = "The presentation contract bundle: catalogue schemas, the write-side intent grammar, and conformance fixtures, shipped as package data."
+authors = [
+  { name = "ONE Campaign" }
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+keywords = []  # Add relevant keywords for PyPI discoverability
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.29,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# The distribution name (dfo-spec-kit-components) does not match the
+# import name (dfo_spec_kit_components) uv_build would otherwise infer it
+# from -- the import name stays dfo_spec_kit_components regardless of what
+# this distribution is called, so it must be pinned explicitly.
+module-name = ["dfo_spec_kit_components"]
+# uv_build already ships every non-.py file under the module root by
+# default, so this is belt-and-braces: an explicit pin for the packaged
+# catalogue bundle rather than reliance on that default staying unchanged.
+source-include = ["src/dfo_spec_kit_components/catalogue/**/*.json"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.0",
+    "pytest-cov>=7.1.0",
+    "ty>=0.0.59",
+    "ruff>=0.15.0",
+    "pre-commit>=4.6.0",
+    "jsonschema>=4.23",
+    "referencing>=0.36",
+]
+
+[tool.ruff]
+# Deliberate: kit standard is 88, not 100.
+line-length = 88
+target-version = "py312"
+extend-include = ["*.ipynb"]
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".pytest_cache",
+    "htmlcov",
+]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F",      # pycodestyle, pyflakes
+    "I",                 # isort
+    "N",                 # pep8-naming
+    "UP",                # pyupgrade
+    "B",                 # bugbear
+    "C4",                # comprehensions
+    "SIM",               # simplify
+    "PL",                # pylint
+    "RUF",               # ruff-specific
+    "ERA",               # eradicate (commented-out code)
+    "PERF",              # perflint
+    "ANN",               # flake8-annotations (require type hints on public APIs)
+]
+
+ignore = [
+    "E501",     # Line length (formatter handles)
+    "PLR0913",  # Too many arguments
+    "PLR0912",  # Too many branches
+    "PLR0914",  # Too many locals
+    "PLR0915",  # Too many statements
+    "PLR2004",  # Magic values
+    "ANN401",   # Allow `Any` in typed signatures
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+# Tests don't need annotations or pylint-complexity gates.
+"tests/**/*.py" = ["ANN", "PLR2004"]
+# Notebooks: don't require annotations; allow REPL-style patterns.
+"**/*.ipynb" = ["ANN", "F401", "F811", "E402"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.src]
+include = ["src/dfo_spec_kit_components"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src/dfo_spec_kit_components --cov-report=term --cov-report=xml"
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+precision = 2

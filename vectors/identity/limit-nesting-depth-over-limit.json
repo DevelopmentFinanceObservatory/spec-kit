@@ -1,0 +1,13 @@
+{
+  "format_version": 1,
+  "name": "limit-nesting-depth-over-limit",
+  "description": "A definition nested one level past the maximum depth of 5 -- an array nested inside a slot's set refs array, reaching depth 6 -- is refused before schema validation ever inspects the wrongly-typed member.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "limits.nesting-depth.over-limit"
+  ],
+  "notes": "The nested array is also the wrong member type for refs (an array of arrays where an array of strings belongs), which would ordinarily be a schema_violation. Because the nesting-depth check runs at the strict parse stage, before schema validation, the input is refused as input_limit_exceeded instead -- the parser never gets far enough to type-check the member. input_bytes is used rather than input because the point under test is strict-parse-stage behaviour on raw text.",
+  "input_bytes": "7b226964656e746974795f76657273696f6e223a227370656331222c2273686170655f6964223a22646576656c6f706d656e7446696e616e6365466c6f77222c22736c6f7473223a5b7b2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365222c2262696e64696e67223a7b227374617465223a22736574222c2272656673223a5b5b22746573742f6e65737465642d61727261792d61742d64657074682d736978225d5d7d7d5d2c22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d7d",
+  "failure_category": "input_limit_exceeded"
+}

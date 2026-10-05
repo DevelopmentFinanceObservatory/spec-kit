@@ -1,0 +1,34 @@
+{
+  "format_version": 1,
+  "name": "identity-version-missing-rejected",
+  "description": "identity_version omitted entirely is a missing required member, not an unsupported version -- schema_violation, not unsupported_identity_version.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "version.missing"
+  ],
+  "input": {
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}
