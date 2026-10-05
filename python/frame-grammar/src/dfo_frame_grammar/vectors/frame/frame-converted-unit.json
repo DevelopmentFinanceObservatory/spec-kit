@@ -1,0 +1,126 @@
+{
+  "format_version": 1,
+  "name": "frame-converted-unit",
+  "description": "A converted frame's unit cell is the closed unit-request object, with base_year present because prices is constant; the content_version preimage carries a matching unit-axis facet entry and a conversion record.",
+  "kind": "frame",
+  "classification": "positive",
+  "coverage": [
+    "frame.cell-domains.unit-request",
+    "content-version.conversion"
+  ],
+  "role_keys": [
+    "provider",
+    "recipient"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "recipient": "country/TGO",
+      "time_period": "2020",
+      "value": 2500.0,
+      "unit": {
+        "currency": "EUR",
+        "prices": "constant",
+        "base_year": 2023
+      }
+    }
+  ],
+  "expected_columns": [
+    "stat_var",
+    "provider",
+    "recipient",
+    "time_period",
+    "value",
+    "unit",
+    "measurementMethod",
+    "provenance",
+    "status"
+  ],
+  "canonical_bytes": "7b22636f6c756d6e73223a5b22737461745f766172222c2270726f7669646572222c22726563697069656e74222c2274696d655f706572696f64222c2276616c7565222c22756e6974222c226d6561737572656d656e744d6574686f64222c2270726f76656e616e6365222c22737461747573225d2c226672616d655f76657273696f6e223a226672616d6531222c22726f7773223a5b5b22646369643a4d616c617269614772616e7444697362757273656d656e7473222c22636f756e7472792f465241222c22636f756e7472792f54474f222c2232303230222c323530302c7b22626173655f79656172223a323032332c2263757272656e6379223a22455552222c22707269636573223a22636f6e7374616e74227d2c6e756c6c2c6e756c6c2c6e756c6c5d5d7d",
+  "expected_document": {
+    "columns": [
+      "stat_var",
+      "provider",
+      "recipient",
+      "time_period",
+      "value",
+      "unit",
+      "measurementMethod",
+      "provenance",
+      "status"
+    ],
+    "frame_version": "frame1",
+    "rows": [
+      [
+        "dcid:MalariaGrantDisbursements",
+        "country/FRA",
+        "country/TGO",
+        "2020",
+        2500,
+        {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "constant"
+        },
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "expected_frame_sha256": "f2a8c9b090bc3f94154a94ba3c039e676e73213115309e9a028a8b845a81650b",
+  "content_version_input": {
+    "graph_revision": "graph-rev-2024-01",
+    "source_revisions": [
+      {
+        "source": "OECD_DAC_CRS",
+        "revision": "rev-7"
+      }
+    ],
+    "facets": [
+      {
+        "axis": "unit",
+        "ref": {
+          "currency": "EUR",
+          "prices": "constant",
+          "base_year": 2023
+        },
+        "basis": "bound"
+      }
+    ],
+    "conversion": {
+      "recipe": "fx_deflate_convert",
+      "rate_table_version": "fx-2024-01",
+      "deflator_table_version": "defl-2024-01"
+    }
+  },
+  "expected_preimage": {
+    "identity_version": "cv1",
+    "frame_sha256": "f2a8c9b090bc3f94154a94ba3c039e676e73213115309e9a028a8b845a81650b",
+    "graph_revision": "graph-rev-2024-01",
+    "source_revisions": [
+      {
+        "source": "OECD_DAC_CRS",
+        "revision": "rev-7"
+      }
+    ],
+    "facets": [
+      {
+        "axis": "unit",
+        "ref": {
+          "currency": "EUR",
+          "prices": "constant",
+          "base_year": 2023
+        },
+        "basis": "bound"
+      }
+    ],
+    "conversion": {
+      "recipe": "fx_deflate_convert",
+      "rate_table_version": "fx-2024-01",
+      "deflator_table_version": "defl-2024-01"
+    }
+  },
+  "expected_content_version": "cv_4dc92947dabc481afd606a42bde10c4a"
+}

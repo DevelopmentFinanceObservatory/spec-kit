@@ -1,0 +1,22 @@
+{
+  "id": "changelog-loose-list-and-title-punctuation",
+  "description": "A loose bullet list parses like a tight one, and the title keeps everything after the first space.",
+  "function": "parse_changelog",
+  "input": "## 2026-09-22 Fix: totals, again (v2)\\n\\n### Fixed\\n\\n- First.\\n\\n- Second.\\n",
+  "expect": [
+    {
+      "date": "2026-09-22",
+      "title": "Fix: totals, again (v2)",
+      "changes": [
+        {
+          "kind": "fixed",
+          "note": "First."
+        },
+        {
+          "kind": "fixed",
+          "note": "Second."
+        }
+      ]
+    }
+  ]
+}

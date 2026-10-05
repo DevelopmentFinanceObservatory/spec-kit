@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "name": "frame-unit-request-prices-non-string-rejected",
+  "description": "A unit-request 'prices' member carrying a JSON array instead of one of the two string literals is refused as invalid_unit, not surfaced as an implementation-level type error.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "cell-domains.unit-request-prices-type"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "time_period": "2015",
+      "value": 1000,
+      "unit": {
+        "currency": "USD",
+        "prices": [
+          "current"
+        ]
+      }
+    }
+  ],
+  "failure_category": "invalid_unit"
+}

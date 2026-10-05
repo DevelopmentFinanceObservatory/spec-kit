@@ -1,0 +1,31 @@
+{
+  "format_version": 1,
+  "name": "shape-denominator-both-ref-and-unresolved-rejected",
+  "description": "measurement_denominator carrying both ref and unresolved at once is refused: the sub-union admits exactly one of the two members, never both.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "shape.denominator.both-ref-and-unresolved-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow",
+      "measurement_denominator": {
+        "ref": "Count_Person",
+        "unresolved": true
+      }
+    },
+    "slots": [],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

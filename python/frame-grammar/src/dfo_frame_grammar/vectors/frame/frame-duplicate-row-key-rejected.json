@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "name": "frame-duplicate-row-key-rejected",
+  "description": "Two rows sharing the same grain (every cell except value and status) are refused rather than both kept as distinct observations.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "rows.duplicate-key"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "time_period": "2015",
+      "value": 1000
+    },
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "time_period": "2015",
+      "value": 2000
+    }
+  ],
+  "failure_category": "duplicate_row_key"
+}

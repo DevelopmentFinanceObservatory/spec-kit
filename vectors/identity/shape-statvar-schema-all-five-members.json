@@ -1,0 +1,111 @@
+{
+  "format_version": 1,
+  "name": "shape-statvar-schema-all-five-members",
+  "description": "The described arm's worked example: all five sparse schema members present at once, with the optional qualifier and denominator alongside the three commonly-bound members.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "shape.statvar-schema.all-five-members"
+  ],
+  "notes": "population_type, measured_property, and stat_type mirror the suite's development-finance worked example; measurement_qualifier and measurement_denominator are added so this vector is the suite's one worked example carrying every described-arm member at once.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "population_type": "DevelopmentFinance",
+      "measured_property": "developmentFinanceFlow",
+      "stat_type": "measuredValue",
+      "measurement_qualifier": "Nominal",
+      "measurement_denominator": {
+        "ref": "Count_Person"
+      }
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ],
+      "destination": [
+        "country/TGO"
+      ]
+    },
+    "facets": {
+      "provenance": {
+        "state": "value",
+        "ref": "OECD_DAC2A"
+      },
+      "unit": {
+        "state": "value",
+        "request": {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "constant"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2015,
+      "end_year": 2024
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "population_type": "DevelopmentFinance",
+      "measured_property": "developmentFinanceFlow",
+      "stat_type": "measuredValue",
+      "measurement_qualifier": "Nominal",
+      "measurement_denominator": {
+        "ref": "Count_Person"
+      }
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ],
+      "destination": [
+        "country/TGO"
+      ]
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2015,
+      "end_year": 2024
+    },
+    "facets": {
+      "provenance": {
+        "state": "value",
+        "ref": "OECD_DAC2A"
+      },
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": "EUR",
+          "prices": "constant",
+          "base_year": 2023
+        }
+      }
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b2264657374696e6174696f6e223a5b22636f756e7472792f54474f225d2c226f726967696e223a5b22636f756e7472792f465241225d7d2c22666163657473223a7b2270726f76656e616e6365223a7b22726566223a224f4543445f4441433241222c227374617465223a2276616c7565227d2c22756e6974223a7b2272657175657374223a7b22626173655f79656172223a323032332c2263757272656e6379223a22455552222c22707269636573223a22636f6e7374616e74227d2c227374617465223a2276616c7565227d7d2c226964656e746974795f76657273696f6e223a227370656331222c227265717565737465645f77696e646f77223a7b22656e645f79656172223a323032342c226b696e64223a2272616e6765222c2273746172745f79656172223a323031357d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77222c226d6561737572656d656e745f64656e6f6d696e61746f72223a7b22726566223a22436f756e745f506572736f6e227d2c226d6561737572656d656e745f7175616c6966696572223a224e6f6d696e616c222c22706f70756c6174696f6e5f74797065223a22446576656c6f706d656e7446696e616e6365222c22737461745f74797065223a226d6561737572656456616c7565227d2c22736c6f7473223a5b7b2262696e64696e67223a7b22726566223a224d616c61726961222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365227d5d7d",
+  "spec_id": "spec_f7e826ed95c434f3b0d907511667a412"
+}

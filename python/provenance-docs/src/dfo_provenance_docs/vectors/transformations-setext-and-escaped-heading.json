@@ -1,0 +1,16 @@
+{
+  "id": "transformations-setext-and-escaped-heading",
+  "description": "A one-line setext heading is a level 2 heading, and escapes and entities in a heading decode to plain text.",
+  "function": "parse_transformations",
+  "input": "Step one\\n--------\\n\\nBody.\\n\\n## Costs \\\\*net\\\\* &amp; gross\\n\\nBody two.\\n",
+  "expect": [
+    {
+      "title": "Step one",
+      "description": "Body."
+    },
+    {
+      "title": "Costs *net* & gross",
+      "description": "Body two."
+    }
+  ]
+}

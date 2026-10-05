@@ -1,0 +1,13 @@
+{
+  "format_version": 1,
+  "name": "limit-number-length-over-limit",
+  "description": "A start_year literal of 1234567.890123456, 17 characters as written, is refused before schema validation ever inspects the non-integer year.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "limits.number-length.over-limit"
+  ],
+  "notes": "The literal's magnitude (about 1.23 million) is well within the safe-integer range, and only its 17-character length violates the limit, so exactly one refusal behaviour is under test, not a magnitude or type conflation. The literal is also not an integer, which would ordinarily be a schema_violation for a year field; because the number-length check runs at the strict parse stage, before schema validation, the input is refused as input_limit_exceeded instead. input_bytes is required so the exact 17-character spelling is preserved rather than reformatted by a JSON writer.",
+  "input_bytes": "7b226964656e746974795f76657273696f6e223a227370656331222c2273686170655f6964223a22646576656c6f706d656e7446696e616e6365466c6f77222c22736c6f7473223a5b7b2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365222c2262696e64696e67223a7b227374617465223a2276616c7565222c22726566223a224d616c61726961227d7d5d2c22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c227265717565737465645f77696e646f77223a7b226b696e64223a2272616e6765222c2273746172745f79656172223a313233343536372e3839303132333435367d7d",
+  "failure_category": "input_limit_exceeded"
+}

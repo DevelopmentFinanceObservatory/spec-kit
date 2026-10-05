@@ -1,0 +1,10 @@
+{
+  "id": "prose-html-in-nested-image-alt-rejected",
+  "description": "Raw HTML in the alt text of an image inside another image's alt text is rejected at its own line.",
+  "function": "parse_prose",
+  "input": "Text\\n![outer ![inner\\n<i>x</i>](y)](z)\\n",
+  "error": {
+    "reason": "raw_html",
+    "line": 3
+  }
+}

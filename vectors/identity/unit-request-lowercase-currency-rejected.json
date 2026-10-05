@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "name": "unit-request-lowercase-currency-rejected",
+  "description": "A unit conversion request naming a lower-case currency code violates the 'currency is upper-case ISO 4217' rule.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.lowercase-currency"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": "eur",
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_unit_request"
+}

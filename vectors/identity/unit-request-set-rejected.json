@@ -1,0 +1,45 @@
+{
+  "format_version": 1,
+  "name": "unit-request-set-rejected",
+  "description": "A unit facet bound to state 'set' but carrying a 'request' member (a value-form sibling key) is refused: every member present is correctly typed, but the key combination is wrong for the declared state -- a set of conversion requests has no use case, since conversion requests may only appear in value form.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.set-of-requests"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "set",
+        "request": {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "constant"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

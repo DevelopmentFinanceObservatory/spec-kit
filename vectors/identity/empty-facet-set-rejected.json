@@ -1,0 +1,41 @@
+{
+  "format_version": 1,
+  "name": "empty-facet-set-rejected",
+  "description": "A facet's set binding with zero members expresses no intent and is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "empty-collection.facet-set"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "provenance": {
+        "state": "set",
+        "refs": []
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "empty_collection"
+}

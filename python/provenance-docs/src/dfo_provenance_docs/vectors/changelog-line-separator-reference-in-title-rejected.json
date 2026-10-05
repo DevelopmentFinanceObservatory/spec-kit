@@ -1,0 +1,10 @@
+{
+  "id": "changelog-line-separator-reference-in-title-rejected",
+  "description": "A character reference that decodes to U+2028 in a release title is rejected.",
+  "function": "parse_changelog",
+  "input": "## 2026-09-22 A&#x2028;B\\n\\n### Added\\n\\n- One.\\n",
+  "error": {
+    "reason": "heading_not_plain_text",
+    "line": 1
+  }
+}

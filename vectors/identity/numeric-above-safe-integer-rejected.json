@@ -1,0 +1,14 @@
+{
+  "format_version": 1,
+  "name": "numeric-above-safe-integer-rejected",
+  "description": "An integer literal equal to 2^53, one past I-JSON's safely representable integer bound of 2^53-1, is refused as number_out_of_range -- distinct from numeric-out-of-range-rejected, which only tests the far larger double-overflow threshold.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "numeric.out-of-range",
+    "numeric.above-safe-integer"
+  ],
+  "notes": "9007199254740992 is 2^53, one past 2^53-1 (Number.MAX_SAFE_INTEGER), the bound the number_out_of_range category's own definition already names. Distinct literals above this bound collapse to fewer distinct IEEE-754 doubles than there are literals, so accepting them would break the injectivity of literal to id.",
+  "input_bytes": "7b226964656e746974795f76657273696f6e223a227370656331222c2273686170655f6964223a22646576656c6f706d656e7446696e616e6365466c6f77222c22736c6f7473223a5b7b2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365222c2262696e64696e67223a7b227374617465223a2276616c7565222c22726566223a224d616c61726961227d7d5d2c22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c227265717565737465645f77696e646f77223a7b226b696e64223a2272616e6765222c2273746172745f79656172223a393030373139393235343734303939327d7d",
+  "failure_category": "number_out_of_range"
+}

@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/presentation/schema/v1/component/stat_card.schema.json",
+  "title": "stat_card component",
+  "description": "Resolved payload for the `stat_card` catalogue member: one headline number with label, unit, and an optional derived change (Contract, \"The catalogue\").",
+  "type": "object",
+  "additionalProperties": false,
+  "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "value",
+    "label",
+    "unit",
+    "period"
+  ],
+  "properties": {
+    "type": {
+      "const": "stat_card"
+    },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "text",
+        "authorship"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "authorship": {
+          "$comment": "Only \"model\" exists at launch (Contract's Model-authored-claims row); the enum stays closed rather than open-string so a future first-party/user authorship arrives as a deliberate catalogue change.",
+          "enum": [
+            "model"
+          ]
+        }
+      }
+    },
+    "value": {
+      "type": "number"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "period": {
+      "description": "The period the headline `value` covers: the observation's period, or the span a value derived from several periods covers.",
+      "$ref": "#/$defs/observed_period"
+    },
+    "unit": {
+      "$comment": "Pass-through unit slot, identical shape to line_chart's; no conversion happens in Presentation.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        {
+          "$ref": "#/$defs/structured_unit"
+        }
+      ]
+    },
+    "change": {
+      "$comment": "Optional: a headline with no requested comparison period carries no change. When present, both fields are mandatory -- a change with no stated derivation or basis is exactly the ambiguity stat_change_basis_observed exists to prevent.",
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "derivation",
+        "basis",
+        "value"
+      ],
+      "properties": {
+        "derivation": {
+          "$comment": "Closed, golden-tested derivation set (Contract: \"drawn from a closed, golden-tested derivation set: difference and percent change\").",
+          "enum": [
+            "difference",
+            "percent_change"
+          ]
+        },
+        "basis": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/period"
+          }
+        },
+        "value": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "period": {
+      "type": "string",
+      "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+      "maxLength": 10
+    },
+    "observed_period": {
+      "$comment": "A point at year, month or day grain, or a closed span `start/end` whose two ends share one grain. The frame grammar's period rule also requires start before end, which a pattern cannot compare.",
+      "type": "string",
+      "pattern": "^([0-9]{4}(/[0-9]{4})?|[0-9]{4}-(0[1-9]|1[0-2])(/[0-9]{4}-(0[1-9]|1[0-2]))?|[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))?)$",
+      "maxLength": 21
+    },
+    "structured_unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "magnitude": {
+          "type": "string",
+          "enum": [
+            "units",
+            "thousands",
+            "millions",
+            "billions",
+            "trillions"
+          ]
+        },
+        "prices": {
+          "enum": [
+            "current",
+            "constant"
+          ]
+        },
+        "base_year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1900,
+          "maximum": 2100
+        }
+      }
+    }
+  }
+}

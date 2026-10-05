@@ -1,0 +1,35 @@
+{
+  "format_version": 1,
+  "name": "empty-slot-set-rejected",
+  "description": "A slot's set binding with zero members expresses no intent and is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "empty-collection.slot-set"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "set",
+          "refs": []
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "empty_collection"
+}

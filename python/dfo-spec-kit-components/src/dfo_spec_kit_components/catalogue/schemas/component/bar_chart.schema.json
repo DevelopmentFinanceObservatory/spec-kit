@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/presentation/schema/v1/component/bar_chart.schema.json",
+  "title": "bar_chart component",
+  "description": "Resolved payload for the `bar_chart` catalogue member. Bars compare entities or periods, never both: entity mode bars one point per selected entity at one shared period or one shared span; period mode bars one series' points across a window, the same shape as `line_chart`.",
+  "type": "object",
+  "additionalProperties": false,
+  "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "title",
+    "series",
+    "category_axis",
+    "value_axis"
+  ],
+  "properties": {
+    "type": {
+      "const": "bar_chart"
+    },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "text",
+        "authorship"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "authorship": {
+          "enum": [
+            "model"
+          ]
+        }
+      }
+    },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/bar_series"
+      }
+    },
+    "category_axis": {
+      "description": "Entity mode names the dimension bars categorize by and the one shared period every bar was minted at. Period mode names the window bars span, the same shape line_chart's x_axis carries.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/category_axis_entity_mode"
+        },
+        {
+          "$ref": "#/$defs/category_axis_period_mode"
+        }
+      ]
+    },
+    "value_axis": {
+      "description": "The axis values are drawn on, whichever side orientation puts it.",
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "label",
+        "scale",
+        "range"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "scale": {
+          "enum": [
+            "linear",
+            "log"
+          ]
+        },
+        "range": {
+          "$ref": "#/$defs/range"
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "category_axis": {
+        "properties": {
+          "mode": {
+            "const": "period"
+          }
+        }
+      }
+    }
+  },
+  "then": {
+    "$comment": "Period mode bars one series across a window, so each bar's period is a point; only entity mode carries a span.",
+    "properties": {
+      "series": {
+        "items": {
+          "properties": {
+            "points": {
+              "items": {
+                "properties": {
+                  "period": {
+                    "$ref": "#/$defs/period"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "period": {
+      "type": "string",
+      "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+      "maxLength": 10
+    },
+    "observed_period": {
+      "$comment": "A point at year, month or day grain, or a closed span `start/end` whose two ends share one grain. The frame grammar's period rule also requires start before end, which a pattern cannot compare.",
+      "type": "string",
+      "pattern": "^([0-9]{4}(/[0-9]{4})?|[0-9]{4}-(0[1-9]|1[0-2])(/[0-9]{4}-(0[1-9]|1[0-2]))?|[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))?)$",
+      "maxLength": 21
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/period"
+        },
+        "end": {
+          "$ref": "#/$defs/period"
+        }
+      }
+    },
+    "category_axis_entity_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "mode",
+        "category_dimension",
+        "period"
+      ],
+      "properties": {
+        "mode": {
+          "const": "entity"
+        },
+        "category_dimension": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "period": {
+          "$ref": "#/$defs/observed_period"
+        }
+      }
+    },
+    "category_axis_period_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "mode",
+        "window"
+      ],
+      "properties": {
+        "mode": {
+          "const": "period"
+        },
+        "window": {
+          "$ref": "#/$defs/window"
+        }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "max": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "unit": {
+      "$comment": "Pass-through unit slot: null, an opaque graph-ref string, or a structured object. No conversion happens in Presentation; the structured object's own field set is seam-owed to the upstream unit design.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        {
+          "$ref": "#/$defs/structured_unit"
+        }
+      ]
+    },
+    "structured_unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "magnitude": {
+          "type": "string",
+          "enum": [
+            "units",
+            "thousands",
+            "millions",
+            "billions",
+            "trillions"
+          ]
+        },
+        "prices": {
+          "enum": [
+            "current",
+            "constant"
+          ]
+        },
+        "base_year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1900,
+          "maximum": 2100
+        }
+      }
+    },
+    "bar_point": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "period"
+      ],
+      "properties": {
+        "period": {
+          "$ref": "#/$defs/observed_period"
+        },
+        "value": {
+          "type": "number"
+        },
+        "status": {
+          "$comment": "The status vocabulary the contract reserves: a derived-missing point (no observation for a visible series over the window/grain) and the source-supplied statuses that pass through unchanged.",
+          "enum": [
+            "missing",
+            "suppressed",
+            "not_applicable"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "status": false
+          }
+        },
+        {
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "value": false
+          }
+        }
+      ]
+    },
+    "bar_series": {
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "id",
+        "label",
+        "unit",
+        "source_ref",
+        "points"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,64}$",
+          "description": "derived by the assembler from the series' coordinates; the same selection always yields the same id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        },
+        "source_ref": {
+          "type": "string",
+          "pattern": "^src_[a-z0-9_]{1,60}$"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/bar_point"
+          }
+        }
+      }
+    }
+  }
+}

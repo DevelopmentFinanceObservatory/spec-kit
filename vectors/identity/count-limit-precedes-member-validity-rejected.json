@@ -1,0 +1,422 @@
+{
+  "format_version": 1,
+  "name": "count-limit-precedes-member-validity-rejected",
+  "description": "A definition with 65 slots, one past the schema's published maximum of 64, refuses input_limit_exceeded even though one of its slots also carries a malformed binding (a value state carrying refs): the count is checked before any member is validated.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "limits.schema.count-precedes-member-validity"
+  ],
+  "notes": "Within schema validation, a collection's count limit is checked before its members are validated: an over-count collection carrying an otherwise-invalid member refuses input_limit_exceeded, not the member's own defect category. This vector has 65 slots, one past the schema's maximum of 64, and its first slot (test/slot-00) declares state \"value\" while carrying \"refs\", the set-family sibling, which would ordinarily refuse invalid_binding_shape on its own (see binding-wrong-sibling-and-missing-member-rejected). Because the slot count already exceeds the limit, the count refuses first and that member defect is never reached. The rule applies uniformly to slots, entity roles, values per role, and set members. The facets object is the one exception per the identity specification: axis-name validity is checked before the axis count, so a facets object holding all legal axes plus an unknown key refuses unknown_member instead, since the axis vocabulary is closed and an unknown axis is a closed-object defect, not a limit defect.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "test/slot-00",
+        "binding": {
+          "state": "value",
+          "refs": [
+            "test/malformed-value-with-refs"
+          ]
+        }
+      },
+      {
+        "property": "test/slot-01",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-02",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-03",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-04",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-05",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-06",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-07",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-08",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-09",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-10",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-11",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-12",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-13",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-14",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-15",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-16",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-17",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-18",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-19",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-20",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-21",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-22",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-23",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-24",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-25",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-26",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-27",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-28",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-29",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-30",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-31",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-32",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-33",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-34",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-35",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-36",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-37",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-38",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-39",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-40",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-41",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-42",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-43",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-44",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-45",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-46",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-47",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-48",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-49",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-50",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-51",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-52",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-53",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-54",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-55",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-56",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-57",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-58",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-59",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-60",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-61",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-62",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-63",
+        "binding": {
+          "state": "unbound"
+        }
+      },
+      {
+        "property": "test/slot-64",
+        "binding": {
+          "state": "unbound"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "input_limit_exceeded"
+}

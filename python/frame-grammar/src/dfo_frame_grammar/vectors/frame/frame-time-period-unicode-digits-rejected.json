@@ -1,0 +1,22 @@
+{
+  "format_version": 1,
+  "name": "frame-time-period-unicode-digits-rejected",
+  "description": "A time_period spelled with non-ASCII Unicode decimal digits (Arabic-Indic ٢٠٢٤) is refused: NFC normalisation does not fold other scripts' digits to ASCII, so accepting them would mint a distinct token for a noncanonical spelling of the same period.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "cell-domains.time-period-ascii-digits"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "time_period": "٢٠٢٤",
+      "value": 1000
+    }
+  ],
+  "failure_category": "invalid_time_period"
+}

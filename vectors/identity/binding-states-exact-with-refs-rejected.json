@@ -1,0 +1,38 @@
+{
+  "format_version": 1,
+  "name": "binding-states-exact-with-refs-rejected",
+  "description": "An exact-state slot binding carrying 'refs' (the set-family sibling) instead of the required 'ref' is refused as invalid_binding_shape: exact denotes exactly one code, never a collection.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "invalid-binding-shape.exact-cannot-carry-refs"
+  ],
+  "notes": "Mirrors binding-wrong-sibling-and-missing-member-rejected for the new state: the wrong-family sibling is present and the state's own required member ('ref') is simultaneously absent, and the specific category wins over schema_violation.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "exact",
+          "refs": [
+            "DevelopmentFinancePurposeGroup110"
+          ]
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

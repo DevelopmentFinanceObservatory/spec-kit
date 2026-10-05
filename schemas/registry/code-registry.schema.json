@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ONEcampaign/dfo-spec-kit/main/schemas/registry/code-registry.schema.json",
+  "title": "Platform code registry",
+  "description": "Language-neutral registry of permanent warning and refusal codes across every API surface. See schemas/registry/README.md for field semantics, the addition rule, and the endpoint/door/channel vocabulary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "entries"
+  ],
+  "properties": {
+    "format_version": {
+      "description": "The registry format's own version. Pinned to the version this schema validates; a registry claiming a different format_version must validate against that version's own schema instead.",
+      "const": 1
+    },
+    "entries": {
+      "description": "The registered codes, sorted by `code`.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "classification",
+        "definition",
+        "owning_contract",
+        "owner",
+        "introduced_in",
+        "mappings",
+        "lifecycle"
+      ],
+      "properties": {
+        "code": {
+          "description": "The unique, lower-snake-case code spelling. Permanent once published: a changed meaning gets a new code, never a rewritten definition under the same spelling.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+        },
+        "classification": {
+          "description": "refusal is a request that cannot be answered. It appears in a non-2xx problem-details body, a 200 no_data reason, a 200 unsupported reason, or a 200 no_data response's flagged_match.gate. warning is a diagnostic attached to an otherwise-answered request. It appears in diagnostics.warnings, the SSE stream's terminal done event, a Datasets manifest's warnings array, a Datasets options envelope's warnings array, or a Skills API list or skill body's warnings array.",
+          "enum": [
+            "refusal",
+            "warning"
+          ]
+        },
+        "definition": {
+          "description": "The stable semantic definition: one to three sentences, present tense, no implementation detail (no function or variable names).",
+          "type": "string",
+          "minLength": 1
+        },
+        "owning_contract": {
+          "description": "The short name of the normative contract document that defines this code's meaning.",
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "description": "The team accountable for this code's meaning.",
+          "type": "string",
+          "minLength": 1
+        },
+        "introduced_in": {
+          "description": "The owning contract's version that first defined this code.",
+          "type": "string",
+          "minLength": 1
+        },
+        "mappings": {
+          "description": "Every endpoint/door/channel combination this code is allowed to appear on.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/mapping"
+          }
+        },
+        "lifecycle": {
+          "description": "active: in current use. retired: no longer emitted, spelling permanently reserved and never reused for a different meaning. A published entry may otherwise not be deleted; the one exception is a narrow, explicitly named allowance in tools/validate_registry.py for a code whose producing engine was removed before it was ever actually emitted.",
+          "enum": [
+            "active",
+            "retired"
+          ]
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpoint",
+        "channel"
+      ],
+      "properties": {
+        "endpoint": {
+          "description": "The contract endpoint this code can appear on.",
+          "enum": [
+            "search.resolve",
+            "search.options",
+            "presentation.write",
+            "datasets.register",
+            "datasets.mint",
+            "datasets.definition",
+            "datasets.options",
+            "datasets.snapshot",
+            "datasets.observations",
+            "datasets.pin",
+            "datasets.publish",
+            "datasets.operations",
+            "graph.node",
+            "graph.resolve",
+            "platform.any",
+            "platform.codes",
+            "skills.list",
+            "skills.fetch",
+            "skills.resource"
+          ]
+        },
+        "doors": {
+          "description": "The request doors this mapping applies to. Omitted when the code applies regardless of door.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "raw_text",
+              "parsed",
+              "dataset_resubmit",
+              "options"
+            ]
+          }
+        },
+        "channel": {
+          "description": "problem_details is a non-2xx RFC 9457 body. no_data_reason is the 200 no_data status's `reason`. unsupported_code is the 200 unsupported status's `code`. diagnostics_warning is an entry in the response envelope's diagnostics.warnings. done_event_warning is an entry in the SSE stream's terminal done event, for trailing work that finishes after the response event has shipped. manifest_warning is an entry in a Datasets manifest's warnings array or a Datasets options envelope's warnings array. flagged_match_gate is the failed quality-gate code in a 200 no_data response's `flagged_match.gate`, naming why the nearest real match was flagged in place of a confident answer. skills_warning is an entry in a Skills API list body's or skill body's warnings array. observations_omission_reason is a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series. The Datasets observations body carries the same `omitted` object.",
+          "enum": [
+            "problem_details",
+            "no_data_reason",
+            "unsupported_code",
+            "diagnostics_warning",
+            "done_event_warning",
+            "manifest_warning",
+            "flagged_match_gate",
+            "skills_warning",
+            "observations_omission_reason"
+          ]
+        },
+        "http_status": {
+          "description": "The non-2xx HTTP status. Present only when channel is problem_details.",
+          "type": "integer",
+          "minimum": 400,
+          "maximum": 599
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "channel": {
+                "const": "problem_details"
+              }
+            },
+            "required": [
+              "channel"
+            ]
+          },
+          "then": {
+            "required": [
+              "http_status"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "http_status"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "endpoint": {
+                "const": "search.resolve"
+              }
+            },
+            "required": [
+              "endpoint"
+            ]
+          },
+          "then": {
+            "properties": {
+              "doors": {
+                "items": {
+                  "enum": [
+                    "raw_text",
+                    "parsed",
+                    "dataset_resubmit"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "endpoint": {
+                "const": "search.options"
+              }
+            },
+            "required": [
+              "endpoint"
+            ]
+          },
+          "then": {
+            "properties": {
+              "doors": {
+                "items": {
+                  "const": "options"
+                },
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "endpoint": {
+                "enum": [
+                  "presentation.write",
+                  "datasets.register",
+                  "datasets.mint",
+                  "datasets.definition",
+                  "datasets.options",
+                  "datasets.snapshot",
+                  "datasets.observations",
+                  "datasets.pin",
+                  "datasets.publish",
+                  "datasets.operations",
+                  "graph.node",
+                  "graph.resolve",
+                  "platform.any",
+                  "platform.codes",
+                  "skills.list",
+                  "skills.fetch",
+                  "skills.resource"
+                ]
+              }
+            },
+            "required": [
+              "endpoint"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "doors"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

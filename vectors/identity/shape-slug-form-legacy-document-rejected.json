@@ -1,0 +1,33 @@
+{
+  "format_version": 1,
+  "name": "shape-slug-form-legacy-document-rejected",
+  "description": "A stale slug-form document carrying the retired shape_id string member (and no shape member at all) is refused: shape_id is unknown and shape is missing, so a legacy document cannot mint beside the new ids.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "shape.legacy-shape-id-rejected"
+  ],
+  "notes": "shape_id is not in the identity core's closed top-level member set, so this refuses unknown_member before the separately-missing shape member is ever checked.",
+  "input": {
+    "identity_version": "spec1",
+    "shape_id": "developmentFinanceFlow",
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "unknown_member"
+}

@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "name": "unknown-nested-member-rejected",
+  "description": "A member the schema does not declare, nested inside a slot's binding object, is rejected -- the same defect as a top-level unknown member, wherever it occurs.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "closed-object.nested"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria",
+          "unexpected_member": "x"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "unknown_member"
+}

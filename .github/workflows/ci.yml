@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: python/spec-kit
+            module: dfo_spec_kit
+          - package: python/frame-grammar
+            module: dfo_frame_grammar
+          - package: python/dfo-spec-kit-components
+            module: dfo_spec_kit_components
+          - package: python/provenance-docs
+            module: dfo_provenance_docs
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.2
+
+      - name: Cache uv
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles(format('{0}/uv.lock', matrix.package)) }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run ruff check
+        run: uv run ruff check .
+
+      - name: Run ruff format check
+        run: uv run ruff format --check .
+
+      - name: Run ty
+        run: uv run ty check src/${{ matrix.module }}
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          [
+            python/spec-kit,
+            python/frame-grammar,
+            python/dfo-spec-kit-components,
+            python/provenance-docs,
+          ]
+        python-version: ["3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.2
+
+      - name: Cache uv
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ matrix.python-version }}-${{ hashFiles(format('{0}/uv.lock', matrix.package)) }}
+          restore-keys: |
+            ${{ runner.os }}-uv-${{ matrix.python-version }}-
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --frozen --python ${{ matrix.python-version }}
+
+      - name: Run pytest
+        run: uv run pytest
+
+  registry:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # full history + tags: the validator's immutability check diffs the
+          # registry against the latest release tag
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.2
+
+      - name: Validate code registry
+        run: uv run tools/validate_registry.py
+
+      - name: Test the registry validator
+        run: uv run --with jsonschema --with pytest pytest tools/tests -q
+
+      - name: Validate identity vectors
+        run: uv run tools/validate_vectors.py
+
+      - name: Validate frame grammar vectors
+        run: uv run tools/validate_frame_vectors.py
+
+      - name: Validate provenance docs vectors
+        run: uv run tools/validate_provenance_docs_vectors.py

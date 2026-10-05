@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/presentation/schema/v1/component/note_narration.schema.json",
+  "title": "note_narration component",
+  "description": "Resolved payload for the `note_narration` catalogue member: model-authored text, labelled as model voice.",
+  "type": "object",
+  "additionalProperties": false,
+  "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "text",
+    "authorship"
+  ],
+  "properties": {
+    "type": {
+      "const": "note_narration"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "authorship": {
+      "$comment": "Only \"model\" exists at launch, the same closed vocabulary the other components' title.authorship carries.",
+      "enum": [
+        "model"
+      ]
+    }
+  }
+}

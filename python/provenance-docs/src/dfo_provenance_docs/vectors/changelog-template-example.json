@@ -1,0 +1,28 @@
+{
+  "id": "changelog-template-example",
+  "description": "The template's example parses into two releases.",
+  "function": "parse_changelog",
+  "input": "## 2026-09-22 Exclude donor core contributions\\n\\n### Changed\\n\\n- Donor core contributions to multilateral organisations (`bi_multi = 2`) are\\n  excluded from bilateral flows, since they would otherwise double count.\\n\\n## 2026-08-20 First release\\n\\n### Added\\n\\n- Dataset added to the graph.\\n",
+  "expect": [
+    {
+      "date": "2026-09-22",
+      "title": "Exclude donor core contributions",
+      "changes": [
+        {
+          "kind": "changed",
+          "note": "Donor core contributions to multilateral organisations (`bi_multi = 2`) are excluded from bilateral flows, since they would otherwise double count."
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "title": "First release",
+      "changes": [
+        {
+          "kind": "added",
+          "note": "Dataset added to the graph."
+        }
+      ]
+    }
+  ]
+}

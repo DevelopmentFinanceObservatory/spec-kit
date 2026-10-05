@@ -1,0 +1,13 @@
+{
+  "format_version": 1,
+  "name": "limit-check-precedes-version-gate-rejected",
+  "description": "An input that is both structurally over-limit (nesting depth 6) and names an unrecognised identity_version (spec999) refuses input_limit_exceeded: the structural check runs first and the version can never be read.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "limits.structural.precedes-version-gate"
+  ],
+  "notes": "Structural limits are checked before identity_version is read, since the byte cap and depth pre-scan exist precisely to make parsing safe enough to reach it: an input violating a structural limit refuses input_limit_exceeded even when its identity_version is also unsupported. This vector combines both defects at once (identity_version 'spec999', which this parser does not implement, and a refs array nested one level past the maximum depth of 5, reaching depth 6) and must refuse input_limit_exceeded, not unsupported_identity_version, because the depth guard fires at the strict parse stage before the version can be read at all. input_bytes is used rather than input because the point under test is strict-parse-stage precedence on raw text; see schemas/vectors/README.md, input vs input_bytes.",
+  "input_bytes": "7b226964656e746974795f76657273696f6e223a2273706563393939222c2273686170655f6964223a22646576656c6f706d656e7446696e616e6365466c6f77222c22736c6f7473223a5b7b2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365222c2262696e64696e67223a7b227374617465223a22736574222c2272656673223a5b5b22746573742f7374727563747572616c2d6c696d69742d6265666f72652d76657273696f6e2d67617465225d5d7d7d5d2c22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d7d",
+  "failure_category": "input_limit_exceeded"
+}

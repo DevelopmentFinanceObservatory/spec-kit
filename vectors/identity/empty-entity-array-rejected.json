@@ -1,0 +1,33 @@
+{
+  "format_version": 1,
+  "name": "empty-entity-array-rejected",
+  "description": "An entity role bound to a zero-member array expresses no intent and is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "empty-collection.entity-array"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": []
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "empty_collection"
+}

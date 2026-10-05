@@ -1,0 +1,64 @@
+# Compatibility policy for the component-spec family's Python-packaged
+# artifacts: the presentation catalogue bundle in
+# python/dfo-spec-kit-components/ (envelope schema, component schemas, the
+# intent grammar, intents, and fixtures).
+#
+# "Released" below means reachable from the most recent git tag on this
+# repo (pattern v*, found the same way `git describe --tags --abbrev=0`
+# does). This is the release point dataset-spec.toml uses and the one
+# `tools/validate_registry.py` diffs the working registry against.
+# Before the first tag, nothing below is enforceable yet and every artifact
+# may change freely.
+#
+# The code registry entries this family adds (the presentation write
+# surface's refusal codes) are governed by the existing registry-wide
+# policy in dataset-spec.toml's [artifacts.code_registry] block.
+# registries/codes.json is one shared artifact with one compatibility rule.
+format_version = 1
+family = "component-spec"
+
+[release]
+mechanism = "git tag, pattern v*, the most recent one reachable from HEAD"
+
+# ---------------------------------------------------------------------------
+# The presentation catalogue bundle (python/dfo-spec-kit-components/)
+# ---------------------------------------------------------------------------
+
+[artifacts.catalogue_bundle]
+path = "python/dfo-spec-kit-components/src/dfo_spec_kit_components/catalogue/"
+governed_by = "python/dfo-spec-kit-components/src/dfo_spec_kit_components/catalogue/README.md"
+description = """
+The envelope schema, the per-member component schemas, the write-side
+intent grammar (schemas/intent.v0.json), minimal and worked intents, and
+their fixtures, all digested by manifest.json. A change is scoped to one
+artifact at a time. The bump level below is the minimum for that
+artifact's own change, and the release as a whole bumps by the highest
+level any single change in it requires.
+"""
+
+immutable_once_released = [
+  "a published schema file's own $id",
+  "the intent grammar's own $id (the grammar release token)",
+  "catalog_version's format (calver, redefined in place only pre-freeze per the envelope schema's own $comment)",
+  "an already-published fixture's meaning for its filename. New siblings may be added, and an existing fixture keeps what it demonstrates",
+]
+
+major = [
+  "removing a component member from the envelope schema's closed union (line_chart, stat_card so far)",
+  "narrowing a published component schema's already-required field, or removing one",
+  "narrowing the intent grammar's already-admitted shape for a published component type: removing a field, or tightening a bound below its published value",
+  "removing a manifest key (encoding_classes, retry_modes, formatter_profile) or narrowing what it enforces",
+]
+
+minor = [
+  "adding a new component member to the envelope schema's union and its own component schema",
+  "widening a published bound (for example, raising a select array's maxItems)",
+  "adding a new fixture",
+  "adding a new optional field to a published component schema",
+  "adding a new key to encoding_classes, retry_modes, or formatter_profile",
+]
+
+patch = [
+  "a schema description/title/$comment wording change with no shape change",
+  "regenerating manifest.json's digests after a patch-level content change elsewhere in the bundle",
+]

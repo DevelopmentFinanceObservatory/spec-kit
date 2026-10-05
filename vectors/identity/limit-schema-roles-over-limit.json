@@ -1,0 +1,83 @@
+{
+  "format_version": 1,
+  "name": "limit-schema-roles-over-limit",
+  "description": "An entities map with 17 role keys, one past the schema's published maximum role count of 16, is refused before minting.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "limits.schema.roles.over-limit"
+  ],
+  "notes": "The schema's maximum entity-role count is 16; this vector adds one more role key than limit-schema-roles-at-limit and must be refused rather than accepted with the 17th role dropped. Role keys use the reserved test/ fixture namespace, invented purely to reach the count, since role-vs-graph validity is graph-dependent and out of this suite's scope.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "unbound"
+        }
+      }
+    ],
+    "entities": {
+      "test/role-00": [
+        "country/FRA"
+      ],
+      "test/role-01": [
+        "country/FRA"
+      ],
+      "test/role-02": [
+        "country/FRA"
+      ],
+      "test/role-03": [
+        "country/FRA"
+      ],
+      "test/role-04": [
+        "country/FRA"
+      ],
+      "test/role-05": [
+        "country/FRA"
+      ],
+      "test/role-06": [
+        "country/FRA"
+      ],
+      "test/role-07": [
+        "country/FRA"
+      ],
+      "test/role-08": [
+        "country/FRA"
+      ],
+      "test/role-09": [
+        "country/FRA"
+      ],
+      "test/role-10": [
+        "country/FRA"
+      ],
+      "test/role-11": [
+        "country/FRA"
+      ],
+      "test/role-12": [
+        "country/FRA"
+      ],
+      "test/role-13": [
+        "country/FRA"
+      ],
+      "test/role-14": [
+        "country/FRA"
+      ],
+      "test/role-15": [
+        "country/FRA"
+      ],
+      "test/role-16": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "input_limit_exceeded"
+}

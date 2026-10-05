@@ -1,0 +1,46 @@
+{
+  "format_version": 1,
+  "name": "unit-request-currency-role-unrecognised-rejected",
+  "description": "A currency role naming a graph role ('financingProvider') rather than one of the spec's own three entity role keys ('observationAbout', 'origin', 'destination') violates the closed role enum, the same convention an invalid 'prices' enum value already follows.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.currency-role-unrecognised"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": {
+            "role": "financingProvider"
+          },
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

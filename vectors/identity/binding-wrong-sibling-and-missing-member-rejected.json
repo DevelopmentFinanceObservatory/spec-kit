@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "name": "binding-wrong-sibling-and-missing-member-rejected",
+  "description": "A slot binding declared state 'set' but carrying 'ref' (the value-family sibling) instead of the required 'refs' is refused as invalid_binding_shape, not schema_violation: the wrong-sibling defect governs even though the state's own required member is also absent.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "invalid-binding-shape.wrong-sibling-beats-missing-member"
+  ],
+  "notes": "Pins the discriminator between invalid_binding_shape and schema_violation for the case where both readings apply at once: the binding carries a correctly-typed but wrong-family sibling ('ref', a value-state member) for its declared state 'set', and simultaneously omits the member that state requires ('refs'). The specific category wins over the schema_violation catch-all. Mirrors the failure-category vocabulary's own value-state-carrying-refs example, with the roles of the two states reversed.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "set",
+          "ref": "test/x"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

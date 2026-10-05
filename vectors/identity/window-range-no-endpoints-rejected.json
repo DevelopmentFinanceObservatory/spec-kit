@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "name": "window-range-no-endpoints-rejected",
+  "description": "A range window naming neither start_year nor end_year violates 'each independently optional, with at least one present' and is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "window.range.no-endpoints"
+  ],
+  "notes": "Categorised schema_violation: the at-least-one-endpoint rule is a structural constraint the canonical definition schema encodes on the range shape, not a value-level comparison like reversed_range.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "range"
+    }
+  },
+  "failure_category": "schema_violation"
+}

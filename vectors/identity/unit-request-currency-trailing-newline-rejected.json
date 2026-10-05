@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "name": "unit-request-currency-trailing-newline-rejected",
+  "description": "A unit conversion request naming a currency code with a trailing newline does not match the three-letter upper-case ISO 4217 shape exactly, and is refused under the same rule as a lower-case currency string.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.currency-trailing-newline"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": "USD\n",
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_unit_request"
+}

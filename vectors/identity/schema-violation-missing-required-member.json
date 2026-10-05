@@ -1,0 +1,30 @@
+{
+  "format_version": 1,
+  "name": "schema-violation-missing-required-member",
+  "description": "entities omitted entirely -- a required, universal member absent -- is a schema_violation, distinct from identity-version-missing-rejected (a different absent required member) and from any closed-object 'unknown member' case.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "schema-violation.missing-required-member"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

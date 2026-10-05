@@ -1,0 +1,45 @@
+{
+  "format_version": 1,
+  "name": "unit-request-base-year-with-current-prices-rejected",
+  "description": "A unit conversion request naming base_year while prices is current (not constant) violates the 'base_year present exactly when prices is constant' rule.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.base-year-prices-mismatch"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_unit_request"
+}

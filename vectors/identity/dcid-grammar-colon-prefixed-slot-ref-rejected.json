@@ -1,0 +1,36 @@
+{
+  "format_version": 1,
+  "name": "dcid-grammar-colon-prefixed-slot-ref-rejected",
+  "description": "A slot binding's value ref carrying a dcid:-prefixed spelling is refused: the dcid grammar dcid-grammar-colon-prefixed-rejected already enforces on shape dcids now also runs on every slot ref (value, set, and exact alike).",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "dcid-grammar.colon-prefixed-slot-ref-rejected"
+  ],
+  "notes": "Before this vector, a dcid:-prefixed slot ref validated: the dcid grammar guard ran on shape members only. This closes that gap ahead of every reader, in the grammar itself rather than in a consumer.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "dcid:DevelopmentFinancePurposeGroup110"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

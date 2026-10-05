@@ -1,0 +1,14 @@
+{
+  "format_version": 1,
+  "name": "nfc-colliding-role-keys-rejected",
+  "description": "An entities map carrying the same role key twice, once composed (NFC) and once decomposed (NFD), is refused as a duplicate: the two spellings are byte-distinct but normalise to the identical string.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "strict-parse.duplicate-keys",
+    "unicode.nfc.colliding-keys"
+  ],
+  "notes": "The two entities keys are byte-distinct code point sequences ('café' via composed U+00E9 versus 'café' via e U+0065 plus combining acute U+0301), so an ordinary strict parse sees two keys and passes -- the collision only appears once NFC normalisation runs, downstream of strict parse. Per schemas/vectors/README.md's stance that a byte-identical duplicate and an NFC-colliding duplicate are the same defect, this still refuses as duplicate_keys, never merges. input_bytes is required: re-serialising either key through a tool's own JSON writer could normalise away the exact byte-level distinction under test.",
+  "input_bytes": "7b226964656e746974795f76657273696f6e223a227370656331222c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b7b2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365222c2262696e64696e67223a7b227374617465223a2276616c7565222c22726566223a224d616c61726961227d7d5d2c22656e746974696573223a7b22746573742f636166c3a9223a5b22636f756e7472792f465241225d2c22746573742f63616665cc81223a5b22636f756e7472792f555341225d7d2c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d7d",
+  "failure_category": "duplicate_keys"
+}

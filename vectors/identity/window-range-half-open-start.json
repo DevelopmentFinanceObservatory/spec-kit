@@ -1,0 +1,62 @@
+{
+  "format_version": 1,
+  "name": "window-range-half-open-start",
+  "description": "A range window carrying only start_year runs from that year through the latest available observation ('since 2020'); the omitted end_year contributes no bytes.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "window.range.half-open-start"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2020
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "range",
+      "start_year": 2020
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c226964656e746974795f76657273696f6e223a227370656331222c227265717565737465645f77696e646f77223a7b226b696e64223a2272616e6765222c2273746172745f79656172223a323032307d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b7b2262696e64696e67223a7b22726566223a224d616c61726961222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365227d5d7d",
+  "spec_id": "spec_5dd0b34542ba5a18162c28cad10a7bc3"
+}
