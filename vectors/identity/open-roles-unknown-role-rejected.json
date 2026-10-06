@@ -1,0 +1,38 @@
+{
+  "format_version": 1,
+  "name": "open-roles-unknown-role-rejected",
+  "description": "An open_roles member outside the closed set {origin, destination} is refused.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "open-roles.unknown-role-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "destination": [
+        "country/TGO"
+      ]
+    },
+    "open_roles": [
+      "observationAbout"
+    ],
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

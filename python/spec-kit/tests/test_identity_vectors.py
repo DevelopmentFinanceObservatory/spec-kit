@@ -31,7 +31,7 @@ from dfo_spec_kit.identity.core import _check_dcid_grammar
 # Kept in step with the drafted-vector count `vectors/identity/README.md`
 # states; bump both together when a vector is added, so the floor still
 # catches a single missing vector instead of trailing behind.
-_MIN_DRAFTED_VECTORS = 111
+_MIN_DRAFTED_VECTORS = 120
 
 # Repo root is three levels up from this file (tests/ -> spec-kit -> python
 # -> repo root); the vectors are always present in-repo, so a missing or

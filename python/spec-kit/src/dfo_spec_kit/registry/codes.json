@@ -98,7 +98,7 @@
           "http_status": 422
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "base_not_found",
@@ -117,7 +117,7 @@
           "http_status": 422
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "binding_folded",
@@ -314,7 +314,7 @@
           "http_status": 422
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "code_not_found",
@@ -328,11 +328,6 @@
           "endpoint": "platform.codes",
           "channel": "problem_details",
           "http_status": 404
-        },
-        {
-          "endpoint": "datasets.mint",
-          "channel": "problem_details",
-          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -340,7 +335,7 @@
     {
       "code": "collection_probe_ceiling",
       "classification": "refusal",
-      "definition": "The collection's facet probe would exceed the cap on StatVar and entity pairs it may ask the graph for, so no probe is issued.",
+      "definition": "The facet probe for a request group would exceed the cap on StatVar and entity pairs it may ask the graph for, so no probe is issued.",
       "owning_contract": "datasets",
       "owner": "platform",
       "introduced_in": "v1",
@@ -633,6 +628,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -830,7 +830,7 @@
           "http_status": 422
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "elected_shape_no_data",
@@ -881,7 +881,7 @@
     {
       "code": "enrichment_unavailable",
       "classification": "warning",
-      "definition": "A requested enrichment is unavailable for one or more rows.",
+      "definition": "A default name column, a decoded code column, or a requested enrichment column has no value for some rows: the graph names nothing, the name read failed, or two codes share a label. An empty measurementMethod_label never raises it.",
       "owning_contract": "datasets",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1263,6 +1263,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1367,6 +1372,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -1396,6 +1406,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 500
         },
@@ -1486,6 +1501,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1507,7 +1527,7 @@
           "channel": "manifest_warning"
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "members_not_held",
@@ -2019,7 +2039,7 @@
     {
       "code": "observations_series_truncated",
       "classification": "warning",
-      "definition": "The series shipped are a ranked subset of the confirmed series, and the message names how many are shown against the total. Covers both role-bearing answers and standard groups.",
+      "definition": "The preview ships fewer series than the answer confirms, and the message names how many are shown against the total. The order is \"ranked\" (latest year, then latest value) when the answer's kept observations are within the server's role_bulk_rank_max_rows gate, and \"fixed\" (a round-robin across StatVars, newest year with data first) above it or under a conversion into each entity's own currency. Covers both role-bearing answers and standard groups.",
       "owning_contract": "search",
       "owner": "platform",
       "introduced_in": "v1",
@@ -2114,6 +2134,25 @@
             "parsed"
           ],
           "channel": "flagged_match_gate"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "open_role_unavailable",
+      "classification": "refusal",
+      "definition": "A resubmitted identity names an open role, and the StatVars the definition elects declare no role on that axis, so the definition cannot give one series per member.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2258,6 +2297,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 422
         },
@@ -2788,6 +2832,11 @@
           "http_status": 400
         },
         {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
           "endpoint": "datasets.pin",
           "channel": "problem_details",
           "http_status": 400
@@ -3077,6 +3126,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3184,6 +3238,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 503
         },
@@ -3691,7 +3750,7 @@
     {
       "code": "spec_id_mismatch",
       "classification": "refusal",
-      "definition": "The supplied definition or member list does not hash to the id beside it.",
+      "definition": "The supplied definition does not hash to the id beside it.",
       "owning_contract": "datasets",
       "owner": "platform",
       "introduced_in": "v1",
@@ -3703,6 +3762,11 @@
         },
         {
           "endpoint": "datasets.register",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3731,6 +3795,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 409
         }
       ],
       "lifecycle": "active"
@@ -3738,7 +3807,7 @@
     {
       "code": "spec_not_found",
       "classification": "refusal",
-      "definition": "No definition or collection is registered at this id, and none was supplied beside it.",
+      "definition": "No definition is registered at this id, and none was supplied beside it.",
       "owning_contract": "datasets",
       "owner": "platform",
       "introduced_in": "v1",
@@ -3755,6 +3824,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 404
         },
@@ -3922,6 +3996,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 504
         }
@@ -4124,6 +4203,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 502
         },

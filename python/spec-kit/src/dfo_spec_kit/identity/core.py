@@ -78,7 +78,15 @@ _MAX_FACET_AXES = 3
 _T = TypeVar("_T")
 
 _TOP_LEVEL_KEYS = frozenset(
-    {"identity_version", "shape", "slots", "entities", "facets", "requested_window"}
+    {
+        "identity_version",
+        "shape",
+        "slots",
+        "entities",
+        "open_roles",
+        "facets",
+        "requested_window",
+    }
 )
 _SLOT_KEYS = frozenset({"property", "binding"})
 _SLOT_BINDING_KEYS = frozenset({"state", "ref", "refs"})
@@ -98,6 +106,9 @@ _CURRENCY_ROLE_KEYS = frozenset({"role"})
 # by the spec's shape, but that check is a consumer's concern against the
 # shape, not this module's.
 _CURRENCY_ROLES = frozenset({"observationAbout", "origin", "destination"})
+# The two flow roles `open_roles` may name, whose members a source can publish
+# beside a total. The set is closed, and the `entities` keys are open.
+_OPEN_ROLES = frozenset({"origin", "destination"})
 _WINDOW_SIMPLE_KEYS = frozenset({"kind"})
 _WINDOW_RANGE_KEYS = frozenset({"kind", "start_year", "end_year"})
 _CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
@@ -648,6 +659,27 @@ def _build_entities(entities: object) -> dict:
     return result
 
 
+def _build_open_roles(open_roles: object, entities: dict[str, list[str]]) -> list[str]:
+    """Build `open_roles`, sorted and de-duplicated: the roles the request asks
+    for every member of. A role absent from `entities` asks for the total
+    instead. A role both open and bound in `entities` refuses, since the two
+    asks contradict each other."""
+    open_roles = _require_type(open_roles, list, "open_roles")
+    for role in open_roles:
+        role = _require_type(role, str, "open_roles member")
+        if role not in _OPEN_ROLES:
+            raise IdentityError(
+                "schema_violation",
+                f"open_roles member must be one of {sorted(_OPEN_ROLES)!r}: {role!r}",
+            )
+        if role in entities:
+            raise IdentityError(
+                "schema_violation",
+                f"role {role!r} is both open and bound in entities",
+            )
+    return sorted(set(open_roles))
+
+
 def _build_currency(currency: object) -> str | dict:
     """Build the unit request's `currency` member: either an upper-case
     ISO 4217 string (unchanged), or a role object naming one of the spec's
@@ -1025,13 +1057,28 @@ def _build(value: object) -> dict:
         seen_properties.add(prop)
     slots.sort(key=lambda slot: slot["property"])
 
+    entities = _build_entities(raw_entities)
     projection = {
         "identity_version": IDENTITY_VERSION,
         "shape": shape,
         "slots": slots,
-        "entities": _build_entities(raw_entities),
+        "entities": entities,
         "requested_window": _build_requested_window(raw_window),
     }
+
+    if "open_roles" in value:
+        open_roles = _build_open_roles(value["open_roles"], entities)
+        if open_roles and shape["kind"] == "stat_var":
+            # A pinned StatVar already fixes which roles it carries, so an
+            # open role would give one request two spellings.
+            raise IdentityError(
+                "schema_violation",
+                "a pinned shape (kind='stat_var') cannot carry open_roles",
+            )
+        # Sparse rule, as for facets. An empty list and an omitted member
+        # produce identical bytes, so no document without open roles moves.
+        if open_roles:
+            projection["open_roles"] = open_roles
 
     if "facets" in value:
         facets = _build_facets(value["facets"])
@@ -1054,8 +1101,8 @@ def build_projection(value: object) -> dict:
     """Validate `value`, then normalise and return the identity projection
     (pre-serialisation): NFC-normalised strings, slots sorted by property
     with every property bound at most once, sorted and de-duplicated
-    entity/facet-set arrays, singleton sets collapsed, and an empty `facets`
-    member omitted."""
+    entity/facet-set and `open_roles` arrays, singleton sets collapsed, and an
+    empty `facets` or `open_roles` member omitted."""
     return _build(value)
 
 

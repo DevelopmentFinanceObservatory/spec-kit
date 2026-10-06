@@ -1,0 +1,38 @@
+{
+  "format_version": 1,
+  "name": "open-roles-not-a-list-rejected",
+  "description": "An open_roles member that is an object rather than an array is refused, even when its keys are valid roles.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "open-roles.not-a-list-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "destination": [
+        "country/TGO"
+      ]
+    },
+    "open_roles": {
+      "origin": true
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}
