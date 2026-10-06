@@ -47,6 +47,15 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Breaking. The collection-level `content_version` is removed:
+  `mint_collection_content_version`, `COLLECTION_IDENTITY_VERSION` (`colcv1`),
+  the `duplicate_spec_id`, `invalid_spec_id` and
+  `invalid_member_content_version` refusal categories, the
+  `collection_content_version` vector kind with its five `collection-*`
+  vectors, and the "Collection-level `content_version`" section of
+  `docs/frame-grammar-v1.md`. Datasets no longer serves collections, so no
+  consumer mints one. Frame bytes and frame-level `content_version` tokens are
+  unchanged.
 - `validate_time_period` calls `parse_time_period` and raises what it raises.
 - `canonical_frame_bytes` and `frame_sha256` stream through
   `stream_canonical_frame_bytes`. Their bytes and digests are unchanged for

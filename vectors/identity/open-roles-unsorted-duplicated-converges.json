@@ -1,0 +1,62 @@
+{
+  "format_version": 1,
+  "name": "open-roles-unsorted-duplicated-converges",
+  "description": "An unsorted open_roles list with a repeated role is sorted and de-duplicated, minting the same id as open-roles-sorted.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "open-roles.sort-dedup"
+  ],
+  "notes": "Deliberately shares its spec_id with open-roles-sorted, proving the convergence.",
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {},
+    "open_roles": [
+      "origin",
+      "destination",
+      "origin"
+    ],
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {},
+    "open_roles": [
+      "destination",
+      "origin"
+    ],
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b7d2c226964656e746974795f76657273696f6e223a227370656331222c226f70656e5f726f6c6573223a5b2264657374696e6174696f6e222c226f726967696e225d2c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b7b2262696e64696e67223a7b22726566223a224d616c61726961222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365227d5d7d",
+  "spec_id": "spec_28b002bb83e2acf340f1144a0b14652e"
+}

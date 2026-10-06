@@ -8,6 +8,29 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint `datasets.members` (`POST /api/datasets/{id}/members`) in the
+  registry vocabulary (`schemas/registry/code-registry.schema.json` and its
+  README). `request_invalid` (400), `spec_not_found` (404), `spec_id_mismatch`
+  (422), `member_not_resolvable` (422), `spec_not_exportable` (409),
+  `role_signature_incompatible` (422), `definition_not_reproducible` (422),
+  `facet_not_available` (422), `over_ceiling` (422), `service_unavailable`
+  (503), `upstream_error` (502), `timeout` (504), `identity_quarantined` (500)
+  and `internal_error` (500) map onto it in `registries/codes.json` and its
+  bundled mirror, on the `problem_details` channel.
+- Code `open_role_unavailable` in `registries/codes.json` and its bundled
+  mirror: a 422 refusal on `search.resolve` for a `dataset_resubmit` whose
+  identity names an open role, when the StatVars the definition elects declare
+  no role on that axis, so the definition cannot give one series per member.
+- Optional top-level identity member `open_roles` in
+  `dfo_spec_kit.identity`: a list of flow roles, from `origin` and
+  `destination`, whose every member the request asks for, as distinct from an
+  absent role, which asks for the total. The projection sorts and
+  de-duplicates it and leaves it out when empty or absent, so no existing
+  `spec_id` moves. A role also bound in `entities`, a role outside the set, a
+  non-array value, and a non-empty `open_roles` on a `stat_var` shape
+  refuse as `schema_violation`. An empty list is dropped. Nine `open-roles-*`
+  vectors in `vectors/identity/` pin it, and `docs/identity-v1.md` moves to
+  `1.2.0` with its denotation.
 - Code `deflator_missing_omitted` in `registries/codes.json` and its bundled
   mirror: a warning on the Datasets mint, definition, options and snapshot
   manifests and on `search.resolve` diagnostics for a constant-price
@@ -93,9 +116,21 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `base_not_found`, `base_identity_mismatch` and `edit_incomplete` are retired
+  in `registries/codes.json` and its bundled mirror: a `dataset_resubmit`
+  identity entry carries the whole definition, so the resubmit no longer
+  reconstructs a base from `base_spec_id` or diffs an edit against it, and
+  nothing raises them.
 - `skill_content_absent`, `skill_content_too_large`, `skill_content_undecodable`
   and `skills_corpus_budget_exhausted` are `skills.list` warnings for a skill
   left out of the catalogue, and no longer map onto `skills.fetch`.
+- `code_ambiguous` and `members_deduplicated` are retired in
+  `registries/codes.json` and its bundled mirror: Datasets no longer serves
+  collections, source-code lookups or multi-StatVar mints, so nothing raises
+  them. `code_not_found` loses its `datasets.mint` mapping and stays the
+  platform `GET /codes/{code}` miss. `spec_not_found` and `spec_id_mismatch`
+  no longer mention collections or member lists, and
+  `collection_probe_ceiling` describes a request group's facet probe.
 - Breaking. The normative spec1 identity vectors and worked example now use
   `origin` and `destination` flow roles (with `observationAbout` retained for
   the observed subject) rather than `provider` and `recipient`. The identity

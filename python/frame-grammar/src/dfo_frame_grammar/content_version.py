@@ -1,6 +1,5 @@
-"""`content_version`: preimage construction, minting, recompute, the
-collection-level token, and `FrameTrace`, the lineage fragment this library
-owns.
+"""`content_version`: preimage construction, minting, recompute, and
+`FrameTrace`, the lineage fragment this library owns.
 
 Normative source: `docs/frame-grammar-v1.md`, which pins the preimage's
 closed member set, its array orderings, and both public token shapes. The
@@ -83,37 +82,18 @@ __all__ = [
     "ContentVersionError",
     "FrameTrace",
     "frame_sha256",
-    "mint_collection_content_version",
     "mint_content_version",
     "recompute_content_version",
     "stream_frame_sha256",
 ]
 
 # The domain separator hashed into a frame-level content_version preimage,
-# following the "spec1"/"col1" precedent: a short, permanent literal naming
+# following the "spec1" precedent: a short, permanent literal naming
 # this hash family so it can never collide with a differently-shaped
 # preimage that happened to hash the same bytes.
 IDENTITY_VERSION = "cv1"
 
-# The domain separator for a collection-level content_version (see
-# `mint_collection_content_version`) -- distinct from `IDENTITY_VERSION`
-# above so the two preimage families stay collision-separated, the same
-# discipline that keeps a collection's own `col_` id (domain separator
-# "col1") from colliding with a member's `spec_id` (domain separator
-# "spec1").
-COLLECTION_IDENTITY_VERSION = "colcv1"
-
 _FRAME_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-
-# The public token formats a collection member pair must carry: a `spec_id`
-# minted by `dfo_spec_kit.identity.core.mint_spec_id` and a `content_version`
-# minted by `mint_content_version` above, both `spec_`/`cv_` plus exactly 32
-# lowercase hex characters. Validated here, not just NFC-normalised and
-# passed through, so a corrupted member identifier is refused at the
-# collection boundary rather than concealed inside a valid-looking
-# collection-level token.
-_SPEC_ID_RE = re.compile(r"^spec_[0-9a-f]{32}$")
-_MEMBER_CONTENT_VERSION_RE = re.compile(r"^cv_[0-9a-f]{32}$")
 
 _SOURCE_REVISION_KEYS = frozenset({"source", "revision"})
 
@@ -149,13 +129,9 @@ class ContentVersionError(ValueError):
     for two `source_revisions` (or `facets`) entries sharing the same
     `source` (or `axis`) -- a set with no such duplicate is genuinely
     order-independent only because a duplicate is refused rather than
-    tie-broken by a stable sort -- ``conversion_null`` for an explicit
+    tie-broken by a stable sort -- and ``conversion_null`` for an explicit
     ``null`` conversion slot (which must be omitted instead -- see
-    `_build_preimage`), ``duplicate_spec_id`` for two collection members
-    sharing the same `spec_id`, and ``invalid_spec_id`` or
-    ``invalid_member_content_version`` for a collection member whose
-    `spec_id` or `content_version` is not exactly `spec_`/`cv_` plus 32
-    lowercase hex characters. ``lone_surrogate`` and ``invalid_unit`` are
+    `_build_preimage`). ``lone_surrogate`` and ``invalid_unit`` are
     reused verbatim from `dfo_frame_grammar.grammar.FrameError`, whose
     surrogate-rejection and unit-request validation this module calls
     rather than re-implementing. Kept stable so a caller can match on
@@ -616,73 +592,3 @@ def recompute_content_version(canonical_bytes: bytes, fragment: FrameTrace) -> s
         facets=fragment.facets,
         conversion=conversion,
     )
-
-
-def mint_collection_content_version(members: Iterable[tuple[str, str]]) -> str:
-    """Mint a collection-level `content_version` over `members`, an
-    iterable of `(spec_id, content_version)` pairs carrying each member's
-    full public tokens.
-
-    Each `spec_id` must be `spec_` plus 32 lowercase hex characters and
-    each `content_version` must be `cv_` plus 32 lowercase hex characters
-    -- the exact public token shapes `dfo_spec_kit.identity.core.mint_spec_id`
-    and `mint_content_version` above produce -- refused otherwise, so a
-    corrupted member identifier cannot hide inside a valid-looking
-    collection token. Two members sharing the same `spec_id` are refused
-    rather than tie-broken: one collection has one member per spec, so a
-    shared `spec_id` is contradictory input, the same discipline
-    `_reject_duplicate_key` applies to `source_revisions` and `facets`.
-
-    Pairs are sorted by `spec_id`, Unicode code point order of the NFC
-    form, before hashing -- member input order carries no meaning, so a
-    caller supplying the same members in a different order mints the same
-    token. The preimage's domain separator, `COLLECTION_IDENTITY_VERSION`
-    ("colcv1"), is distinct from a frame-level preimage's ("cv1"), which is
-    what keeps the two hash families collision-separated.
-    """
-    built: list[dict[str, object]] = []
-    for member in members:
-        try:
-            pair = tuple(member)
-        except TypeError as exc:
-            # A non-iterable member would otherwise leak this TypeError raw
-            # instead of the module's own refusal type.
-            raise ContentVersionError(
-                "schema_violation",
-                f"collection member must be a two-element (spec_id, content_version) "
-                f"pair, got {member!r}",
-            ) from exc
-        if len(pair) != 2:
-            raise ContentVersionError(
-                "schema_violation",
-                f"collection member must be a two-element (spec_id, content_version) "
-                f"pair, got {member!r}",
-            )
-        spec_id = _nfc_string(pair[0], description="collection member spec_id")
-        content_version = _nfc_string(
-            pair[1], description="collection member content_version"
-        )
-        if not _SPEC_ID_RE.fullmatch(spec_id):
-            raise ContentVersionError(
-                "invalid_spec_id",
-                f"collection member spec_id must be 'spec_' plus 32 lowercase hex "
-                f"characters, got {spec_id!r}",
-            )
-        if not _MEMBER_CONTENT_VERSION_RE.fullmatch(content_version):
-            raise ContentVersionError(
-                "invalid_member_content_version",
-                f"collection member content_version must be 'cv_' plus 32 lowercase "
-                f"hex characters, got {content_version!r}",
-            )
-        built.append({"spec_id": spec_id, "content_version": content_version})
-
-    _reject_duplicate_key(built, key="spec_id", description="collection members")
-    built.sort(key=lambda entry: cast(str, entry["spec_id"]))
-
-    preimage: dict[str, object] = {
-        "identity_version": COLLECTION_IDENTITY_VERSION,
-        "members": [[entry["spec_id"], entry["content_version"]] for entry in built],
-    }
-    canonical = canonicalize(preimage)
-    digest = hashlib.sha256(canonical).hexdigest()
-    return f"cv_{digest[:32]}"

@@ -12,9 +12,9 @@
 Usage:
     uv run tools/validate_frame_vectors.py
 
-Beyond schema conformance (field shapes, the "frame"/"content_version"/
-"collection_content_version" kind split, the positive/negative structural
-split, and the closed failure_category vocabulary), this checks what a JSON
+Beyond schema conformance (field shapes, the "frame"/"content_version"
+kind split, the positive/negative structural split, and the closed
+failure_category vocabulary), this checks what a JSON
 Schema cannot express on its own: filename-vs-name consistency, name
 uniqueness, a minimum vector-count floor, that both classifications are
 non-empty, and -- for every positive vector -- that its stored bytes and
@@ -29,10 +29,6 @@ tokens are genuinely self-consistent:
 - kind "content_version": expected_preimage's own frame_sha256 matches the
   vector's frame_sha256, and expected_content_version is genuinely derived
   from expected_preimage the same way.
-- kind "collection_content_version": expected_preimage's members are sorted
-  by spec_id (a structural check on the vector's own stated data, not a claim
-  about how any implementation built it), and expected_content_version is
-  genuinely derived from expected_preimage the same way.
 
 This script deliberately does NOT import dfo_frame_grammar, directly or
 transitively -- see _assert_never_imported_dfo_frame_grammar below. It does not
@@ -208,17 +204,6 @@ def check_consistency(record: dict[str, Any]) -> list[str]:
 
     elif kind == "content_version":
         problems += _check_preimage_and_token(record, expected_digest=record.get("frame_sha256"))
-
-    elif kind == "collection_content_version":
-        preimage = record.get("expected_preimage")
-        if preimage is None:
-            return problems
-        members = preimage.get("members")
-        if isinstance(members, list):
-            spec_ids = [member[0] for member in members if isinstance(member, list) and member]
-            if spec_ids != sorted(spec_ids):
-                problems.append(f"expected_preimage.members is not sorted by spec_id: {spec_ids!r}")
-        problems += _check_token(record, preimage)
 
     return problems
 
