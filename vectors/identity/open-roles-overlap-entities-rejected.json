@@ -1,0 +1,41 @@
+{
+  "format_version": 1,
+  "name": "open-roles-overlap-entities-rejected",
+  "description": "A role both open and bound in entities is refused: it cannot ask for every member and for named members at once.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "open-roles.overlap-entities-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "destination": [
+        "country/TGO"
+      ],
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "open_roles": [
+      "origin"
+    ],
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

@@ -1,0 +1,30 @@
+{
+  "format_version": 1,
+  "name": "open-roles-on-stat-var-shape-rejected",
+  "description": "A pinned arm (kind: stat_var) carrying open_roles is refused: the pinned StatVar already fixes which roles it carries.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "open-roles.stat-var-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "stat_var",
+      "id": "Count_Person_Female"
+    },
+    "slots": [],
+    "entities": {
+      "destination": [
+        "country/TGO"
+      ]
+    },
+    "open_roles": [
+      "origin"
+    ],
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}
