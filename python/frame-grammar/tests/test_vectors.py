@@ -40,7 +40,6 @@ import pytest
 
 from dfo_frame_grammar.content_version import (
     ContentVersionError,
-    mint_collection_content_version,
     mint_content_version,
 )
 from dfo_frame_grammar.frame import Frame, canonical_frame_bytes
@@ -143,26 +142,12 @@ def _run_content_version_vector(vector: dict) -> None:
     assert content_version == vector["expected_content_version"]
 
 
-def _run_collection_vector(vector: dict) -> None:
-    members = [tuple(member) for member in vector["members"]]
-    if vector["classification"] == "negative":
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version(members)
-        assert excinfo.value.category == vector["failure_category"]
-        return
-
-    content_version = mint_collection_content_version(members)
-    assert content_version == vector["expected_content_version"]
-
-
 @pytest.mark.parametrize("vector", _VECTORS, ids=[v["name"] for v in _VECTORS])
 def test_frame_grammar_vector(vector: dict) -> None:
     if vector["kind"] == "frame":
         _run_frame_vector(vector)
     elif vector["kind"] == "content_version":
         _run_content_version_vector(vector)
-    elif vector["kind"] == "collection_content_version":
-        _run_collection_vector(vector)
     else:
         pytest.fail(f"unrecognised vector kind: {vector['kind']!r}")
 
@@ -216,12 +201,6 @@ class TestConvergencePairs:
         # pair exists to prove converges downstream.
         assert json.dumps(a["rows"]) != json.dumps(b["rows"])
         assert a["canonical_bytes"] == b["canonical_bytes"]
-        assert a["expected_content_version"] == b["expected_content_version"]
-
-    def test_collection_pair_shares_cv(self) -> None:
-        a = self._by_name("collection-three-members-input-order-converges")
-        b = self._by_name("collection-three-members-shuffled-converges")
-        assert a["members"] != b["members"]
         assert a["expected_content_version"] == b["expected_content_version"]
 
     def test_multi_source_multi_facet_pair_shares_cv_despite_differing_array_order(
@@ -292,10 +271,6 @@ def _compute_vector_digest_guard() -> str:
                 frame_sha256=vector["frame_sha256"], **vector["content_version_input"]
             )
             parts.append(f"{vector['name']}:{content_version}")
-        else:
-            members = [tuple(member) for member in vector["members"]]
-            content_version = mint_collection_content_version(members)
-            parts.append(f"{vector['name']}:{content_version}")
     return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
 
 
@@ -312,7 +287,7 @@ def _compute_vector_digest_guard() -> str:
 # expected `canonical_bytes` or `content_version` changed -- the byte-rule
 # regression case this guard exists to catch.
 _VECTOR_DIGEST_GUARD = (
-    "6771674f51a48ef5286101500065fff7408dd25a4f27981fdb571906901c6168"
+    "aa0309bb28188daa25991c7fab7bc081093f986277cdeefcb1e292c0a0a2eeb9"
 )
 
 # The FRAME_GRAMMAR_VERSION in effect when _VECTOR_DIGEST_GUARD above was

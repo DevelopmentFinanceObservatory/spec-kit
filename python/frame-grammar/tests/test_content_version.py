@@ -1,5 +1,4 @@
-"""`content_version` minting, recompute, the collection-level token, and
-`FrameTrace` -- the pinned preimage rules from `docs/frame-grammar-v1.md`.
+"""`content_version` minting, recompute, and `FrameTrace` -- the pinned preimage rules from `docs/frame-grammar-v1.md`.
 
 Every token here is proved by perturbation: a rule is exercised by changing
 one input and observing whether the minted token moves, never by asserting
@@ -21,7 +20,6 @@ from dfo_frame_grammar.content_version import (
     FrameTrace,
     _build_preimage,
     frame_sha256,
-    mint_collection_content_version,
     mint_content_version,
     recompute_content_version,
 )
@@ -32,17 +30,6 @@ _FRAME_SHA256_B = hashlib.sha256(b"frame-b").hexdigest()
 
 _SOURCE_REVISIONS = [{"source": "OECD_DAC_CRS", "revision": "rev-1"}]
 _FACETS = [{"axis": "provenance", "ref": "OECD_DAC_CRS", "basis": "declared_default"}]
-
-# Well-formed collection member tokens: `spec_`/`cv_` plus exactly 32
-# lowercase hex characters, the shape `mint_collection_content_version`
-# requires of every member.
-_SPEC_A = "spec_" + "a" * 32
-_SPEC_B = "spec_" + "b" * 32
-_SPEC_C = "spec_" + "c" * 32
-_MEMBER_CV_1 = "cv_" + "1" * 32
-_MEMBER_CV_2 = "cv_" + "2" * 32
-_MEMBER_CV_3 = "cv_" + "3" * 32
-_MEMBER_CV_9 = "cv_" + "9" * 32
 
 
 def _mint(**overrides: object) -> str:
@@ -722,109 +709,6 @@ class TestRecompute:
         assert recompute_content_version(bytes(mutated), fragment) != minted
 
 
-class TestCollectionContentVersion:
-    def test_shuffled_member_input_order_mints_the_same_cv(self):
-        members = [
-            (_SPEC_A, _MEMBER_CV_1),
-            (_SPEC_B, _MEMBER_CV_2),
-            (_SPEC_C, _MEMBER_CV_3),
-        ]
-        shuffled = [members[2], members[0], members[1]]
-        assert members != shuffled
-        assert mint_collection_content_version(
-            members
-        ) == mint_collection_content_version(shuffled)
-
-    def test_perturbing_one_members_cv_moves_the_collection_cv(self):
-        base = [(_SPEC_A, _MEMBER_CV_1), (_SPEC_B, _MEMBER_CV_2)]
-        perturbed = [(_SPEC_A, _MEMBER_CV_1), (_SPEC_B, _MEMBER_CV_9)]
-        assert mint_collection_content_version(base) != mint_collection_content_version(
-            perturbed
-        )
-
-    def test_adding_a_member_moves_the_collection_cv(self):
-        base = [(_SPEC_A, _MEMBER_CV_1)]
-        extended = [(_SPEC_A, _MEMBER_CV_1), (_SPEC_B, _MEMBER_CV_2)]
-        assert mint_collection_content_version(base) != mint_collection_content_version(
-            extended
-        )
-
-    def test_malformed_member_refuses(self):
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version([(_SPEC_A,)])
-        assert excinfo.value.category == "schema_violation"
-
-    def test_non_iterable_member_refuses_without_raising_a_type_error(self):
-        # tuple(42) raises a raw TypeError; that must be caught and
-        # re-raised as this module's own refusal category, never surfaced
-        # as an implementation-level type error.
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version([42])
-        assert excinfo.value.category == "schema_violation"
-
-    def test_frame_level_and_collection_level_preimages_do_not_collide(self):
-        # Distinct domain separators ("cv1" vs "colcv1") on structurally
-        # different documents -- proof by exhaustion over a small battery
-        # rather than an appeal to the separator alone.
-        frame_level = {
-            _mint(),
-            _mint(conversion={"recipe": "fx_convert", "rate_table_version": "rt-1"}),
-        }
-        collection_level = {
-            mint_collection_content_version([(_SPEC_A, _MEMBER_CV_1)]),
-            mint_collection_content_version(
-                [(_SPEC_A, _MEMBER_CV_1), (_SPEC_B, _MEMBER_CV_2)]
-            ),
-        }
-        assert frame_level.isdisjoint(collection_level)
-
-    def test_duplicate_spec_id_refuses(self):
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version(
-                [(_SPEC_A, _MEMBER_CV_1), (_SPEC_A, _MEMBER_CV_2)]
-            )
-        assert excinfo.value.category == "duplicate_spec_id"
-
-    def test_duplicate_spec_id_refuses_regardless_of_which_order_the_pair_arrives_in(
-        self,
-    ):
-        # The order-reversal case: a stable sort alone would silently order
-        # these two differently-cv'd duplicates one way or the other,
-        # minting two different tokens for "the same contradictory input" --
-        # refusing before the sort is what keeps this genuinely
-        # order-independent rather than order-independent by accident.
-        forward = [(_SPEC_A, _MEMBER_CV_1), (_SPEC_A, _MEMBER_CV_2)]
-        reversed_order = list(reversed(forward))
-        for members in (forward, reversed_order):
-            with pytest.raises(ContentVersionError) as excinfo:
-                mint_collection_content_version(members)
-            assert excinfo.value.category == "duplicate_spec_id"
-
-    @pytest.mark.parametrize(
-        "member",
-        [
-            ("", _MEMBER_CV_1),
-            ("spec_" + "a" * 32, ""),
-            ("SPEC_" + "a" * 32, _MEMBER_CV_1),
-            ("spec_" + "a" * 32, "CV_" + "1" * 32),
-            ("spec_" + "g" * 32, _MEMBER_CV_1),
-            ("spec_" + "a" * 32, "cv_" + "g" * 32),
-            ("spec_" + "a" * 31, _MEMBER_CV_1),
-            ("spec_" + "a" * 33, _MEMBER_CV_1),
-            (_SPEC_A, "cv_" + "1" * 31),
-            (_SPEC_A, "cv_" + "1" * 33),
-        ],
-    )
-    def test_malformed_member_token_refuses(self, member):
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version([member])
-        assert excinfo.value.category in {
-            "invalid_spec_id",
-            "invalid_member_content_version",
-            "schema_violation",
-        }
-
-
 class TestUnicodeNormalisation:
     """NFC convergence for every `content_version` field that runs through
     `_nfc_string`, mirroring `test_frame.py`'s own
@@ -939,16 +823,6 @@ class TestLoneSurrogateRefusal:
                     "deflator_table_version": self._LONE_SURROGATE,
                 }
             )
-        assert excinfo.value.category == "lone_surrogate"
-
-    def test_collection_member_spec_id_refuses(self):
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version([(self._LONE_SURROGATE, _MEMBER_CV_1)])
-        assert excinfo.value.category == "lone_surrogate"
-
-    def test_collection_member_content_version_refuses(self):
-        with pytest.raises(ContentVersionError) as excinfo:
-            mint_collection_content_version([(_SPEC_A, self._LONE_SURROGATE)])
         assert excinfo.value.category == "lone_surrogate"
 
 

@@ -1,8 +1,8 @@
 # Identity (v1)
 
-This document specifies what a spec1 identity's slot bindings denote: which code, or set of codes, a client asking for a given binding is asking for. `python/spec-kit/src/dfo_spec_kit/identity/core.py` implements spec1 end to end — strict parsing, schema validation, normalisation, projection, canonicalisation, minting — and its own module docstring already states that the vector suite wins over its prose where the two disagree. Neither that module nor the vector suite decides what a binding denotes; this document does.
+This document specifies what a spec1 identity's slot bindings and open roles denote: which code, or set of codes, a client asking for a given binding is asking for. `python/spec-kit/src/dfo_spec_kit/identity/core.py` implements spec1 end to end — strict parsing, schema validation, normalisation, projection, canonicalisation, minting — and its own module docstring already states that the vector suite wins over its prose where the two disagree. Neither that module nor the vector suite decides what a binding denotes; this document does.
 
-**Document version:** `1.1.0` (see "Document versioning" below). This number is never hashed into any byte sequence spec1 describes.
+**Document version:** `1.2.0` (see "Document versioning" below). This number is never hashed into any byte sequence spec1 describes.
 
 ## Precedence
 
@@ -37,11 +37,21 @@ On the `measurementMethod` and `unit` axes, a facet's `value` binding may carry 
 
 The null ref is a single-valued facet ask and nothing wider. A `provenance` binding refuses it, since every facet carries a provenance and a null one names nothing. A facet `set` binding refuses a null member, and a slot binding refuses a null ref. `facet-null-ref-provenance-rejected`, `facet-set-null-member-rejected` and `slot-null-ref-rejected` pin these refusals.
 
+## Open roles
+
+The optional top-level `open_roles` member lists flow roles, drawn from the closed set `origin` and `destination`. An open role denotes every member of that role with data: each origin, say each creditor, as its own series. A role absent from both `entities` and `open_roles` denotes the total, where the source publishes one across that role's members. The two are different asks and mint different ids. `open-roles-open-origin` and `open-roles-absent-origin-diverges` differ by `open_roles: ["origin"]` alone.
+
+The identity core sorts and de-duplicates the list. It refuses a role that `entities` also binds, since a role cannot ask for named members and for every member at once, and it refuses a non-empty `open_roles` on a pinned `stat_var` shape, whose StatVar already fixes which roles it carries (an empty list is dropped there as everywhere). Both refusals are `schema_violation`. The overlap check compares literal keys, so a consumer whose `entities` keys use other spellings of the same axis checks overlap by axis itself.
+
+An empty `open_roles` list and an absent member both leave the member out of the projection, the sparse rule `facets` follows, so `open-roles-empty-list-converges` mints the id of the document without it.
+
 ## Documents minted before this revision
 
 No `spec_id` moves under this revision. `identity_version` is hashed into the canonical bytes spec1 mints, so a version bump to `identity_version` itself would rotate every id in existence; this revision does not bump it, and every document stored before this revision still verifies against its own id under the rule stated above.
 
 The null facet ref moves no id either: the identity core refused a null ref before it, so no stored document carries one.
+
+Nor does `open_roles`. The identity core refused the member as `unknown_member` before it, and an empty or absent `open_roles` leaves the projection unchanged, so every stored document keeps its id.
 
 The `value` rule records what a producer already meant by a `value` binding, rather than changing what one denotes. A producer that mints an identity from a slot's value only after a retrieval step has already widened that value through the code system's hierarchy, a door that reads a posted `value` binding back through that same descendant walk before any other processing, and a prompt that offers a covering root on the premise that a bound value on a hierarchical system widens to everything beneath it, are all already reading `value` this way. This document states the rule those producers already applied; it asks nothing new of the point where a `value` binding is minted.
 
@@ -51,7 +61,7 @@ Where a consumer's materialised output changes membership as a result of reading
 
 ## Scope
 
-This document states binding-state denotation, the slot-ref dcid grammar and the null facet ref; it decides nothing else about spec1. Projection, JCS canonicalisation, the structural and schema limits, and every other refusal category remain specified by `core.py`'s own implementation and by the vector suite, exactly as `schemas/vectors/README.md` and `core.py`'s module docstring already state, until a future revision of this document extends its scope to cover them.
+This document states binding-state denotation, the slot-ref dcid grammar, the null facet ref and open roles; it decides nothing else about spec1. Projection, JCS canonicalisation, the structural and schema limits, and every other refusal category remain specified by `core.py`'s own implementation and by the vector suite, exactly as `schemas/vectors/README.md` and `core.py`'s module docstring already state, until a future revision of this document extends its scope to cover them.
 
 Two related gaps are named, not fixed, here. Entity dcids (`entities`'s role values) carry the same bare-dcid convention as slot refs but are not yet run through `_check_dcid_grammar`; closing that gap is out of scope for this revision. And a code system's own declared hierarchy — the parent/child relation `value` and `set` read through — is graph data this document does not carry and cannot pin with a fixture; a reader resolving that hierarchy is a graph-dependent concern the vector suite already excludes for the same reason it excludes alias resolution and role validity (`schemas/vectors/README.md`, "Scope").
 
@@ -60,7 +70,7 @@ Two related gaps are named, not fixed, here. Entity dcids (`entities`'s role val
 This document's own version number follows semantic versioning with this meaning pinned to each component:
 
 - **Major** — a change to what an existing binding state denotes, or the removal of a binding state. Changing what `value` on a hierarchical code denotes (as this `1.0.0` did, relative to the silence that preceded it) is exactly this kind of change.
-- **Minor** — an additive change: a new binding state, or a new fact this document states about an existing one, that does not alter any already-shipped state's denotation. Adding `exact` alongside `value`, `set`, and `unbound` is this kind of change.
+- **Minor** — an additive change: a new binding state, or a new fact this document states about an existing one, that does not alter any already-shipped state's denotation. Adding `exact` alongside `value`, `set`, and `unbound` is this kind of change. So is an additive top-level identity member left out of the projection when empty, as `open_roles` is. No existing document carries it, so no existing id moves.
 - **Patch** — a document-only revision: a clarified sentence, a corrected example, a typo fix. Never changes what any binding state denotes.
 
 This version number is never hashed into any spec1 byte sequence. It travels alongside `core.py` and the vector suite purely as a caller-facing label of which revision of this document described the denotation rule a given identity's readers applied.

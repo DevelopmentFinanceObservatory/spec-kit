@@ -12,7 +12,7 @@ Every vector's expected output is captured from this repository's own implementa
 
 ## Canonicalisation primitive
 
-Every byte sequence this document defines is produced by JSON Canonicalization Scheme (JCS), RFC 8785, applied to a closed JSON document. JCS fixes object member ordering (lexicographic order of UTF-16 code units over each member name), number serialisation (the ECMAScript `Number::toString` algorithm), and string escaping. This document does not restate those rules; conform to RFC 8785 directly for anything it already specifies. What this document adds on top of JCS, because JCS itself does not define them, are: which JSON document to build in the first place, and how to order the small number of arrays whose element order the document assigns program-level meaning (rows, `source_revisions`, `facets`, collection members) — JCS sorts object keys, never array elements.
+Every byte sequence this document defines is produced by JSON Canonicalization Scheme (JCS), RFC 8785, applied to a closed JSON document. JCS fixes object member ordering (lexicographic order of UTF-16 code units over each member name), number serialisation (the ECMAScript `Number::toString` algorithm), and string escaping. This document does not restate those rules; conform to RFC 8785 directly for anything it already specifies. What this document adds on top of JCS, because JCS itself does not define them, are: which JSON document to build in the first place, and how to order the small number of arrays whose element order the document assigns program-level meaning (rows, `source_revisions`, `facets`) — JCS sorts object keys, never array elements.
 
 All Unicode text within a canonicalised document — every string cell, every column name, every string member value — is normalised to NFC (Unicode Normalization Form C) before it enters the document. Two byte-distinct strings that NFC-normalise to the same string are the same value everywhere this grammar compares or sorts strings. A string containing an unpaired UTF-16 surrogate code point is invalid input and must be refused before it reaches canonicalisation; it cannot round-trip through UTF-8, so no valid canonical byte sequence can ever contain one.
 
@@ -104,7 +104,7 @@ Its preimage is the JCS serialisation of this closed JSON document:
 }
 ```
 
-`identity_version` is the fixed string `"cv1"`, this preimage family's own domain separator — distinct from `frame_version` (`"frame1"`, the frame bytes' own domain separator) and from `colcv1` (the collection-level preimage's domain separator, below), so that no two of these three JSON-document families can ever collide on the same bytes by construction.
+`identity_version` is the fixed string `"cv1"`, this preimage family's own domain separator — distinct from `frame_version` (`"frame1"`, the frame bytes' own domain separator) so that the two JSON-document families cannot collide on the same bytes by construction.
 
 Member by member:
 
@@ -129,18 +129,6 @@ The public `content_version` token is the fixed prefix `cv_` followed by the fir
 Given a frame's own stored canonical bytes and the lineage fragment that produced its `content_version` (`graph_revision`, `source_revisions`, `facets`, and the conversion record or the trace's one-entry conversion array when present), the identical `content_version` can be recomputed independently, as an integrity check on stored data: take the SHA-256 digest of the stored bytes directly to reproduce `frame_sha256`, then rebuild and hash the `cv1` preimage exactly as above.
 
 This recompute path hashes the bytes it is handed **as they are** — it never re-parses them back into a frame and re-serialises that frame to get a value to check. This has a direct consequence for anyone persisting a materialised frame: **the canonical frame bytes themselves must be what gets persisted, verbatim, or a lossless alternative encoding from which those exact canonical bytes can be reconstructed deterministically.** Any lossy storage transform — one that cannot reconstruct the identical canonical bytes bit-for-bit — breaks recompute silently: a single mutated stored byte must be detectable as a hash mismatch against the originally minted token, and that guarantee only holds if what recompute hashes is the same sequence of bytes that was originally canonicalised, or a value deterministically equivalent to it.
-
-## Collection-level `content_version`
-
-A collection of materialised results (for example, every spec inside one manifest) mints its own `content_version` over its members' own tokens. The preimage is the JCS serialisation of:
-
-```json
-{"identity_version": "colcv1", "members": [["<spec_id>", "<content_version>"], ...]}
-```
-
-`identity_version` is the fixed string `"colcv1"`, distinct from `cv1` (frame-level) so the two preimage families cannot collide. `members` is an array of two-element arrays, each `[spec_id, content_version]`, carrying each member's full public token strings verbatim. Each `spec_id` must be `spec_` followed by exactly 32 lowercase hexadecimal characters, and each `content_version` must be `cv_` followed by exactly 32 lowercase hexadecimal characters — the platform's two public token shapes, `spec_` naming a definition and `cv_` naming a materialised result; a member token outside either shape is invalid input and must be refused, not carried through unvalidated into a collection token that then looks well-formed regardless. Because JCS does not order array elements, this document pins the order here too: sorted by `spec_id`, by the platform's one collation. A caller supplying the same member set in a different order mints the identical collection-level token. Two members sharing the same `spec_id` are invalid input and must be refused rather than tie-broken by the sort: one collection has one member per spec, so a shared `spec_id` is contradictory, the same discipline `source_revisions` and `facets` apply above.
-
-The public token uses the identical construction as the frame-level token: `cv_` followed by the first 32 lowercase hexadecimal characters of the SHA-256 digest of this preimage's own canonical bytes.
 
 ## Document versioning
 
