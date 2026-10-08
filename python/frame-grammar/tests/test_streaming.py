@@ -247,6 +247,21 @@ class TestColumnMismatchRefusal:
             stream_frame_sha256([first, second])
         assert excinfo.value.category == "column_mismatch"
 
+    def test_a_disorder_before_the_mismatched_chunk_refuses_first(self) -> None:
+        # The descending pair sits in rows still buffered when the
+        # mismatched chunk arrives, so they must stream before it refuses.
+        ordered = Frame.build(
+            role_keys=_ROLE_KEYS,
+            rows=[_row(time_period="2015"), _row(time_period="2016")],
+        )
+        out_of_order = Frame(
+            columns=ordered.columns, table=ordered.table.take(pa.array([1, 0]))
+        )
+        other = Frame.build(role_keys=("provider",), rows=[_single_role_row()])
+        with pytest.raises(FrameError) as excinfo:
+            b"".join(stream_canonical_frame_bytes([out_of_order, other]))
+        assert excinfo.value.category == "row_key_not_increasing"
+
     def test_a_lone_empty_chunk_with_different_columns_still_sets_the_columns(
         self,
     ) -> None:
@@ -261,14 +276,24 @@ class TestColumnMismatchRefusal:
 
 
 class TestRowKeyOrderingRefusal:
-    def test_descending_key_across_a_chunk_boundary_refuses(self) -> None:
+    # A one-row slice flushes the buffer at every chunk, so the refusal
+    # compares keys across a flush; the default slice holds both chunks.
+    @pytest.mark.parametrize("slice_rows", [1, frame_module._STREAM_SLICE_ROWS])
+    def test_descending_key_across_a_chunk_boundary_refuses(
+        self, monkeypatch: pytest.MonkeyPatch, slice_rows: int
+    ) -> None:
+        monkeypatch.setattr(frame_module, "_STREAM_SLICE_ROWS", slice_rows)
         earlier = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(time_period="2016")])
         later = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(time_period="2015")])
         with pytest.raises(FrameError) as excinfo:
             b"".join(stream_canonical_frame_bytes([earlier, later]))
         assert excinfo.value.category == "row_key_not_increasing"
 
-    def test_equal_key_across_a_chunk_boundary_refuses(self) -> None:
+    @pytest.mark.parametrize("slice_rows", [1, frame_module._STREAM_SLICE_ROWS])
+    def test_equal_key_across_a_chunk_boundary_refuses(
+        self, monkeypatch: pytest.MonkeyPatch, slice_rows: int
+    ) -> None:
+        monkeypatch.setattr(frame_module, "_STREAM_SLICE_ROWS", slice_rows)
         first = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(time_period="2015")])
         second = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(time_period="2015")])
         with pytest.raises(FrameError) as excinfo:
@@ -365,20 +390,24 @@ class TestStreamSliceSizeIsTransparent:
     bound, not part of the emitted bytes: it must produce byte-identical
     output regardless of its value, including sizes that split a chunk's 11
     rows unevenly (1, 3) and the shipped default (8192, which never splits
-    this small a chunk at all).
+    this small a chunk at all). Slices span chunk boundaries, so the rows
+    also arrive as one chunk and as chunks of two, which a three-row slice
+    straddles.
     """
 
     def _frame(self) -> Frame:
         rows = [_row(time_period=str(2010 + i), value=float(i)) for i in range(11)]
         return Frame.build(role_keys=_ROLE_KEYS, rows=rows)
 
+    @pytest.mark.parametrize("boundaries", [[], [2, 4, 6, 8, 10]])
     @pytest.mark.parametrize("slice_rows", [1, 3, frame_module._STREAM_SLICE_ROWS])
     def test_bytes_are_identical_across_slice_sizes(
-        self, monkeypatch: pytest.MonkeyPatch, slice_rows: int
+        self, monkeypatch: pytest.MonkeyPatch, slice_rows: int, boundaries: list[int]
     ) -> None:
         built_frame = self._frame()
         monkeypatch.setattr(frame_module, "_STREAM_SLICE_ROWS", slice_rows)
-        streamed_bytes = b"".join(stream_canonical_frame_bytes([built_frame]))
+        chunks = _chunk_frame(built_frame, boundaries)
+        streamed_bytes = b"".join(stream_canonical_frame_bytes(chunks))
         assert streamed_bytes == _whole_table_canonical_bytes(built_frame)
 
 
@@ -389,10 +418,10 @@ def _random_ref(rng: random.Random, prefix: str) -> str:
     return prefix + "".join(rng.choice(_ALPHABET) for _ in range(rng.randint(1, 4)))
 
 
-def _random_unit(rng: random.Random) -> object:
+def _random_unit_part(rng: random.Random) -> object:
     choice = rng.randrange(4)
     if choice == 0:
-        return None
+        return {"stat_var": _random_ref(rng, "dcid:")}
     if choice == 1:
         return _random_ref(rng, "unit/")
     currency = rng.choice(["USD", "EUR", "GBP"])
@@ -403,6 +432,21 @@ def _random_unit(rng: random.Random) -> object:
         "prices": "constant",
         "base_year": rng.choice([2, 10, 2015, 2021]),
     }
+
+
+def _random_unit(rng: random.Random) -> object:
+    choice = rng.randrange(5)
+    if choice == 0:
+        return None
+    if choice == 1:
+        return {
+            "numerator": _random_unit_part(rng),
+            "denominator": _random_unit_part(rng),
+        }
+    part = _random_unit_part(rng)
+    while isinstance(part, dict) and "stat_var" in part:
+        part = _random_unit_part(rng)
+    return part
 
 
 def _random_rows(rng: random.Random, role_keys: list[str]) -> list[dict[str, object]]:
@@ -438,9 +482,10 @@ def _random_rows(rng: random.Random, role_keys: list[str]) -> list[dict[str, obj
 
 
 class TestCanonicalBytesMatchTheWholeTableOracle:
-    """Seeded random frames, with unit refs and requests, sparse facets,
-    decomposed and astral characters, and signed zeros, serialised through
-    the streaming path at several slice sizes and compared with the oracle.
+    """Seeded random frames, with unit refs, requests and composed units,
+    sparse facets, decomposed and astral characters, and signed zeros,
+    serialised through the streaming path at several slice sizes and
+    compared with the oracle.
     """
 
     @pytest.mark.parametrize("slice_rows", [1, 7, frame_module._STREAM_SLICE_ROWS])

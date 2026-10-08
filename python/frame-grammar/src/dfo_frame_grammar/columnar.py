@@ -8,7 +8,7 @@ frame construction does.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import cast
 
@@ -17,7 +17,12 @@ import pyarrow.compute as pc
 from dfo_spec_kit.identity import canonicalize
 
 from dfo_frame_grammar import grammar
-from dfo_frame_grammar.frame import _arrow_unit_to_cell, _unit_type
+from dfo_frame_grammar._unit_codec import (
+    _arrow_part_to_cell,
+    _arrow_unit_to_cell,
+    _unit_type,
+)
+from dfo_frame_grammar.grammar import FrameError
 
 __all__ = [
     "UnitCodes",
@@ -100,19 +105,30 @@ def _leaf_codes(values: pa.Array) -> pa.Array:
     deduplication.
     """
     data_type = values.type
+    if not _is_hashed(data_type):
+        return pa.array(range(len(values)), type=pa.int64())
     if pa.types.is_floating(data_type):
         return _dense(values.view(_SAME_WIDTH_INT[data_type.bit_width]))
-    if (
+    return _dense(values)
+
+
+def _is_hashed(data_type: pa.DataType) -> bool:
+    """Whether equal rows of `data_type` share a code: a leaf type in the
+    hashed set, or a struct or dictionary of nothing else."""
+    if isinstance(data_type, pa.StructType):
+        return all(_is_hashed(field.type) for field in data_type)
+    if isinstance(data_type, pa.DictionaryType):
+        return _is_hashed(data_type.value_type)
+    return (
         pa.types.is_null(data_type)
         or pa.types.is_boolean(data_type)
         or pa.types.is_integer(data_type)
+        or pa.types.is_floating(data_type)
         or pa.types.is_string(data_type)
         or pa.types.is_large_string(data_type)
         or pa.types.is_binary(data_type)
         or pa.types.is_large_binary(data_type)
-    ):
-        return _dense(values)
-    return pa.array(range(len(values)), type=pa.int64())
+    )
 
 
 def _combine_codes(left: pa.Array, right: pa.Array) -> pa.Array:
@@ -144,6 +160,10 @@ def _row_codes(values: pa.Array) -> pa.Array:
     # all null.
     codes = _dense(array_kernel("is_valid", values))
     for child in values.flatten():
+        # An all-null child of a hashed type gives every row one code, so
+        # the rows partition the same without it.
+        if child.null_count == len(child) and _is_hashed(child.type):
+            continue
         codes = _combine_codes(codes, _row_codes(child))
     return codes
 
@@ -199,45 +219,44 @@ def map_units(
 
 def unit_cells(
     unit: pa.Array | pa.ChunkedArray, codes: UnitCodes
-) -> list[str | grammar.UnitRequest | None]:
+) -> list[grammar.UnitCell | None]:
     """The distinct cells of a canonical `unit` column, indexed by code.
 
     Each cell has the form `Frame.rows` gives it: a ref string, a
-    `grammar.UnitRequest`, or `None`.
+    `grammar.UnitRequest`, a `grammar.ComposedUnit`, or `None`.
     """
     distinct = array_kernel("take", _combined(unit), codes.first_rows).to_pylist()
-    return [
-        cast("str | grammar.UnitRequest | None", _arrow_unit_to_cell(value))
-        for value in distinct
-    ]
+    return [_arrow_unit_to_cell(value) for value in distinct]
 
 
-def _unit_payload_of(value: object) -> bytes:
+def _request_payload_of(value: object) -> bytes | None:
     if value is None:
-        return b""
-    tagged = cast("Mapping[str, object]", value)
-    ref = tagged["ref"]
-    if ref is not None:
-        return cast(str, ref).encode("utf-8")
-    request = cast("Mapping[str, object]", tagged["request"])
-    return canonicalize(
-        {key: item for key, item in request.items() if item is not None}
-    )
+        return None
+    request = cast("grammar.UnitRequest", _arrow_part_to_cell(value))
+    return canonicalize(request.as_json())
 
 
 def _unit_payload(unit: pa.Array) -> pa.Array:
-    """Binary payload per row: UTF-8 of the ref, JCS of the request, or
-    empty for a null unit. Within one rank, byte order is the grammar's
-    code-point order."""
-    refs = array_kernel("struct_field", unit, "ref")
-    has_request = array_kernel(
-        "and_kleene",
-        array_kernel("is_valid", unit),
-        array_kernel("is_null", refs),
+    """Binary payload per row: UTF-8 of the ref, JCS of the request or the
+    composed unit, or empty for a null unit. Within one rank, byte order is
+    the grammar's code-point order.
+
+    The `composed` member already holds the JCS text, so only request rows
+    reach Python, once per distinct request."""
+    refs, requests, composed = (
+        array_kernel("struct_field", unit, member)
+        for member in ("ref", "request", "composed")
     )
-    if not scalar_kernel("any", has_request).as_py():
-        return array_kernel("fill_null", array_kernel("cast", refs, pa.binary()), b"")
-    return map_units(unit, _unit_payload_of, result_type=pa.binary())
+    payload = array_kernel(
+        "cast", array_kernel("coalesce", refs, composed), pa.binary()
+    )
+    if scalar_kernel("any", array_kernel("is_valid", requests)).as_py():
+        payload = array_kernel(
+            "coalesce",
+            payload,
+            map_units(requests, _request_payload_of, result_type=pa.binary()),
+        )
+    return array_kernel("fill_null", payload, b"")
 
 
 def _rank(*conditions: pa.Array) -> pa.Array:
@@ -258,9 +277,10 @@ def collation_keys(values: pa.Array | pa.ChunkedArray) -> tuple[pa.Array, pa.Arr
     A string column ranks null (0) before any string (1), with the payload
     the string itself or `""` for null; Arrow compares strings by UTF-8
     bytes, which is code-point order. A canonical `unit` column ranks null
-    (0), then a ref (1), then a unit request (2), with the payload its
-    UTF-8 ref or JCS request bytes. Two rows are equal under the grammar
-    exactly when both arrays are equal.
+    (0), then a ref (1), then a unit request (2), then a composed unit
+    (3), with the payload its UTF-8 ref or the JCS bytes of the request or
+    composed unit. Two rows are equal under the grammar exactly when both
+    arrays are equal.
 
     Raises:
         TypeError: `values` is neither a string column nor the canonical
@@ -272,8 +292,11 @@ def collation_keys(values: pa.Array | pa.ChunkedArray) -> tuple[pa.Array, pa.Arr
         return _rank(is_null), array_kernel("fill_null", array, "")
     if array.type == _UNIT_TYPE:
         is_null = array_kernel("is_null", array)
-        has_ref = array_kernel("is_valid", array_kernel("struct_field", array, "ref"))
-        return _rank(is_null, has_ref), _unit_payload(array)
+        has_ref, has_request = (
+            array_kernel("is_valid", array_kernel("struct_field", array, member))
+            for member in ("ref", "request")
+        )
+        return _rank(is_null, has_ref, has_request), _unit_payload(array)
     raise TypeError(f"no grammar collation for arrow type {array.type!r}")
 
 
@@ -292,3 +315,45 @@ def collation_sort_keys(table: pa.Table, columns: Sequence[str]) -> pa.Table:
         keys = keys.append_column(f"__collate_{position}_rank", rank)
         keys = keys.append_column(f"__collate_{position}_payload", payload)
     return keys
+
+
+def _grain_columns(columns: Sequence[str]) -> list[str]:
+    """The grain: every column of `columns` except `value` and `status`, the
+    columns `grammar.row_sort_key` keys."""
+    return [
+        column
+        for column in columns
+        if column not in (grammar.VALUE_COLUMN, grammar.STATUS_COLUMN)
+    ]
+
+
+def _sort_and_check(table: pa.Table, *, columns: Sequence[str]) -> pa.Table:
+    """`table` sorted by `collation_sort_keys` over its grain, the order
+    `grammar.row_sort_key` gives, for both frame builders.
+
+    Raises:
+        FrameError: `duplicate_row_key` when two rows share a grain.
+    """
+    keys = collation_sort_keys(table, _grain_columns(columns))
+    indices = array_kernel(
+        "sort_indices",
+        keys,
+        sort_keys=[(name, "ascending") for name in keys.column_names],
+    )
+    sorted_table = table.take(indices)
+    if sorted_table.num_rows < 2:
+        return sorted_table
+    duplicate: pa.Array | None = None
+    for key in keys.take(indices).columns:
+        value = _combined(key)
+        equal = array_kernel("equal", value.slice(1), value.slice(0, len(value) - 1))
+        duplicate = (
+            equal if duplicate is None else array_kernel("and_kleene", duplicate, equal)
+        )
+    assert duplicate is not None
+    if scalar_kernel("any", duplicate).as_py():
+        raise FrameError(
+            "duplicate_row_key",
+            "two rows share the same grain (every cell except value and status)",
+        )
+    return sorted_table

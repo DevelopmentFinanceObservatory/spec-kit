@@ -2,11 +2,12 @@
 code registry (`registries/codes.json` at the repo root), read from this
 checkout the same repo-root-relative way, keeping the test hermetic.
 
-Every retry-mode key this bundle carries, its own seven plus the platform-
-generic codes (`not_found`, `service_unavailable`, `internal_error`,
-`request_invalid`, `timeout`) its own doors and the platform's default
-classification also render for it, is a registered, refusal-classified
-code mapped onto `presentation.write`.
+Every retry-mode key this bundle carries, the Presentation surface's own
+refusals plus the platform-generic codes (`not_found`, `service_unavailable`,
+`internal_error`, `request_invalid`, `timeout`) its doors and the platform's
+default classification also render for it, is a registered,
+refusal-classified code mapped onto a Presentation endpoint
+(`presentation.write` or `presentation.render`).
 """
 
 from __future__ import annotations
@@ -55,13 +56,13 @@ def test_presentation_specific_retry_mode_codes_are_registered_refusals() -> Non
     )
 
 
-def test_presentation_codes_map_to_the_presentation_write_endpoint() -> None:
+def test_retry_mode_codes_map_to_a_presentation_endpoint() -> None:
     registry = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
     codes_by_name = {entry["code"]: entry for entry in registry["entries"]}
     retry_mode_codes = set(_manifest_retry_modes())
 
     for code in retry_mode_codes:
         endpoints = {mapping["endpoint"] for mapping in codes_by_name[code]["mappings"]}
-        assert "presentation.write" in endpoints, (
-            f"{code}: expected a presentation.write mapping, found {sorted(endpoints)}"
+        assert any(endpoint.startswith("presentation.") for endpoint in endpoints), (
+            f"{code}: expected a presentation.* mapping, found {sorted(endpoints)}"
         )

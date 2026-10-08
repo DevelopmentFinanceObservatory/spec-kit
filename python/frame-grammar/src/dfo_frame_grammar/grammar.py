@@ -75,6 +75,13 @@ _UNIT_REQUEST_KEYS = frozenset({"currency", "prices", "base_year"})
 _UNIT_REQUEST_PRICES = frozenset({"current", "constant"})
 _CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
 
+# The closed member sets of a composed unit and of its StatVar part. An
+# object carrying either composed member is read as a composed unit, so a
+# unit request with a stray `numerator` refuses as a malformed composed unit
+# and a composed unit never reaches the unit-request rules.
+_COMPOSED_UNIT_KEYS = frozenset({"numerator", "denominator"})
+_STAT_VAR_PART_KEYS = frozenset({"stat_var"})
+
 # The role-shaped `currency` form's own closed member and role-name
 # vocabularies -- `dfo_spec_kit.identity.core`'s own `_CURRENCY_ROLE_KEYS`/
 # `_CURRENCY_ROLES`, mirrored here rather than imported so this package's
@@ -138,7 +145,8 @@ class FrameError(ValueError):
     """A refusal at some stage of frame construction or canonicalisation.
 
     ``category`` names the kind of refusal: ``lone_surrogate``,
-    ``non_finite_number``, ``invalid_time_period``, ``invalid_unit``,
+    ``non_finite_number``, ``invalid_time_period``, ``invalid_unit`` (a
+    unit-request object or a composed unit outside its closed shape),
     ``duplicate_row_key``, or ``schema_violation`` for a malformed input
     this package has no more specific name for. ``column_mismatch`` and
     ``row_key_not_increasing`` are raised only by
@@ -445,6 +453,222 @@ class UnitRequest:
         return result
 
 
+@dataclass(frozen=True, slots=True)
+class StatVarPart:
+    """One side of a `ComposedUnit` whose rows declare no unit: the
+    `{"stat_var": ...}` object naming the StatVar that side counts, a
+    `dcid:`-prefixed reference under the `stat_var` column's own rule.
+    """
+
+    stat_var: str
+
+    def as_json(self) -> dict[str, object]:
+        """The plain JSON object form, built fresh on every call."""
+        return {"stat_var": self.stat_var}
+
+
+# One side of a composed unit: a unit ref, a converted unit, or the StatVar
+# a unitless side counts.
+type UnitPart = str | UnitRequest | StatVarPart
+
+
+@dataclass(frozen=True, slots=True)
+class ComposedUnit:
+    """A `unit` cell stating the unit of a quotient of two measures: the
+    closed `{numerator, denominator}` shape `unit_cell_from_json` accepts,
+    carried as a deeply immutable value as `UnitRequest` is.
+
+    Each side is a `UnitPart`. A side is never null and never itself a
+    `ComposedUnit`.
+    """
+
+    numerator: UnitPart
+    denominator: UnitPart
+
+    def as_json(self) -> dict[str, object]:
+        """The plain JSON object form `canonicalize` and JCS-based
+        sort-key comparison require, built fresh on every call."""
+        return {
+            "numerator": unit_cell_to_json(self.numerator),
+            "denominator": unit_cell_to_json(self.denominator),
+        }
+
+
+# A non-null `unit` cell as `Frame.rows` gives it: a unit ref, a converted
+# unit, or a composed unit.
+type UnitCell = str | UnitRequest | ComposedUnit
+
+
+def unit_cell_to_json(
+    cell: UnitCell | UnitPart | None,
+) -> str | dict[str, object] | None:
+    """The JSON form of a `unit` cell, or of one side of a composed unit:
+    `None`, the ref string itself, or the object's `as_json()`. This is the
+    value canonical frame bytes carry in the `unit` column.
+    """
+    if cell is None or isinstance(cell, str):
+        return cell
+    return cell.as_json()
+
+
+def unit_cell_from_json(value: object) -> UnitCell | None:
+    """Validate the JSON form of a `unit` cell and return the cell.
+
+    `None` returns `None`. A string is NFC-normalised into a unit ref. An
+    object carrying `numerator` or `denominator` is read as a composed
+    unit, and any other object as a unit request under
+    `validate_unit_request`.
+
+    A composed unit is exactly `numerator` and `denominator`. Each is a
+    non-empty string, a unit-request object, or an object with exactly
+    `stat_var`, a string under the `stat_var` column's rule.
+
+    Raises:
+        FrameError: `schema_violation` for a value that is none of the
+            forms, an empty ref, or a cell object with a non-string key;
+            `lone_surrogate` for any string holding one; `invalid_unit`
+            for a unit request or a composed unit outside its closed
+            shape, a non-string key in a part included.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        text = _normalize_text(value)
+        if not text:
+            raise FrameError("schema_violation", "unit must be a non-empty string")
+        return text
+    if isinstance(value, Mapping):
+        if not all(isinstance(key, str) for key in value):
+            raise FrameError("schema_violation", "unit request keys must be strings")
+        unit = cast("Mapping[str, object]", value)
+        if _COMPOSED_UNIT_KEYS & unit.keys():
+            return _composed_unit_from_json(unit)
+        return unit_request_from_json(unit)
+    raise FrameError(
+        "schema_violation",
+        f"unit must be a string, mapping, or null, got {type(value)!r}",
+    )
+
+
+def validate_unit_cell(cell: object) -> None:
+    """Refuse a hand-built `unit` cell that `unit_cell_from_json` would not
+    return: anything but `None`, a `str`, a `UnitRequest` or a
+    `ComposedUnit`, or one of those whose JSON form fails validation or
+    reads back as a different cell, such as a non-NFC ref, a
+    `ComposedUnit` whose side is not a `str`, a `UnitRequest` or a
+    `StatVarPart`, or a `UnitRequest` outside its closed shape.
+
+    Raises:
+        FrameError: `invalid_unit`.
+    """
+    if cell is not None and not isinstance(cell, (str, UnitRequest, ComposedUnit)):
+        raise FrameError(
+            "invalid_unit",
+            f"unit cell must be a string, UnitRequest, ComposedUnit, or None, "
+            f"got {type(cell)!r}",
+        )
+    if isinstance(cell, ComposedUnit):
+        for side in ("numerator", "denominator"):
+            part = getattr(cell, side)
+            if not isinstance(part, (str, UnitRequest, StatVarPart)):
+                raise FrameError(
+                    "invalid_unit",
+                    f"composed unit {side} must be a string, UnitRequest, or "
+                    f"StatVarPart, got {type(part)!r}",
+                )
+    try:
+        canonical = unit_cell_from_json(unit_cell_to_json(cell))
+    except FrameError as exc:
+        raise FrameError("invalid_unit", f"invalid unit cell {cell!r}: {exc}") from exc
+    if canonical != cell:
+        raise FrameError(
+            "invalid_unit",
+            f"unit cell {cell!r} is not in the form validation gives it: {canonical!r}",
+        )
+
+
+def unit_request_from_json(request: Mapping[str, object]) -> UnitRequest:
+    """Validate a unit-request object under `validate_unit_request` and
+    return it as a `UnitRequest`.
+
+    Raises:
+        FrameError: `invalid_unit`.
+    """
+    validate_unit_request(request)
+    return UnitRequest(
+        currency=unicodedata.normalize("NFC", cast(str, request["currency"])),
+        prices=cast(str, request["prices"]),
+        base_year=cast("int | None", request.get("base_year")),
+    )
+
+
+def _normalize_text(value: str) -> str:
+    text = unicodedata.normalize("NFC", value)
+    reject_lone_surrogates(text)
+    return text
+
+
+def _composed_unit_from_json(unit: Mapping[str, object]) -> ComposedUnit:
+    extra = set(unit) - _COMPOSED_UNIT_KEYS
+    if extra:
+        raise FrameError(
+            "invalid_unit",
+            f"composed unit carries unknown member(s): {sorted(extra)!r}",
+        )
+    if unit.keys() != _COMPOSED_UNIT_KEYS:
+        raise FrameError(
+            "invalid_unit", "composed unit requires 'numerator' and 'denominator'"
+        )
+    return ComposedUnit(
+        numerator=_unit_part_from_json(unit["numerator"], side="numerator"),
+        denominator=_unit_part_from_json(unit["denominator"], side="denominator"),
+    )
+
+
+def _unit_part_from_json(value: object, *, side: str) -> UnitPart:
+    if isinstance(value, str):
+        text = _normalize_text(value)
+        if not text:
+            raise FrameError(
+                "invalid_unit", f"composed unit {side} must be a non-empty string"
+            )
+        return text
+    if not isinstance(value, Mapping) or not all(isinstance(key, str) for key in value):
+        raise FrameError(
+            "invalid_unit",
+            f"composed unit {side} must be a unit ref, a unit request, or a "
+            f"stat_var object, got {type(value)!r}",
+        )
+    part = cast("Mapping[str, object]", value)
+    if _COMPOSED_UNIT_KEYS & part.keys():
+        raise FrameError(
+            "invalid_unit", f"composed unit {side} may not itself be a composed unit"
+        )
+    if STAT_VAR_COLUMN not in part:
+        return unit_request_from_json(part)
+    extra = set(part) - _STAT_VAR_PART_KEYS
+    if extra:
+        raise FrameError(
+            "invalid_unit",
+            f"composed unit {side} carries unknown member(s) beside 'stat_var': "
+            f"{sorted(extra)!r}",
+        )
+    stat_var = part[STAT_VAR_COLUMN]
+    if not isinstance(stat_var, str):
+        raise FrameError(
+            "invalid_unit",
+            f"composed unit {side} stat_var must be a string, got {type(stat_var)!r}",
+        )
+    text = _normalize_text(stat_var)
+    # The `stat_var` column's own rule, refused here under the unit's
+    # category because the cell at fault is the `unit` cell.
+    try:
+        validate_stat_var_ref(text)
+    except FrameError as exc:
+        raise FrameError("invalid_unit", f"composed unit {side}: {exc}") from exc
+    return StatVarPart(stat_var=text)
+
+
 def cell_sort_key(cell: object) -> tuple:
     """Comparison key for one grain cell, under the platform's one
     collation.
@@ -454,15 +678,16 @@ def cell_sort_key(cell: object) -> tuple:
     of its NFC form (plain Python string comparison already does this, so
     long as the string was NFC-normalised beforehand -- frame construction
     guarantees that, this function does not re-normalise). A unit-request
-    object compares by its own JCS serialisation: because JCS output is
-    valid UTF-8, and UTF-8's byte order agrees with Unicode code point
-    order for valid UTF-8, comparing the serialised bytes is equivalent to
-    the same code-point collation every other cell uses.
+    object or a composed unit compares by its own JCS serialisation:
+    because JCS output is valid UTF-8, and UTF-8's byte order agrees with
+    Unicode code point order for valid UTF-8, comparing the serialised
+    bytes is equivalent to the same code-point collation every other cell
+    uses.
 
-    Ranked by type (`None`, then string, then object) rather than compared
-    across types: no pinned rule orders a bare unit ref against a
-    unit-request object, so separating them by rank is a ruling, not a
-    derived fact, and it keeps the key total either way.
+    Cells order by type first (`None`, then string, then unit request,
+    then composed unit). No pinned rule orders a bare unit ref against an
+    object, so separating them by rank is a ruling that keeps the key
+    total. A cell and its JSON form (`unit_cell_to_json`) share one key.
     """
     if cell is None:
         return (0,)
@@ -470,8 +695,11 @@ def cell_sort_key(cell: object) -> tuple:
         return (1, cell)
     if isinstance(cell, UnitRequest):
         return (2, canonicalize(cell.as_json()))
+    if isinstance(cell, ComposedUnit):
+        return (3, canonicalize(cell.as_json()))
     if isinstance(cell, Mapping):
-        return (2, canonicalize(dict(cell)))
+        rank = 3 if _COMPOSED_UNIT_KEYS & cell.keys() else 2
+        return (rank, canonicalize(dict(cell)))
     raise FrameError(
         "schema_violation", f"cell of unsupported type for sorting: {type(cell)!r}"
     )

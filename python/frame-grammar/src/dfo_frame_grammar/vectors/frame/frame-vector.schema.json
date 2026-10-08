@@ -63,7 +63,7 @@
       }
     },
     "rows": {
-      "description": "kind: \"frame\" only. The frame's input rows: a JSON array of objects, each keyed by column name. This is the frame's pre-canonicalisation input, in whatever order the vector author chose to type it in; input row order carries no meaning.",
+      "description": "kind: \"frame\" only. The frame's input rows: a JSON array of objects, each keyed by column name. This is the frame's pre-canonicalisation input, in whatever order the vector author chose to type it in; input row order carries no meaning. A unit cell is null, a unit ref string, a unit-request object ({currency, prices, base_year}), or a composed-unit object ({numerator, denominator}, each a unit ref string, a unit-request object, or {stat_var}). Cell shapes are not constrained by this schema: a negative vector's whole point is to carry a row the grammar refuses.",
       "type": "array",
       "items": {
         "type": "object"

@@ -12,8 +12,9 @@ domain separator hashed into every canonical frame document (see
 `dfo_frame_grammar.frame.canonical_frame_bytes`). The two are deliberately
 independent tokens for two different things: `FRAME_VERSION` names the byte
 rules themselves and moves only on a byte-rule generation change;
-`FRAME_GRAMMAR_VERSION` names the published document and moves on every
-revision to it, including ones that change no byte rule at all. Collapsing
+`FRAME_GRAMMAR_VERSION` names the published document and, from the
+grammar's first release, moves on every revision to it, including ones
+that change no byte rule at all. Collapsing
 them into one token would mean a document typo fix rotates `frame_sha256`
 for every stored frame, or that a genuine byte-rule change ships with no
 version bump visible to a consumer watching this constant. Neither token
@@ -42,12 +43,15 @@ What each version component means, by the rule this document locks:
   example, a typo fix. Never changes what `canonical_frame_bytes` produces
   for any frame, old or new.
 
+These rules count from the grammar's first release. `1.0.0` includes the
+interval form of `time_period` and the composed form of the `unit` cell.
+
 What moves this token, and what deliberately does not
 -------------------------------------------------------
-Moves it: any change to `docs/frame-grammar-v1.md`, at whatever component
-the change's own scope calls for above -- including a change that touches
-no line of this package's code, since the document itself is the versioned
-artifact.
+Moves it, from the grammar's first release: any change to
+`docs/frame-grammar-v1.md`, at whatever component the change's own scope
+calls for above -- including a change that touches no line of this
+package's code, since the document itself is the versioned artifact.
 
 Deliberately does not move it: nothing in this package reads or is driven
 by `FRAME_GRAMMAR_VERSION`'s own value -- `canonical_frame_bytes` and

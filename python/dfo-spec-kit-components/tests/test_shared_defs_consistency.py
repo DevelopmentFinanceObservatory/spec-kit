@@ -54,3 +54,29 @@ def test_shared_defs_are_identical_across_component_schemas() -> None:
         f"$defs drifted between component schemas (name, one component, the diverging "
         f"component): {mismatches}"
     )
+
+
+_UNIT_BEARING = ("bar_chart", "line_chart", "stat_card", "table")
+_COMPOSED_UNIT_DEFS = ("composed_unit", "unit_part", "counted_stat_var")
+
+
+def test_every_unit_bearing_schema_declares_the_composed_unit_defs() -> None:
+    """The identity check above compares only the copies that exist, so a
+    schema that dropped one of these would pass it."""
+    defs = _component_defs()
+    for def_name in _COMPOSED_UNIT_DEFS:
+        assert sorted(defs[def_name]) == list(_UNIT_BEARING), def_name
+
+
+def test_the_unit_slot_admits_the_same_forms_in_every_unit_bearing_schema() -> None:
+    """`stat_card` states its unit slot inline while the other three keep it
+    under `$defs.unit`, so the `$defs` comparison never sees it."""
+    slots = {}
+    for component in _UNIT_BEARING:
+        path = _COMPONENT_SCHEMA_DIR / f"{component}.schema.json"
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        slot = schema["$defs"].get("unit") or schema["properties"]["unit"]
+        slots[component] = slot["oneOf"]
+    reference = slots["line_chart"]
+    assert {"$ref": "#/$defs/composed_unit"} in reference
+    assert all(forms == reference for forms in slots.values()), slots

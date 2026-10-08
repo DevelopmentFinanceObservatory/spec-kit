@@ -44,20 +44,53 @@
       ],
       "additionalProperties": false
     },
+    "relative_period": {
+      "description": "A period counted from the latest one: `anchor` \"latest\" is the newest period at least half of the component's series hold, and `offset` moves back from it by whole periods at the frame's grain, 0 for the anchor itself. It is resolved to a period label each time the component is drawn.",
+      "$comment": "dfo_frame_grammar.rolling resolves it: latest_anchor finds the anchor and shift_period applies the offset. A day-grain frame admits offset 0 only, and a span frame admits no relative period. `integer` admits an integral float such as -1.0, and shift_period takes an int, so a consumer converts the offset before calling.",
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "const": "latest"
+        },
+        "offset": {
+          "type": "integer",
+          "maximum": 0
+        }
+      },
+      "required": [
+        "anchor",
+        "offset"
+      ],
+      "additionalProperties": false
+    },
     "window": {
-      "description": "Period labels at the frame's grain, e.g. \"2024\", or the frame's span, e.g. \"2018/2022\". An omitted side runs to the edge of the frame's coverage; omitting the window entirely means full coverage.",
-      "$comment": "A bound's maxLength is 21, the longest period the frame grammar's parse_time_period accepts: a day-grain span such as 2024-01-01/2024-01-31. The component schemas' $defs.observed_period carries the same bound.",
+      "description": "Each side is a period label at the frame's grain, e.g. \"2024\", the frame's span, e.g. \"2018/2022\", or a relative period, e.g. {\"anchor\": \"latest\", \"offset\": -9}. An omitted side runs to the edge of the frame's coverage; omitting the window entirely means full coverage.",
+      "$comment": "A label's maxLength is 21, the longest period the frame grammar's parse_time_period accepts: a day-grain span such as 2024-01-01/2024-01-31. The component schemas' $defs.observed_period carries the same bound.",
       "type": "object",
       "properties": {
         "start": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 21
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 21
+            },
+            {
+              "$ref": "#/$defs/relative_period"
+            }
+          ]
         },
         "end": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 21
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 21
+            },
+            {
+              "$ref": "#/$defs/relative_period"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -297,12 +330,19 @@
           "type": "object",
           "properties": {
             "basis": {
-              "description": "The two periods being compared, in order: [from, to].",
+              "description": "The two periods being compared, in order: [from, to]. Each is a period label or a relative period, e.g. [{\"anchor\": \"latest\", \"offset\": -1}, {\"anchor\": \"latest\", \"offset\": 0}].",
               "type": "array",
               "items": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 20
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20
+                  },
+                  {
+                    "$ref": "#/$defs/relative_period"
+                  }
+                ]
               },
               "minItems": 2,
               "maxItems": 2

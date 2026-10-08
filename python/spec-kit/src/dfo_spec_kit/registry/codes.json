@@ -151,6 +151,11 @@
           "endpoint": "presentation.write",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -260,7 +265,7 @@
           "channel": "diagnostics_warning"
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "children_anchor_ambiguous",
@@ -486,6 +491,11 @@
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -1309,6 +1319,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "frame_not_refreshable",
+      "classification": "refusal",
+      "definition": "The named frame is a derived frame, published by an analysis service from its own computation. No dataset definition stands behind it, so it cannot be rebuilt here on current data; the service that computed it replays it.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "frame_unavailable",
       "classification": "refusal",
       "definition": "The frame the intent's frame_ref names cannot be read at request time.",
@@ -1318,6 +1344,11 @@
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
         }
@@ -1431,6 +1462,21 @@
         },
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -1628,7 +1674,7 @@
           "channel": "diagnostics_warning"
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "near_neighbor_ambiguous",
@@ -1779,6 +1825,11 @@
         },
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -2587,6 +2638,11 @@
           "endpoint": "datasets.publish",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 409
         }
       ],
       "lifecycle": "active"
@@ -2601,6 +2657,11 @@
       "mappings": [
         {
           "endpoint": "datasets.publish",
+          "channel": "problem_details",
+          "http_status": 403
+        },
+        {
+          "endpoint": "datasets.recipe",
           "channel": "problem_details",
           "http_status": 403
         }
@@ -2751,6 +2812,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "recipe_not_found",
+      "classification": "refusal",
+      "definition": "No recipe is recorded for the named frame, or no frame is stored under the named replay key.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "redundant_binding_dropped",
       "classification": "warning",
       "definition": "A drafted slot binding was dropped as a redundant, never-mentioned spelling of an axis the family can already answer under its other spelling, so the query is not refused for an axis it never actually named.",
@@ -2770,6 +2847,27 @@
       "lifecycle": "active"
     },
     {
+      "code": "refresh_not_permitted",
+      "classification": "refusal",
+      "definition": "The authenticated caller is not the principal permitted to refresh live components, or live refresh is not configured on this deployment.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 403
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "release_mismatch",
       "classification": "refusal",
       "definition": "The request names a catalogue or grammar release this deployment does not serve.",
@@ -2781,6 +2879,43 @@
           "endpoint": "presentation.write",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "render_target_mismatch",
+      "classification": "refusal",
+      "definition": "A render names a target frame that is not a later state of the frame the stored revision draws from: a dataset frame with another definition or rendering, or a derived frame whose recorded computation differs or is not recorded.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rendering_not_recorded",
+      "classification": "refusal",
+      "definition": "The named frame is a grouped rendering of a dataset version, and no record states the grouping that produced it. The same rendering cannot be rebuilt on current data, so the frame can never be refreshed.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2870,6 +3005,21 @@
           "endpoint": "skills.resource",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -2918,6 +3068,11 @@
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
         }
@@ -3181,6 +3336,11 @@
           "endpoint": "presentation.write",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -3306,6 +3466,21 @@
         },
         {
           "endpoint": "skills.resource",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 503
         }
@@ -3712,6 +3887,16 @@
           "endpoint": "datasets.pin",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -3846,6 +4031,11 @@
           "endpoint": "datasets.pin",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -3868,7 +4058,7 @@
           "channel": "diagnostics_warning"
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "starved_axis_binding_restored",
@@ -4001,6 +4191,11 @@
         },
         {
           "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 504
         }

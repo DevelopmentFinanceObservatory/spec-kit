@@ -1,0 +1,495 @@
+{
+  "format_version": 1,
+  "anchor_rule": "half1",
+  "latest_anchor": [
+    {
+      "name": "one-series-newest-period",
+      "description": "One series resolves to its own newest period.",
+      "populations": [
+        {
+          "a": [
+            "2021",
+            "2023",
+            "2022"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2023",
+        "left_out": []
+      }
+    },
+    {
+      "name": "exactly-half-holds-the-newest",
+      "description": "Two of four series hold 2024, which is exactly half, so 2024 is the anchor and the other two are left out.",
+      "populations": [
+        {
+          "a": [
+            "2023",
+            "2024"
+          ],
+          "b": [
+            "2023",
+            "2024"
+          ],
+          "c": [
+            "2023"
+          ],
+          "d": [
+            "2023"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2024",
+        "left_out": [
+          [
+            0,
+            "c"
+          ],
+          [
+            0,
+            "d"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "under-half-is-not-the-anchor",
+      "description": "One of three series holds 2024, under half, so the anchor is 2023, which all three hold.",
+      "populations": [
+        {
+          "a": [
+            "2023",
+            "2024"
+          ],
+          "b": [
+            "2023"
+          ],
+          "c": [
+            "2022",
+            "2023"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2023",
+        "left_out": []
+      }
+    },
+    {
+      "name": "two-of-three-holds",
+      "description": "Two of three series hold 2024, so 2024 is the anchor and the third is left out.",
+      "populations": [
+        {
+          "a": [
+            "2024"
+          ],
+          "b": [
+            "2023",
+            "2024"
+          ],
+          "c": [
+            "2023"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2024",
+        "left_out": [
+          [
+            0,
+            "c"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "series-without-periods-counts",
+      "description": "A series holding no period counts towards the population, so 2024, held by one of three, falls short and no period qualifies.",
+      "populations": [
+        {
+          "a": [
+            "2024"
+          ],
+          "b": [],
+          "c": []
+        }
+      ],
+      "error": "rolling_anchor_unresolved"
+    },
+    {
+      "name": "lagging-population-sets-the-anchor",
+      "description": "Every series in the first population holds 2024 and none in the second does, so the anchor is 2023, the newest period half of each population holds.",
+      "populations": [
+        {
+          "a": [
+            "2023",
+            "2024"
+          ],
+          "b": [
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "x": [
+            "2022",
+            "2023"
+          ],
+          "y": [
+            "2022"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2023",
+        "left_out": [
+          [
+            1,
+            "y"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "same-key-in-two-populations",
+      "description": "A series key is scoped to its population, so left-out entries carry the population index.",
+      "populations": [
+        {
+          "a": [
+            "2023"
+          ],
+          "b": [
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "a": [
+            "2022"
+          ],
+          "b": [
+            "2023"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2023",
+        "left_out": [
+          [
+            1,
+            "a"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "left-out-keeps-series-order",
+      "description": "Left-out series come back in the population's own series order, here b before 0, which sorting the keys would reverse.",
+      "populations": [
+        {
+          "b": [
+            "2023"
+          ],
+          "a": [
+            "2023",
+            "2024"
+          ],
+          "c": [
+            "2024"
+          ],
+          "0": [
+            "2023"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2024",
+        "left_out": [
+          [
+            0,
+            "b"
+          ],
+          [
+            0,
+            "0"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "repeated-label-counts-once",
+      "description": "A series naming 2024 twice holds it once: one of three series, so 2023 is the anchor.",
+      "populations": [
+        {
+          "a": [
+            "2024",
+            "2024",
+            "2023"
+          ],
+          "b": [
+            "2023"
+          ],
+          "c": [
+            "2023"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2023",
+        "left_out": []
+      }
+    },
+    {
+      "name": "month-grain",
+      "description": "Month labels resolve at month grain.",
+      "populations": [
+        {
+          "a": [
+            "2024-11",
+            "2024-12"
+          ],
+          "b": [
+            "2024-12",
+            "2025-01"
+          ],
+          "c": [
+            "2024-12"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2024-12",
+        "left_out": []
+      }
+    },
+    {
+      "name": "day-grain",
+      "description": "Day labels resolve at day grain.",
+      "populations": [
+        {
+          "a": [
+            "2024-02-28",
+            "2024-03-01"
+          ],
+          "b": [
+            "2024-03-01"
+          ]
+        }
+      ],
+      "expected": {
+        "period": "2024-03-01",
+        "left_out": []
+      }
+    },
+    {
+      "name": "no-populations-rejected",
+      "description": "With no population there is nothing to resolve.",
+      "populations": [],
+      "error": "rolling_anchor_unresolved"
+    },
+    {
+      "name": "empty-population-rejected",
+      "description": "A population with no series has no anchor.",
+      "populations": [
+        {
+          "a": [
+            "2024"
+          ]
+        },
+        {}
+      ],
+      "error": "rolling_anchor_unresolved"
+    },
+    {
+      "name": "no-shared-period-rejected",
+      "description": "Each population has a qualifying period but none qualifies in both.",
+      "populations": [
+        {
+          "a": [
+            "2024"
+          ]
+        },
+        {
+          "x": [
+            "2023"
+          ]
+        }
+      ],
+      "error": "rolling_anchor_unresolved"
+    },
+    {
+      "name": "no-period-reaches-half-rejected",
+      "description": "Three series each hold a different year, so every period is held by one of three.",
+      "populations": [
+        {
+          "a": [
+            "2022"
+          ],
+          "b": [
+            "2023"
+          ],
+          "c": [
+            "2024"
+          ]
+        }
+      ],
+      "error": "rolling_anchor_unresolved"
+    },
+    {
+      "name": "mixed-grain-in-one-population-rejected",
+      "description": "A year and a month in one population.",
+      "populations": [
+        {
+          "a": [
+            "2024"
+          ],
+          "b": [
+            "2024-06"
+          ]
+        }
+      ],
+      "error": "rolling_grain_unsupported"
+    },
+    {
+      "name": "mixed-grain-across-populations-rejected",
+      "description": "A year-grain population beside a month-grain one.",
+      "populations": [
+        {
+          "a": [
+            "2024"
+          ]
+        },
+        {
+          "x": [
+            "2024-06"
+          ]
+        }
+      ],
+      "error": "rolling_grain_unsupported"
+    },
+    {
+      "name": "span-label-rejected",
+      "description": "A span label is not a point period.",
+      "populations": [
+        {
+          "a": [
+            "2018/2022"
+          ]
+        }
+      ],
+      "error": "rolling_grain_unsupported"
+    },
+    {
+      "name": "malformed-label-rejected",
+      "description": "A label that is not a time_period cell.",
+      "populations": [
+        {
+          "a": [
+            "FY2024"
+          ]
+        }
+      ],
+      "error": "invalid_time_period"
+    }
+  ],
+  "shift_period": [
+    {
+      "name": "year-back-one",
+      "period": "2024",
+      "offset": -1,
+      "expected": "2023"
+    },
+    {
+      "name": "year-back-five",
+      "period": "2024",
+      "offset": -5,
+      "expected": "2019"
+    },
+    {
+      "name": "year-zero-offset",
+      "period": "2024",
+      "offset": 0,
+      "expected": "2024"
+    },
+    {
+      "name": "year-zero-padded",
+      "period": "1000",
+      "offset": -1,
+      "expected": "0999"
+    },
+    {
+      "name": "month-back-one",
+      "period": "2024-03",
+      "offset": -1,
+      "expected": "2024-02"
+    },
+    {
+      "name": "month-across-january",
+      "period": "2024-01",
+      "offset": -1,
+      "expected": "2023-12"
+    },
+    {
+      "name": "month-back-a-year",
+      "period": "2024-06",
+      "offset": -12,
+      "expected": "2023-06"
+    },
+    {
+      "name": "month-back-thirteen",
+      "period": "2024-01",
+      "offset": -13,
+      "expected": "2022-12"
+    },
+    {
+      "name": "month-zero-offset",
+      "period": "2024-12",
+      "offset": 0,
+      "expected": "2024-12"
+    },
+    {
+      "name": "day-zero-offset",
+      "period": "2024-02-29",
+      "offset": 0,
+      "expected": "2024-02-29"
+    },
+    {
+      "name": "day-back-one-rejected",
+      "period": "2024-02-29",
+      "offset": -1,
+      "error": "rolling_grain_unsupported"
+    },
+    {
+      "name": "span-rejected",
+      "period": "2018/2022",
+      "offset": -1,
+      "error": "rolling_grain_unsupported"
+    },
+    {
+      "name": "span-zero-offset-rejected",
+      "period": "2018/2022",
+      "offset": 0,
+      "error": "rolling_grain_unsupported"
+    },
+    {
+      "name": "before-year-zero-rejected",
+      "period": "0000",
+      "offset": -1,
+      "error": "invalid_time_period"
+    },
+    {
+      "name": "month-before-year-zero-rejected",
+      "period": "0000-01",
+      "offset": -1,
+      "error": "invalid_time_period"
+    },
+    {
+      "name": "malformed-period-rejected",
+      "period": "2024-Q1",
+      "offset": -1,
+      "error": "invalid_time_period"
+    }
+  ]
+}
