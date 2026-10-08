@@ -46,7 +46,9 @@ _FIXTURE_PAYLOAD_PATHS = [
     "fixtures/bar_chart/payload.json",
     "fixtures/bar_chart/payload_span.json",
     "fixtures/table/payload.json",
+    "fixtures/table/payload_composed_unit.json",
     "fixtures/stat_card/payload.json",
+    "fixtures/stat_card/payload_composed_unit.json",
     "fixtures/note_narration/payload.json",
     "fixtures/source_card/payload.json",
 ]
@@ -60,6 +62,16 @@ def test_fixture_payload_validates_against_the_envelope_schema(
     _VALIDATOR.validate(payload)
 
 
+@pytest.mark.parametrize("relative_path", _FIXTURE_PAYLOAD_PATHS)
+def test_fixture_payload_carries_the_bundle_release(relative_path: str) -> None:
+    """A fixture payload is what this release mints, so it names this
+    release."""
+    assert (
+        _load(relative_path)["catalog_version"]
+        == _load("manifest.json")["catalog_version"]
+    )
+
+
 @pytest.mark.parametrize(
     ("relative_path", "expected_type"),
     [
@@ -67,7 +79,9 @@ def test_fixture_payload_validates_against_the_envelope_schema(
         ("fixtures/bar_chart/payload.json", "bar_chart"),
         ("fixtures/bar_chart/payload_span.json", "bar_chart"),
         ("fixtures/table/payload.json", "table"),
+        ("fixtures/table/payload_composed_unit.json", "table"),
         ("fixtures/stat_card/payload.json", "stat_card"),
+        ("fixtures/stat_card/payload_composed_unit.json", "stat_card"),
         ("fixtures/note_narration/payload.json", "note_narration"),
         ("fixtures/source_card/payload.json", "source_card"),
     ],
@@ -182,6 +196,170 @@ def test_a_period_mode_bar_rejects_a_span_point() -> None:
         0,
         "period",
     )
+
+
+_POPULATION = {"stat_var": "dcid:Count_Person", "label": "Total population"}
+_CONVERTED = {"currency": "USD", "prices": "constant", "base_year": 2023}
+
+_UNIT_SLOTS = [
+    ("fixtures/stat_card/payload.json", ("component", "unit")),
+    ("fixtures/line_chart/payload.json", ("component", "series", 0, "unit")),
+    ("fixtures/bar_chart/payload.json", ("component", "series", 0, "unit")),
+    ("fixtures/table/payload.json", ("component", "rows", 0, "unit")),
+]
+
+
+@pytest.mark.parametrize(("relative_path", "path"), _UNIT_SLOTS)
+@pytest.mark.parametrize(
+    "unit",
+    [
+        {"numerator": "US Dollar", "denominator": _POPULATION},
+        {"numerator": _CONVERTED, "denominator": _POPULATION},
+        {"numerator": _POPULATION, "denominator": "SquareKilometer"},
+        {"numerator": "CurrencyUSD", "denominator": _CONVERTED},
+    ],
+)
+def test_a_composed_unit_validates_in_every_unit_slot(
+    relative_path: str, path: tuple[str | int, ...], unit: dict
+) -> None:
+    payload = _load(relative_path)
+    _set_path(payload, path, unit)
+    _VALIDATOR.validate(payload)  # must not raise
+
+
+def _errors_with_context(errors: object) -> list[ValidationError]:
+    """Every error in the tree, including the ones a `oneOf` holds in its
+    `context` for each arm that did not match."""
+    found: list[ValidationError] = []
+    for error in errors:
+        found.append(error)
+        found.extend(_errors_with_context(error.context or ()))
+    return found
+
+
+@pytest.mark.parametrize(("relative_path", "path"), _UNIT_SLOTS)
+@pytest.mark.parametrize(
+    "case",
+    [
+        (
+            {"numerator": "US Dollar", "denominator": _POPULATION, "scale": 1000},
+            ("composed_unit",),
+            "additionalProperties",
+            (),
+        ),
+        ({"numerator": "US Dollar"}, ("composed_unit",), "required", ()),
+        (
+            {"numerator": "US Dollar", "denominator": None},
+            ("unit_part",),
+            "oneOf",
+            ("denominator",),
+        ),
+        (
+            {
+                "numerator": {"numerator": "US Dollar", "denominator": _POPULATION},
+                "denominator": _POPULATION,
+            },
+            ("unit_part",),
+            "oneOf",
+            ("numerator",),
+        ),
+        (
+            {
+                "numerator": "US Dollar",
+                "denominator": {"stat_var": "dcid:Count_Person"},
+            },
+            ("counted_stat_var",),
+            "required",
+            ("denominator",),
+        ),
+        (
+            {
+                "numerator": "US Dollar",
+                "denominator": {"stat_var": "Count_Person", "label": "Population"},
+            },
+            ("counted_stat_var", "properties", "stat_var"),
+            "pattern",
+            ("denominator", "stat_var"),
+        ),
+        (
+            {
+                "numerator": "US Dollar",
+                "denominator": {**_POPULATION, "scale": 1000},
+            },
+            ("counted_stat_var",),
+            "additionalProperties",
+            ("denominator",),
+        ),
+    ],
+    ids=[
+        "unknown_member",
+        "missing_denominator",
+        "null_part",
+        "nested_composed_part",
+        "counted_stat_var_without_label",
+        "stat_var_without_dcid_prefix",
+        "counted_stat_var_unknown_member",
+    ],
+)
+def test_a_malformed_composed_unit_is_rejected_by_the_rule_it_breaks(
+    relative_path: str,
+    path: tuple[str | int, ...],
+    case: tuple[dict, tuple[str, ...], str, tuple[str, ...]],
+) -> None:
+    """Each case breaks one rule. The schema reports it from the named
+    definition under `$defs`, under the named keyword, at the unit or the
+    part that broke it."""
+    unit, definition, keyword, part = case
+    payload = _load(relative_path)
+    _set_path(payload, path, unit)
+    with pytest.raises(ValidationError):
+        _VALIDATOR.validate(payload)
+
+    component = payload["component"]
+    schema = _load(f"schemas/component/{component['type']}.schema.json")
+    errors = _errors_with_context(Draft202012Validator(schema).iter_errors(component))
+    broken_rule = schema["$defs"]
+    for key in definition:
+        broken_rule = broken_rule[key]
+    assert any(
+        error.validator == keyword
+        and error.schema == broken_rule
+        and ("component", *error.absolute_path) == (*path, *part)
+        for error in errors
+    )
+
+
+_CONSTRAINT_FIXTURES = sorted(
+    entry.relative_to(_BUNDLE).as_posix()
+    for entry in (_BUNDLE / "fixtures" / "constraints").rglob("*.json")
+)
+
+
+@pytest.mark.parametrize("relative_path", _CONSTRAINT_FIXTURES)
+def test_a_constraint_fixture_component_validates_against_its_member_schema(
+    relative_path: str,
+) -> None:
+    """A constraint case is schema-valid, positive or negative, so a
+    negative is refused by the constraint it names and by nothing earlier."""
+    component = _load(relative_path)["component"]
+    schema = _load(f"schemas/component/{component['type']}.schema.json")
+    Draft202012Validator(schema).validate(component)
+
+
+def _series_units(relative_path: str) -> list[object]:
+    return [s["unit"] for s in _load(relative_path)["component"]["series"]]
+
+
+def test_comparable_units_composed_pair_differs_only_in_the_negative() -> None:
+    directory = "fixtures/constraints/comparable_units_required"
+    first, second = _series_units(f"{directory}/positive_composed.json")
+    assert first == second
+    assert set(first) == {"numerator", "denominator"}
+    first, second = _series_units(
+        f"{directory}/negative_composed_denominator_differs.json"
+    )
+    assert first != second
+    assert first["numerator"] == second["numerator"]
 
 
 def test_note_narration_fixture_carries_no_frame_provenance() -> None:

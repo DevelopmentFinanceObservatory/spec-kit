@@ -29,9 +29,11 @@ _SHIPPED_INTENT_PATHS = [
     "intents/note_narration.minimal.json",
     "intents/source_card.minimal.json",
     "fixtures/line_chart/intent.json",
+    "fixtures/line_chart/intent_relative_window.json",
     "fixtures/bar_chart/intent.json",
     "fixtures/table/intent.json",
     "fixtures/stat_card/intent.json",
+    "fixtures/stat_card/intent_relative_change.json",
     "fixtures/note_narration/intent.json",
     "fixtures/source_card/intent.json",
 ]
@@ -147,3 +149,79 @@ def test_window_bound_admits_a_day_grain_span(
     )
     intent["window"] = {side: bound}
     assert _VALIDATOR.is_valid(intent) is admitted
+
+
+_RELATIVE_PERIOD_CASES = [
+    ({"anchor": "latest", "offset": 0}, True),
+    ({"anchor": "latest", "offset": -9}, True),
+    ({"anchor": "latest", "offset": 1}, False),
+    ({"anchor": "latest", "offset": -1.5}, False),
+    ({"anchor": "latest", "offset": "-1"}, False),
+    ({"anchor": "latest"}, False),
+    ({"offset": 0}, False),
+    ({"anchor": "earliest", "offset": 0}, False),
+    ({"anchor": "latest", "offset": 0, "rule": "half1"}, False),
+]
+_RELATIVE_PERIOD_IDS = [
+    "anchor",
+    "back_nine",
+    "forward",
+    "fractional_offset",
+    "string_offset",
+    "no_offset",
+    "no_anchor",
+    "other_anchor",
+    "extra_member",
+]
+
+
+@pytest.mark.parametrize("side", ["start", "end"])
+@pytest.mark.parametrize(
+    ("bound", "admitted"), _RELATIVE_PERIOD_CASES, ids=_RELATIVE_PERIOD_IDS
+)
+def test_window_bound_admits_a_relative_period(
+    side: str, bound: dict[str, object], admitted: bool
+) -> None:
+    """A window bound is a period label or `{anchor: "latest", offset}` with
+    an integer offset of 0 or less, and nothing else."""
+    intent = json.loads(
+        (_BUNDLE / "intents/table.minimal.json").read_text(encoding="utf-8")
+    )
+    intent["window"] = {side: bound}
+    assert _VALIDATOR.is_valid(intent) is admitted
+
+
+@pytest.mark.parametrize("position", [0, 1])
+@pytest.mark.parametrize(
+    ("period", "admitted"), _RELATIVE_PERIOD_CASES, ids=_RELATIVE_PERIOD_IDS
+)
+def test_change_basis_admits_a_relative_period(
+    position: int, period: dict[str, object], admitted: bool
+) -> None:
+    """Each `change.basis` period is a label or a relative period, so a basis
+    may mix the two."""
+    intent = json.loads(
+        (_BUNDLE / "intents/stat_card.minimal.json").read_text(encoding="utf-8")
+    )
+    basis: list[object] = ["2023", "2024"]
+    basis[position] = period
+    intent["change"] = {"basis": basis}
+    assert _VALIDATOR.is_valid(intent) is admitted
+
+
+def test_relative_fixtures_carry_relative_periods() -> None:
+    """The two relative fixtures show a relative window and a relative
+    `change.basis`, each resolving from the latest period."""
+    window = json.loads(
+        (_BUNDLE / "fixtures/line_chart/intent_relative_window.json").read_text(
+            encoding="utf-8"
+        )
+    )["window"]
+    basis = json.loads(
+        (_BUNDLE / "fixtures/stat_card/intent_relative_change.json").read_text(
+            encoding="utf-8"
+        )
+    )["change"]["basis"]
+    assert window["end"] == basis[1] == {"anchor": "latest", "offset": 0}
+    assert window["start"]["offset"] < 0
+    assert basis[0]["offset"] < 0
