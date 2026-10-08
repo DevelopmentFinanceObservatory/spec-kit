@@ -3,21 +3,23 @@
 from __future__ import annotations
 
 import io
+import json
 import unicodedata
 from collections.abc import Callable, Iterable, Mapping
-from typing import cast
+from typing import Any, cast
 
 import pyarrow as pa
 import pyarrow.csv as pacsv
 
 from dfo_frame_grammar import grammar
+from dfo_frame_grammar._unit_codec import _unit_to_arrow, _unit_type
 from dfo_frame_grammar.columnar import (
+    _sort_and_check,
     array_kernel,
-    collation_sort_keys,
     map_units,
     scalar_kernel,
 )
-from dfo_frame_grammar.frame import Frame, _unit_to_arrow, canonical_frame_schema
+from dfo_frame_grammar.frame import Frame, canonical_frame_schema
 from dfo_frame_grammar.grammar import FrameError
 
 __all__ = ["build_frame_from_arrow", "read_frame_csv"]
@@ -152,69 +154,114 @@ def _normalise_value(array: pa.ChunkedArray) -> pa.Array:
     )
 
 
+def _without_nulls(struct: Mapping[Any, object]) -> dict[str, object]:
+    """The non-null members of a struct value as `to_pylist` reads it."""
+    return {key: value for key, value in struct.items() if value is not None}
+
+
+def _wrong_unit_type(value: object) -> FrameError:
+    return FrameError(
+        "schema_violation",
+        f"unit must be a string, mapping, or null, got {type(value)!r}",
+    )
+
+
 def _unit_request_from_mapping(raw: object) -> grammar.UnitRequest | None:
     if raw is None:
         return None
     if not isinstance(raw, Mapping):
+        raise _wrong_unit_type(raw)
+    return grammar.unit_request_from_json(_without_nulls(raw))
+
+
+def _unique_members(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    members = dict(pairs)
+    if len(members) != len(pairs):
+        raise FrameError("invalid_unit", "composed unit text repeats a member name")
+    return members
+
+
+def _composed_unit_from_text(text: str) -> grammar.ComposedUnit:
+    """Parse and validate the JSON text of a composed unit, refusing text
+    that is not JSON, repeats a member name, or holds anything but a
+    composed unit."""
+    try:
+        parsed = json.loads(text, object_pairs_hook=_unique_members)
+    # `ValueError` covers `JSONDecodeError` and an integer past Python's digit
+    # limit; `RecursionError` covers nesting past the interpreter's depth.
+    except (ValueError, RecursionError) as exc:
         raise FrameError(
-            "schema_violation",
-            f"unit must be a string, mapping, or null, got {type(raw)!r}",
+            "invalid_unit", f"composed unit text is not JSON: {exc}"
+        ) from exc
+    if not isinstance(parsed, dict):
+        raise FrameError(
+            "invalid_unit",
+            f"composed unit text must hold a JSON object, got {type(parsed)!r}",
         )
-    request = {key: value for key, value in raw.items() if value is not None}
-    grammar.validate_unit_request(cast("Mapping[str, object]", request))
-    return grammar.UnitRequest(
-        currency=unicodedata.normalize("NFC", cast(str, request["currency"])),
-        prices=cast(str, request["prices"]),
-        base_year=cast("int | None", request.get("base_year")),
-    )
+    return grammar._composed_unit_from_json(parsed)
 
 
-def _canonical_unit_from_mapping(raw: object) -> str | grammar.UnitRequest | None:
+def _canonical_unit_from_mapping(raw: object) -> grammar.UnitCell | None:
+    """The validated cell of one tagged struct value, read from its single
+    non-null member: a `ref` string, a `request` struct with its null
+    members dropped, or the JSON text of a `composed` unit. A null struct
+    is a null unit. `_refuse_untyped_composed` has already refused a
+    `composed` member that is not text.
+    """
     if raw is None:
         return None
-    assert isinstance(raw, Mapping)
-    tagged = cast("Mapping[str, object]", raw)
-    ref = tagged.get("ref")
-    request = tagged.get("request")
-    if (ref is None) == (request is None):
+    if not isinstance(raw, Mapping):
+        raise _wrong_unit_type(raw)
+    variants = _without_nulls(raw)
+    if len(variants) != 1:
         raise FrameError(
             "schema_violation", "unit tagged struct must carry one variant"
         )
-    if ref is None:
-        unit_request = _unit_request_from_mapping(request)
-        assert unit_request is not None
-        return unit_request
-    if not isinstance(ref, str):
+    ((member, value),) = variants.items()
+    if member == "request":
+        return _unit_request_from_mapping(value)
+    if member == "composed":
+        return _composed_unit_from_text(cast(str, value))
+    if not isinstance(value, str):
+        raise _wrong_unit_type(value)
+    return grammar.unit_cell_from_json(value)
+
+
+# The tagged spellings of the `unit` struct: the canonical three-member
+# layout and the two-member layout, which holds no composed unit. A struct
+# with any other member names is a bare unit request.
+_TAGGED_UNIT_MEMBERS = (["ref", "request"], _unit_type().names)
+
+
+def _refuse_untyped_composed(data_type: pa.StructType) -> None:
+    """Refuse a three-member tagged struct whose `composed` member is not
+    text by its Arrow type, so the column refuses whatever rows it holds.
+    A null-typed member holds no composed unit and passes."""
+    if data_type.names != _unit_type().names:
+        return
+    composed = data_type.field("composed").type
+    if not (_is_text_type(composed) or pa.types.is_null(composed)):
         raise FrameError(
             "schema_violation",
-            f"unit must be a string, mapping, or null, got {type(ref)!r}",
+            f"unit composed member must be a string, got arrow type {composed!r}",
         )
-    text = unicodedata.normalize("NFC", ref)
-    grammar.reject_lone_surrogates(text)
-    if not text:
-        raise FrameError("schema_violation", "unit must be a non-empty string")
-    return text
 
 
 def _normalise_unit(array: pa.ChunkedArray) -> pa.Array:
+    unit_type = _unit_type()
     if pa.types.is_null(array.type):
-        return pa.nulls(
-            len(array), type=canonical_frame_schema(("unit",)).field("unit").type
-        )
+        return pa.nulls(len(array), type=unit_type)
     if _is_text_type(array.type):
         refs = _normalise_text(array, description="unit", allow_null=True)
         return pa.StructArray.from_arrays(
             [
                 refs,
-                pa.nulls(
-                    len(refs),
-                    type=canonical_frame_schema(("unit",))
-                    .field("unit")
-                    .type.field("request")
-                    .type,
+                *(
+                    pa.nulls(len(refs), type=unit_type.field(member).type)
+                    for member in ("request", "composed")
                 ),
             ],
-            names=["ref", "request"],
+            fields=list(unit_type),
             mask=array_kernel("is_null", refs),
         )
     if not pa.types.is_struct(array.type):
@@ -222,48 +269,17 @@ def _normalise_unit(array: pa.ChunkedArray) -> pa.Array:
             "schema_violation",
             f"unit must be a string, mapping, or null, got arrow type {array.type!r}",
         )
+    _refuse_untyped_composed(array.type)
     normalise = (
         _canonical_unit_from_mapping
-        if array.type.names == ["ref", "request"]
+        if array.type.names in _TAGGED_UNIT_MEMBERS
         else _unit_request_from_mapping
     )
     return map_units(
         array,
         lambda value: _unit_to_arrow(normalise(value)),
-        result_type=canonical_frame_schema((grammar.UNIT_COLUMN,)).field(0).type,
+        result_type=unit_type,
     )
-
-
-def _sort_and_check(table: pa.Table, *, columns: tuple[str, ...]) -> pa.Table:
-    """Sort by the grammar collation and reject equal adjacent grains."""
-    grain = [
-        column
-        for column in columns
-        if column not in (grammar.VALUE_COLUMN, grammar.STATUS_COLUMN)
-    ]
-    keys = collation_sort_keys(table, grain)
-    indices = array_kernel(
-        "sort_indices",
-        keys,
-        sort_keys=[(name, "ascending") for name in keys.column_names],
-    )
-    sorted_table = table.take(indices)
-    if sorted_table.num_rows < 2:
-        return sorted_table
-    duplicate: pa.Array | None = None
-    for key in keys.take(indices).columns:
-        value = _combined(key)
-        equal = array_kernel("equal", value.slice(1), value.slice(0, len(value) - 1))
-        duplicate = (
-            equal if duplicate is None else array_kernel("and_kleene", duplicate, equal)
-        )
-    assert duplicate is not None
-    if _any(duplicate):
-        raise FrameError(
-            "duplicate_row_key",
-            "two rows share the same grain (every cell except value and status)",
-        )
-    return sorted_table
 
 
 def build_frame_from_arrow(table: pa.Table, *, role_keys: Iterable[str]) -> Frame:

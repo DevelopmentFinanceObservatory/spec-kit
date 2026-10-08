@@ -287,7 +287,7 @@ def _compute_vector_digest_guard() -> str:
 # expected `canonical_bytes` or `content_version` changed -- the byte-rule
 # regression case this guard exists to catch.
 _VECTOR_DIGEST_GUARD = (
-    "aa0309bb28188daa25991c7fab7bc081093f986277cdeefcb1e292c0a0a2eeb9"
+    "8ee967a1cdfc129e742471fd192d4b4c1198678724c6986c09107a127a9ae3dc"
 )
 
 # The FRAME_GRAMMAR_VERSION in effect when _VECTOR_DIGEST_GUARD above was

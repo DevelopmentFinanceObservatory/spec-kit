@@ -1,0 +1,31 @@
+{
+  "format_version": 1,
+  "name": "frame-composed-unit-nested-rejected",
+  "description": "A composed unit whose denominator is itself a composed unit is refused: a part is one level deep.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "cell-domains.composed-unit-nested"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "time_period": "2020",
+      "value": 2.5,
+      "unit": {
+        "numerator": "USDollar",
+        "denominator": {
+          "numerator": "Euro",
+          "denominator": {
+            "stat_var": "dcid:Count_Person"
+          }
+        }
+      }
+    }
+  ],
+  "failure_category": "invalid_unit"
+}

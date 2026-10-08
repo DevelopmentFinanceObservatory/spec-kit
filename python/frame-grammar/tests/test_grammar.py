@@ -6,10 +6,16 @@ than through a built `Frame`.
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
+import dfo_frame_grammar
 from dfo_frame_grammar import grammar
-from dfo_frame_grammar.grammar import FrameError
+from dfo_frame_grammar.grammar import ComposedUnit, FrameError, StatVarPart, UnitRequest
+
+_PERSON = {"stat_var": "dcid:Count_Person"}
+_EUR_2020 = {"currency": "EUR", "prices": "constant", "base_year": 2020}
 
 
 class TestDeriveColumns:
@@ -280,6 +286,160 @@ class TestValidateUnitRequestRef:
         assert excinfo.value.category == "invalid_unit"
 
 
+class TestUnitCellFromJson:
+    @pytest.mark.parametrize(
+        ("value", "cell"),
+        [
+            (None, None),
+            ("USDollar", "USDollar"),
+            (_EUR_2020, UnitRequest("EUR", "constant", 2020)),
+            (
+                {"numerator": "USDollar", "denominator": _PERSON},
+                ComposedUnit("USDollar", StatVarPart("dcid:Count_Person")),
+            ),
+            (
+                {"numerator": _EUR_2020, "denominator": _PERSON},
+                ComposedUnit(
+                    UnitRequest("EUR", "constant", 2020),
+                    StatVarPart("dcid:Count_Person"),
+                ),
+            ),
+            (
+                {"numerator": "USDollar", "denominator": "Euro"},
+                ComposedUnit("USDollar", "Euro"),
+            ),
+            (
+                {"numerator": _PERSON, "denominator": "Euro"},
+                ComposedUnit(StatVarPart("dcid:Count_Person"), "Euro"),
+            ),
+        ],
+    )
+    def test_each_form_round_trips_through_json(self, value, cell):
+        assert grammar.unit_cell_from_json(value) == cell
+        assert grammar.unit_cell_to_json(cell) == value
+
+    def test_part_strings_are_nfc_normalised(self):
+        cell = grammar.unit_cell_from_json(
+            {
+                "numerator": "unit/e\u0301",
+                "denominator": {"stat_var": "dcid:e\u0301"},
+            }
+        )
+        assert cell == ComposedUnit("unit/\u00e9", StatVarPart("dcid:\u00e9"))
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            pytest.param(
+                {
+                    "numerator": "USDollar",
+                    "denominator": {"numerator": "a", "denominator": "b"},
+                },
+                id="nested-composed-part",
+            ),
+            pytest.param(
+                {"numerator": "USDollar", "denominator": _PERSON, "scale": 1000},
+                id="unknown-member",
+            ),
+            pytest.param({"numerator": "USDollar"}, id="missing-denominator"),
+            pytest.param({"denominator": "USDollar"}, id="missing-numerator"),
+            pytest.param(
+                {"numerator": "USDollar", "denominator": None}, id="null-part"
+            ),
+            pytest.param(
+                {"numerator": "", "denominator": _PERSON}, id="empty-ref-part"
+            ),
+            pytest.param({"numerator": 42, "denominator": _PERSON}, id="number-part"),
+            pytest.param(
+                {"numerator": ["USDollar"], "denominator": _PERSON}, id="array-part"
+            ),
+            pytest.param(
+                {"numerator": "USDollar", "denominator": {"stat_var": "Count_Person"}},
+                id="stat-var-without-prefix",
+            ),
+            pytest.param(
+                {"numerator": "USDollar", "denominator": {"stat_var": 7}},
+                id="stat-var-not-a-string",
+            ),
+            pytest.param(
+                {
+                    "numerator": "USDollar",
+                    "denominator": {"stat_var": "dcid:Count_Person", "label": "People"},
+                },
+                id="stat-var-part-extra-member",
+            ),
+            pytest.param(
+                {
+                    "numerator": {"currency": "EUR", "prices": "constant"},
+                    "denominator": _PERSON,
+                },
+                id="invalid-unit-request-part",
+            ),
+            pytest.param(
+                {
+                    "numerator": {"currency": {"role": "origin"}, "prices": "current"},
+                    "denominator": _PERSON,
+                },
+                id="role-currency-part",
+            ),
+            pytest.param({"numerator": "USDollar", "denominator": {}}, id="empty-part"),
+            pytest.param({"stat_var": "dcid:Count_Person"}, id="bare-stat-var-cell"),
+        ],
+    )
+    def test_refuses_a_value_outside_the_closed_shape(self, value):
+        with pytest.raises(FrameError) as excinfo:
+            grammar.unit_cell_from_json(value)
+        assert excinfo.value.category == "invalid_unit"
+
+    def test_refuses_a_lone_surrogate_in_a_part(self):
+        with pytest.raises(FrameError) as excinfo:
+            grammar.unit_cell_from_json({"numerator": "\ud800", "denominator": _PERSON})
+        assert excinfo.value.category == "lone_surrogate"
+
+
+class TestComposedUnit:
+    def test_equal_values_are_equal_and_hash_equal(self):
+        a = ComposedUnit("USDollar", StatVarPart("dcid:Count_Person"))
+        b = ComposedUnit("USDollar", StatVarPart("dcid:Count_Person"))
+        assert a == b
+        assert hash(a) == hash(b)
+        assert len({a, b}) == 1
+
+    def test_swapped_sides_and_different_parts_are_unequal(self):
+        cell = ComposedUnit("USDollar", "Euro")
+        assert cell != ComposedUnit("Euro", "USDollar")
+        assert cell != ComposedUnit("USDollar", StatVarPart("dcid:Euro"))
+
+    def test_is_immutable(self):
+        cell = ComposedUnit("USDollar", StatVarPart("dcid:Count_Person"))
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            cell.numerator = "Euro"  # type: ignore[misc]
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            cell.denominator.stat_var = "dcid:X"  # type: ignore[misc]
+
+    def test_as_json_builds_a_fresh_object(self):
+        cell = ComposedUnit(UnitRequest("EUR", "constant", 2020), "Euro")
+        first = cell.as_json()
+        first["numerator"]["currency"] = "USD"  # type: ignore[index]
+        assert cell.as_json() == {"numerator": _EUR_2020, "denominator": "Euro"}
+
+
+def test_package_root_exports_the_unit_cell_surface():
+    for name in (
+        "ComposedUnit",
+        "StatVarPart",
+        "UnitCell",
+        "UnitPart",
+        "UnitRequest",
+        "unit_cell_array",
+        "unit_cell_from_json",
+        "unit_cell_to_json",
+    ):
+        assert name in dfo_frame_grammar.__all__
+        assert hasattr(dfo_frame_grammar, name)
+    assert dfo_frame_grammar.unit_cell_from_json is grammar.unit_cell_from_json
+
+
 class TestRejectLoneSurrogates:
     def test_ordinary_string_passes(self):
         grammar.reject_lone_surrogates("café")  # must not raise
@@ -303,6 +463,35 @@ class TestCellSortKey:
         low = {"currency": "EUR", "prices": "current"}
         high = {"currency": "USD", "prices": "current"}
         assert grammar.cell_sort_key(low) < grammar.cell_sort_key(high)
+
+    def test_unit_forms_rank_null_ref_converted_composed(self):
+        # `~` sorts after every JCS object by bytes, so only the rank can
+        # put a ref first.
+        cells = [
+            None,
+            "~",
+            UnitRequest("ZZZ", "current"),
+            ComposedUnit("A", "A"),
+        ]
+        keys = [grammar.cell_sort_key(cell) for cell in cells]
+        assert keys == sorted(keys)
+        assert len(set(keys)) == len(keys)
+
+    def test_composed_units_compare_by_their_jcs_serialisation(self):
+        # JCS writes `denominator` first, so it decides before `numerator`.
+        low = ComposedUnit("Z", "A")
+        high = ComposedUnit("A", "Z")
+        assert grammar.cell_sort_key(low) < grammar.cell_sort_key(high)
+
+    @pytest.mark.parametrize(
+        "cell",
+        [
+            UnitRequest("EUR", "constant", 2020),
+            ComposedUnit("USDollar", StatVarPart("dcid:Count_Person")),
+        ],
+    )
+    def test_a_cell_and_its_json_form_share_one_key(self, cell):
+        assert grammar.cell_sort_key(cell) == grammar.cell_sort_key(cell.as_json())
 
 
 class TestRowSortKey:

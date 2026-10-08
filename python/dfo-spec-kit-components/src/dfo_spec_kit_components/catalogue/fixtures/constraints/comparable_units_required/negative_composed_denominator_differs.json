@@ -1,0 +1,69 @@
+{
+  "component": {
+    "type": "line_chart",
+    "title": {
+      "text": "Units example",
+      "authorship": "model"
+    },
+    "series": [
+      {
+        "id": "eth_oda",
+        "label": "Ethiopia",
+        "unit": {
+          "numerator": {
+            "currency": "USD",
+            "prices": "constant",
+            "base_year": 2023
+          },
+          "denominator": {
+            "stat_var": "dcid:Count_Person",
+            "label": "Total population"
+          }
+        },
+        "source_ref": "src_oecd_dac",
+        "points": [
+          {
+            "period": "2020",
+            "value": 38.6
+          }
+        ]
+      },
+      {
+        "id": "ken_oda",
+        "label": "Kenya",
+        "unit": {
+          "numerator": {
+            "currency": "USD",
+            "prices": "constant",
+            "base_year": 2023
+          },
+          "denominator": {
+            "stat_var": "dcid:Count_Person_Female",
+            "label": "Female population"
+          }
+        },
+        "source_ref": "src_oecd_dac",
+        "points": [
+          {
+            "period": "2020",
+            "value": 61.2
+          }
+        ]
+      }
+    ],
+    "x_axis": {
+      "window": {
+        "start": "2020",
+        "end": "2020"
+      }
+    },
+    "y_axis": {
+      "label": "Disbursements per person",
+      "scale": "linear",
+      "range": {
+        "min": 0,
+        "max": 100
+      }
+    }
+  }
+}

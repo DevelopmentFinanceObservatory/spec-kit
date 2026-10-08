@@ -8,6 +8,34 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoints `datasets.refresh` (`POST /api/datasets/frames/refresh`),
+  `datasets.recipe` (`PUT` and `GET /api/datasets/frames/{spec_id}/{content_version}/recipe`, and `GET /api/datasets/recipes/replays/{replay_key}`) and
+  `presentation.render` (`POST /api/presentation/components/{component_id}/revisions/{revision}/render`
+  and `GET .../render/data`) in the registry vocabulary
+  (`schemas/registry/code-registry.schema.json` and its README).
+- Codes in `registries/codes.json` and its bundled mirror, all refusals on
+  the `problem_details` channel: `frame_not_refreshable` (422, a derived
+  frame named to `datasets.refresh`), `rendering_not_recorded` (422, a
+  grouped rendering whose grouping no record states, on `datasets.refresh`),
+  `refresh_not_permitted` (403, a caller that is not the live-refresh
+  principal, on `datasets.refresh` and `presentation.render`),
+  `render_target_mismatch` (409, a target frame that is not a later state of
+  the stored revision's frame, on `presentation.render`) and
+  `recipe_not_found` (404, no recipe recorded for the named frame, or no
+  frame stored under the named replay key, on `datasets.recipe`).
+- Mappings of existing codes onto the new endpoints, at the statuses they
+  already carry. Onto `datasets.refresh`: `snapshot_not_found` (404),
+  `spec_not_found` (404), `request_invalid` (400), `service_unavailable`
+  (503) and `internal_error` (500). Onto `datasets.recipe`:
+  `publish_conflict` (409, a recipe that differs from the one held for the
+  pair, or a replay key another frame holds), `publish_not_permitted` (403),
+  `snapshot_not_found` (404, a recipe write for a pair with no stored
+  version), `request_invalid` (400), `service_unavailable` (503) and
+  `internal_error` (500). Onto `presentation.render`: `not_found` (404),
+  `request_invalid` (400), `schema_invalid` (400), `binding_invalid` (422),
+  `constraint_violation` (422), `resource_exhausted` (409),
+  `frame_unavailable` (409), `release_mismatch` (409), `internal_error`
+  (500), `service_unavailable` (503) and `timeout` (504).
 - Endpoint `datasets.members` (`POST /api/datasets/{id}/members`) in the
   registry vocabulary (`schemas/registry/code-registry.schema.json` and its
   README). `request_invalid` (400), `spec_not_found` (404), `spec_id_mismatch`
@@ -121,6 +149,11 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   identity entry carries the whole definition, so the resubmit no longer
   reconstructs a base from `base_spec_id` or diffs an edit against it, and
   nothing raises them.
+- `multi_recipient_truncated`, `child_places_clamped` and
+  `standard_probe_places_clamped` are retired in `registries/codes.json` and
+  its bundled mirror: Search binds every place a request names, up to one
+  bound, and refuses a larger set with `entity_set_too_large`, so no list of
+  places is truncated or clamped and nothing raises them.
 - `skill_content_absent`, `skill_content_too_large`, `skill_content_undecodable`
   and `skills_corpus_budget_exhausted` are `skills.list` warnings for a skill
   left out of the catalogue, and no longer map onto `skills.fetch`.

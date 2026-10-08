@@ -12,8 +12,9 @@ import pytest
 
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar.arrow import build_frame_from_arrow, read_frame_csv
+from dfo_frame_grammar.columnar import unit_codes
 from dfo_frame_grammar.content_version import frame_sha256
-from dfo_frame_grammar.frame import Frame
+from dfo_frame_grammar.frame import Frame, canonical_frame_schema
 from dfo_frame_grammar.grammar import FrameError
 
 pyarrow = pytest.importorskip("pyarrow")
@@ -46,8 +47,89 @@ _FRAME_VECTORS = [
 ]
 
 
+_UNIT_REQUEST_TYPE = pyarrow.struct(
+    [
+        ("currency", pyarrow.string()),
+        ("prices", pyarrow.string()),
+        ("base_year", pyarrow.int64()),
+    ]
+)
+_TWO_MEMBER_UNIT_TYPE = pyarrow.struct(
+    [("ref", pyarrow.string()), ("request", _UNIT_REQUEST_TYPE)]
+)
+# The `unit` column's layout, spelled out member by member because consumers
+# read these members by name.
+_UNIT_TYPE = pyarrow.struct(
+    [
+        ("ref", pyarrow.string()),
+        ("request", _UNIT_REQUEST_TYPE),
+        ("composed", pyarrow.string()),
+    ]
+)
+# A nested layout in which `composed` is a struct of numerator and denominator
+# parts.
+_NESTED_UNIT_PART_TYPE = pyarrow.struct(
+    [
+        ("ref", pyarrow.string()),
+        ("request", _UNIT_REQUEST_TYPE),
+        ("stat_var", pyarrow.string()),
+    ]
+)
+_NESTED_UNIT_TYPE = pyarrow.struct(
+    [
+        ("ref", pyarrow.string()),
+        ("request", _UNIT_REQUEST_TYPE),
+        (
+            "composed",
+            pyarrow.struct(
+                [
+                    ("numerator", _NESTED_UNIT_PART_TYPE),
+                    ("denominator", _NESTED_UNIT_PART_TYPE),
+                ]
+            ),
+        ),
+    ]
+)
+
+
+def _is_composed(unit: object) -> bool:
+    return isinstance(unit, dict) and "numerator" in unit
+
+
+def _tagged_unit(unit: object) -> object:
+    """A JSON `unit` cell as the tagged struct value Arrow carries it in. A
+    composed unit's text is `json.dumps` output, which is not JCS, so a
+    frame built from it shows the builder re-canonicalises the text."""
+    if unit is None:
+        return None
+    if isinstance(unit, str):
+        return {"ref": unit}
+    assert isinstance(unit, dict)
+    if _is_composed(unit):
+        return {"composed": json.dumps(unit)}
+    return {"request": unit}
+
+
+def _unit_table(units: pyarrow.Array) -> pyarrow.Table:
+    """One row per unit, distinct by provider."""
+    return pyarrow.table(
+        {
+            "stat_var": ["dcid:X"] * len(units),
+            "provider": [f"country/{index:03d}" for index in range(len(units))],
+            "time_period": ["2015"] * len(units),
+            "value": [1.0] * len(units),
+            "unit": units,
+        }
+    )
+
+
 def _vector_to_table(vector: dict) -> pyarrow.Table:
-    """Build a table from the vector's raw row keys and values."""
+    """Build a table from the vector's raw row keys and values.
+
+    Arrow cannot infer one column type for a composed unit beside the
+    other forms, so a positive vector that holds one carries its `unit`
+    column in the tagged struct.
+    """
     rows = vector["rows"]
     if not rows:
         try:
@@ -69,6 +151,16 @@ def _vector_to_table(vector: dict) -> pyarrow.Table:
             if key not in seen:
                 seen.add(key)
                 raw_keys.append(key)
+    if vector["classification"] == "positive" and any(
+        _is_composed(row.get("unit")) for row in rows
+    ):
+        columns = {
+            key: [row.get(key) for row in rows] for key in raw_keys if key != "unit"
+        }
+        columns["unit"] = pyarrow.array(
+            [_tagged_unit(row.get("unit")) for row in rows], type=_UNIT_TYPE
+        )
+        return pyarrow.table(columns)
     return pyarrow.table({key: [row.get(key) for row in rows] for key in raw_keys})
 
 
@@ -521,6 +613,240 @@ class TestSchemaRefusals:
         units = [row[unit_index] for row in frame.rows]
         assert None in units
         assert any(isinstance(u, grammar.UnitRequest) for u in units)
+
+
+class TestTaggedUnitStruct:
+    _UNITS = (
+        None,
+        "USDollar",
+        {"currency": "EUR", "prices": "constant", "base_year": 2020},
+        {"currency": "USD", "prices": "current"},
+        {"numerator": "USDollar", "denominator": {"stat_var": "dcid:Count_Person"}},
+        {
+            "numerator": {"currency": "EUR", "prices": "constant", "base_year": 2020},
+            "denominator": {"stat_var": "dcid:Count_Person"},
+        },
+        {"numerator": "USDollar", "denominator": "Euro"},
+    )
+
+    def _expected(self, units: tuple[object, ...]) -> Frame:
+        return Frame.build(
+            role_keys=["provider"],
+            rows=[
+                {
+                    "stat_var": "dcid:X",
+                    "provider": f"country/{index:03d}",
+                    "time_period": "2015",
+                    "value": 1.0,
+                    "unit": unit,
+                }
+                for index, unit in enumerate(units)
+            ],
+        )
+
+    def test_the_unit_column_has_the_stated_layout(self) -> None:
+        assert canonical_frame_schema(("unit",)).field("unit").type == _UNIT_TYPE
+
+    def test_three_member_struct_loads_every_form(self) -> None:
+        units = pyarrow.array(
+            [_tagged_unit(unit) for unit in self._UNITS], type=_UNIT_TYPE
+        )
+        got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert got == self._expected(self._UNITS)
+
+    def test_two_member_struct_loads_into_the_canonical_layout(self) -> None:
+        held = self._UNITS[:4]
+        units = pyarrow.array(
+            [_tagged_unit(unit) for unit in held], type=_TWO_MEMBER_UNIT_TYPE
+        )
+        got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert got.table.schema.field("unit").type == _UNIT_TYPE
+        assert got == self._expected(held)
+
+    def test_part_strings_are_nfc_normalised(self) -> None:
+        unit = {
+            "numerator": "unit/e\u0301",
+            "denominator": {"stat_var": "dcid:e\u0301"},
+        }
+        units = pyarrow.array([_tagged_unit(unit)], type=_UNIT_TYPE)
+        got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert got.rows[0][got.columns.index("unit")] == grammar.ComposedUnit(
+            "unit/\u00e9", grammar.StatVarPart("dcid:\u00e9")
+        )
+
+    @pytest.mark.parametrize(
+        ("unit", "category"),
+        [
+            pytest.param({"composed": "a per b"}, "invalid_unit", id="not-json"),
+            pytest.param(
+                {"composed": "[" * 100_000}, "invalid_unit", id="nested-past-recursion"
+            ),
+            pytest.param(
+                {"composed": '{"numerator": ' + "9" * 5_000 + ', "denominator": "a"}'},
+                "invalid_unit",
+                id="integer-past-digit-limit",
+            ),
+            pytest.param({"composed": '"USDollar"'}, "invalid_unit", id="json-ref"),
+            pytest.param(
+                {"composed": '{"currency": "USD", "prices": "current"}'},
+                "invalid_unit",
+                id="json-request",
+            ),
+            pytest.param({"composed": "null"}, "invalid_unit", id="json-null"),
+            pytest.param(
+                {"composed": '{"numerator": "USDollar", "denominator": null}'},
+                "invalid_unit",
+                id="null-part",
+            ),
+            pytest.param(
+                {
+                    "composed": '{"numerator": "USDollar", '
+                    '"denominator": {"stat_var": "Count_Person"}}'
+                },
+                "invalid_unit",
+                id="stat-var-without-prefix",
+            ),
+            pytest.param(
+                {
+                    "composed": '{"numerator": "USDollar", '
+                    '"denominator": {"currency": "usd", "prices": "current"}}'
+                },
+                "invalid_unit",
+                id="invalid-unit-request-part",
+            ),
+            pytest.param(
+                {
+                    "composed": '{"numerator": {"stat_var": "dcid:X", '
+                    '"prices": "current"}, "denominator": "Euro"}'
+                },
+                "invalid_unit",
+                id="part-with-two-variants",
+            ),
+            pytest.param(
+                {
+                    "composed": '{"numerator": "USDollar", "numerator": "Euro", '
+                    '"denominator": "Euro"}'
+                },
+                "invalid_unit",
+                id="repeated-member",
+            ),
+            pytest.param(
+                {"composed": '{"numerator": "\\ud800", "denominator": "Euro"}'},
+                "lone_surrogate",
+                id="lone-surrogate-escape",
+            ),
+            pytest.param(
+                {
+                    "ref": "USDollar",
+                    "composed": '{"numerator": "USDollar", "denominator": "Euro"}',
+                },
+                "schema_violation",
+                id="cell-with-two-variants",
+            ),
+        ],
+    )
+    def test_malformed_tagged_composed_unit_refuses(
+        self, unit: dict, category: str
+    ) -> None:
+        units = pyarrow.array([unit], type=_UNIT_TYPE)
+        with pytest.raises(FrameError) as excinfo:
+            build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert excinfo.value.category == category
+
+    @pytest.mark.parametrize(
+        "units",
+        [
+            pytest.param(
+                pyarrow.array(
+                    [{"ref": {"numerator": "a", "denominator": "b"}, "request": None}],
+                    type=pyarrow.struct(
+                        [
+                            (
+                                "ref",
+                                pyarrow.struct(
+                                    [
+                                        ("numerator", pyarrow.string()),
+                                        ("denominator", pyarrow.string()),
+                                    ]
+                                ),
+                            ),
+                            ("request", _UNIT_REQUEST_TYPE),
+                        ]
+                    ),
+                ),
+                id="ref-typed-as-a-struct",
+            ),
+            pytest.param(
+                pyarrow.array(
+                    [{"composed": {"numerator": "a", "denominator": "b"}}],
+                    type=pyarrow.struct(
+                        [
+                            ("ref", pyarrow.string()),
+                            ("request", _UNIT_REQUEST_TYPE),
+                            (
+                                "composed",
+                                pyarrow.struct(
+                                    [
+                                        ("numerator", pyarrow.string()),
+                                        ("denominator", pyarrow.string()),
+                                    ]
+                                ),
+                            ),
+                        ]
+                    ),
+                ),
+                id="composed-sides-typed-as-strings",
+            ),
+            pytest.param(
+                pyarrow.array([None, {"ref": "USDollar"}], type=_NESTED_UNIT_TYPE),
+                id="composed-typed-as-the-nested-struct-holding-none",
+            ),
+            pytest.param(
+                pyarrow.array(
+                    [{"composed": 7}],
+                    type=pyarrow.struct(
+                        [
+                            ("ref", pyarrow.string()),
+                            ("request", _UNIT_REQUEST_TYPE),
+                            ("composed", pyarrow.int64()),
+                        ]
+                    ),
+                ),
+                id="composed-typed-as-an-integer",
+            ),
+        ],
+    )
+    def test_tagged_member_of_the_wrong_type_refuses(
+        self, units: pyarrow.Array
+    ) -> None:
+        with pytest.raises(FrameError) as excinfo:
+            build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert excinfo.value.category == "schema_violation"
+
+    def test_null_typed_composed_member_loads(self) -> None:
+        units = pyarrow.array(
+            [{"ref": "USDollar", "request": None, "composed": None}, None]
+        )
+        assert units.type.field("composed").type == pyarrow.null()
+        got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert got == self._expected(("USDollar", None))
+
+    def test_spellings_of_one_composed_unit_share_a_code(self) -> None:
+        units = pyarrow.array(
+            [
+                {"composed": '{"numerator":"USDollar","denominator":"Euro"}'},
+                {"composed": '{ "denominator" : "Euro", "numerator" : "USDollar" }'},
+            ],
+            type=_UNIT_TYPE,
+        )
+        got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert unit_codes(got.table.column("unit")).count == 1
+
+    def test_untagged_struct_naming_composed_members_is_a_bare_request(self) -> None:
+        units = pyarrow.array([{"numerator": "USDollar", "denominator": "Euro"}])
+        with pytest.raises(FrameError) as excinfo:
+            build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert excinfo.value.category == "invalid_unit"
 
 
 _UNICODE_ALPHABET = [*list(string.ascii_letters), "é", "é", "å", "å"]
