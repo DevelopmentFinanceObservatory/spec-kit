@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import unicodedata
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Generator, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import cast
 
@@ -13,6 +13,16 @@ import rfc8785
 from dfo_spec_kit.identity import canonicalize
 
 from dfo_frame_grammar import grammar
+from dfo_frame_grammar._unit_codec import (
+    _arrow_unit_to_cell,
+    _unit_to_arrow,
+    _unit_type,
+)
+from dfo_frame_grammar.columnar import (
+    _grain_columns,
+    _sort_and_check,
+    collation_sort_keys,
+)
 from dfo_frame_grammar.grammar import FrameError
 
 __all__ = [
@@ -20,14 +30,15 @@ __all__ = [
     "canonical_frame_bytes",
     "canonical_frame_schema",
     "stream_canonical_frame_bytes",
+    "unit_cell_array",
+    "widen_frame_table",
 ]
 
-# How many rows' worth of Python objects `stream_canonical_frame_bytes`
-# builds at once (via `pa.Table.slice(...).to_pylist()`) when serialising one
-# chunk's table. Bounds the streaming form's per-chunk Python-object peak to
-# one slice rather than the whole chunk, without changing the emitted bytes:
-# `to_pylist()` on a slice is byte-for-byte the same rows in the same order
-# as the corresponding slice of `to_pylist()` on the whole table.
+# How many rows `stream_canonical_frame_bytes` keys and serialises at once,
+# across chunk boundaries. Bounds the Python-object peak to one slice and
+# pays the per-slice cost of `collation_sort_keys` once per this many rows,
+# however small the chunks. `to_pylist()` on a slice gives the same rows in
+# the same order as the matching part of `to_pylist()` on the whole table.
 _STREAM_SLICE_ROWS = 8192
 
 
@@ -84,48 +95,6 @@ def _normalize_value(value: object) -> float:
     return 0.0 if result == 0 else result
 
 
-def _normalize_unit(value: object) -> str | grammar.UnitRequest | None:
-    if value is None:
-        return None
-    if isinstance(value, str):
-        text = unicodedata.normalize("NFC", value)
-        grammar.reject_lone_surrogates(text)
-        if not text:
-            raise FrameError("schema_violation", "unit must be a non-empty string")
-        return text
-    if isinstance(value, Mapping):
-        if not all(isinstance(key, str) for key in value):
-            raise FrameError("schema_violation", "unit request keys must be strings")
-        request = cast("Mapping[str, object]", value)
-        grammar.validate_unit_request(request)
-        return grammar.UnitRequest(
-            currency=unicodedata.normalize("NFC", cast(str, request["currency"])),
-            prices=cast(str, request["prices"]),
-            base_year=cast("int | None", request.get("base_year")),
-        )
-    raise FrameError(
-        "schema_violation",
-        f"unit must be a string, mapping, or null, got {type(value)!r}",
-    )
-
-
-def _unit_request_type() -> pa.StructType:
-    return pa.struct(
-        [
-            pa.field("currency", pa.string()),
-            pa.field("prices", pa.string()),
-            pa.field("base_year", pa.int64()),
-        ]
-    )
-
-
-def _unit_type() -> pa.StructType:
-    """The one nullable tagged representation of the unit union."""
-    return pa.struct(
-        [pa.field("ref", pa.string()), pa.field("request", _unit_request_type())]
-    )
-
-
 def canonical_frame_schema(columns: tuple[str, ...]) -> pa.Schema:
     """Return the physical schema shared by both public builders."""
     fields: list[pa.Field] = []
@@ -142,44 +111,84 @@ def canonical_frame_schema(columns: tuple[str, ...]) -> pa.Schema:
     return pa.schema(fields)
 
 
-def _unit_to_arrow(cell: object) -> object:
+def unit_cell_array(cell: grammar.UnitCell | None, length: int) -> pa.Array:
+    """`length` rows of `cell` in the canonical `unit` column type, the
+    column a frame whose every row holds `cell` carries.
+
+    Raises:
+        FrameError: `invalid_unit` when `cell` fails
+            `grammar.validate_unit_cell`.
+    """
+    grammar.validate_unit_cell(cell)
+    unit_type = _unit_type()
     if cell is None:
-        return None
-    if isinstance(cell, str):
-        return {"ref": cell, "request": None}
-    assert isinstance(cell, grammar.UnitRequest)
-    return {"ref": None, "request": cell.as_json()}
+        return pa.nulls(length, type=unit_type)
+    return pa.repeat(pa.scalar(_unit_to_arrow(cell), type=unit_type), length)
+
+
+def widen_frame_table(table: pa.Table) -> pa.Table:
+    """Return a stored canonical frame table under the current canonical
+    schema.
+
+    A table already under `canonical_frame_schema` of its own column names
+    is returned as it is. A table under that schema with the `unit` column
+    in the two-member layout `struct<ref, request>`, which holds no
+    composed unit, is returned with the column in the current layout and
+    every cell unchanged, so it passes `Frame.from_table` and yields the
+    same canonical bytes.
+
+    Raises:
+        FrameError: `schema_violation` for a table under any other schema.
+    """
+    columns = tuple(table.schema.names)
+    roles = [
+        column for column in columns if column not in grammar._RESERVED_COLUMN_NAMES
+    ]
+    schema = canonical_frame_schema(columns)
+    position = schema.get_field_index(grammar.UNIT_COLUMN)
+    unit_type = _unit_type()
+    two_member = pa.field(
+        grammar.UNIT_COLUMN,
+        pa.struct([unit_type.field("ref"), unit_type.field("request")]),
+    )
+    derived = columns == grammar.derive_columns(roles)
+    if derived and table.schema == schema:
+        return table
+    if not derived or table.schema != schema.set(position, two_member):
+        raise FrameError(
+            "schema_violation",
+            f"table schema {table.schema!r} is not a canonical frame schema "
+            "under either unit layout",
+        )
+    unit = table.column(position).combine_chunks()
+    assert isinstance(unit, pa.StructArray)
+    widened = pa.StructArray.from_arrays(
+        [
+            unit.field("ref"),
+            unit.field("request"),
+            pa.nulls(len(unit), type=unit_type.field("composed").type),
+        ],
+        fields=list(unit_type),
+        mask=unit.is_null(),
+    )
+    return table.set_column(position, schema.field(position), widened)
 
 
 def _table_from_rows(
-    *, columns: tuple[str, ...], rows: tuple[tuple[object, ...], ...]
+    *, columns: tuple[str, ...], rows: Sequence[tuple[object, ...]]
 ) -> pa.Table:
     schema = canonical_frame_schema(columns)
     arrays: list[pa.Array] = []
     for index, column in enumerate(columns):
         cells = [row[index] for row in rows]
         if column == grammar.UNIT_COLUMN:
-            cells = [_unit_to_arrow(cell) for cell in cells]
+            converted = {
+                cell: _unit_to_arrow(cast("grammar.UnitCell | None", cell))
+                for cell in set(cells)
+            }
+            cells = [converted[cell] for cell in cells]
         arrays.append(pa.array(cells, type=schema.field(column).type))
     return pa.Table.from_arrays(arrays, schema=schema)
-
-
-def _arrow_unit_to_cell(value: object) -> object:
-    if value is None:
-        return None
-    assert isinstance(value, Mapping)
-    tagged = cast("Mapping[str, object]", value)
-    ref = tagged["ref"]
-    request = tagged["request"]
-    if ref is not None:
-        return ref
-    assert isinstance(request, Mapping)
-    request = cast("Mapping[str, object]", request)
-    return grammar.UnitRequest(
-        currency=cast(str, request["currency"]),
-        prices=cast(str, request["prices"]),
-        base_year=cast("int | None", request["base_year"]),
-    )
 
 
 def _python_rows(
@@ -255,11 +264,13 @@ class Frame:
         table must carry exactly `canonical_frame_schema(columns)`, and
         `columns` must be a derived column tuple; nothing else is checked.
         Cell contents are trusted: a null grain cell, a non-NFC string, a
-        NaN or `-0.0` value, or a unit struct with both or neither variant
-        passes here and serialises wrongly or fails later with an error
-        other than `FrameError`. Rows out of canonical order, or with
-        equal grains, make `canonical_frame_bytes` and `frame_sha256`
-        raise `row_key_not_increasing`. Every other table, including any
+        NaN or `-0.0` value, a unit struct with no variant or more than
+        one, or a `composed` member that is not the canonical JCS text of a
+        composed unit passes here and serialises wrongly or fails later
+        with an error other than `FrameError`. Rows out of the order
+        `columnar.collation_sort_keys` gives, or with equal grains, make
+        `canonical_frame_bytes` and `frame_sha256` raise
+        `row_key_not_increasing`. Every other table, including any
         from outside the service, goes through `build_frame_from_arrow`.
 
         Raises:
@@ -299,7 +310,16 @@ class Frame:
         role_keys: Iterable[str],
         rows: Iterable[Mapping[str, object]],
     ) -> Frame:
-        """Validate mapping rows and finish in the canonical Arrow schema."""
+        """Validate mapping rows and finish in the canonical Arrow schema.
+
+        The rows go into one table as given, which `columnar.collation_sort_keys`
+        then sorts and checks for duplicate grains, as in
+        `build_frame_from_arrow`.
+
+        Raises:
+            FrameError: `duplicate_row_key` when two rows share a grain, or
+                the category of the first cell that fails validation.
+        """
         role_keys = tuple(role_keys)
         role_columns = grammar.normalize_role_keys(role_keys)
         columns = grammar.derive_columns(role_keys)
@@ -354,7 +374,9 @@ class Frame:
                     row[grammar.TIME_PERIOD_COLUMN]
                 ),
                 grammar.VALUE_COLUMN: _normalize_value(row[grammar.VALUE_COLUMN]),
-                grammar.UNIT_COLUMN: _normalize_unit(row.get(grammar.UNIT_COLUMN)),
+                grammar.UNIT_COLUMN: grammar.unit_cell_from_json(
+                    row.get(grammar.UNIT_COLUMN)
+                ),
                 grammar.STATUS_COLUMN: None,
             }
             for role in role_columns:
@@ -365,32 +387,21 @@ class Frame:
                 )
             built_rows.append(tuple(cells[column] for column in columns))
 
-        keyed = [(grammar.row_sort_key(columns, row), row) for row in built_rows]
-        seen_keys: set[tuple] = set()
-        for key, _ in keyed:
-            if key in seen_keys:
-                raise FrameError(
-                    "duplicate_row_key",
-                    "two rows share the same grain (every cell except value and status)",
-                )
-            seen_keys.add(key)
-        keyed.sort(key=lambda item: item[0])
-        sorted_rows = tuple(row for _, row in keyed)
+        table = _table_from_rows(columns=columns, rows=built_rows)
         return cls._from_validated(
-            columns=columns, table=_table_from_rows(columns=columns, rows=sorted_rows)
+            columns=columns, table=_sort_and_check(table, columns=columns)
         )
 
 
 def _unit_to_json(value: object) -> object:
-    cell = _arrow_unit_to_cell(value)
-    return cell.as_json() if isinstance(cell, grammar.UnitRequest) else cell
+    return grammar.unit_cell_to_json(_arrow_unit_to_cell(value))
 
 
 def _row_cells(frame: Frame, table_row: Mapping[str, object]) -> list[object]:
     """One row's cells in canonical column order, with the ``unit`` column
     resolved to its JCS-ready form (`_unit_to_json`) and every other column
     passed through unchanged -- the per-row projection
-    `stream_canonical_frame_bytes` serialises and sort-keys.
+    `stream_canonical_frame_bytes` serialises.
     """
     return [
         _unit_to_json(table_row[column])
@@ -409,10 +420,11 @@ def canonical_frame_bytes(frame: Frame) -> bytes:
 
     Raises:
         FrameError: `row_key_not_increasing` when the table's rows are not
-            in strictly increasing `row_sort_key` order. `Frame.build` and
-            `build_frame_from_arrow` always produce that order; only a
-            table wrapped by `Frame.from_table` or the `Frame` constructor
-            can break it.
+            in strictly increasing `columnar.collation_sort_keys` order,
+            which is `row_sort_key` order. `Frame.build` and
+            `build_frame_from_arrow` sort by those keys; only a table
+            wrapped by `Frame.from_table` or the `Frame` constructor can
+            break the order.
     """
     return b"".join(stream_canonical_frame_bytes([frame]))
 
@@ -420,10 +432,16 @@ def canonical_frame_bytes(frame: Frame) -> bytes:
 def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
     """Yield JCS byte pieces that, concatenated in order, are the canonical
     document ``{"columns": [...], "frame_version": ..., "rows": [...]}`` of
-    the logical frame formed by concatenating ``chunks``' rows in order --
-    without ever holding more than one slice of `_STREAM_SLICE_ROWS` rows
-    as Python objects at once. `canonical_frame_bytes` is this function
-    over a single chunk.
+    the logical frame formed by concatenating ``chunks``' rows in order.
+    `canonical_frame_bytes` is this function over a single chunk.
+
+    Rows are keyed and serialised in slices of `_STREAM_SLICE_ROWS` that
+    span chunk boundaries. Chunk tables are buffered until they hold a
+    full slice or the input ends, so at most one slice of rows exists as
+    Python objects at once, and the buffered Arrow tables hold fewer than
+    `_STREAM_SLICE_ROWS` rows plus one chunk. A chunk's rows can therefore
+    be yielded after later chunks have been read. Every row before a
+    refused one is still checked and yielded before the refusal.
 
     Each chunk is a fully validated `Frame`, never a raw PyArrow record
     batch or row dict: every cell this function serialises has already
@@ -432,16 +450,18 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
     could drift from them.
 
     A later chunk whose `columns` differs from the first chunk's raises
-    `FrameError("column_mismatch", ...)`. A row whose `row_sort_key` is
-    not strictly greater than the previous row's -- checked both within a
-    chunk and across a chunk boundary, so a chunk assembled by some means
-    other than `Frame.build` cannot silently produce out-of-order or
-    duplicate-keyed streamed bytes -- raises
-    `FrameError("row_key_not_increasing", ...)`; equal keys refuse, the
-    same rule `Frame.build` applies to one frame's own rows, extended
-    across the whole stream. An empty ``chunks`` iterable raises
-    `FrameError("schema_violation", ...)`: with zero chunks there is no
-    frame whose `columns` this function could emit.
+    `FrameError("column_mismatch", ...)` once the buffered rows before it
+    have streamed. Each slice's grain is keyed with
+    `columnar.collation_sort_keys`, the keys both builders sort by, which
+    order rows as `row_sort_key` does. A row whose key is not strictly
+    greater than the previous row's -- checked both within a chunk and
+    across a chunk boundary, so a chunk assembled by some means other than
+    the builders cannot silently produce out-of-order or duplicate-keyed
+    streamed bytes -- raises `FrameError("row_key_not_increasing", ...)`;
+    equal keys refuse, the same rule `Frame.build` applies to one frame's
+    own rows, extended across the whole stream. An empty ``chunks``
+    iterable raises `FrameError("schema_violation", ...)`: with zero
+    chunks there is no frame whose `columns` this function could emit.
 
     Relies on the canonical document's JCS shape: sorted
     top-level keys put `rows` last, so
@@ -453,6 +473,8 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
     """
     columns: tuple[str, ...] | None = None
     last_key: tuple | None = None
+    pending: list[pa.Table] = []
+    pending_rows = 0
 
     for frame in chunks:
         if columns is None:
@@ -471,37 +493,28 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
             assert prefix.endswith(b"]}")
             yield prefix[:-2]
         elif frame.columns != columns:
+            # Stream the buffered rows first, so a disorder among them
+            # refuses as `row_key_not_increasing` before this chunk is.
+            if pending_rows:
+                yield from _stream_rows(
+                    Frame(columns=columns, table=pa.concat_tables(pending)), last_key
+                )
             raise FrameError(
                 "column_mismatch",
                 f"chunk columns {list(frame.columns)!r} differ from the "
                 f"stream's columns {list(columns)!r}",
             )
-
-        table = frame.table
-        for slice_start in range(0, table.num_rows, _STREAM_SLICE_ROWS):
-            # Sliced rather than read whole: `to_pylist()` over one bounded
-            # slice at a time keeps at most `_STREAM_SLICE_ROWS` rows' worth
-            # of Python dicts alive per chunk, instead of the whole chunk's.
-            row_slice = table.slice(slice_start, _STREAM_SLICE_ROWS)
-            for table_row in row_slice.to_pylist():
-                cells = _row_cells(frame, table_row)
-                # `row_sort_key`'s own `cell_sort_key` ranks a `UnitRequest`
-                # and a plain `Mapping` identically -- both hash their JCS
-                # bytes at rank 2 -- so the already-JSON-ified `unit` cell in
-                # `cells` (a dict, once `_unit_to_json` has run) sorts
-                # exactly where the pre-JSON `grammar.UnitRequest` cell
-                # `Frame.build` sorted it.
-                key = grammar.row_sort_key(frame.columns, cells)
-                if last_key is not None and key <= last_key:
-                    raise FrameError(
-                        "row_key_not_increasing",
-                        "a row's row_sort_key is not strictly greater than "
-                        "the previous row's, within or across chunks",
-                    )
-                if last_key is not None:
-                    yield b","
-                yield rfc8785.dumps(cells)
-                last_key = key
+        pending.append(frame.table)
+        pending_rows += frame.table.num_rows
+        if pending_rows < _STREAM_SLICE_ROWS:
+            continue
+        table = pa.concat_tables(pending)
+        full_rows = pending_rows - pending_rows % _STREAM_SLICE_ROWS
+        last_key = yield from _stream_rows(
+            Frame(columns=columns, table=table.slice(0, full_rows)), last_key
+        )
+        pending = [table.slice(full_rows)]
+        pending_rows -= full_rows
 
     if columns is None:
         raise FrameError(
@@ -509,4 +522,43 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
             "stream_canonical_frame_bytes requires at least one chunk to "
             "determine the frame's columns",
         )
+    if pending_rows:
+        yield from _stream_rows(
+            Frame(columns=columns, table=pa.concat_tables(pending)), last_key
+        )
     yield b"]}"
+
+
+def _stream_rows(
+    frame: Frame, last_key: tuple | None
+) -> Generator[bytes, None, tuple | None]:
+    """Yield the bytes of `frame`'s rows for `stream_canonical_frame_bytes`,
+    each preceded by a comma unless it is the stream's first row, and
+    return the last row's key.
+
+    Raises:
+        FrameError: `row_key_not_increasing` when a row's key is not
+            strictly greater than the one before it, starting from
+            `last_key`.
+    """
+    grain = _grain_columns(frame.columns)
+    table = frame.table
+    for slice_start in range(0, table.num_rows, _STREAM_SLICE_ROWS):
+        row_slice = table.slice(slice_start, _STREAM_SLICE_ROWS)
+        # One (rank, payload) pair per grain column, flattened into one
+        # tuple per row; Python compares the tuples in the order Arrow
+        # sorts the key columns.
+        keys = collation_sort_keys(row_slice, grain)
+        row_keys = zip(*(column.to_pylist() for column in keys.columns), strict=True)
+        for table_row, key in zip(row_slice.to_pylist(), row_keys, strict=True):
+            if last_key is not None and key <= last_key:
+                raise FrameError(
+                    "row_key_not_increasing",
+                    "a row's row_sort_key is not strictly greater than "
+                    "the previous row's, within or across chunks",
+                )
+            if last_key is not None:
+                yield b","
+            yield rfc8785.dumps(_row_cells(frame, table_row))
+            last_key = key
+    return last_key

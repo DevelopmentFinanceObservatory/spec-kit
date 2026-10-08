@@ -146,6 +146,23 @@ class TestColumnOrderAndCellShape:
         # round trip back to the plain object.
         assert cell["unit"].as_json() == unit
 
+    def test_composed_unit_round_trips(self):
+        unit = {
+            "numerator": {"currency": "EUR", "prices": "constant", "base_year": 2023},
+            "denominator": {"stat_var": "dcid:Count_Person"},
+        }
+        frame = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(unit=unit)])
+        cell = dict(zip(frame.columns, frame.rows[0], strict=True))["unit"]
+        assert cell == grammar.ComposedUnit(
+            numerator=grammar.UnitRequest("EUR", "constant", 2023),
+            denominator=grammar.StatVarPart("dcid:Count_Person"),
+        )
+        document = json.loads(canonical_frame_bytes(frame))
+        assert document["rows"][0][frame.columns.index("unit")] == unit
+        again = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(unit=unit)])
+        assert frame == again
+        assert hash(frame) == hash(again)
+
 
 class TestValueDomain:
     def test_int_and_float_spellings_converge_to_identical_bytes(self):
@@ -199,6 +216,14 @@ class TestUnitDomain:
             Frame.build(
                 role_keys=_ROLE_KEYS,
                 rows=[_row(unit={"currency": "USD", "prices": "constant"})],
+            )
+        assert excinfo.value.category == "invalid_unit"
+
+    def test_invalid_composed_unit_refuses(self):
+        with pytest.raises(FrameError) as excinfo:
+            Frame.build(
+                role_keys=_ROLE_KEYS,
+                rows=[_row(unit={"numerator": "USDollar", "denominator": None})],
             )
         assert excinfo.value.category == "invalid_unit"
 
@@ -534,6 +559,33 @@ class TestRowOrderInvariance:
         assert ordered_units[1] == "EUR"
         assert isinstance(ordered_units[2], grammar.UnitRequest)
         assert ordered_units[2].as_json() == {"currency": "USD", "prices": "current"}
+
+    def test_frame_build_sorts_composed_units_after_every_other_unit(self):
+        units = [
+            {"numerator": "A", "denominator": "Z"},
+            {"currency": "USD", "prices": "current"},
+            {"numerator": "Z", "denominator": "A"},
+            "~",
+            None,
+        ]
+        frame = Frame.build(role_keys=_ROLE_KEYS, rows=[_row(unit=u) for u in units])
+        unit_index = frame.columns.index("unit")
+        assert [grammar.unit_cell_to_json(row[unit_index]) for row in frame.rows] == [
+            None,
+            "~",
+            {"currency": "USD", "prices": "current"},
+            {"numerator": "Z", "denominator": "A"},
+            {"numerator": "A", "denominator": "Z"},
+        ]
+
+    def test_two_rows_sharing_a_composed_unit_are_one_grain(self):
+        unit = {"numerator": "USDollar", "denominator": "Euro"}
+        with pytest.raises(FrameError) as excinfo:
+            Frame.build(
+                role_keys=_ROLE_KEYS,
+                rows=[_row(unit=unit, value=1), _row(unit=dict(unit), value=2)],
+            )
+        assert excinfo.value.category == "duplicate_row_key"
 
 
 class TestCanonicalFrameBytesIsPureJcs:

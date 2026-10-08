@@ -134,7 +134,7 @@
       }
     },
     "unit": {
-      "$comment": "Pass-through unit slot: null, an opaque graph-ref string, or a structured object. No conversion happens in Presentation; the structured object's own field set is seam-owed to the upstream unit design.",
+      "$comment": "Pass-through unit slot: null, an opaque graph-ref string, a structured object, or a composed unit, the unit of a quotient of two measures. No conversion happens in Presentation; the structured object's own field set is seam-owed to the upstream unit design.",
       "oneOf": [
         {
           "type": "null"
@@ -146,6 +146,9 @@
         },
         {
           "$ref": "#/$defs/structured_unit"
+        },
+        {
+          "$ref": "#/$defs/composed_unit"
         }
       ]
     },
@@ -182,6 +185,62 @@
           ],
           "minimum": 1900,
           "maximum": 2100
+        }
+      }
+    },
+    "composed_unit": {
+      "$comment": "The unit of a quotient of two measures, read `<numerator> per <denominator>`. Each part is a unit_part, so a part is never null and never itself a composed unit.",
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "numerator",
+        "denominator"
+      ],
+      "properties": {
+        "numerator": {
+          "$ref": "#/$defs/unit_part"
+        },
+        "denominator": {
+          "$ref": "#/$defs/unit_part"
+        }
+      }
+    },
+    "unit_part": {
+      "$comment": "One side of a composed unit: the side's unit as a string or a structured object, or, for a measure that declares no unit, the StatVar it counts.",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        {
+          "$ref": "#/$defs/structured_unit"
+        },
+        {
+          "$ref": "#/$defs/counted_stat_var"
+        }
+      ]
+    },
+    "counted_stat_var": {
+      "$comment": "A unit-less measure named by its StatVar. `stat_var` is the `dcid:`-prefixed reference the frame grammar pins; `label` is the StatVar's graph name, or the reference without `dcid:` when the graph has none.",
+      "type": "object",
+      "additionalProperties": false,
+      "unevaluatedProperties": false,
+      "required": [
+        "stat_var",
+        "label"
+      ],
+      "properties": {
+        "stat_var": {
+          "type": "string",
+          "pattern": "^dcid:.",
+          "maxLength": 200
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
         }
       }
     },
