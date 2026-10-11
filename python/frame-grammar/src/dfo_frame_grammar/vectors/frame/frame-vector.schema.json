@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ONEcampaign/dfo-spec-kit/main/python/frame-grammar/src/dfo_frame_grammar/vectors/frame/frame-vector.schema.json",
   "title": "Frame grammar vector record",
-  "description": "One language-neutral conformance fixture for the frame grammar and content_version minting defined by docs/frame-grammar-v1.md: either a frame's role_keys/rows against its canonical bytes and minted content_version, a content_version preimage's inputs against its minted token -- or, for a negative vector, the same kind of input against the stable category it is refused under. See the README beside this schema for field semantics, the positive/negative split, the two record kinds, and the frozen failure_category vocabulary.",
+  "description": "One language-neutral conformance fixture for the frame grammar and content_version minting defined by docs/frame-grammar-v1.md: either a frame's role_keys/rows against its canonical bytes and minted content_version, or a frame_sha256 against its minted token -- or, for a negative vector, the same kind of input against the stable category it is refused under. See the README beside this schema for field semantics, the positive/negative split, the two record kinds, and the frozen failure_category vocabulary.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,7 +16,7 @@
   "properties": {
     "format_version": {
       "description": "The vector record format's own version. Pinned to the version this schema validates; a vector claiming a different format_version must validate against that version's own schema instead. Distinct from FRAME_GRAMMAR_VERSION (the published grammar document's own semver) and from frame_version/identity_version (the byte-rule domain separators hashed into canonical bytes).",
-      "const": 1
+      "const": 2
     },
     "name": {
       "description": "The vector's stable, unique, kebab-case id. Matches the stem of the file it lives in, so a file rename is a rename of the vector.",
@@ -29,7 +29,7 @@
       "minLength": 1
     },
     "kind": {
-      "description": "Which of the two record shapes this vector carries. \"frame\": role_keys/rows exercised through Frame.build and canonical_frame_bytes, then through content_version minting. \"content_version\": a content_version preimage's inputs (frame_sha256 plus the same content_version_input shape) exercised through content_version minting alone, independent of any frame -- used for preimage-level refusals that a full frame build would never reach.",
+      "description": "Which of the two record shapes this vector carries. \"frame\": role_keys/rows exercised through Frame.build and canonical_frame_bytes, then through content_version minting. \"content_version\": a frame_sha256 exercised through content_version minting alone, independent of any frame -- used for digest-level refusals that a full frame build would never reach.",
       "enum": [
         "frame",
         "content_version"
@@ -95,18 +95,27 @@
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
-    "content_version_input": {
-      "description": "kind: \"frame\" (positive only) or \"content_version\" (either classification). The content_version preimage inputs beyond frame_sha256: graph_revision, source_revisions, facets, and optionally conversion (the record object or a manifest trace's one-entry conversion array) -- exactly the named-argument shape content_version minting accepts. Left loosely typed here (not further constrained by this schema) because a negative content_version vector's whole point is to carry a shape this schema's own domain rules would otherwise have to duplicate and could get out of step with.",
-      "type": "object"
-    },
     "frame_sha256": {
-      "description": "kind: \"content_version\" only. The frame_sha256 supplied directly as a content_version minting input, since this kind exercises preimage-level rules independent of any actual frame.",
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+      "description": "kind: \"content_version\" only. The frame_sha256 supplied directly as the content_version minting input. A positive vector carries 64 lowercase hex characters; a negative vector carries the malformed digest minting refuses.",
+      "type": "string"
     },
     "expected_preimage": {
-      "description": "kind: \"frame\" or \"content_version\" (positive only): the closed content_version preimage document minting must build from frame_sha256 plus content_version_input.",
-      "type": "object"
+      "description": "kind: \"frame\" or \"content_version\" (positive only): the closed content_version preimage document, the identity_version separator and the frame digest.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity_version",
+        "frame_sha256"
+      ],
+      "properties": {
+        "identity_version": {
+          "const": "cv2"
+        },
+        "frame_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
     },
     "expected_content_version": {
       "description": "Positive only, any kind. The full public cv_-prefixed token minting must produce.",
@@ -122,14 +131,7 @@
         "invalid_time_period",
         "invalid_unit",
         "duplicate_row_key",
-        "unknown_member",
-        "invalid_digest",
-        "invalid_facet_axis",
-        "invalid_facet_basis",
-        "invalid_facet_ref",
-        "duplicate_source",
-        "duplicate_axis",
-        "conversion_null"
+        "invalid_digest"
       ]
     }
   },
@@ -174,7 +176,6 @@
       },
       "then": {
         "required": [
-          "content_version_input",
           "frame_sha256"
         ],
         "not": {
@@ -234,7 +235,6 @@
           "canonical_bytes",
           "expected_document",
           "expected_frame_sha256",
-          "content_version_input",
           "expected_preimage",
           "expected_content_version"
         ]
@@ -259,7 +259,12 @@
         "required": [
           "expected_preimage",
           "expected_content_version"
-        ]
+        ],
+        "properties": {
+          "frame_sha256": {
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
       }
     },
     {
