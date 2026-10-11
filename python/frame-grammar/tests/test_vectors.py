@@ -1,6 +1,6 @@
 """Conformance harness: runs `dfo_frame_grammar` against its own golden vector
 suite, shipped as package data at `src/dfo_frame_grammar/vectors/frame/*.json`
-(see the README beside it for the record format, the three vector `kind`s,
+(see the README beside it for the record format, the two vector `kind`s,
 and the frozen `failure_category` vocabulary negative vectors draw from).
 
 Unlike `python/spec-kit/tests/test_identity_vectors.py`'s conformance
@@ -117,28 +117,22 @@ def _run_frame_vector(vector: dict) -> None:
     frame_sha256 = hashlib.sha256(canonical_bytes).hexdigest()
     assert frame_sha256 == vector["expected_frame_sha256"]
 
-    content_version = mint_content_version(
-        frame_sha256=frame_sha256, **vector["content_version_input"]
-    )
+    content_version = mint_content_version(frame_sha256=frame_sha256)
     assert content_version == vector["expected_content_version"]
 
 
 def _run_content_version_vector(vector: dict) -> None:
     """A `"content_version"` vector supplies `frame_sha256` directly (see
     the README's "kind: content_version" section) rather than deriving it
-    from a frame, so a preimage-level refusal can be exercised without an
+    from a frame, so a digest-level refusal can be exercised without an
     otherwise-valid frame just to reach it."""
     if vector["classification"] == "negative":
         with pytest.raises(ContentVersionError) as excinfo:
-            mint_content_version(
-                frame_sha256=vector["frame_sha256"], **vector["content_version_input"]
-            )
+            mint_content_version(frame_sha256=vector["frame_sha256"])
         assert excinfo.value.category == vector["failure_category"]
         return
 
-    content_version = mint_content_version(
-        frame_sha256=vector["frame_sha256"], **vector["content_version_input"]
-    )
+    content_version = mint_content_version(frame_sha256=vector["frame_sha256"])
     assert content_version == vector["expected_content_version"]
 
 
@@ -203,25 +197,6 @@ class TestConvergencePairs:
         assert a["canonical_bytes"] == b["canonical_bytes"]
         assert a["expected_content_version"] == b["expected_content_version"]
 
-    def test_multi_source_multi_facet_pair_shares_cv_despite_differing_array_order(
-        self,
-    ) -> None:
-        # Unlike the frame pairs above, this pair's `rows` are identical --
-        # what differs is `source_revisions` and `facets` order inside
-        # `content_version_input`, the two arrays this suite's own ordering
-        # rule pins. The vectors' own `expected_content_version` values
-        # converging is the property this pair exists to prove.
-        a = self._by_name("frame-multi-source-multi-facet-input-order-converges")
-        b = self._by_name("frame-multi-source-multi-facet-shuffled-converges")
-        assert (
-            a["content_version_input"]["source_revisions"]
-            != b["content_version_input"]["source_revisions"]
-        )
-        assert (
-            a["content_version_input"]["facets"] != b["content_version_input"]["facets"]
-        )
-        assert a["expected_content_version"] == b["expected_content_version"]
-
 
 # ---------------------------------------------------------------------------
 # The vector digest guard
@@ -231,8 +206,7 @@ class TestConvergencePairs:
 def _compute_vector_digest_guard() -> str:
     """SHA-256 over every *positive* vector's canonical bytes and
     `content_version`, *recomputed live from each vector's own input*
-    (`role_keys`/`rows`/`content_version_input`, `frame_sha256`, or
-    `members`) through the real implementation, sorted by vector name so
+    (`role_keys`/`rows`, or `frame_sha256`) through the real implementation, sorted by vector name so
     the digest is independent of directory iteration order.
 
     Negative vectors are excluded: they have no canonical bytes or
@@ -262,14 +236,10 @@ def _compute_vector_digest_guard() -> str:
             frame = Frame.build(role_keys=vector["role_keys"], rows=vector["rows"])
             canonical_bytes = canonical_frame_bytes(frame)
             frame_sha256 = hashlib.sha256(canonical_bytes).hexdigest()
-            content_version = mint_content_version(
-                frame_sha256=frame_sha256, **vector["content_version_input"]
-            )
+            content_version = mint_content_version(frame_sha256=frame_sha256)
             parts.append(f"{vector['name']}:{canonical_bytes.hex()}:{content_version}")
         elif vector["kind"] == "content_version":
-            content_version = mint_content_version(
-                frame_sha256=vector["frame_sha256"], **vector["content_version_input"]
-            )
+            content_version = mint_content_version(frame_sha256=vector["frame_sha256"])
             parts.append(f"{vector['name']}:{content_version}")
     return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
 
@@ -287,13 +257,13 @@ def _compute_vector_digest_guard() -> str:
 # expected `canonical_bytes` or `content_version` changed -- the byte-rule
 # regression case this guard exists to catch.
 _VECTOR_DIGEST_GUARD = (
-    "8ee967a1cdfc129e742471fd192d4b4c1198678724c6986c09107a127a9ae3dc"
+    "238380fab5040346b207621b5b937836ecb78418465e2bdd2a400230c6339560"
 )
 
 # The FRAME_GRAMMAR_VERSION in effect when _VECTOR_DIGEST_GUARD above was
 # last hand-set. See TestVectorDigestGuard for what asserting equality
 # against the live FRAME_GRAMMAR_VERSION does, and does not, enforce.
-_VECTOR_DIGEST_GUARD_FRAME_GRAMMAR_VERSION = "1.0.0"
+_VECTOR_DIGEST_GUARD_FRAME_GRAMMAR_VERSION = "1.1.0"
 
 
 class TestVectorDigestGuard:

@@ -17,8 +17,10 @@ kind split, the positive/negative structural split, and the closed
 failure_category vocabulary), this checks what a JSON
 Schema cannot express on its own: filename-vs-name consistency, name
 uniqueness, a minimum vector-count floor, that both classifications are
-non-empty, and -- for every positive vector -- that its stored bytes and
-tokens are genuinely self-consistent:
+non-empty, that positive vectors over one frame digest share one token and
+vectors over different digests mint different tokens, and -- for every
+positive vector -- that its stored bytes and tokens are genuinely
+self-consistent:
 
 - kind "frame": canonical_bytes is genuinely JCS(expected_document), the
   expected_document's own columns match expected_columns, expected_frame_sha256
@@ -34,7 +36,7 @@ This script deliberately does NOT import dfo_frame_grammar, directly or
 transitively -- see _assert_never_imported_dfo_frame_grammar below. It does not
 re-implement Frame.build's row construction or content_version's preimage
 assembly, so it never checks expected_document/expected_preimage against
-role_keys/rows/content_version_input through those rules. That is
+role_keys/rows through those rules. That is
 python/frame-grammar/tests/test_vectors.py's job, run against the real
 implementation; this script only checks that a vector's own committed
 fields hang together internally, independent of any implementation.
@@ -158,9 +160,9 @@ def _preimage_content_version(preimage: dict[str, Any]) -> str:
 
 def check_consistency(record: dict[str, Any]) -> list[str]:
     """Recompute every byte/token relationship a positive vector claims,
-    straight from that vector's own committed fields -- never from role_keys/
-    rows/content_version_input, which would mean re-implementing Frame.build
-    and the preimage builder rather than validating the fixture format."""
+    straight from that vector's own committed fields -- never from
+    role_keys/rows, which would mean re-implementing Frame.build rather than
+    validating the fixture format."""
     if record.get("classification") != "positive":
         return []
 
@@ -238,6 +240,31 @@ def _check_token(record: dict[str, Any], preimage: dict[str, Any]) -> list[str]:
     return []
 
 
+def check_token_per_digest(records: list[dict[str, Any]]) -> list[str]:
+    """A content_version is the hash of the frame alone: positive vectors
+    over one frame digest share one token, and two different digests never
+    share a token."""
+    token_by_digest: dict[str, str] = {}
+    digest_by_token: dict[str, str] = {}
+    problems: list[str] = []
+    for record in records:
+        if record.get("classification") != "positive":
+            continue
+        digest = record["expected_preimage"]["frame_sha256"]
+        token = record["expected_content_version"]
+        if token_by_digest.setdefault(digest, token) != token:
+            problems.append(
+                f"{record['name']}: frame digest {digest} mints {token}, "
+                f"another vector over it mints {token_by_digest[digest]}"
+            )
+        if digest_by_token.setdefault(token, digest) != digest:
+            problems.append(
+                f"{record['name']}: token {token} is shared by frame digests "
+                f"{digest} and {digest_by_token[token]}"
+            )
+    return problems
+
+
 def _assert_never_imported_dfo_frame_grammar() -> None:
     """This validator's entire point is independence from the implementation
     it validates fixtures for -- see this module's own docstring. A future
@@ -272,6 +299,7 @@ def main() -> int:
     all_problems: dict[str, list[str]] = {}
     names_seen: dict[str, Path] = {}
     classifications: list[str] = []
+    valid_records: list[dict[str, Any]] = []
 
     for path in paths:
         problems: list[str] = []
@@ -302,6 +330,10 @@ def main() -> int:
             all_problems[path.name] = problems
         else:
             classifications.append(record["classification"])
+            valid_records.append(record)
+
+    for problem in check_token_per_digest(valid_records):
+        all_problems.setdefault("<suite>", []).append(problem)
 
     if len(paths) < _MIN_VECTOR_FLOOR:
         all_problems.setdefault("<suite>", []).append(

@@ -80,6 +80,24 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Breaking. `content_version` is the hash of the canonical frame alone. The
+  preimage is `{"identity_version": "cv2", "frame_sha256": ...}`, so one frame
+  mints one token whatever lineage produced it. `mint_content_version` takes
+  `frame_sha256` only and `recompute_content_version` takes the canonical
+  bytes only; `graph_revision`, `source_revisions`, `facets` and `conversion`
+  are no longer parameters. `FrameTrace` keeps its fields for a caller's own
+  trace, and nothing in this package reads it. Every frame vector's
+  `expected_preimage` and `expected_content_version` change, the vector record
+  format moves to `format_version` 2 without `content_version_input`, the
+  thirteen lineage `content-version-*` vectors and the two
+  `frame-multi-source-multi-facet-*` vectors are removed, and three
+  `content-version-*` digest vectors are added. `ContentVersionError` raises
+  only `invalid_digest`; `unknown_member`, `invalid_facet_axis`,
+  `invalid_facet_basis`, `invalid_facet_ref`, `duplicate_source`,
+  `duplicate_axis` and `conversion_null` are retired.
+  `grammar.validate_unit_request_ref` and the role-shaped `currency` it
+  accepted are removed. `FRAME_GRAMMAR_VERSION` moves to `1.1.0`: frame bytes
+  are unchanged and every token moves.
 - Breaking. The collection-level `content_version` is removed:
   `mint_collection_content_version`, `COLLECTION_IDENTITY_VERSION` (`colcv1`),
   the `duplicate_spec_id`, `invalid_spec_id` and
