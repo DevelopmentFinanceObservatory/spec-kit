@@ -42,6 +42,11 @@
           "endpoint": "datasets.pin",
           "channel": "problem_details",
           "http_status": 410
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 410
         }
       ],
       "lifecycle": "active"
@@ -58,6 +63,31 @@
           "endpoint": "datasets.pin",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "artifact_pair_stale",
+      "classification": "warning",
+      "definition": "The origin catalogue build and the series coverage build serving the request come from different graph ingestions, so the answer may lack observations ingested after the older build. Each serves its newest build until the next one publishes.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
         }
       ],
       "lifecycle": "active"
@@ -243,6 +273,36 @@
           ],
           "channel": "problem_details",
           "http_status": 501
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 501
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "catalogue_index_drift",
+      "classification": "warning",
+      "definition": "The origin catalogue's schema for a variable the answer used disagrees with the packaged code index on five-tuple, constraint properties, or roles. The answer uses the catalogue's reading, and the code index needs re-exporting.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
         }
       ],
       "lifecycle": "active"
@@ -357,6 +417,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -597,6 +662,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -641,6 +711,11 @@
         },
         {
           "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -744,6 +819,26 @@
             "dataset_resubmit"
           ],
           "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "denominator_unverified",
+      "classification": "warning",
+      "definition": "The question names a denominator and the answer's series declares no denominator arc, so its ratio base is read from the series name only. The message names the denominator asked.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
         }
       ],
       "lifecycle": "active"
@@ -1146,6 +1241,11 @@
           "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1185,17 +1285,22 @@
         {
           "endpoint": "datasets.mint",
           "channel": "problem_details",
-          "http_status": 501
+          "http_status": 422
         },
         {
           "endpoint": "datasets.definition",
           "channel": "problem_details",
-          "http_status": 501
+          "http_status": 422
         },
         {
           "endpoint": "datasets.options",
           "channel": "problem_details",
-          "http_status": 501
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1276,6 +1381,11 @@
         },
         {
           "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -1372,6 +1482,26 @@
           "endpoint": "datasets.register",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -1406,6 +1536,31 @@
         },
         {
           "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.observations",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -1552,6 +1707,29 @@
           "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "members_absent_from_graph",
+      "classification": "warning",
+      "definition": "A resubmitted definition's elected members include StatVars the knowledge graph holds no node for, so the answer leaves them out. The code index lists members the graph no longer serves, or the graph dropped one between the election and its read. The message names the members left out.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
         }
       ],
       "lifecycle": "active"
@@ -1595,6 +1773,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -2360,6 +2543,11 @@
           "endpoint": "datasets.publish",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2379,6 +2567,11 @@
         },
         {
           "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -2690,7 +2883,7 @@
     {
       "code": "query_qualifier_dropped",
       "classification": "warning",
-      "definition": "Raw-text extraction recognised a query qualifier that cannot be represented in the v1 identity, so the resolver answered the remaining request without applying that qualifier.",
+      "definition": "The resolver recognised a query qualifier it could not apply, such as a raw-text phrase the v1 identity cannot represent or a source exclusion that removed nothing, and answered the remaining request without it.",
       "owning_contract": "search",
       "owner": "platform",
       "introduced_in": "v1",
@@ -2698,7 +2891,8 @@
         {
           "endpoint": "search.resolve",
           "doors": [
-            "raw_text"
+            "raw_text",
+            "parsed"
           ],
           "channel": "diagnostics_warning"
         }
@@ -2757,6 +2951,16 @@
           "endpoint": "datasets.definition",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2805,6 +3009,11 @@
         },
         {
           "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3286,6 +3495,11 @@
           "endpoint": "datasets.members",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3318,6 +3532,16 @@
       "mappings": [
         {
           "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3481,6 +3705,16 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.operations",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 503
         }
@@ -3897,6 +4131,11 @@
           "endpoint": "datasets.recipe",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -3928,6 +4167,71 @@
           "endpoint": "datasets.publish",
           "channel": "problem_details",
           "http_status": 410
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.mint",
+          "channel": "problem_details",
+          "http_status": 410
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "source_ambiguous",
+      "classification": "refusal",
+      "definition": "A source mention in the request matched two or more unrelated sources, and the request did not say which one it meant. The detail lists the candidates.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "source_not_resolved",
+      "classification": "refusal",
+      "definition": "A source mention in the request matched no admitted source, dataset or provenance.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
         }
       ],
       "lifecycle": "active"
@@ -3952,6 +4256,11 @@
         },
         {
           "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.options",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3983,6 +4292,11 @@
         },
         {
           "endpoint": "datasets.members",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 409
         }
@@ -4034,6 +4348,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -4196,6 +4515,11 @@
         },
         {
           "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 504
         }
@@ -4428,6 +4752,11 @@
           "endpoint": "graph.resolve",
           "channel": "problem_details",
           "http_status": 502
+        },
+        {
+          "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 502
         }
       ],
       "lifecycle": "active"
@@ -4462,6 +4791,11 @@
             "parsed",
             "dataset_resubmit"
           ],
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 503
         }

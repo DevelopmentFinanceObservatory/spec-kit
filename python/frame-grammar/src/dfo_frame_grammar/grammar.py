@@ -82,18 +82,6 @@ _CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
 _COMPOSED_UNIT_KEYS = frozenset({"numerator", "denominator"})
 _STAT_VAR_PART_KEYS = frozenset({"stat_var"})
 
-# The role-shaped `currency` form's own closed member and role-name
-# vocabularies -- `dfo_spec_kit.identity.core`'s own `_CURRENCY_ROLE_KEYS`/
-# `_CURRENCY_ROLES`, mirrored here rather than imported so this package's
-# frame-bytes domain stays independent of the identity package's schema
-# validation internals (only `dfo_spec_kit.identity.canonicalize`, a public
-# function, is imported below). Accepted only on the content-version facet
-# ref path (`validate_unit_request_ref`), never on a frame's own per-row
-# `unit` cell (`validate_unit_request`): a materialised row is always
-# already resolved to one concrete currency.
-_CURRENCY_ROLE_KEYS = frozenset({"role"})
-_CURRENCY_ROLES = frozenset({"observationAbout", "origin", "destination"})
-
 # The largest integer magnitude JCS (RFC 8785) can serialise: the
 # ECMAScript safe-integer bound, 2**53 - 1. `rfc8785` refuses anything
 # beyond it with its own exception type from deep inside serialisation, so
@@ -316,31 +304,9 @@ def validate_unit_request(request: Mapping[str, object]) -> None:
     object shape `dfo_spec_kit.identity`'s unit-facet binding pins on the
     spec side, carried here verbatim as a frame's resolved `unit` cell once
     a conversion recipe has run. A frame's own per-row `unit` cell is
-    always already resolved to one concrete currency per row, so this entry
-    point accepts only the strict form. See `validate_unit_request_ref` for
-    the content-version facet ref path, which accepts role-shaped currencies.
+    always already resolved to one concrete currency per row, so a
+    role-shaped `currency` refuses.
     """
-    _validate_unit_request_shape(request, allow_role_currency=False)
-
-
-def validate_unit_request_ref(request: Mapping[str, object]) -> None:
-    """Refuse a unit-request object outside the closed shape a
-    content-version's unit-axis facet `ref` pins: the same shape
-    `validate_unit_request` accepts, except `currency` may additionally be
-    a role object naming one of the spec's entity role keys
-    (`observationAbout`, `origin`, `destination`) -- the shape a bound but
-    not-yet-per-row-resolved unit request carries, mirroring
-    `dfo_spec_kit.identity.core`'s own currency role shape. A separate entry
-    point from `validate_unit_request` enforces the distinction: frame unit
-    cells carry only resolved currencies, bound unit requests carry role
-    references.
-    """
-    _validate_unit_request_shape(request, allow_role_currency=True)
-
-
-def _validate_unit_request_shape(
-    request: Mapping[str, object], *, allow_role_currency: bool
-) -> None:
     extra = set(request) - _UNIT_REQUEST_KEYS
     if extra:
         raise FrameError(
@@ -351,7 +317,11 @@ def _validate_unit_request_shape(
             "invalid_unit", "unit request requires 'currency' and 'prices'"
         )
 
-    _validate_currency(request["currency"], allow_role=allow_role_currency)
+    currency = request["currency"]
+    if not isinstance(currency, str) or not _CURRENCY_RE.fullmatch(currency):
+        raise FrameError(
+            "invalid_unit", f"currency must be upper-case ISO 4217: {currency!r}"
+        )
 
     prices = request["prices"]
     # The isinstance check runs before the membership test: an unhashable
@@ -377,51 +347,6 @@ def _validate_unit_request_shape(
                 f"base_year must be within the JCS-serialisable integer domain "
                 f"(magnitude at most 2**53 - 1), got {base_year}",
             )
-
-
-def _validate_currency(currency: object, *, allow_role: bool) -> None:
-    """Refuse a unit request's `currency` member unless it is an upper-case
-    ISO 4217 string, or -- only when `allow_role` is set -- a role object
-    naming one of the closed set `observationAbout`, `origin`, `destination`
-    with no other member. `allow_role` is false for a frame's own per-row
-    `unit` cell (`validate_unit_request`) and true only for a content-
-    version's unit-axis facet ref (`validate_unit_request_ref`)."""
-    if isinstance(currency, str):
-        if not _CURRENCY_RE.fullmatch(currency):
-            raise FrameError(
-                "invalid_unit", f"currency must be upper-case ISO 4217: {currency!r}"
-            )
-        return
-    if allow_role and isinstance(currency, Mapping):
-        if not all(isinstance(key, str) for key in currency):
-            raise FrameError(
-                "invalid_unit", "currency role object keys must be strings"
-            )
-        role_object = cast("Mapping[str, object]", currency)
-        extra = set(role_object) - _CURRENCY_ROLE_KEYS
-        if extra:
-            raise FrameError(
-                "invalid_unit",
-                f"currency role object carries unknown member(s): {sorted(extra)!r}",
-            )
-        if "role" not in role_object:
-            raise FrameError("invalid_unit", "currency role object requires 'role'")
-        role = role_object["role"]
-        if not isinstance(role, str) or role not in _CURRENCY_ROLES:
-            raise FrameError(
-                "invalid_unit",
-                f"currency role must be one of {sorted(_CURRENCY_ROLES)!r}: {role!r}",
-            )
-        return
-    if allow_role:
-        raise FrameError(
-            "invalid_unit",
-            f"currency must be an upper-case ISO 4217 string or a role object, "
-            f"got {type(currency).__name__}",
-        )
-    raise FrameError(
-        "invalid_unit", f"currency must be upper-case ISO 4217: {currency!r}"
-    )
 
 
 @dataclass(frozen=True, slots=True)

@@ -214,75 +214,11 @@ class TestValidateUnitRequest:
 
     def test_refuses_role_shaped_currency(self):
         # A frame's own per-row unit cell is always already resolved to one
-        # concrete currency: the role shape is only valid on the
-        # content-version facet ref path (validate_unit_request_ref).
+        # concrete currency.
         with pytest.raises(FrameError) as excinfo:
             grammar.validate_unit_request(
                 {"currency": {"role": "origin"}, "prices": "current"}
             )
-        assert excinfo.value.category == "invalid_unit"
-
-
-class TestValidateUnitRequestRef:
-    """`validate_unit_request_ref` accepts the same shape
-    `validate_unit_request` does, plus a role-shaped `currency`. This is the
-    entry point for content-version facet refs; `validate_unit_request` is for
-    frame per-row `unit` cells."""
-
-    @pytest.mark.parametrize("role", ["observationAbout", "origin", "destination"])
-    def test_accepts_each_role_key(self, role):
-        grammar.validate_unit_request_ref(
-            {"currency": {"role": role}, "prices": "current"}
-        )  # must not raise
-
-    def test_accepts_role_with_constant_prices_and_base_year(self):
-        grammar.validate_unit_request_ref(
-            {
-                "currency": {"role": "origin"},
-                "prices": "constant",
-                "base_year": 2020,
-            }
-        )  # must not raise
-
-    def test_accepts_concrete_currency_string(self):
-        grammar.validate_unit_request_ref(
-            {"currency": "USD", "prices": "current"}
-        )  # must not raise
-
-    def test_refuses_unrecognised_role(self):
-        with pytest.raises(FrameError) as excinfo:
-            grammar.validate_unit_request_ref(
-                {"currency": {"role": "financingProvider"}, "prices": "current"}
-            )
-        assert excinfo.value.category == "invalid_unit"
-
-    def test_refuses_role_object_with_extra_member(self):
-        with pytest.raises(FrameError) as excinfo:
-            grammar.validate_unit_request_ref(
-                {
-                    "currency": {"role": "origin", "extra": "x"},
-                    "prices": "current",
-                }
-            )
-        assert excinfo.value.category == "invalid_unit"
-
-    def test_refuses_lower_case_role(self):
-        with pytest.raises(FrameError) as excinfo:
-            grammar.validate_unit_request_ref(
-                {"currency": {"role": "origin".upper()}, "prices": "current"}
-            )
-        assert excinfo.value.category == "invalid_unit"
-
-    def test_refuses_non_string_role(self):
-        with pytest.raises(FrameError) as excinfo:
-            grammar.validate_unit_request_ref(
-                {"currency": {"role": 1}, "prices": "current"}
-            )
-        assert excinfo.value.category == "invalid_unit"
-
-    def test_refuses_currency_that_is_neither_string_nor_object(self):
-        with pytest.raises(FrameError) as excinfo:
-            grammar.validate_unit_request_ref({"currency": 1, "prices": "current"})
         assert excinfo.value.category == "invalid_unit"
 
 

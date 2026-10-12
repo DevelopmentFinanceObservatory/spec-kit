@@ -10,9 +10,8 @@ the conformance vectors.
 Two version-shaped strings are exported here for entirely different jobs,
 and a caller assembling a trace must pick the right one: `FRAME_VERSION`
 (`"frame1"`, from `dfo_frame_grammar.grammar`) is the byte-rule domain
-separator hashed into every canonical frame document and every
-`content_version` preimage, and only a byte-rule generation change ever
-moves it. `FRAME_GRAMMAR_VERSION` is this document's own published semver
+separator hashed into every canonical frame document, and only a byte-rule
+generation change ever moves it. `FRAME_GRAMMAR_VERSION` is this document's own published semver
 -- from the grammar's first release it moves on every revision to
 `docs/frame-grammar-v1.md`, including a
 prose-only patch that changes no byte rule at all, and it is never hashed
