@@ -32,19 +32,25 @@ What each version component means, by the rule this document locks:
   axis is a major change taken knowingly: a positional row format has no
   sparse way to add a column, so the column set changes and every
   `content_version` rotates through `frame_sha256`.
-- **Minor** -- an additive change to the document that moves no existing
-  frame's canonical bytes by itself: the reserved `status` column starting
-  to carry a non-null value under some newly-declared condition is the
-  shipped example. Every frame where that condition never fires stays
+- **Minor** -- a change to the document that moves no existing frame's
+  canonical bytes by itself. One kind is additive: the reserved `status`
+  column starting to carry a non-null value under some newly-declared
+  condition. Every frame where that condition never fires stays
   byte-identical under the new minor version; a frame that does newly
   exercise the addition sees its bytes move because of what changed in its
-  own data, not because this version number moved.
+  own data, not because this version number moved. The other kind is a new
+  `content_version` preimage family under a new `identity_version`
+  separator: frame bytes stand still and every token moves, and this
+  version is what tells a token minted under one family from one minted
+  under the next.
 - **Patch** -- a document-only revision: prose clarification, a worked
   example, a typo fix. Never changes what `canonical_frame_bytes` produces
   for any frame, old or new.
 
 These rules count from the grammar's first release. `1.0.0` includes the
-interval form of `time_period` and the composed form of the `unit` cell.
+interval form of `time_period` and the composed form of the `unit` cell,
+and mints `content_version` under `cv1`. `1.1.0` mints it under `cv2`, the
+hash of the frame alone.
 
 What moves this token, and what deliberately does not
 -------------------------------------------------------
@@ -55,12 +61,11 @@ package's code, since the document itself is the versioned artifact.
 
 Deliberately does not move it: nothing in this package reads or is driven
 by `FRAME_GRAMMAR_VERSION`'s own value -- `canonical_frame_bytes` and
-`mint_content_version` are both indifferent to it (see `content_version`'s
-pinned-exclusions test, which bumps this constant alone and confirms a
-recomputed `content_version` stands still). It is a label a caller can read
-off `FrameTrace`, not an input any function branches on.
+`mint_content_version` are both indifferent to it, and neither accepts it as
+a parameter. It is a label a caller can read off `FrameTrace`, not an input
+any function branches on.
 """
 
 from __future__ import annotations
 
-FRAME_GRAMMAR_VERSION = "1.0.0"
+FRAME_GRAMMAR_VERSION = "1.1.0"

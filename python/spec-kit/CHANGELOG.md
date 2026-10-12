@@ -6,8 +6,63 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Code `query_qualifier_dropped` maps to the `parsed` door of `search.resolve`
+  as well as `raw_text`, since the resolver also drops a qualifier it cannot
+  apply on parsed requests, such as a source exclusion that removed nothing.
+- Code `facet_binding_unsupported` maps to `datasets.mint`,
+  `datasets.definition` and `datasets.options` at 422, the status those doors
+  send. Its `search.resolve` and `search.options` mappings stay at 501.
+- Existing codes map onto the Datasets doors that raise them:
+  `snapshot_revoked` (410) on `datasets.definition` and `datasets.options`;
+  `spec_id_mismatch` (422), `rate_coverage_gap` (422) and
+  `capability_unavailable` (501) on `datasets.options`;
+  `service_unavailable` (503) on `datasets.operations`; `rollup_not_summable`
+  (422) on `datasets.definition`; and `identity_collision` (500) on
+  `datasets.definition`, `datasets.options` and `datasets.members`.
+- `datasets.refresh` carries the refusals `datasets.definition` raises, at
+  the same statuses: `snapshot_revoked` (410), `timeout` (504),
+  `upstream_error` (502), `upstream_version_changed` (503),
+  `identity_collision` (500), `members_not_held` (500), `spec_not_exportable`
+  (409), `capability_unavailable` (501), and at 422
+  `collection_probe_ceiling`, `default_facet_undefined`,
+  `definition_not_reproducible`, `excluded_by_registry`,
+  `facet_not_available`, `member_not_resolvable`, `over_ceiling`,
+  `parquet_size_bound`, `role_signature_incompatible`, `rollup_not_summable`,
+  `rate_coverage_gap`, `recipe_not_declared` and `facet_binding_unsupported`.
+  `snapshot_revoked` (410) also maps to `datasets.mint`.
+- Code `identity_quarantined` (500) maps to `datasets.snapshot`,
+  `datasets.files`, `datasets.pin`, `datasets.observations` and
+  `datasets.refresh`, the same status it has on the other Datasets doors.
+
 ### Added
 
+- Endpoint `datasets.files` in `schemas/registry/code-registry.schema.json`:
+  `GET /api/datasets/{id}/{content_version}/files/{digest}`, which answers a
+  stored artifact with a 302 redirect to its download link. It carries
+  `snapshot_not_found` (404), `snapshot_revoked` (410), `artifact_not_found`
+  (404), `artifact_expired` (410), `service_unavailable` (503) and
+  `spec_not_found` (404).
+- Codes `source_not_resolved` and `source_ambiguous` in `registries/codes.json`
+  and its bundled mirror: refusals on `search.resolve`, on the `no_data_reason`
+  channel, for a source mention whose text matched no admitted source, dataset
+  or provenance, and for one that matched two or more unrelated sources, whose
+  detail lists the candidates.
+- Codes `denominator_unverified`, `artifact_pair_stale` and
+  `catalogue_index_drift` in `registries/codes.json` and its bundled mirror:
+  `search.resolve` warnings on the raw_text, parsed and dataset_resubmit doors.
+  `denominator_unverified` flags a named denominator whose series declares no
+  denominator arc, so the ratio base is read from the series name only.
+  `artifact_pair_stale` flags an origin catalogue build and a series coverage
+  build from different graph ingestions, so the answer may lack observations
+  ingested after the older build. `catalogue_index_drift` flags a variable
+  whose catalogue schema disagrees with the packaged code index on five-tuple,
+  constraint properties, or roles; the answer uses the catalogue's reading.
+- Code `members_absent_from_graph` in `registries/codes.json` and its bundled
+  mirror: a `search.resolve` warning on the dataset_resubmit door naming the
+  elected members the knowledge graph holds no node for, which the answer
+  leaves out.
 - Endpoints `datasets.refresh` (`POST /api/datasets/frames/refresh`),
   `datasets.recipe` (`PUT` and `GET /api/datasets/frames/{spec_id}/{content_version}/recipe`, and `GET /api/datasets/recipes/replays/{replay_key}`) and
   `presentation.render` (`POST /api/presentation/components/{component_id}/revisions/{revision}/render`
