@@ -2,7 +2,7 @@
 
 The presentation contract bundle: the envelope and component JSON Schemas, the write-side intent grammar, and their conformance fixtures, shipped as package data. See the [repo README](../../README.md) for how this package fits with the rest of `dfo-spec-kit`, and `src/dfo_spec_kit_components/catalogue/README.md` for the bundle's own format.
 
-Import name: `dfo_spec_kit_components`. The package is static data plus one accessor function, and stands alone in this repo.
+Import name: `dfo_spec_kit_components`. The package is static data plus one accessor function. It depends on `dfo-spec-kit-descriptions`, whose description and step schemas the envelope references by `$id`; the [repo README](../../README.md) shows how to install both at one commit.
 
 ## Installation
 

@@ -12,7 +12,11 @@ import pyarrow as pa
 import pyarrow.csv as pacsv
 
 from dfo_frame_grammar import grammar
-from dfo_frame_grammar._unit_codec import _unit_to_arrow, _unit_type
+from dfo_frame_grammar._unit_codec import (
+    _conform_unit,
+    _unit_to_arrow,
+    _unit_type,
+)
 from dfo_frame_grammar.columnar import (
     _sort_and_check,
     array_kernel,
@@ -230,14 +234,14 @@ def _canonical_unit_from_mapping(raw: object) -> grammar.UnitCell | None:
 # The tagged spellings of the `unit` struct: the canonical three-member
 # layout and the two-member layout, which holds no composed unit. A struct
 # with any other member names is a bare unit request.
-_TAGGED_UNIT_MEMBERS = (["ref", "request"], _unit_type().names)
+_TAGGED_UNIT_MEMBERS = (["ref", "request"], ["ref", "request", "composed"])
 
 
 def _refuse_untyped_composed(data_type: pa.StructType) -> None:
     """Refuse a three-member tagged struct whose `composed` member is not
     text by its Arrow type, so the column refuses whatever rows it holds.
     A null-typed member holds no composed unit and passes."""
-    if data_type.names != _unit_type().names:
+    if data_type.names != _TAGGED_UNIT_MEMBERS[1]:
         return
     composed = data_type.field("composed").type
     if not (_is_text_type(composed) or pa.types.is_null(composed)):
@@ -248,7 +252,9 @@ def _refuse_untyped_composed(data_type: pa.StructType) -> None:
 
 
 def _normalise_unit(array: pa.ChunkedArray) -> pa.Array:
-    unit_type = _unit_type()
+    """The `unit` column in the layout its cells need: with the `recipe`
+    child of `request` only when some cell carries a recipe."""
+    unit_type = _unit_type(recipe=False)
     if pa.types.is_null(array.type):
         return pa.nulls(len(array), type=unit_type)
     if _is_text_type(array.type):
@@ -275,11 +281,12 @@ def _normalise_unit(array: pa.ChunkedArray) -> pa.Array:
         if array.type.names in _TAGGED_UNIT_MEMBERS
         else _unit_request_from_mapping
     )
-    return map_units(
+    units = map_units(
         array,
         lambda value: _unit_to_arrow(normalise(value)),
-        result_type=unit_type,
+        result_type=_unit_type(recipe=True),
     )
+    return _conform_unit(units, recipe=False)
 
 
 def build_frame_from_arrow(table: pa.Table, *, role_keys: Iterable[str]) -> Frame:
@@ -332,9 +339,7 @@ def build_frame_from_arrow(table: pa.Table, *, role_keys: Iterable[str]) -> Fram
     arrays[grammar.UNIT_COLUMN] = (
         _normalise_unit(table.column(raw_by_norm[grammar.UNIT_COLUMN]))
         if grammar.UNIT_COLUMN in raw_by_norm
-        else pa.nulls(
-            table.num_rows, type=canonical_frame_schema(columns).field("unit").type
-        )
+        else pa.nulls(table.num_rows, type=_unit_type(recipe=False))
     )
     for axis in grammar.FACET_IDENTITY_COLUMNS:
         arrays[axis] = (
@@ -347,8 +352,10 @@ def build_frame_from_arrow(table: pa.Table, *, role_keys: Iterable[str]) -> Fram
             else pa.nulls(table.num_rows, type=pa.string())
         )
     arrays[grammar.STATUS_COLUMN] = pa.nulls(table.num_rows)
+    recipe = arrays[grammar.UNIT_COLUMN].type == _unit_type(recipe=True)
     canonical = pa.Table.from_arrays(
-        [arrays[column] for column in columns], schema=canonical_frame_schema(columns)
+        [arrays[column] for column in columns],
+        schema=canonical_frame_schema(columns, recipe=recipe),
     )
     return Frame._from_validated(
         columns=columns, table=_sort_and_check(canonical, columns=columns)

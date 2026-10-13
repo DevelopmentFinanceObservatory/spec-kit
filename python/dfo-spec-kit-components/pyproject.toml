@@ -7,7 +7,9 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "dfo-spec-kit-descriptions",
+]
 keywords = []  # Add relevant keywords for PyPI discoverability
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -31,6 +33,14 @@ module-name = ["dfo_spec_kit_components"]
 # default, so this is belt-and-braces: an explicit pin for the packaged
 # catalogue bundle rather than reliance on that default staying unchanged.
 source-include = ["src/dfo_spec_kit_components/catalogue/**/*.json"]
+
+[tool.uv.sources]
+# Intra-repo path source: the envelope's `description` references
+# `description.schema.json` by its `$id`, so the bundle validates a card only
+# with the descriptions package installed beside it. uv resolves this source
+# from the same git checkout; other installers read only the name, so a
+# consumer names both distributions at one revision (repo README).
+dfo-spec-kit-descriptions = { path = "../descriptions", editable = true }
 
 [dependency-groups]
 dev = [

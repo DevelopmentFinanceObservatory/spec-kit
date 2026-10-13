@@ -1,5 +1,8 @@
 """Tests for dfo_spec_kit."""
 
+import subprocess
+import sys
+
 import dfo_spec_kit
 from dfo_spec_kit import identity
 
@@ -21,3 +24,14 @@ def test_top_level_exports_only_version() -> None:
     IDENTITY_VERSION and REGISTRY from dfo_spec_kit.identity and
     dfo_spec_kit.registry respectively."""
     assert dfo_spec_kit.__all__ == ["__version__"]
+
+
+def test_identity_import_loads_no_unit_registry() -> None:
+    """The identity reads no data file at import, so a bad units.json cannot
+    break it. A fresh interpreter, because this session has already imported
+    dfo_spec_kit.units."""
+    probe = (
+        "import sys, dfo_spec_kit.identity; "
+        "assert 'dfo_spec_kit.units' not in sys.modules, sorted(sys.modules)"
+    )
+    subprocess.run([sys.executable, "-c", probe], check=True)

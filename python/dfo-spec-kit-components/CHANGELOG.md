@@ -8,6 +8,20 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- An optional `description` on the envelope schema: the card revision's
+  description, a `$ref` to
+  `https://developmentfinance.org/descriptions/schema/v1/description.schema.json`
+  held to `describes.kind` `card_revision`. The package depends on
+  `dfo-spec-kit-descriptions`, which ships that schema and the step schema
+  it references, so a validator registers both under their `$id` beside the
+  component schemas. A payload with a `description` holds lineage alone in
+  `provenance`: `sources`, `freshness`, `warnings` and `citation` are
+  refused there. A data card without a `description` requires those four
+  in `provenance`; a `note_narration`, which draws no data, carries lineage
+  alone. `fixtures/line_chart/payload_description.json` carries the
+  card-revision description from the descriptions vector suite, and
+  `fixtures/note_narration/payload_lineage.json` is a lineage-only
+  provenance with no description.
 - Relative periods in the write-side intent grammar
   (`schemas/intent.v0.json`). `$defs.relative_period` is
   `{anchor: "latest", offset}` with an integer `offset` of 0 or less.
@@ -84,6 +98,51 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   orders its two periods `[from, to]`.
 
 ### Changed
+
+- `manifest.json` carries the refreshed digest of `steps.schema.json`, which
+  gains the `sides` step member.
+
+- `fixtures/line_chart/payload_description.json` carries the card's
+  measure, its fixed values other than those the measure names and the
+  sectors it draws, each value with its definition, matching the
+  descriptions suite's card-revision vector. `manifest.json` carries the
+  refreshed digests of the fixture and of `description.schema.json`.
+
+- The catalogue fixtures cite as dfo-apis composes citations: the
+  original sources and the year, then "via the Development Finance
+  Observatory" ("OECD DAC (2026), via the Development Finance
+  Observatory"). The note fixture reads "Development Finance Observatory
+  (2026)". `manifest.json` carries the refreshed digests.
+
+- `provenance.sources`, `provenance.freshness`, `provenance.warnings` and
+  `provenance.citation` are optional in the envelope schema; `inputs`,
+  `execution_ref`, `generated_at` and `refreshed_from` stay required. Every
+  payload issued with them still validates. `provenance.execution_ref` is
+  described as the key the recipe of the derived frame the component
+  resolved replays it under, null for a dataset frame, a frame with no
+  recipe, no frame, and every revision issued before components wrote a
+  replay key. Every revision issued before this release holds null there.
+
+- `source_ref` on each `line_chart` and `bar_chart` series and each `table`
+  row, and `source_card`'s `source_refs[]`, reference the member schema's
+  own `$defs/source_ref`, a string of 1 to 512 characters, the bounds of a
+  description source's `ref`. On a payload with a `description` they name
+  the `ref` of an entry in `description.sources`, a provenance dcid. On a
+  data card without one the envelope holds them to `$defs/source_id`, the
+  `src_` pattern of `provenance.sources[].id`. Which entry they name is
+  checked in code. A member schema references nothing outside itself.
+
+- Each id pattern anchored with `$` also refuses a newline, since Python's
+  `re.search` lets `$` match before a final one: the envelope's
+  `component_id`, `$defs/catalog_version`, `$defs/spec_id`,
+  `$defs/content_version` and `$defs/source_id`, a `line_chart` or
+  `bar_chart` series `id` and a `table` row's `series_id`. Each carries
+  `"not": {"pattern": "\\n"}` beside its pattern.
+
+- `manifest.json` carries `referenced_schemas`: a `sha256:`-prefixed digest,
+  by `$id`, of `description.schema.json` and `steps.schema.json` in
+  `dfo-spec-kit-descriptions`, the schemas outside the bundle the envelope
+  validates through.
 
 - `catalog_version` moves from `2026.8.0` to `2026.10.0`, a minor change
   under `policies/component-spec.toml`: the intent grammar widens and two

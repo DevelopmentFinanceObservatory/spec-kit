@@ -367,7 +367,9 @@ class TestUnitColumnBytes:
         self,
     ) -> None:
         # The difference pins the layout; absolute `nbytes` depends on
-        # builder choices. `pa.array` gives every row its own buffers.
+        # builder choices. `pa.array` gives every row its own buffers, and
+        # the null `composed` member costs its 4-byte offset a row. The
+        # default layout has no `recipe` child to pay for.
         rows = [{"ref": "USDollar"}] * 10_000
         two_member = pa.struct([("ref", pa.string()), ("request", _UNIT_REQUEST_TYPE)])
         canonical = canonical_frame_schema(("unit",)).field("unit").type
@@ -375,19 +377,26 @@ class TestUnitColumnBytes:
         assert extra <= 5 * len(rows)
 
 
+_RECIPE_REQUEST = {"currency": "USD", "prices": "current", "recipe": "recipe/usd"}
+
+
 class TestWidenFrameTable:
-    """A table stored in the two-member layout of the `unit` struct, rebuilt
-    here from plain values, against the frame the same rows build."""
+    """A table in each layout of the `unit` struct a release stored, rebuilt
+    here from plain values, against the frame the same rows build. The two
+    earlier layouts carry a `request` without `recipe`."""
 
     _TWO_MEMBER = pa.struct([("ref", pa.string()), ("request", _UNIT_REQUEST_TYPE)])
+    _THREE_MEMBER = canonical_frame_schema(("unit",)).field("unit").type
+    _RECIPE = canonical_frame_schema(("unit",), recipe=True).field("unit").type
 
-    def _frame(self) -> Frame:
-        units = [
-            None,
-            "USDollar",
-            {"currency": "EUR", "prices": "constant", "base_year": 2020},
-            {"currency": "USD", "prices": "current"},
-        ]
+    _UNITS = (
+        None,
+        "USDollar",
+        {"currency": "EUR", "prices": "constant", "base_year": 2020},
+        {"currency": "USD", "prices": "current"},
+    )
+
+    def _frame(self, units: tuple[object, ...] = _UNITS) -> Frame:
         return Frame.build(
             role_keys=["provider"],
             rows=[
@@ -396,42 +405,59 @@ class TestWidenFrameTable:
             ],
         )
 
-    def _stored(self, frame: Frame) -> pa.Table:
+    def _stored(
+        self,
+        frame: Frame,
+        layout: pa.DataType = _TWO_MEMBER,
+        units: tuple[object, ...] = _UNITS,
+    ) -> pa.Table:
         position = frame.columns.index(grammar.UNIT_COLUMN)
-        units = pa.array(
+        tagged = pa.array(
             [
-                None,
-                {"ref": "USDollar", "request": None},
-                {
-                    "ref": None,
-                    "request": {
-                        "currency": "EUR",
-                        "prices": "constant",
-                        "base_year": 2020,
-                    },
-                },
-                {"ref": None, "request": {"currency": "USD", "prices": "current"}},
+                None
+                if unit is None
+                else {"ref": unit}
+                if isinstance(unit, str)
+                else {"request": unit}
+                for unit in units
             ],
-            type=self._TWO_MEMBER,
+            type=layout,
         )
-        return frame.table.set_column(position, grammar.UNIT_COLUMN, units)
+        return frame.table.set_column(position, grammar.UNIT_COLUMN, tagged)
 
+    @pytest.mark.parametrize("layout", [_TWO_MEMBER, _THREE_MEMBER, _RECIPE])
     @pytest.mark.parametrize("offset", [0, 1])
-    def test_two_member_table_widens_to_the_frame_built_from_rows(
-        self, offset: int
+    def test_stored_table_wraps_as_the_frame_built_from_rows(
+        self, offset: int, layout: pa.DataType
     ) -> None:
         frame = self._frame()
+        stored = self._stored(frame, layout).slice(offset)
         expected = Frame.from_table(
             columns=frame.columns, table=frame.table.slice(offset)
         )
-        stored = self._stored(frame).slice(offset)
-        with pytest.raises(FrameError):
-            Frame.from_table(columns=frame.columns, table=stored)
-        widened = Frame.from_table(
-            columns=frame.columns, table=widen_frame_table(stored)
-        )
-        assert widened == expected
-        assert canonical_frame_bytes(widened) == canonical_frame_bytes(expected)
+        wrapped = Frame.from_table(columns=frame.columns, table=stored)
+        assert wrapped.table.schema == canonical_frame_schema(frame.columns)
+        assert wrapped == expected
+        assert canonical_frame_bytes(wrapped) == canonical_frame_bytes(expected)
+        assert widen_frame_table(stored).schema == wrapped.table.schema
+
+    @pytest.mark.parametrize("layout", [_TWO_MEMBER, _THREE_MEMBER, _RECIPE])
+    def test_recipe_argument_widens_to_the_recipe_layout(
+        self, layout: pa.DataType
+    ) -> None:
+        frame = self._frame()
+        widened = widen_frame_table(self._stored(frame, layout), recipe=True)
+        assert widened.schema == canonical_frame_schema(frame.columns, recipe=True)
+        assert Frame.from_table(columns=frame.columns, table=widened) == frame
+
+    def test_a_recipe_keeps_the_recipe_layout(self) -> None:
+        units = (*self._UNITS[:3], _RECIPE_REQUEST)
+        frame = self._frame(units)
+        recipe_schema = canonical_frame_schema(frame.columns, recipe=True)
+        assert frame.table.schema == recipe_schema
+        stored = self._stored(frame, self._RECIPE, units)
+        assert widen_frame_table(stored).schema == recipe_schema
+        assert Frame.from_table(columns=frame.columns, table=stored) == frame
 
     def test_current_schema_is_returned_unchanged(self) -> None:
         table = _mixed_unit_frame().table
@@ -439,8 +465,14 @@ class TestWidenFrameTable:
 
     def test_any_other_schema_refuses(self) -> None:
         stored = self._stored(self._frame())
+        # The recipe `request` in the two-member struct: no release stored it.
+        two_member_recipe = pa.struct(
+            [("ref", pa.string()), ("request", self._RECIPE.field("request").type)]
+        )
         for table in (
             stored.drop_columns(["status"]),
+            stored.drop_columns(["unit"]),
+            self._stored(self._frame(), two_member_recipe),
             stored.set_column(
                 stored.schema.get_field_index("value"),
                 "value",
@@ -454,6 +486,9 @@ class TestWidenFrameTable:
         ):
             with pytest.raises(FrameError) as excinfo:
                 widen_frame_table(table)
+            assert excinfo.value.category == "schema_violation"
+            with pytest.raises(FrameError) as excinfo:
+                Frame.from_table(columns=self._frame().columns, table=table)
             assert excinfo.value.category == "schema_violation"
 
 

@@ -14,7 +14,11 @@ from dfo_spec_kit.identity import canonicalize
 
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar._unit_codec import (
+    _STORED_UNIT_TYPES,
     _arrow_unit_to_cell,
+    _conform_unit,
+    _holds_recipe,
+    _unit_array,
     _unit_to_arrow,
     _unit_type,
 )
@@ -95,14 +99,25 @@ def _normalize_value(value: object) -> float:
     return 0.0 if result == 0 else result
 
 
-def canonical_frame_schema(columns: tuple[str, ...]) -> pa.Schema:
-    """Return the physical schema shared by both public builders."""
+def canonical_frame_schema(
+    columns: tuple[str, ...], *, recipe: bool = False
+) -> pa.Schema:
+    """Return the physical schema of a frame table with `columns`.
+
+    The `unit` column's `request` struct carries a `recipe` child only when
+    `recipe` is true. A frame whose cells carry no recipe has the default
+    schema, the one frame grammar `1.0.0` reads, and a frame with a recipe
+    in some cell has the schema with `recipe=True`. A writer that fixes its
+    Parquet schema before it has seen every chunk passes `recipe=True` when
+    its cells may carry a recipe, and puts each chunk's table in that
+    layout with `widen_frame_table(table, recipe=True)`.
+    """
     fields: list[pa.Field] = []
     for column in columns:
         if column == grammar.VALUE_COLUMN:
             field_type = pa.float64()
         elif column == grammar.UNIT_COLUMN:
-            field_type = _unit_type()
+            field_type = _unit_type(recipe=recipe)
         elif column == grammar.STATUS_COLUMN:
             field_type = pa.null()
         else:
@@ -113,65 +128,80 @@ def canonical_frame_schema(columns: tuple[str, ...]) -> pa.Schema:
 
 def unit_cell_array(cell: grammar.UnitCell | None, length: int) -> pa.Array:
     """`length` rows of `cell` in the canonical `unit` column type, the
-    column a frame whose every row holds `cell` carries.
+    column a frame whose every row holds `cell` carries: the recipe layout
+    when `cell` is a `grammar.UnitRequest` with a `recipe`, the layout
+    without it otherwise.
 
     Raises:
         FrameError: `invalid_unit` when `cell` fails
             `grammar.validate_unit_cell`.
     """
     grammar.validate_unit_cell(cell)
-    unit_type = _unit_type()
+    unit_type = _unit_type(
+        recipe=isinstance(cell, grammar.UnitRequest) and cell.recipe is not None
+    )
     if cell is None:
         return pa.nulls(length, type=unit_type)
     return pa.repeat(pa.scalar(_unit_to_arrow(cell), type=unit_type), length)
 
 
-def widen_frame_table(table: pa.Table) -> pa.Table:
-    """Return a stored canonical frame table under the current canonical
-    schema.
+def widen_frame_table(table: pa.Table, *, recipe: bool = False) -> pa.Table:
+    """Return a canonical frame table, as built or as stored by any release,
+    with its `unit` column in the current layout.
 
-    A table already under `canonical_frame_schema` of its own column names
-    is returned as it is. A table under that schema with the `unit` column
-    in the two-member layout `struct<ref, request>`, which holds no
-    composed unit, is returned with the column in the current layout and
-    every cell unchanged, so it passes `Frame.from_table` and yields the
-    same canonical bytes.
+    The `unit` column may come in any layout a release stored: the
+    two-member `struct<ref, request>`, which holds no composed unit, or the
+    three-member struct whose `request` has or lacks the `recipe` child.
+    The result has the recipe layout, `canonical_frame_schema(columns,
+    recipe=True)`, when `recipe` is true or some cell carries a recipe, and
+    the default `canonical_frame_schema(columns)` otherwise. A table already
+    under that schema is returned as it is; every cell is unchanged, so the
+    canonical bytes are too. `Frame.from_table` applies this with `recipe`
+    false, so a caller need not call it first. A writer whose Parquet schema
+    is the recipe layout calls it with `recipe=True` on each chunk.
 
     Raises:
-        FrameError: `schema_violation` for a table under any other schema.
+        FrameError: `schema_violation` for a table whose column names are
+            not a derived frame column order, or whose schema differs from
+            the canonical one in anything but the `unit` layout.
     """
     columns = tuple(table.schema.names)
     roles = [
         column for column in columns if column not in grammar._RESERVED_COLUMN_NAMES
     ]
     schema = canonical_frame_schema(columns)
+    # A table without the derived columns may lack `unit` (position -1), so
+    # no layout is placed for it.
     position = schema.get_field_index(grammar.UNIT_COLUMN)
-    unit_type = _unit_type()
-    two_member = pa.field(
-        grammar.UNIT_COLUMN,
-        pa.struct([unit_type.field("ref"), unit_type.field("request")]),
-    )
-    derived = columns == grammar.derive_columns(roles)
-    if derived and table.schema == schema:
-        return table
-    if not derived or table.schema != schema.set(position, two_member):
+    if columns != grammar.derive_columns(roles) or table.schema not in [
+        schema.set(position, pa.field(grammar.UNIT_COLUMN, layout))
+        for layout in _STORED_UNIT_TYPES
+    ]:
         raise FrameError(
             "schema_violation",
             f"table schema {table.schema!r} is not a canonical frame schema "
-            "under either unit layout",
+            "under any unit layout",
         )
-    unit = table.column(position).combine_chunks()
-    assert isinstance(unit, pa.StructArray)
-    widened = pa.StructArray.from_arrays(
-        [
-            unit.field("ref"),
-            unit.field("request"),
-            pa.nulls(len(unit), type=unit_type.field("composed").type),
-        ],
-        fields=list(unit_type),
-        mask=unit.is_null(),
+    unit = table.column(position)
+    target = _unit_type(recipe=recipe or _holds_recipe(unit))
+    if unit.type == target:
+        return table
+    conformed = pa.chunked_array(
+        [_conform_unit(chunk, recipe=recipe) for chunk in unit.chunks], type=target
     )
-    return table.set_column(position, schema.field(position), widened)
+    return table.set_column(position, pa.field(grammar.UNIT_COLUMN, target), conformed)
+
+
+def _concat_frame_tables(tables: Sequence[pa.Table]) -> pa.Table:
+    """Concatenate frame tables of one column tuple, putting every `unit`
+    column in the recipe layout when any of them has it."""
+    recipe = any(
+        table.schema.field(grammar.UNIT_COLUMN).type == _unit_type(recipe=True)
+        for table in tables
+    )
+    return pa.concat_tables(
+        [widen_frame_table(table, recipe=recipe) for table in tables]
+    )
 
 
 def _table_from_rows(
@@ -186,7 +216,12 @@ def _table_from_rows(
                 cell: _unit_to_arrow(cast("grammar.UnitCell | None", cell))
                 for cell in set(cells)
             }
-            cells = [converted[cell] for cell in cells]
+            unit = _unit_array([converted[cell] for cell in cells])
+            arrays.append(unit)
+            schema = canonical_frame_schema(
+                columns, recipe=unit.type == _unit_type(recipe=True)
+            )
+            continue
         arrays.append(pa.array(cells, type=schema.field(column).type))
     return pa.Table.from_arrays(arrays, schema=schema)
 
@@ -261,8 +296,11 @@ class Frame:
         Only for a table this package built that the caller stored and has
         verified since, such as `frame.table` written to Parquet by the
         same service and read back after its object checksum matched. The
-        table must carry exactly `canonical_frame_schema(columns)`, and
-        `columns` must be a derived column tuple; nothing else is checked.
+        table must carry `canonical_frame_schema(columns)` with its `unit`
+        column in any layout a release stored, and `columns` must be a
+        derived column tuple; nothing else is checked. The frame holds the
+        table as `widen_frame_table` gives it: the recipe layout exactly
+        when some cell carries a recipe.
         Cell contents are trusted: a null grain cell, a non-NFC string, a
         NaN or `-0.0` value, a unit struct with no variant or more than
         one, or a `composed` member that is not the canonical JCS text of a
@@ -276,7 +314,8 @@ class Frame:
         Raises:
             FrameError: `schema_violation` when `columns` is not what
                 `grammar.derive_columns` gives for its own role columns, or
-                the table's schema differs from `canonical_frame_schema`.
+                the table's schema differs from `canonical_frame_schema` in
+                anything but the `unit` layout.
         """
         roles = [
             column for column in columns if column not in grammar._RESERVED_COLUMN_NAMES
@@ -286,20 +325,20 @@ class Frame:
                 "schema_violation",
                 f"columns {list(columns)!r} are not a derived frame column order",
             )
-        expected = canonical_frame_schema(columns)
-        if table.schema != expected:
+        if tuple(table.schema.names) != columns:
             raise FrameError(
                 "schema_violation",
-                f"table schema {table.schema!r} is not the canonical frame "
-                f"schema {expected!r}",
+                f"table columns {table.schema.names!r} are not {list(columns)!r}",
             )
-        return cls(columns=columns, table=table)
+        return cls(columns=columns, table=widen_frame_table(table))
 
     @classmethod
     def _from_validated(cls, *, columns: tuple[str, ...], table: pa.Table) -> Frame:
         """`from_table` for this package's builders, whose `columns` come
-        from `grammar.derive_columns` already."""
-        if table.schema != canonical_frame_schema(columns):
+        from `grammar.derive_columns` already, and whose `unit` column has
+        the recipe layout exactly when a cell carries a recipe."""
+        recipe = _holds_recipe(table.column(grammar.UNIT_COLUMN))
+        if table.schema != canonical_frame_schema(columns, recipe=recipe):
             raise ValueError("validated frame table does not have the canonical schema")
         return cls(columns=columns, table=table)
 
@@ -449,6 +488,9 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
     int/float convergence) exactly once, rather than a second path that
     could drift from them.
 
+    Chunks may hold the `unit` column in either layout; the buffered
+    tables take the recipe layout together when one of them has it.
+
     A later chunk whose `columns` differs from the first chunk's raises
     `FrameError("column_mismatch", ...)` once the buffered rows before it
     have streamed. Each slice's grain is keyed with
@@ -497,7 +539,8 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
             # refuses as `row_key_not_increasing` before this chunk is.
             if pending_rows:
                 yield from _stream_rows(
-                    Frame(columns=columns, table=pa.concat_tables(pending)), last_key
+                    Frame(columns=columns, table=_concat_frame_tables(pending)),
+                    last_key,
                 )
             raise FrameError(
                 "column_mismatch",
@@ -508,7 +551,7 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
         pending_rows += frame.table.num_rows
         if pending_rows < _STREAM_SLICE_ROWS:
             continue
-        table = pa.concat_tables(pending)
+        table = _concat_frame_tables(pending)
         full_rows = pending_rows - pending_rows % _STREAM_SLICE_ROWS
         last_key = yield from _stream_rows(
             Frame(columns=columns, table=table.slice(0, full_rows)), last_key
@@ -524,7 +567,7 @@ def stream_canonical_frame_bytes(chunks: Iterable[Frame]) -> Iterator[bytes]:
         )
     if pending_rows:
         yield from _stream_rows(
-            Frame(columns=columns, table=pa.concat_tables(pending)), last_key
+            Frame(columns=columns, table=_concat_frame_tables(pending)), last_key
         )
     yield b"]}"
 

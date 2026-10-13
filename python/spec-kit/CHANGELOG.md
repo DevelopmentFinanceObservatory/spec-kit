@@ -6,8 +6,69 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `dfo_spec_kit.units` reads a unit ref into one typed value: `Money`
+  (`currency`, `prices`, `base_year`, `chained`), `UnpricedMoney`
+  (`currency`), `Percent`, `Count` or `Other` (`ref`). A ref that leaves
+  prices unstated (`Currency<ISO>`, a bare code, `USDollar` and the other
+  named twins, the UN `CR_USD` and `CR_EUR`) parses to `UnpricedMoney`, which
+  raises `TypeError` on any comparison and is unhashable. `complete_prices`
+  gives it the price basis of the StatVar's measurement qualifier
+  (`Nominal` current, `RealValue` constant) as a comparable `Money`, so
+  `CurrencyUSD`, `USDollar` and `USD` are one value once completed under one
+  qualifier. A constant-price `Money` with no base year raises the same
+  `TypeError` on comparison and hashing, and `parse_unit` returns a new
+  object on every call, so neither incomparable value matches by identity
+  in a set, dict or list.
+  Chained-dollar refs carry `chained=True`, so they never equal a
+  fixed-base amount of the same base year. `Money` refuses with
+  `ValueError` a `base_year` that is not an `int` (a `bool` included), a
+  `prices` that is not a string, and a `chained` that is not a `bool` or is
+  true for current prices. A bare ref is money only when it is an ISO 4217
+  code from the registry's `currency_codes`, so `TEU` parses as `Other`. A
+  ref that scales its values (`SDG_CU_USD_M`, `SDG_NUM_TH`,
+  `PeopleInThousands`) parses as `Other`.
+- `dfo_spec_kit.currency` holds `is_currency_code`, the currency shape test
+  the identity and the frame grammar share. It reads no data file, so
+  importing `dfo_spec_kit.identity` never loads the unit registry.
+- `registries/units.json` declares 29 typed refs and 176 currency codes, with
+  a byte-identical package mirror. `schemas/registry/unit-registry.schema.json`
+  closes each row to its kind's members and `tools/validate_unit_registry.py`
+  checks it, the sort order, uniqueness, the prefix rule and the mirror in
+  CI; the loader refuses a row whose members do not match its kind.
+  `vectors/units/` holds 40 conformance vectors validated by
+  `schemas/vectors/unit-vector.schema.json` and
+  `tools/validate_unit_vectors.py`, which CI runs.
+- The identity vector `unit-request-recipe-rejected` pins the identity's
+  unit request at `currency`, `prices` and `base_year`: a `recipe` member,
+  which a converted frame cell may carry, refuses with `unknown_member`.
+- `source_code_not_held`, `source_code_ambiguous` and
+  `source_code_shares_variable` are `search.resolve` refusals on the
+  `no_data_reason` channel in `registries/codes.json` and its bundled mirror.
+  A part's `source_code` whose series no served source can answer the part
+  with raises the first: no served source holds the code, the part's
+  `sources` exclude every holder, or the code's series cannot answer the
+  part as asked. Its detail names the cause and the sources whose codes
+  Search holds. One held by more than one
+  source, with none named in `sources`, raises the second, naming each. One
+  that shares its StatVar with other codes of the same source, where the graph
+  does not record what separates them, raises the third, naming the codes
+  that share the variable. The retired `code_ambiguous` is unchanged.
+
 ### Changed
 
+- Codes `identity_quarantined` (500), `service_unavailable` (503) and
+  `internal_error` (500) map to `datasets.description` at the statuses they
+  have on `datasets.snapshot`.
+- Code `node_not_held` maps to `graph.members` at 404, for a node the
+  deployment's graph does not hold.
+- Code `upstream_error` maps to `graph.members` at 502, the status the
+  members route answers when the read that checks whether the graph holds
+  the node fails upstream, as `graph.node` answers for the same read.
+- `starved_axis_binding_restored` is retired in `registries/codes.json` and
+  its bundled mirror: Search no longer restores a starved constraint axis, so
+  nothing raises it.
 - Code `query_qualifier_dropped` maps to the `parsed` door of `search.resolve`
   as well as `raw_text`, since the resolver also drops a qualifier it cannot
   apply on parsed requests, such as a source exclusion that removed nothing.
@@ -38,6 +99,35 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A unit facet `value` binding may carry `"national_currency": {"role": R}`,
+  the ask for the facets whose unit is each `R` entity's own currency, served
+  as published. It mints its own id, apart from the conversion request naming
+  the same role. A value binding carries exactly one of `ref`, `request` and
+  `national_currency`; the member on another axis, beside `ref` or `request`,
+  or in a `set` refuses `invalid_binding_shape`, an unknown role refuses
+  `schema_violation`, and a member beside `role`, such as `prices`, refuses
+  `unknown_member`. `docs/identity-v1.md` states the denotation.
+  `IDENTITY_VERSION` stays `"spec1"`, and no existing id moves, since the
+  member refused before.
+- Graph endpoints `graph.nodes`, `graph.members`, `graph.roots`,
+  `graph.documentation` and `graph.sources`, and the Datasets endpoint
+  `datasets.description`, in `schemas/registry/code-registry.schema.json`.
+  Existing codes map onto them at the statuses the doors send:
+  `request_invalid` (400) on `graph.nodes`, `graph.members`,
+  `graph.documentation` and `datasets.description`;
+  `unsupported_schema_version` (422) on `graph.nodes`; `service_unavailable`
+  (503) on `graph.nodes`, `graph.members`, `graph.roots` and
+  `graph.documentation`; `upstream_error` (502) on `graph.nodes` and
+  `graph.documentation`; `node_not_held` (404) on `graph.documentation`; and
+  `snapshot_not_found` (404), `snapshot_revoked` (410) and `spec_not_found`
+  (404) on `datasets.description`. `graph.sources` carries no permanent
+  codes.
+- Code `slot_default_not_applied` in `registries/codes.json` and its bundled
+  mirror: a `search.resolve` warning on the raw_text, parsed and
+  dataset_resubmit doors. It flags a shape slot default, declared per measure
+  class, that is skipped because no member holding the default value has data
+  at the place while another member does, so the part answers on the slot's
+  other members.
 - Endpoint `datasets.files` in `schemas/registry/code-registry.schema.json`:
   `GET /api/datasets/{id}/{content_version}/files/{digest}`, which answers a
   stored artifact with a 302 redirect to its download link. It carries

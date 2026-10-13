@@ -1,0 +1,40 @@
+{
+  "id": "steps-card-change",
+  "description": "A stat card's selection followed by its percent change between two basis periods is accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "select",
+      "op": "select",
+      "input": {
+        "id": "spec_91d7345eec81a029629938b3d0ffd775",
+        "content_version": "cv_b785befb9f87471de96eb31cd7c56f5c",
+        "label": "Gross disbursements to Nigeria for health"
+      },
+      "policy": "card_selection",
+      "params": {
+        "coordinates": {
+          "recipient": ["country/NGA"]
+        },
+        "window": {
+          "start": "2020",
+          "end": "2022"
+        }
+      },
+      "kept": {
+        "series": 1
+      }
+    },
+    {
+      "id": "change",
+      "op": "change",
+      "input": "select",
+      "policy": "change_between_basis_periods",
+      "params": {
+        "derivation": "percent_change",
+        "basis": ["2020", "2022"]
+      }
+    }
+  ],
+  "expect": "accept"
+}

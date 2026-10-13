@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 
+from dfo_descriptions import steps_schema
+
 from dfo_spec_kit_components import bundle_dir
 
 _BUNDLE = bundle_dir()
@@ -80,3 +82,23 @@ def test_the_unit_slot_admits_the_same_forms_in_every_unit_bearing_schema() -> N
     reference = slots["line_chart"]
     assert {"$ref": "#/$defs/composed_unit"} in reference
     assert all(forms == reference for forms in slots.values()), slots
+
+
+_SOURCE_BEARING = ("bar_chart", "line_chart", "source_card", "table")
+
+
+def test_every_source_bearing_schema_declares_the_source_ref_def() -> None:
+    """A member schema states its own `source_ref` and references nothing
+    outside itself, so it resolves with the member schemas alone. The
+    identity check above holds the copies equal; this one finds a schema
+    that dropped its copy."""
+    assert sorted(_component_defs()["source_ref"]) == list(_SOURCE_BEARING)
+
+
+def test_the_source_ref_def_admits_a_description_source_ref() -> None:
+    """A described payload names its sources by `description.sources[].ref`,
+    which the step schema types as `text`, so `source_ref` admits the same
+    strings."""
+    source_ref = _component_defs()["source_ref"]["line_chart"]
+    text = steps_schema()["$defs"]["text"]
+    assert {key: source_ref[key] for key in text} == text

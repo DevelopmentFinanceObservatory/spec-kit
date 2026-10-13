@@ -1,0 +1,27 @@
+{
+  "format_version": 2,
+  "name": "frame-unit-request-recipe-non-string-rejected",
+  "description": "A unit-request 'recipe' member carrying a JSON number instead of a string is refused as invalid_unit.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "cell-domains.unit-request-recipe-type"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "time_period": "2015",
+      "value": 1000,
+      "unit": {
+        "currency": "USD",
+        "prices": "current",
+        "recipe": 1
+      }
+    }
+  ],
+  "failure_category": "invalid_unit"
+}

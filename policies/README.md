@@ -9,7 +9,9 @@ named after it.
 exports, `schemas/spec/`, `vectors/identity/`, and `registries/codes.json`).
 `component-spec.toml` governs the component-spec family's first landed
 artifact, the presentation catalogue bundle in
-`python/dfo-spec-kit-components/`. The TypeScript-first composition
+`python/dfo-spec-kit-components/`. It also governs the step and description
+schemas and the operation list in `python/descriptions/`, since the
+envelope references the description schema by `$id`. The TypeScript-first composition
 schema and operation union join it when their artifacts exist to govern.
 
 Each policy file is TOML for the same reason `python/spec-kit/EXPORTS.md`'s

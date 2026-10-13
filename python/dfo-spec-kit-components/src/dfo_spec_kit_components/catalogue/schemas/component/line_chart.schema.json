@@ -301,6 +301,9 @@
         "id": {
           "type": "string",
           "pattern": "^[a-z0-9_]{1,64}$",
+          "not": {
+            "pattern": "\\n"
+          },
           "description": "derived by the assembler from the series' coordinates; the same selection always yields the same id"
         },
         "label": {
@@ -312,8 +315,7 @@
           "$ref": "#/$defs/unit"
         },
         "source_ref": {
-          "type": "string",
-          "pattern": "^src_[a-z0-9_]{1,60}$"
+          "$ref": "#/$defs/source_ref"
         },
         "points": {
           "type": "array",
@@ -324,6 +326,12 @@
           }
         }
       }
+    },
+    "source_ref": {
+      "description": "the source a value came from: on a payload with a `description`, the `ref` of an entry in `description.sources` (a provenance dcid such as `provenance/OECDCreditorReportingSystem`); otherwise the `src_` id of an entry in `provenance.sources`, which the envelope schema holds to the `src_` pattern",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
     }
   }
 }

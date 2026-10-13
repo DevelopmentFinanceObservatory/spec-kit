@@ -1,0 +1,50 @@
+{
+  "id": "steps-continue-series",
+  "description": "A continuation of the chosen source's series by its estimates at mint, which takes no input, is accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "m1",
+      "op": "choose_source",
+      "policy": "facet_default_by_coverage",
+      "choice": {
+        "chosen": {
+          "ref": "provenance/IMFWEO",
+          "label": "IMF World Economic Outlook"
+        },
+        "others": [
+          {
+            "ref": "provenance/WorldBankWDI",
+            "label": "World Development Indicators"
+          }
+        ],
+        "ranking": [
+          "places_covered",
+          "years_covered",
+          "observation_count"
+        ]
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars"
+      }
+    },
+    {
+      "id": "m2",
+      "op": "continue_series",
+      "policy": "continue_with_source_estimates",
+      "params": {
+        "method": "Estimated",
+        "periods": [
+          "2026",
+          "2030"
+        ]
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars"
+      }
+    }
+  ],
+  "expect": "accept"
+}

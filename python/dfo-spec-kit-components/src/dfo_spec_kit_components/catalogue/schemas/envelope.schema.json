@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://developmentfinance.org/presentation/schema/v1/envelope.schema.json",
   "title": "Presentation envelope",
-  "description": "Every resolved component payload has this one shape (Contract - Presentation Primitive, \"The envelope\"). `component` is closed to the members this catalogue release ships (line_chart, bar_chart, table, stat_card, note_narration, source_card); a member added later is a new catalogue release, per \"The union is closed per release\".",
+  "description": "Every resolved component payload has this one shape (Contract - Presentation Primitive, \"The envelope\"). `description` is the card revision's description, a `card_revision` description under `https://developmentfinance.org/descriptions/schema/v1/description.schema.json` (package `dfo-spec-kit-descriptions`); a card that carries one holds only lineage in `provenance`, and a data card issued without one keeps its sources, freshness, warnings and citation there, and a narration note, which draws no data, carries lineage alone. `component` is closed to the members this catalogue release ships (line_chart, bar_chart, table, stat_card, note_narration, source_card); a member added later is a new catalogue release, per \"The union is closed per release\".",
   "type": "object",
   "additionalProperties": false,
   "unevaluatedProperties": false,
@@ -26,6 +26,9 @@
     "component_id": {
       "type": "string",
       "pattern": "^cmp_[A-Za-z0-9]{8,32}$",
+      "not": {
+        "pattern": "\\n"
+      },
       "description": "globally unique, minted at creation; the id every edit tool targets"
     },
     "revision": {
@@ -35,6 +38,9 @@
     },
     "provenance": {
       "$ref": "#/$defs/provenance"
+    },
+    "description": {
+      "$ref": "#/$defs/description"
     },
     "component": {
       "oneOf": [
@@ -59,6 +65,21 @@
       ]
     }
   },
+  "dependentSchemas": {
+    "description": {
+      "$comment": "A card with a description keeps lineage alone in provenance: sources, freshness, caveats and its citation live in the description.",
+      "properties": {
+        "provenance": {
+          "properties": {
+            "sources": false,
+            "freshness": false,
+            "warnings": false,
+            "citation": false
+          }
+        }
+      }
+    }
+  },
   "if": {
     "properties": {
       "component": {
@@ -77,12 +98,58 @@
     ]
   },
   "else": {
-    "$comment": "Every member but note_narration resolves a frame, so provenance.inputs names at least the one frame it resolved; note_narration carries no frame_ref and its own inputs stays empty, the base bound (minItems 0) the $defs/provenance schema declares.",
+    "$comment": "Every member but note_narration resolves a frame, so provenance.inputs names at least the one frame it resolved; note_narration carries no frame_ref and its own inputs stays empty, the base bound (minItems 0) the $defs/provenance schema declares. A data card issued without a description keeps its sources, freshness, warnings and citation in provenance; note_narration draws no data and carries lineage alone. Such a card names each source by its `provenance.sources[].id`, so every `source_ref` and `source_refs[]` entry holds to `$defs/source_id`; a described card names `description.sources[].ref`, and that the named entry exists is checked in code.",
     "properties": {
       "provenance": {
         "properties": {
           "inputs": {
             "minItems": 1
+          }
+        }
+      }
+    },
+    "if": {
+      "not": {
+        "required": [
+          "description"
+        ]
+      }
+    },
+    "then": {
+      "properties": {
+        "provenance": {
+          "required": [
+            "sources",
+            "freshness",
+            "warnings",
+            "citation"
+          ]
+        },
+        "component": {
+          "properties": {
+            "series": {
+              "items": {
+                "properties": {
+                  "source_ref": {
+                    "$ref": "#/$defs/source_id"
+                  }
+                }
+              }
+            },
+            "rows": {
+              "items": {
+                "properties": {
+                  "source_ref": {
+                    "$ref": "#/$defs/source_id"
+                  }
+                }
+              }
+            },
+            "source_refs": {
+              "items": {
+                "$ref": "#/$defs/source_id"
+              }
+            }
           }
         }
       }
@@ -93,17 +160,26 @@
       "type": "string",
       "$comment": "Calver, provisional; redefined in place pre-freeze rather than bumped, until a first real freeze fixes it.",
       "pattern": "^[0-9]{4}\\.[0-9]{1,2}\\.[0-9]+$",
+      "not": {
+        "pattern": "\\n"
+      },
       "maxLength": 32
     },
     "spec_id": {
       "type": "string",
       "$comment": "spec_ (Datasets) or ops_ (Analysis Toolkit) prefix per \"Frame and series references\"; hex-length bound is loose because the contract itself calls identifier spellings illustrative pending the identifier decision.",
-      "pattern": "^(spec|ops)_[0-9a-f]{6,64}$"
+      "pattern": "^(spec|ops)_[0-9a-f]{6,64}$",
+      "not": {
+        "pattern": "\\n"
+      }
     },
     "content_version": {
       "type": "string",
       "$comment": "cv_ (Datasets) or ocv_ (Analysis Toolkit) prefix per \"Frame and series references\", matching the prefixes `spec_id` accepts; hex-length bound is loose for the same reason.",
-      "pattern": "^(cv|ocv)_[0-9a-f]{6,64}$"
+      "pattern": "^(cv|ocv)_[0-9a-f]{6,64}$",
+      "not": {
+        "pattern": "\\n"
+      }
     },
     "data_commons_id": {
       "type": "string",
@@ -134,18 +210,36 @@
         }
       }
     },
+    "description": {
+      "$comment": "The description schema ships in dfo-spec-kit-descriptions and is resolved by its $id. A card describes its own revision.",
+      "$ref": "https://developmentfinance.org/descriptions/schema/v1/description.schema.json",
+      "properties": {
+        "describes": {
+          "properties": {
+            "kind": {
+              "const": "card_revision"
+            }
+          }
+        }
+      }
+    },
+    "source_id": {
+      "description": "the id of an entry in `provenance.sources`",
+      "type": "string",
+      "pattern": "^src_[a-z0-9_]{1,60}$",
+      "not": {
+        "pattern": "\\n"
+      }
+    },
     "provenance": {
       "type": "object",
+      "description": "Lineage: the frames a component resolved, the replay key, when it was generated and the revision it was refreshed from. `sources`, `freshness`, `warnings` and `citation` appear only on a component issued without a `description`.",
       "additionalProperties": false,
       "unevaluatedProperties": false,
       "required": [
         "inputs",
         "execution_ref",
-        "sources",
-        "freshness",
-        "warnings",
         "generated_at",
-        "citation",
         "refreshed_from"
       ],
       "properties": {
@@ -178,7 +272,7 @@
             "null"
           ],
           "maxLength": 200,
-          "description": "content-addressed identity of the Analysis Toolkit execution behind derived values; null for a direct read"
+          "description": "the key the recipe of the derived frame the component resolved replays it under; null when the component resolves a dataset frame, a frame with no recipe or no frame, and on every revision issued before components wrote a replay key"
         },
         "sources": {
           "type": "array",
@@ -196,8 +290,7 @@
             ],
             "properties": {
               "id": {
-                "type": "string",
-                "pattern": "^src_[a-z0-9_]{1,60}$"
+                "$ref": "#/$defs/source_id"
               },
               "name": {
                 "type": "string",

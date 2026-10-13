@@ -1,0 +1,106 @@
+{
+  "format_version": 2,
+  "name": "frame-converted-unit-recipe",
+  "description": "A converted unit cell may carry 'recipe', the conversion recipe id. Two rows whose cells differ only in 'recipe' are two grains. JCS writes 'recipe' after 'prices', and the ',' before it sorts below the '}' that closes the plain request, so the row with 'recipe' sorts first.",
+  "kind": "frame",
+  "classification": "positive",
+  "coverage": [
+    "frame.cell-domains.unit-request-recipe"
+  ],
+  "role_keys": [
+    "provider",
+    "recipient"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "recipient": "country/TGO",
+      "time_period": "2020",
+      "value": 2500.0,
+      "unit": {
+        "currency": "EUR",
+        "prices": "constant",
+        "base_year": 2023
+      }
+    },
+    {
+      "stat_var": "dcid:MalariaGrantDisbursements",
+      "provider": "country/FRA",
+      "recipient": "country/TGO",
+      "time_period": "2020",
+      "value": 2510.0,
+      "unit": {
+        "currency": "EUR",
+        "prices": "constant",
+        "base_year": 2023,
+        "recipe": "recipe/eur-constant-2023"
+      }
+    }
+  ],
+  "expected_columns": [
+    "stat_var",
+    "provider",
+    "recipient",
+    "time_period",
+    "value",
+    "unit",
+    "measurementMethod",
+    "provenance",
+    "status"
+  ],
+  "canonical_bytes": "7b22636f6c756d6e73223a5b22737461745f766172222c2270726f7669646572222c22726563697069656e74222c2274696d655f706572696f64222c2276616c7565222c22756e6974222c226d6561737572656d656e744d6574686f64222c2270726f76656e616e6365222c22737461747573225d2c226672616d655f76657273696f6e223a226672616d6531222c22726f7773223a5b5b22646369643a4d616c617269614772616e7444697362757273656d656e7473222c22636f756e7472792f465241222c22636f756e7472792f54474f222c2232303230222c323531302c7b22626173655f79656172223a323032332c2263757272656e6379223a22455552222c22707269636573223a22636f6e7374616e74222c22726563697065223a227265636970652f6575722d636f6e7374616e742d32303233227d2c6e756c6c2c6e756c6c2c6e756c6c5d2c5b22646369643a4d616c617269614772616e7444697362757273656d656e7473222c22636f756e7472792f465241222c22636f756e7472792f54474f222c2232303230222c323530302c7b22626173655f79656172223a323032332c2263757272656e6379223a22455552222c22707269636573223a22636f6e7374616e74227d2c6e756c6c2c6e756c6c2c6e756c6c5d5d7d",
+  "expected_document": {
+    "columns": [
+      "stat_var",
+      "provider",
+      "recipient",
+      "time_period",
+      "value",
+      "unit",
+      "measurementMethod",
+      "provenance",
+      "status"
+    ],
+    "frame_version": "frame1",
+    "rows": [
+      [
+        "dcid:MalariaGrantDisbursements",
+        "country/FRA",
+        "country/TGO",
+        "2020",
+        2510,
+        {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "constant",
+          "recipe": "recipe/eur-constant-2023"
+        },
+        null,
+        null,
+        null
+      ],
+      [
+        "dcid:MalariaGrantDisbursements",
+        "country/FRA",
+        "country/TGO",
+        "2020",
+        2500,
+        {
+          "base_year": 2023,
+          "currency": "EUR",
+          "prices": "constant"
+        },
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "expected_frame_sha256": "b19ee31e0356f0f6d9586eb67f7011c17cf0cbc7f093c51a20b18fc243d5afe8",
+  "expected_preimage": {
+    "identity_version": "cv2",
+    "frame_sha256": "b19ee31e0356f0f6d9586eb67f7011c17cf0cbc7f093c51a20b18fc243d5afe8"
+  },
+  "expected_content_version": "cv_06e3c04a19aa29589103ce69b947661c"
+}
