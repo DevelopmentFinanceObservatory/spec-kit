@@ -1,0 +1,25 @@
+{
+  "id": "steps-unit-without-ref-or-currency-rejected",
+  "description": "A unit that names neither a ref nor a currency is rejected by the schema.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "CurrencyEUR",
+        "label": "euros",
+        "prices": "current"
+      },
+      "unit": {
+        "label": "US dollars",
+        "prices": "constant",
+        "base_year": 2023
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ONEcampaign/dfo-spec-kit/main/schemas/vectors/unit-vector.schema.json",
+  "title": "Unit vector record",
+  "description": "One language-neutral conformance fixture for the typed unit (dfo_spec_kit.units): a ref parsed to its typed value, two refs completed under one measurement qualifier and compared, or a ref's unstated prices completed from a measurement qualifier. See schemas/vectors/README.md, section 'Unit vectors'.",
+  "type": "object",
+  "required": [
+    "format_version",
+    "name",
+    "description",
+    "classification"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "enum": [
+        "parse",
+        "compare",
+        "complete"
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "format_version": true,
+        "name": true,
+        "description": true,
+        "classification": {
+          "const": "parse"
+        },
+        "ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "expected": {
+          "$ref": "#/$defs/unit"
+        }
+      },
+      "required": [
+        "ref",
+        "expected"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "format_version": true,
+        "name": true,
+        "description": true,
+        "classification": {
+          "const": "compare"
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "measurement_qualifier": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "outcome": {
+          "enum": [
+            "equal",
+            "different",
+            "incomparable"
+          ]
+        }
+      },
+      "required": [
+        "refs",
+        "measurement_qualifier",
+        "outcome"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "format_version": true,
+        "name": true,
+        "description": true,
+        "classification": {
+          "const": "complete"
+        },
+        "ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "measurement_qualifier": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "expected": {
+          "$ref": "#/$defs/unit"
+        }
+      },
+      "required": [
+        "ref",
+        "measurement_qualifier",
+        "expected"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "currency",
+            "prices",
+            "base_year",
+            "chained"
+          ],
+          "properties": {
+            "kind": {
+              "const": "money"
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "prices": {
+              "enum": [
+                "current",
+                "constant"
+              ]
+            },
+            "base_year": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "chained": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "currency"
+          ],
+          "properties": {
+            "kind": {
+              "const": "unpriced_money"
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "percent"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "count"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "other"
+            },
+            "ref": {
+              "$ref": "#/$defs/ref"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

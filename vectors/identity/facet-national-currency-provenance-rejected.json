@@ -1,0 +1,43 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency-provenance-rejected",
+  "description": "A provenance facet carrying 'national_currency' is refused: the national-currency binding names a unit, so it is valid on the unit axis only.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.national-currency.provenance-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "provenance": {
+        "state": "value",
+        "national_currency": {
+          "role": "observationAbout"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

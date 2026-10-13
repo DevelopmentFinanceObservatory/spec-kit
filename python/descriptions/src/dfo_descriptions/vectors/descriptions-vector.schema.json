@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ONEcampaign/dfo-spec-kit/main/python/descriptions/src/dfo_descriptions/vectors/descriptions-vector.schema.json",
+  "title": "Step and description vector record",
+  "description": "One language-neutral conformance fixture: a step list or a description, and whether it is accepted, rejected by its JSON Schema, or rejected by the structure rules with a reason and a step position. See the README beside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "description", "schema", "input"],
+  "properties": {
+    "id": {
+      "description": "Stable, unique, kebab-case id. Matches the file name stem.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "description": {
+      "description": "One sentence stating what the vector proves.",
+      "type": "string",
+      "minLength": 1
+    },
+    "schema": {
+      "description": "`steps` checks `input` against steps.schema.json and then the structure rules. `description` checks it against description.schema.json and then the structure rules on its `steps`, when they are a list, its caveats and its gaps.",
+      "enum": ["steps", "description"]
+    },
+    "input": {
+      "description": "The step list or description under test."
+    },
+    "expect": {
+      "description": "The input is accepted.",
+      "const": "accept"
+    },
+    "error": {
+      "$ref": "#/$defs/error"
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["expect"]
+    },
+    {
+      "required": ["error"]
+    }
+  ],
+  "$defs": {
+    "error": {
+      "oneOf": [
+        {
+          "description": "The JSON Schema rejects the input.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["by"],
+          "properties": {
+            "by": {
+              "const": "schema"
+            }
+          }
+        },
+        {
+          "description": "The input passes its JSON Schema and breaks a structure rule of the step list or, for a description, of its caveats, gaps and drawn values.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["by", "reason", "step"],
+          "properties": {
+            "by": {
+              "const": "structure"
+            },
+            "reason": {
+              "description": "The rule the step list breaks. The vocabulary is StepsErrorReason.",
+              "enum": [
+                "too_many_steps",
+                "steps_too_large",
+                "not_i_json",
+                "duplicate_step_id",
+                "unknown_input",
+                "input_not_earlier",
+                "missing_sides",
+                "sides_roles_mismatch",
+                "unknown_caveat_step",
+                "unknown_gap_step",
+                "drawn_values_count_mismatch",
+                "duplicate_drawn_value"
+              ]
+            },
+            "step": {
+              "description": "0-based position of the step that breaks the rule, or null for a rule on the whole list or on a caveat or gap.",
+              "type": ["integer", "null"],
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    }
+  }
+}

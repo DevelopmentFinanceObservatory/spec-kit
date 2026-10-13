@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency-beside-ref-rejected",
+  "description": "A unit value binding carrying both 'ref' and 'national_currency' is refused: a value binding carries exactly one of 'ref', 'request' and 'national_currency'.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.national-currency.beside-ref-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "ref": "CurrencyEUR",
+        "national_currency": {
+          "role": "observationAbout"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

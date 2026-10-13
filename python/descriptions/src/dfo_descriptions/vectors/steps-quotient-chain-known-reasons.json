@@ -1,0 +1,137 @@
+{
+  "id": "steps-quotient-chain-known-reasons",
+  "description": "A quotient of two retrieved datasets with the analysis engine's own reason names and per-period coverage is accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "retrieve",
+      "input": {
+        "id": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+        "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+        "label": "Gross ODA disbursements"
+      },
+      "options": {}
+    },
+    {
+      "id": "s2",
+      "op": "retrieve",
+      "input": {
+        "id": "spec_7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d",
+        "content_version": "cv_1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "label": "Gross national income"
+      },
+      "options": {}
+    },
+    {
+      "id": "s3",
+      "op": "quotient",
+      "stat_var": "ops_9f8e7d6c5b4a39281706f5e4d3c2b1a0",
+      "inputs": {
+        "numerator": "s1",
+        "denominator": "s2"
+      },
+      "policy": "quotient_of_intersect_periods",
+      "params": {
+        "numerator_by": [
+          "recipient"
+        ]
+      },
+      "kept": {
+        "entities": 38,
+        "periods": 15,
+        "entities_with_fewer_periods": 6
+      },
+      "left_out": [
+        {
+          "reason": "unmatched_key",
+          "count": 9,
+          "of": "entities"
+        },
+        {
+          "reason": "period_unmatched",
+          "count": 5,
+          "of": "entities"
+        },
+        {
+          "reason": "zero_denominator",
+          "count": 2,
+          "of": "entities"
+        }
+      ],
+      "unit": {
+        "numerator": {
+          "ref": "USDollar",
+          "label": "US dollars"
+        },
+        "denominator": {
+          "ref": "USDollar",
+          "label": "US dollars"
+        }
+      },
+      "period_coverage": [
+        {
+          "period": "2010",
+          "entities": 32
+        },
+        {
+          "period": "2011",
+          "entities": 32
+        },
+        {
+          "period": "2012",
+          "entities": 32
+        },
+        {
+          "period": "2013",
+          "entities": 38
+        },
+        {
+          "period": "2014",
+          "entities": 38
+        },
+        {
+          "period": "2015",
+          "entities": 38
+        },
+        {
+          "period": "2016",
+          "entities": 38
+        },
+        {
+          "period": "2017",
+          "entities": 38
+        },
+        {
+          "period": "2018",
+          "entities": 38
+        },
+        {
+          "period": "2019",
+          "entities": 38
+        },
+        {
+          "period": "2020",
+          "entities": 38
+        },
+        {
+          "period": "2021",
+          "entities": 38
+        },
+        {
+          "period": "2022",
+          "entities": 38
+        },
+        {
+          "period": "2023",
+          "entities": 38
+        },
+        {
+          "period": "2024",
+          "entities": 38
+        }
+      ]
+    }
+  ],
+  "expect": "accept"
+}

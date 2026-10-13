@@ -1,0 +1,76 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency",
+  "description": "A unit facet bound to each observationAbout entity's national currency asks for the facets whose unit is that entity's own currency, served as published. It shares everything else with `unit-request-currency-role-observation-about-current` and mints a different id, since serving each entity's own currency is a different ask from converting into it.",
+  "identity_version": "spec1",
+  "classification": "positive",
+  "coverage": [
+    "facets.national-currency"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "national_currency": {
+          "role": "observationAbout"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "expected_projection": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "requested_window": {
+      "kind": "all"
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "national_currency": {
+          "role": "observationAbout"
+        }
+      }
+    }
+  },
+  "canonical_bytes": "7b22656e746974696573223a7b226f726967696e223a5b22636f756e7472792f465241225d7d2c22666163657473223a7b22756e6974223a7b226e6174696f6e616c5f63757272656e6379223a7b22726f6c65223a226f62736572766174696f6e41626f7574227d2c227374617465223a2276616c7565227d7d2c226964656e746974795f76657273696f6e223a227370656331222c227265717565737465645f77696e646f77223a7b226b696e64223a22616c6c227d2c227368617065223a7b226b696e64223a22737461747661725f736368656d61222c226d656173757265645f70726f7065727479223a22646576656c6f706d656e7446696e616e6365466c6f77227d2c22736c6f7473223a5b7b2262696e64696e67223a7b22726566223a224d616c61726961222c227374617465223a2276616c7565227d2c2270726f7065727479223a22446576656c6f706d656e7446696e616e6365507572706f7365227d5d7d",
+  "spec_id": "spec_962556674020696f181fe33c86dbdf82"
+}

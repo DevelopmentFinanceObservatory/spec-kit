@@ -1,0 +1,49 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency-beside-request-rejected",
+  "description": "A unit value binding carrying both 'request' and 'national_currency' is refused: one binding cannot ask to convert into a currency and to serve each entity's own currency.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.national-currency.beside-request-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": {
+            "role": "observationAbout"
+          },
+          "prices": "current"
+        },
+        "national_currency": {
+          "role": "observationAbout"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

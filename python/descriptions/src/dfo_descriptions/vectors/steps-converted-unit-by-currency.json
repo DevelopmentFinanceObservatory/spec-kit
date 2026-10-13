@@ -1,0 +1,24 @@
+{
+  "id": "steps-converted-unit-by-currency",
+  "description": "A converted unit named by its ISO 4217 currency, with no unit dcid, is accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "CurrencyEUR",
+        "label": "euros",
+        "prices": "current"
+      },
+      "unit": {
+        "currency": "USD",
+        "label": "US dollars",
+        "prices": "constant",
+        "base_year": 2023
+      }
+    }
+  ],
+  "expect": "accept"
+}

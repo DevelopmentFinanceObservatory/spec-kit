@@ -54,15 +54,26 @@ _UNIT_REQUEST_TYPE = pyarrow.struct(
         ("base_year", pyarrow.int64()),
     ]
 )
-_TWO_MEMBER_UNIT_TYPE = pyarrow.struct(
-    [("ref", pyarrow.string()), ("request", _UNIT_REQUEST_TYPE)]
+_RECIPE_UNIT_REQUEST_TYPE = pyarrow.struct(
+    [*_UNIT_REQUEST_TYPE, ("recipe", pyarrow.string())]
 )
-# The `unit` column's layout, spelled out member by member because consumers
-# read these members by name.
+_TWO_MEMBER_UNIT_TYPE = pyarrow.struct(
+    [("ref", pyarrow.string()), ("request", _RECIPE_UNIT_REQUEST_TYPE)]
+)
+# The `unit` column's two layouts, spelled out member by member because
+# consumers read these members by name: without `recipe`, the layout frame
+# grammar 1.0.0 reads, and with it, for a column where some cell carries one.
 _UNIT_TYPE = pyarrow.struct(
     [
         ("ref", pyarrow.string()),
         ("request", _UNIT_REQUEST_TYPE),
+        ("composed", pyarrow.string()),
+    ]
+)
+_RECIPE_UNIT_TYPE = pyarrow.struct(
+    [
+        ("ref", pyarrow.string()),
+        ("request", _RECIPE_UNIT_REQUEST_TYPE),
         ("composed", pyarrow.string()),
     ]
 )
@@ -71,14 +82,14 @@ _UNIT_TYPE = pyarrow.struct(
 _NESTED_UNIT_PART_TYPE = pyarrow.struct(
     [
         ("ref", pyarrow.string()),
-        ("request", _UNIT_REQUEST_TYPE),
+        ("request", _RECIPE_UNIT_REQUEST_TYPE),
         ("stat_var", pyarrow.string()),
     ]
 )
 _NESTED_UNIT_TYPE = pyarrow.struct(
     [
         ("ref", pyarrow.string()),
-        ("request", _UNIT_REQUEST_TYPE),
+        ("request", _RECIPE_UNIT_REQUEST_TYPE),
         (
             "composed",
             pyarrow.struct(
@@ -158,7 +169,7 @@ def _vector_to_table(vector: dict) -> pyarrow.Table:
             key: [row.get(key) for row in rows] for key in raw_keys if key != "unit"
         }
         columns["unit"] = pyarrow.array(
-            [_tagged_unit(row.get("unit")) for row in rows], type=_UNIT_TYPE
+            [_tagged_unit(row.get("unit")) for row in rows], type=_RECIPE_UNIT_TYPE
         )
         return pyarrow.table(columns)
     return pyarrow.table({key: [row.get(key) for row in rows] for key in raw_keys})
@@ -620,8 +631,12 @@ class TestTaggedUnitStruct:
         None,
         "USDollar",
         {"currency": "EUR", "prices": "constant", "base_year": 2020},
-        {"currency": "USD", "prices": "current"},
+        {"currency": "USD", "prices": "current", "recipe": "recipe/usd-current"},
         {"numerator": "USDollar", "denominator": {"stat_var": "dcid:Count_Person"}},
+        {
+            "numerator": {"currency": "USD", "prices": "current", "recipe": "r"},
+            "denominator": {"stat_var": "dcid:Count_Person"},
+        },
         {
             "numerator": {"currency": "EUR", "prices": "constant", "base_year": 2020},
             "denominator": {"stat_var": "dcid:Count_Person"},
@@ -644,20 +659,39 @@ class TestTaggedUnitStruct:
             ],
         )
 
-    def test_the_unit_column_has_the_stated_layout(self) -> None:
+    def test_the_unit_column_has_the_stated_layouts(self) -> None:
         assert canonical_frame_schema(("unit",)).field("unit").type == _UNIT_TYPE
+        recipe = canonical_frame_schema(("unit",), recipe=True)
+        assert recipe.field("unit").type == _RECIPE_UNIT_TYPE
 
     def test_three_member_struct_loads_every_form(self) -> None:
         units = pyarrow.array(
-            [_tagged_unit(unit) for unit in self._UNITS], type=_UNIT_TYPE
+            [_tagged_unit(unit) for unit in self._UNITS], type=_RECIPE_UNIT_TYPE
         )
         got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
         assert got == self._expected(self._UNITS)
 
-    def test_two_member_struct_loads_into_the_canonical_layout(self) -> None:
-        held = self._UNITS[:4]
+    @pytest.mark.parametrize(
+        ("count", "layout"), [(3, _UNIT_TYPE), (4, _RECIPE_UNIT_TYPE)]
+    )
+    def test_two_member_struct_loads_into_the_layout_its_cells_need(
+        self, count: int, layout: pyarrow.DataType
+    ) -> None:
+        # Only the fourth unit carries a recipe.
+        held = self._UNITS[:count]
         units = pyarrow.array(
             [_tagged_unit(unit) for unit in held], type=_TWO_MEMBER_UNIT_TYPE
+        )
+        got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
+        assert got.table.schema.field("unit").type == layout
+        assert got == self._expected(held)
+
+    def test_recipe_layout_without_a_recipe_loads_into_the_layout_without_it(
+        self,
+    ) -> None:
+        held = self._UNITS[:3]
+        units = pyarrow.array(
+            [_tagged_unit(unit) for unit in held], type=_RECIPE_UNIT_TYPE
         )
         got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
         assert got.table.schema.field("unit").type == _UNIT_TYPE
@@ -668,7 +702,7 @@ class TestTaggedUnitStruct:
             "numerator": "unit/e\u0301",
             "denominator": {"stat_var": "dcid:e\u0301"},
         }
-        units = pyarrow.array([_tagged_unit(unit)], type=_UNIT_TYPE)
+        units = pyarrow.array([_tagged_unit(unit)], type=_RECIPE_UNIT_TYPE)
         got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
         assert got.rows[0][got.columns.index("unit")] == grammar.ComposedUnit(
             "unit/\u00e9", grammar.StatVarPart("dcid:\u00e9")
@@ -748,7 +782,7 @@ class TestTaggedUnitStruct:
     def test_malformed_tagged_composed_unit_refuses(
         self, unit: dict, category: str
     ) -> None:
-        units = pyarrow.array([unit], type=_UNIT_TYPE)
+        units = pyarrow.array([unit], type=_RECIPE_UNIT_TYPE)
         with pytest.raises(FrameError) as excinfo:
             build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
         assert excinfo.value.category == category
@@ -770,7 +804,7 @@ class TestTaggedUnitStruct:
                                     ]
                                 ),
                             ),
-                            ("request", _UNIT_REQUEST_TYPE),
+                            ("request", _RECIPE_UNIT_REQUEST_TYPE),
                         ]
                     ),
                 ),
@@ -782,7 +816,7 @@ class TestTaggedUnitStruct:
                     type=pyarrow.struct(
                         [
                             ("ref", pyarrow.string()),
-                            ("request", _UNIT_REQUEST_TYPE),
+                            ("request", _RECIPE_UNIT_REQUEST_TYPE),
                             (
                                 "composed",
                                 pyarrow.struct(
@@ -807,7 +841,7 @@ class TestTaggedUnitStruct:
                     type=pyarrow.struct(
                         [
                             ("ref", pyarrow.string()),
-                            ("request", _UNIT_REQUEST_TYPE),
+                            ("request", _RECIPE_UNIT_REQUEST_TYPE),
                             ("composed", pyarrow.int64()),
                         ]
                     ),
@@ -837,7 +871,7 @@ class TestTaggedUnitStruct:
                 {"composed": '{"numerator":"USDollar","denominator":"Euro"}'},
                 {"composed": '{ "denominator" : "Euro", "numerator" : "USDollar" }'},
             ],
-            type=_UNIT_TYPE,
+            type=_RECIPE_UNIT_TYPE,
         )
         got = build_frame_from_arrow(_unit_table(units), role_keys=["provider"])
         assert unit_codes(got.table.column("unit")).count == 1

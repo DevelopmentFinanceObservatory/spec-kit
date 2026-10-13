@@ -47,12 +47,13 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import re
 import unicodedata
 from collections.abc import Iterator
 from typing import TypeGuard, TypeVar
 
 import rfc8785
+
+from dfo_spec_kit.currency import is_currency_code
 
 IDENTITY_VERSION = "spec1"
 
@@ -91,7 +92,9 @@ _TOP_LEVEL_KEYS = frozenset(
 _SLOT_KEYS = frozenset({"property", "binding"})
 _SLOT_BINDING_KEYS = frozenset({"state", "ref", "refs"})
 _FACET_AXES = frozenset({"provenance", "measurementMethod", "unit"})
-_FACET_BINDING_KEYS = frozenset({"state", "ref", "refs", "request"})
+_FACET_BINDING_KEYS = frozenset(
+    {"state", "ref", "refs", "request", "national_currency"}
+)
 # Axes whose `value` binding may carry `"ref": null`: the ask for facets that
 # declare no value on the axis. Data Commons omits a facet's
 # measurementMethod or unit when it declares none, while every facet carries
@@ -111,7 +114,6 @@ _CURRENCY_ROLES = frozenset({"observationAbout", "origin", "destination"})
 _OPEN_ROLES = frozenset({"origin", "destination"})
 _WINDOW_SIMPLE_KEYS = frozenset({"kind"})
 _WINDOW_RANGE_KEYS = frozenset({"kind", "start_year", "end_year"})
-_CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
 _SHAPE_STATVAR_SCHEMA_KEYS = frozenset(
     {
         "kind",
@@ -690,27 +692,30 @@ def _build_currency(currency: object) -> str | dict:
     here.
     """
     if isinstance(currency, str):
-        if not _CURRENCY_RE.fullmatch(currency):
+        if not is_currency_code(currency):
             raise IdentityError(
                 "invalid_unit_request",
                 f"currency must be upper-case ISO 4217: {currency!r}",
             )
         return _nfc(currency)
     if _is_object(currency):
-        _reject_unknown_members(
-            currency, _CURRENCY_ROLE_KEYS, "unit request currency role"
-        )
-        role = _require_member(currency, "role", str)
-        if role not in _CURRENCY_ROLES:
-            raise IdentityError(
-                "schema_violation",
-                f"currency role must be one of {sorted(_CURRENCY_ROLES)!r}: {role!r}",
-            )
-        return {"role": _nfc(role)}
+        return _build_currency_role(currency, "unit request currency role")
     raise IdentityError(
         "schema_violation",
         f"member 'currency' must be a string or object, got {type(currency).__name__}",
     )
+
+
+def _build_currency_role(value: dict, where: str) -> dict:
+    """Build a `{role}` object naming one of `_CURRENCY_ROLES`."""
+    _reject_unknown_members(value, _CURRENCY_ROLE_KEYS, where)
+    role = _require_member(value, "role", str)
+    if role not in _CURRENCY_ROLES:
+        raise IdentityError(
+            "schema_violation",
+            f"currency role must be one of {sorted(_CURRENCY_ROLES)!r}: {role!r}",
+        )
+    return {"role": _nfc(role)}
 
 
 def _build_unit_request(request: object) -> dict:
@@ -754,25 +759,32 @@ def _build_facet_binding(axis: str, binding: object) -> dict:
     has_ref = "ref" in binding
     has_refs = "refs" in binding
     has_request = "request" in binding
+    has_national_currency = "national_currency" in binding
 
-    # 'request' is part of the union's known vocabulary (the unit axis's
-    # conversion-request form), so an unqualified request on any other axis
-    # is a wrong-shape-for-declared-state defect, not an unknown member.
-    if has_request and axis != "unit":
-        raise IdentityError(
-            "invalid_binding_shape",
-            f"'request' is only valid on the unit axis (got {axis!r})",
-        )
+    # 'request' and 'national_currency' are part of the union's known
+    # vocabulary (the unit axis's conversion request and its ask for each
+    # entity's own currency), so either on any other axis is a
+    # wrong-shape-for-declared-state defect, not an unknown member.
+    for member, present in (
+        ("request", has_request),
+        ("national_currency", has_national_currency),
+    ):
+        if present and axis != "unit":
+            raise IdentityError(
+                "invalid_binding_shape",
+                f"{member!r} is only valid on the unit axis (got {axis!r})",
+            )
 
     if state == "value":
         if has_refs:
             raise IdentityError(
                 "invalid_binding_shape", "value-state facet binding cannot carry 'refs'"
             )
-        if has_ref and has_request:
+        if has_ref + has_request + has_national_currency > 1:
             raise IdentityError(
                 "invalid_binding_shape",
-                "value-state facet binding cannot carry both 'ref' and 'request'",
+                "value-state facet binding carries more than one of 'ref', "
+                "'request' and 'national_currency'",
             )
         if has_ref:
             if binding["ref"] is None and axis in _NULLABLE_REF_FACET_AXES:
@@ -782,17 +794,30 @@ def _build_facet_binding(axis: str, binding: object) -> dict:
         if has_request:
             request = _require_type(binding["request"], dict, f"{axis} facet request")
             return {"state": "value", "request": _build_unit_request(request)}
+        if has_national_currency:
+            national_currency = _require_object(
+                binding["national_currency"], f"{axis} facet national_currency"
+            )
+            return {
+                "state": "value",
+                "national_currency": _build_currency_role(
+                    national_currency, f"{axis} facet national_currency"
+                ),
+            }
         raise IdentityError(
-            "schema_violation", "value-state facet binding requires 'ref' or 'request'"
+            "schema_violation",
+            "value-state facet binding requires 'ref', 'request' or "
+            "'national_currency'",
         )
 
     if state == "set":
-        # A set of conversion requests has no use case; conversion requests
-        # may only appear in value form.
-        if has_request:
+        # A set of conversion requests has no use case, and a set admits any
+        # listed unit at every entity, so it cannot pair an entity with its
+        # own currency; both forms appear in value form only.
+        if has_request or has_national_currency:
             raise IdentityError(
                 "invalid_binding_shape",
-                "set-state facet binding cannot carry 'request'",
+                "set-state facet binding cannot carry 'request' or 'national_currency'",
             )
         if has_ref:
             raise IdentityError(

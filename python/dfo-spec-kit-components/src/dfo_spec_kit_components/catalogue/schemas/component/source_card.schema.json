@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://developmentfinance.org/presentation/schema/v1/component/source_card.schema.json",
   "title": "source_card component",
-  "description": "Resolved payload for the `source_card` catalogue member: which of the envelope's own provenance.sources this card presents. Carries no duplicated source objects; provenance stays the single source of truth and this component is the presentation instruction.",
+  "description": "Resolved payload for the `source_card` catalogue member: which of the envelope's sources this card presents, named in `description.sources` on a payload with a description and in `provenance.sources` otherwise. Carries no duplicated source objects; the envelope stays the single source of truth and this component is the presentation instruction.",
   "type": "object",
   "additionalProperties": false,
   "unevaluatedProperties": false,
@@ -19,9 +19,16 @@
       "minItems": 1,
       "maxItems": 20,
       "items": {
-        "type": "string",
-        "pattern": "^src_[a-z0-9_]{1,60}$"
+        "$ref": "#/$defs/source_ref"
       }
+    }
+  },
+  "$defs": {
+    "source_ref": {
+      "description": "the source a value came from: on a payload with a `description`, the `ref` of an entry in `description.sources` (a provenance dcid such as `provenance/OECDCreditorReportingSystem`); otherwise the `src_` id of an entry in `provenance.sources`, which the envelope schema holds to the `src_` pattern",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
     }
   }
 }

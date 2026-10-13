@@ -5,7 +5,9 @@ Checks what every artifact owes regardless of role: every JSON file
 parses, every schema file (`*.schema.json` and the intent grammar) is a
 well-formed JSON Schema draft 2020-12 document, the manifest's digest map
 names exactly the bundle's JSON artifacts, and every digest is
-byte-correct. Grammar and envelope conformance live in
+byte-correct. The manifest also digests, by `$id`, every schema outside the
+bundle that a bundle schema references, directly or through another such
+schema, so a change to one changes the manifest. Grammar and envelope conformance live in
 `test_intent_grammar.py` and `test_envelope_fixtures.py`.
 """
 
@@ -14,8 +16,11 @@ from __future__ import annotations
 import hashlib
 import importlib.resources
 import json
+from collections.abc import Iterator
+from urllib.parse import urldefrag, urljoin
 
 import pytest
+from dfo_descriptions import schema_dir
 from jsonschema import Draft202012Validator
 
 from dfo_spec_kit_components import bundle_dir
@@ -109,3 +114,61 @@ def test_every_manifest_digest_verifies() -> None:
         if actual != expected:
             mismatches.append((relative_path, expected, actual))
     assert not mismatches, f"digest mismatches: {mismatches}"
+
+
+def _referenced_documents(node: object, base: str) -> Iterator[str]:
+    """The `$id` of every document a `$ref` under `node` points into,
+    resolved against `base`, the `$id` of the schema holding it."""
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str):
+            yield urldefrag(urljoin(base, ref)).url
+        for value in node.values():
+            yield from _referenced_documents(value, base)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _referenced_documents(value, base)
+
+
+def _description_schema_bytes() -> dict[str, bytes]:
+    """The installed descriptions package's schemas, by `$id`."""
+    found = {}
+    for entry in schema_dir().glob("*.schema.json"):
+        raw = entry.read_bytes()
+        found[json.loads(raw)["$id"]] = raw
+    return found
+
+
+def test_manifest_digests_every_schema_outside_the_bundle_it_references() -> None:
+    """`referenced_schemas` names the closure of out-of-bundle schemas the
+    bundle's schemas reach by `$ref`, and each digest matches the installed
+    bytes, so a change that decides which payloads validate changes the
+    manifest."""
+    manifest = json.loads((_BUNDLE / "manifest.json").read_text(encoding="utf-8"))
+    bundle_schemas = {}
+    for entry in _SCHEMA_FILES:
+        with entry.open("rb") as f:
+            schema = json.load(f)
+        bundle_schemas[schema["$id"]] = schema
+    external = _description_schema_bytes()
+    reached: set[str] = set()
+    pending = [
+        target
+        for schema_id, schema in bundle_schemas.items()
+        for target in _referenced_documents(schema, schema_id)
+        if target not in bundle_schemas
+    ]
+    while pending:
+        target = pending.pop()
+        if target in reached:
+            continue
+        reached.add(target)
+        assert target in external, f"no installed schema has $id {target!r}"
+        pending.extend(_referenced_documents(json.loads(external[target]), target))
+    reached -= set(bundle_schemas)
+    assert reached, "expected the envelope to reference the description schema"
+    digests = {
+        schema_id: f"sha256:{hashlib.sha256(external[schema_id]).hexdigest()}"
+        for schema_id in reached
+    }
+    assert manifest["referenced_schemas"] == digests

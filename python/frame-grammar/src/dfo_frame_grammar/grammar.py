@@ -27,6 +27,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Literal, cast
 
+from dfo_spec_kit.currency import is_currency_code
 from dfo_spec_kit.identity import canonicalize
 
 STAT_VAR_COLUMN = "stat_var"
@@ -71,9 +72,12 @@ FRAME_VERSION = "frame1"
 # silently canonicalised, per the grammar's fail-closed discipline.
 STAT_VAR_REF_PREFIX = "dcid:"
 
-_UNIT_REQUEST_KEYS = frozenset({"currency", "prices", "base_year"})
+# The members of a converted `unit` cell. The identity's unit request
+# (`dfo_spec_kit.identity`) is the three members `currency`, `prices` and
+# `base_year`. A cell adds `recipe`, the conversion recipe id. A spec asks
+# for a unit, so the identity carries no recipe.
+_UNIT_CELL_KEYS = frozenset({"currency", "prices", "base_year", "recipe"})
 _UNIT_REQUEST_PRICES = frozenset({"current", "constant"})
-_CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
 
 # The closed member sets of a composed unit and of its StatVar part. An
 # object carrying either composed member is read as a composed unit, so a
@@ -296,18 +300,20 @@ def validate_stat_var_ref(value: str) -> None:
 
 def validate_unit_request(request: Mapping[str, object]) -> None:
     """Refuse a unit-request object outside the closed shape the frame
-    grammar pins for a materialised cell: exactly `currency` (upper-case
-    ISO 4217, a concrete currency only) and `prices` (`current` or
-    `constant`), with `base_year` present exactly when prices are constant.
+    grammar pins for a materialised cell: `currency` (three upper-case ASCII
+    letters, a concrete currency only) and `prices` (`current` or
+    `constant`), with `base_year` present exactly when prices are constant,
+    and an optional `recipe`, the non-empty id of the conversion recipe
+    that produced the cell.
 
-    This is the frame-side half of the conversion identity hook: the same
-    object shape `dfo_spec_kit.identity`'s unit-facet binding pins on the
-    spec side, carried here verbatim as a frame's resolved `unit` cell once
-    a conversion recipe has run. A frame's own per-row `unit` cell is
-    always already resolved to one concrete currency per row, so a
+    The cell extends the unit request of `dfo_spec_kit.identity`'s
+    unit-facet binding, which carries `currency`, `prices` and `base_year`
+    only. The identity names the unit a spec asks for, and the cell also
+    names the recipe that delivered it. A frame's own per-row `unit` cell
+    is always already resolved to one concrete currency per row, so a
     role-shaped `currency` refuses.
     """
-    extra = set(request) - _UNIT_REQUEST_KEYS
+    extra = set(request) - _UNIT_CELL_KEYS
     if extra:
         raise FrameError(
             "invalid_unit", f"unit request carries unknown member(s): {sorted(extra)!r}"
@@ -318,7 +324,7 @@ def validate_unit_request(request: Mapping[str, object]) -> None:
         )
 
     currency = request["currency"]
-    if not isinstance(currency, str) or not _CURRENCY_RE.fullmatch(currency):
+    if not is_currency_code(currency):
         raise FrameError(
             "invalid_unit", f"currency must be upper-case ISO 4217: {currency!r}"
         )
@@ -347,13 +353,22 @@ def validate_unit_request(request: Mapping[str, object]) -> None:
                 f"base_year must be within the JCS-serialisable integer domain "
                 f"(magnitude at most 2**53 - 1), got {base_year}",
             )
+    if "recipe" in request:
+        recipe = request["recipe"]
+        if not isinstance(recipe, str) or not recipe:
+            raise FrameError("invalid_unit", "recipe must be a non-empty string")
+        try:
+            reject_lone_surrogates(recipe)
+        except FrameError as exc:
+            raise FrameError("invalid_unit", f"recipe: {exc}") from exc
 
 
 @dataclass(frozen=True, slots=True)
 class UnitRequest:
     """A converted frame's canonical `unit` cell value: the closed
-    `{currency, prices, base_year}` shape `validate_unit_request` accepts,
-    carried as a deeply immutable value rather than a plain mapping.
+    `{currency, prices, base_year, recipe}` shape `validate_unit_request`
+    accepts, carried as a deeply immutable value rather than a plain
+    mapping.
 
     A `Frame` is frozen only at its own top level -- `columns` and `rows`
     are tuples, but a plain `dict` nested inside one of those tuples would
@@ -368,13 +383,17 @@ class UnitRequest:
     currency: str
     prices: str
     base_year: int | None = None
+    recipe: str | None = None
 
     def as_json(self) -> dict[str, object]:
         """The plain JSON object form `canonicalize` and JCS-based
-        sort-key comparison require, built fresh on every call."""
+        sort-key comparison require, built fresh on every call. A member
+        that is `None` is left out."""
         result: dict[str, object] = {"currency": self.currency, "prices": self.prices}
         if self.base_year is not None:
             result["base_year"] = self.base_year
+        if self.recipe is not None:
+            result["recipe"] = self.recipe
         return result
 
 
@@ -520,10 +539,14 @@ def unit_request_from_json(request: Mapping[str, object]) -> UnitRequest:
         FrameError: `invalid_unit`.
     """
     validate_unit_request(request)
+    recipe = request.get("recipe")
     return UnitRequest(
         currency=unicodedata.normalize("NFC", cast(str, request["currency"])),
         prices=cast(str, request["prices"]),
         base_year=cast("int | None", request.get("base_year")),
+        recipe=None
+        if recipe is None
+        else unicodedata.normalize("NFC", cast(str, recipe)),
     )
 
 
@@ -603,11 +626,11 @@ def cell_sort_key(cell: object) -> tuple:
     of its NFC form (plain Python string comparison already does this, so
     long as the string was NFC-normalised beforehand -- frame construction
     guarantees that, this function does not re-normalise). A unit-request
-    object or a composed unit compares by its own JCS serialisation:
-    because JCS output is valid UTF-8, and UTF-8's byte order agrees with
-    Unicode code point order for valid UTF-8, comparing the serialised
-    bytes is equivalent to the same code-point collation every other cell
-    uses.
+    object, `recipe` included, or a composed unit compares by its own JCS
+    serialisation: because JCS output is valid UTF-8, and UTF-8's byte
+    order agrees with Unicode code point order for valid UTF-8, comparing
+    the serialised bytes is equivalent to the same code-point collation
+    every other cell uses.
 
     Cells order by type first (`None`, then string, then unit request,
     then composed unit). No pinned rule orders a bare unit ref against an

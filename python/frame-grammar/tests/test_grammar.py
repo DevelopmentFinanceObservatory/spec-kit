@@ -7,8 +7,11 @@ than through a built `Frame`.
 from __future__ import annotations
 
 import dataclasses
+import json
+from pathlib import Path
 
 import pytest
+from dfo_spec_kit.identity import core
 
 import dfo_frame_grammar
 from dfo_frame_grammar import grammar
@@ -162,6 +165,19 @@ class TestValidateUnitRequest:
             {"currency": "EUR", "prices": "constant", "base_year": 2023}
         )
 
+    def test_accepts_recipe(self):
+        grammar.validate_unit_request(
+            {"currency": "USD", "prices": "current", "recipe": "recipe/usd"}
+        )
+
+    @pytest.mark.parametrize("recipe", ["", 1, None, ["recipe/usd"], "\ud800"])
+    def test_refuses_recipe_that_is_not_a_non_empty_string(self, recipe):
+        with pytest.raises(FrameError) as excinfo:
+            grammar.validate_unit_request(
+                {"currency": "USD", "prices": "current", "recipe": recipe}
+            )
+        assert excinfo.value.category == "invalid_unit"
+
     def test_refuses_unknown_member(self):
         with pytest.raises(FrameError) as excinfo:
             grammar.validate_unit_request(
@@ -221,6 +237,19 @@ class TestValidateUnitRequest:
             )
         assert excinfo.value.category == "invalid_unit"
 
+    def test_prices_match_the_identity_core_and_the_step_schema(self):
+        # A step's converted unit is this grammar's unit request, so the step
+        # schema in the descriptions package lists the same prices.
+        steps_schema = json.loads(
+            (
+                Path(__file__).resolve().parents[2]
+                / "descriptions/src/dfo_descriptions/schemas/steps.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        step_prices = steps_schema["$defs"]["simple_unit"]["properties"]["prices"]
+        assert grammar._UNIT_REQUEST_PRICES == core._PRICES_VALUES
+        assert set(step_prices["enum"]) == grammar._UNIT_REQUEST_PRICES
+
 
 class TestUnitCellFromJson:
     @pytest.mark.parametrize(
@@ -229,6 +258,10 @@ class TestUnitCellFromJson:
             (None, None),
             ("USDollar", "USDollar"),
             (_EUR_2020, UnitRequest("EUR", "constant", 2020)),
+            (
+                {**_EUR_2020, "recipe": "recipe/eur-constant"},
+                UnitRequest("EUR", "constant", 2020, recipe="recipe/eur-constant"),
+            ),
             (
                 {"numerator": "USDollar", "denominator": _PERSON},
                 ComposedUnit("USDollar", StatVarPart("dcid:Count_Person")),
@@ -254,14 +287,21 @@ class TestUnitCellFromJson:
         assert grammar.unit_cell_from_json(value) == cell
         assert grammar.unit_cell_to_json(cell) == value
 
-    def test_part_strings_are_nfc_normalised(self):
+    @pytest.mark.parametrize(
+        ("denominator", "part"),
+        [
+            ({"stat_var": "dcid:e\u0301"}, StatVarPart("dcid:\u00e9")),
+            (
+                {"currency": "USD", "prices": "current", "recipe": "e\u0301"},
+                UnitRequest("USD", "current", recipe="\u00e9"),
+            ),
+        ],
+    )
+    def test_part_strings_are_nfc_normalised(self, denominator, part):
         cell = grammar.unit_cell_from_json(
-            {
-                "numerator": "unit/e\u0301",
-                "denominator": {"stat_var": "dcid:e\u0301"},
-            }
+            {"numerator": "unit/e\u0301", "denominator": denominator}
         )
-        assert cell == ComposedUnit("unit/\u00e9", StatVarPart("dcid:\u00e9"))
+        assert cell == ComposedUnit("unit/\u00e9", part)
 
     @pytest.mark.parametrize(
         "value",
@@ -399,6 +439,15 @@ class TestCellSortKey:
         low = {"currency": "EUR", "prices": "current"}
         high = {"currency": "USD", "prices": "current"}
         assert grammar.cell_sort_key(low) < grammar.cell_sort_key(high)
+
+    def test_recipe_separates_and_orders_unit_requests(self):
+        # JCS writes `recipe` after `prices`, and the `,` that opens it
+        # (0x2C) sorts before the `}` that closes the plain request (0x7D),
+        # so the request with a recipe sorts first.
+        plain = UnitRequest("USD", "current")
+        recipe = UnitRequest("USD", "current", recipe="a")
+        assert grammar.cell_sort_key(recipe) < grammar.cell_sort_key(plain)
+        assert grammar.cell_sort_key(recipe) == grammar.cell_sort_key(recipe.as_json())
 
     def test_unit_forms_rank_null_ref_converted_composed(self):
         # `~` sorts after every JCS object by bytes, so only the rank can

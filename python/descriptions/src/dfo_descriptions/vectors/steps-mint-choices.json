@@ -1,0 +1,82 @@
+{
+  "id": "steps-mint-choices",
+  "description": "A choice of source, a sum and a conversion at mint, which take no input, are accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "m1",
+      "op": "choose_source",
+      "policy": "facet_default_by_coverage",
+      "choice": {
+        "chosen": {
+          "ref": "provenance/OECDDAC1",
+          "label": "OECD DAC1"
+        },
+        "others": [
+          {
+            "ref": "provenance/WorldBankWDI",
+            "label": "World Development Indicators"
+          }
+        ],
+        "ranking": [
+          "places_covered",
+          "years_covered",
+          "observation_count"
+        ]
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars"
+      }
+    },
+    {
+      "id": "m2",
+      "op": "sum_variables",
+      "policy": "sum_family_members",
+      "summed": {
+        "count": 2,
+        "variables": [
+          {
+            "ref": "dfo/ODA_Grants",
+            "label": "ODA grants"
+          },
+          {
+            "ref": "dfo/ODA_Loans",
+            "label": "ODA loans"
+          }
+        ]
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars"
+      }
+    },
+    {
+      "id": "m3",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "params": {
+        "prices": "constant",
+        "base_period": "2023"
+      },
+      "converted_from": {
+        "ref": "USDollar",
+        "label": "US dollars"
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "constant",
+        "base_year": 2023
+      },
+      "left_out": [
+        {
+          "reason": "deflator_missing",
+          "count": 3,
+          "of": "entities"
+        }
+      ]
+    }
+  ],
+  "expect": "accept"
+}

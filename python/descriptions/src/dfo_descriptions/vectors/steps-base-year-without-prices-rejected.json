@@ -1,0 +1,25 @@
+{
+  "id": "steps-base-year-without-prices-rejected",
+  "description": "A unit that names a base year without its prices is rejected by the schema.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "current"
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "base_year": 2023
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}
