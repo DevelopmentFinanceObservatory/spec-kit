@@ -1,0 +1,1120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/descriptions/schema/v1/description.schema.json",
+  "title": "Description",
+  "description": "A reader's answer to five questions about a dataset version, a computed version or a card revision, in five blocks: `about` (what it shows), `sources` (where it comes from), `freshness` (how current and complete it is), `steps` (what was done to it) and `cite` (how it is cited). Beside them sit `caveats` (facts about the data, in closed kinds), `gaps` (the fields that could not be filled) and `built_from` (the facts schema and vocabulary revision behind the words). A word is today's unless the object holding it carries `at_mint: true`, which marks a word taken from the evidence stored when the version was made. A description rendered live for a card carries `rendering: \"live\"` and the frame it rendered on. A member that may be `null` reads two ways: `null` with its path in `gaps` means the value is unknown, and `null` with no gap means the data declares none.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "describes",
+    "title",
+    "about",
+    "sources",
+    "freshness",
+    "steps",
+    "cite",
+    "caveats",
+    "gaps",
+    "built_from"
+  ],
+  "dependentRequired": {
+    "rendering": ["frame"],
+    "frame": ["rendering"]
+  },
+  "if": {
+    "required": ["rendering"]
+  },
+  "then": {
+    "properties": {
+      "describes": {
+        "properties": {
+          "kind": {
+            "const": "card_revision"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "describes": {
+            "properties": {
+              "kind": {
+                "const": "dataset_version"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "about": {
+            "required": [
+              "measure",
+              "fixed",
+              "varies",
+              "variables",
+              "series",
+              "period",
+              "unit"
+            ],
+            "properties": {
+              "name": false,
+              "drawn": false
+            }
+          },
+          "freshness": {
+            "required": [
+              "prepared",
+              "latest_period",
+              "series_reaching_it",
+              "source_release",
+              "source_downloaded_at_mint",
+              "source_downloaded_since",
+              "next_release",
+              "estimated_values",
+              "provisional_values"
+            ],
+            "properties": {
+              "computed": false,
+              "inputs": false
+            }
+          },
+          "cite": {
+            "required": ["id", "content_version", "retrieved", "data"],
+            "properties": {
+              "id": {
+                "pattern": "^spec_"
+              },
+              "component_id": false,
+              "revision": false,
+              "inputs": false
+            }
+          },
+          "sources": {
+            "items": {
+              "properties": {
+                "content_version": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "describes": {
+            "properties": {
+              "kind": {
+                "const": "computed_version"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "about": {
+            "required": ["name", "series", "period", "unit"],
+            "properties": {
+              "measure": false,
+              "fixed": false,
+              "varies": false,
+              "variables": false,
+              "drawn": false
+            }
+          },
+          "freshness": {
+            "required": [
+              "computed",
+              "inputs",
+              "latest_period",
+              "series_reaching_it",
+              "estimated_values",
+              "provisional_values"
+            ],
+            "properties": {
+              "prepared": false,
+              "source_release": false,
+              "source_downloaded_at_mint": false,
+              "source_downloaded_since": false,
+              "next_release": false
+            }
+          },
+          "cite": {
+            "required": [
+              "id",
+              "content_version",
+              "retrieved",
+              "data",
+              "inputs"
+            ],
+            "properties": {
+              "id": {
+                "pattern": "^ops_"
+              },
+              "component_id": false,
+              "revision": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "describes": {
+            "properties": {
+              "kind": {
+                "const": "card_revision"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "about": {
+            "properties": {
+              "varies": false,
+              "variables": false,
+              "series": false,
+              "period": false
+            }
+          },
+          "freshness": {
+            "properties": {
+              "prepared": false,
+              "computed": false,
+              "inputs": false,
+              "source_release": false
+            }
+          },
+          "cite": {
+            "required": [
+              "component_id",
+              "revision",
+              "id",
+              "content_version",
+              "retrieved",
+              "data"
+            ]
+          }
+        },
+        "if": {
+          "properties": {
+            "about": {
+              "required": ["name"]
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "about": {
+              "properties": {
+                "measure": false,
+                "fixed": false,
+                "drawn": false,
+                "unit": false
+              }
+            },
+            "freshness": {
+              "required": [
+                "source_downloaded_at_mint",
+                "source_downloaded_since",
+                "next_release"
+              ],
+              "properties": {
+                "latest_period": false,
+                "series_reaching_it": false,
+                "estimated_values": false,
+                "provisional_values": false
+              }
+            }
+          }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "cite": {
+                "properties": {
+                  "id": {
+                    "pattern": "^ops_"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "about": {
+                "properties": {
+                  "measure": false,
+                  "fixed": false
+                }
+              }
+            }
+          },
+          "properties": {
+            "about": {
+              "required": ["drawn", "unit"]
+            },
+            "freshness": {
+              "required": [
+                "latest_period",
+                "series_reaching_it",
+                "estimated_values",
+                "provisional_values"
+              ],
+              "properties": {
+                "source_downloaded_at_mint": false,
+                "source_downloaded_since": false,
+                "next_release": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "describes": {
+      "$ref": "#/$defs/describes"
+    },
+    "title": {
+      "$ref": "steps.schema.json#/$defs/text"
+    },
+    "about": {
+      "$ref": "#/$defs/about"
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "freshness": {
+      "$ref": "#/$defs/freshness"
+    },
+    "steps": {
+      "description": "What was done, in order, each step with its sentence. `null` when the record holds no steps, with a gap. A reference inside a step carries the vocabulary's label, else the label stored with the step, else none and a gap.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/served_step"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cite": {
+      "$ref": "#/$defs/cite"
+    },
+    "caveats": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/caveat"
+      }
+    },
+    "gaps": {
+      "description": "The fields that could not be filled, as dotted paths into this description. A `null` member named here is unknown; a `null` member not named here is one the data declares none of. A segment names an object member, or a list item by its 0-based position, except inside `steps`: `steps.<step id>.<member path>` names a member of the step with that id, `steps.source_pipeline` says a source's pipeline steps are unknown and left out of the list, and `steps.version` says the version's own steps are unknown and left out of it.",
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*(\\.[A-Za-z0-9_-]+)*$",
+        "$ref": "steps.schema.json#/$defs/one_line",
+        "maxLength": 200,
+        "if": {
+          "pattern": "^steps\\."
+        },
+        "then": {
+          "pattern": "^steps\\.(source_pipeline|version|[A-Za-z0-9][A-Za-z0-9_-]{0,63}(\\.[A-Za-z0-9_-]+)+)$"
+        }
+      }
+    },
+    "built_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["facts_schema", "vocabulary"],
+      "properties": {
+        "facts_schema": {
+          "description": "The `schema_version` of the stored facts and evidence.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "vocabulary": {
+          "$ref": "#/$defs/vocabulary"
+        }
+      }
+    },
+    "rendering": {
+      "description": "Present only on a card description composed per request, which stores nothing, so a reader can tell it from a revision's issued wording.",
+      "const": "live"
+    },
+    "frame": {
+      "description": "The frame a live rendering drew on.",
+      "$ref": "#/$defs/version"
+    }
+  },
+  "$defs": {
+    "served_step": {
+      "description": "A step as served: a stored step's members plus `text`, the composer's sentence for it. A stored step list refuses `text`.",
+      "$ref": "steps.schema.json#/$defs/step_members",
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192,
+          "pattern": "\\S"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "ref": {
+      "description": "A reference as served: the step schema's reference with its label required.",
+      "$ref": "steps.schema.json#/$defs/ref",
+      "required": ["label"]
+    },
+    "defined_ref": {
+      "description": "A reference as served with the definition of what it names: `ref`, `label` and `at_mint` as in `ref`, and `definition`, the graph's description of the node, absent when the graph holds none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "label"],
+      "properties": {
+        "ref": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "label": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        },
+        "definition": {
+          "$ref": "#/$defs/definition"
+        }
+      }
+    },
+    "definition": {
+      "description": "A definition: one or more sentences saying what a measure or a value means.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "input_ref": {
+      "description": "A computed version's input as served: its id, content version and label. `id` is `null` when the version holds no step that retrieves the input, with a gap naming it; the label is then the one stored with the input, else its content version with a gap.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "content_version", "label"],
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "steps.schema.json#/$defs/version_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "content_version": {
+          "$ref": "steps.schema.json#/$defs/content_version"
+        },
+        "label": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        }
+      },
+      "$ref": "steps.schema.json#/$defs/version_family"
+    },
+    "simple_unit": {
+      "$ref": "steps.schema.json#/$defs/simple_unit",
+      "required": ["label"]
+    },
+    "unit_side": {
+      "description": "One side of a composed unit as served, a unit or a variable, with its label required.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/simple_unit"
+        },
+        {
+          "$ref": "steps.schema.json#/$defs/variable_side",
+          "required": ["label"]
+        }
+      ]
+    },
+    "unit": {
+      "description": "A unit as served, with its labels required. `null` with a gap naming it means the unit is unknown, and `null` with no gap means the data declares none.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/simple_unit"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["numerator", "denominator"],
+          "properties": {
+            "numerator": {
+              "$ref": "#/$defs/unit_side"
+            },
+            "denominator": {
+              "$ref": "#/$defs/unit_side"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "vocabulary": {
+      "description": "The vocabulary revision the words came from.",
+      "type": "string",
+      "pattern": "^voc_[0-9a-f]{6,64}$",
+      "$ref": "steps.schema.json#/$defs/one_line"
+    },
+    "component_id": {
+      "description": "A card's id.",
+      "type": "string",
+      "pattern": "^cmp_[A-Za-z0-9]{8,32}$",
+      "$ref": "steps.schema.json#/$defs/one_line"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "$ref": "steps.schema.json#/$defs/one_line"
+    },
+    "partial_date": {
+      "description": "A year, a year and month, or a date.",
+      "type": "string",
+      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+      "$ref": "steps.schema.json#/$defs/one_line"
+    },
+    "period": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32
+    },
+    "nullable_count": {
+      "description": "A count, or `null`. `null` with a gap naming it means the count is unknown, and `null` with no gap means the data declares none to count.",
+      "anyOf": [
+        {
+          "$ref": "steps.schema.json#/$defs/count"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "link": {
+      "description": "A path on the DFO API.",
+      "type": "string",
+      "pattern": "^/",
+      "maxLength": 2048
+    },
+    "version": {
+      "description": "A Datasets version's identity: a `spec_` id with a `cv_` content version, or an `ops_` id with an `ocv_` one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "content_version"],
+      "$ref": "steps.schema.json#/$defs/version_family",
+      "properties": {
+        "id": {
+          "$ref": "steps.schema.json#/$defs/version_id"
+        },
+        "content_version": {
+          "$ref": "steps.schema.json#/$defs/content_version"
+        }
+      }
+    },
+    "describes": {
+      "description": "What the description is of.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id", "content_version"],
+          "properties": {
+            "kind": {
+              "const": "dataset_version"
+            },
+            "id": {
+              "$ref": "steps.schema.json#/$defs/spec_id"
+            },
+            "content_version": {
+              "$ref": "steps.schema.json#/$defs/spec_content_version"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "id", "content_version"],
+          "properties": {
+            "kind": {
+              "const": "computed_version"
+            },
+            "id": {
+              "$ref": "steps.schema.json#/$defs/ops_id"
+            },
+            "content_version": {
+              "$ref": "steps.schema.json#/$defs/ops_content_version"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "component_id", "revision"],
+          "properties": {
+            "kind": {
+              "const": "card_revision"
+            },
+            "component_id": {
+              "$ref": "#/$defs/component_id"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      ]
+    },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/period"
+        },
+        "end": {
+          "$ref": "#/$defs/period"
+        },
+        "grain": {
+          "$ref": "steps.schema.json#/$defs/name"
+        }
+      }
+    },
+    "about": {
+      "description": "What it shows. A dataset version carries its measure, fixed values, open dimensions, variable and series counts, period and unit. A computed version carries its name, series count, period and unit. A card revision drawn from a version carries `drawn`, what the card draws against what the version holds, and its unit; drawn from a dataset version it may also carry the version's `measure` and its `fixed` values other than those the measure names, and drawn from a computed version it carries neither. A source card's revision carries `name`, the names of the sources it lists. A member a kind carries is present, `null` with a gap when unknown.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "A computed version's name, derived from its steps, or the names of the sources a source card lists, joined and clipped to 512 characters, ending in an ellipsis. `sources` holds each source's name in full. `null` with a gap when the steps give no name.",
+          "anyOf": [
+            {
+              "$ref": "steps.schema.json#/$defs/text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "measure": {
+          "description": "What the values count, with its definition. A card carries its version's measure, the one the version's fixed values define, whatever subset the card draws. `null` with a gap naming it when the measure is unknown; `definition: null` with gap `about.measure.definition` when nothing defines it.",
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["label", "definition"],
+              "properties": {
+                "ref": {
+                  "$ref": "steps.schema.json#/$defs/text"
+                },
+                "label": {
+                  "$ref": "steps.schema.json#/$defs/text"
+                },
+                "definition": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/definition"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "at_mint": {
+                  "const": true
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fixed": {
+          "description": "The properties the version's definition fixes, each with its value and the value's definition. On a card, `fixed` lists the version's fixed values other than those its measure names.",
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["property", "value"],
+            "properties": {
+              "property": {
+                "$ref": "#/$defs/ref"
+              },
+              "value": {
+                "$ref": "#/$defs/defined_ref"
+              }
+            }
+          }
+        },
+        "varies": {
+          "description": "The dimensions the definition leaves open, with how many values hold data, the leading values by variable count, and a link that pages the rest.",
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/open_dimension"
+          }
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["admitted_at_mint", "with_data"],
+          "properties": {
+            "admitted_at_mint": {
+              "$ref": "#/$defs/nullable_count"
+            },
+            "with_data": {
+              "$ref": "#/$defs/nullable_count"
+            }
+          }
+        },
+        "series": {
+          "$ref": "#/$defs/nullable_count"
+        },
+        "period": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/span"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        },
+        "drawn": {
+          "description": "A card's selection against its version: per dimension, how many values it draws of how many the version holds; and its window against the version's period.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "dimensions": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["property", "count", "of"],
+                "properties": {
+                  "property": {
+                    "$ref": "#/$defs/ref"
+                  },
+                  "count": {
+                    "$ref": "steps.schema.json#/$defs/count"
+                  },
+                  "of": {
+                    "$ref": "steps.schema.json#/$defs/count"
+                  },
+                  "values": {
+                    "description": "The values the card draws on the dimension, each with its definition, in the order the card first draws them. Present only when it lists every one, so a card that draws more than 50 leaves it out. When present it holds exactly `count` values, each `ref` once; the schema requires at least one and the structure rules check the rest.",
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "$ref": "#/$defs/defined_ref"
+                    }
+                  }
+                }
+              }
+            },
+            "series": {
+              "$ref": "steps.schema.json#/$defs/count"
+            },
+            "period": {
+              "$ref": "#/$defs/span"
+            }
+          }
+        }
+      }
+    },
+    "open_dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["property", "count"],
+      "if": {
+        "properties": {
+          "count": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["top"]
+            },
+            {
+              "required": ["more"]
+            },
+            {
+              "required": ["values"]
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": ["top", "more", "values"]
+      },
+      "properties": {
+        "property": {
+          "$ref": "#/$defs/ref"
+        },
+        "within": {
+          "description": "The code the definition narrows the dimension to, whose descendants it holds.",
+          "$ref": "#/$defs/ref"
+        },
+        "count": {
+          "description": "How many of the dimension's values hold data. A known count comes with `top`, `more` and `values`. `null` with a gap naming it when nothing recorded the values, and then the dimension carries no `top`, `more` or `values`.",
+          "$ref": "#/$defs/nullable_count"
+        },
+        "partial": {
+          "description": "The count misses values a variable with data held before it left the code index.",
+          "const": true
+        },
+        "undeclared_variables": {
+          "description": "How many variables with data declare no value on the dimension.",
+          "$ref": "steps.schema.json#/$defs/count"
+        },
+        "top": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "variables"],
+            "properties": {
+              "ref": {
+                "$ref": "steps.schema.json#/$defs/text"
+              },
+              "label": {
+                "$ref": "steps.schema.json#/$defs/text"
+              },
+              "variables": {
+                "$ref": "steps.schema.json#/$defs/count"
+              },
+              "at_mint": {
+                "const": true
+              }
+            }
+          }
+        },
+        "more": {
+          "$ref": "steps.schema.json#/$defs/count"
+        },
+        "values": {
+          "description": "The route that pages the dimension's values.",
+          "$ref": "#/$defs/link"
+        }
+      }
+    },
+    "source": {
+      "description": "A source used, or for a computed version or a card drawn from one an input. A source that is not an input, carrying no `content_version`, always carries `publisher`, `licence` and `series`, each `null` with a gap when unknown. Publisher and licence are as recorded at mint. An input names its version id as `ref`, of its content version's family, or has `ref: null` when its id is unknown, with a gap naming it and no `description` link; a source without `content_version` always names its `ref`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "label"],
+      "if": {
+        "properties": {
+          "ref": {
+            "type": "null"
+          }
+        },
+        "required": ["ref"]
+      },
+      "then": {
+        "required": ["content_version"],
+        "not": {
+          "required": ["description"]
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["content_version"]
+        },
+        {
+          "required": ["publisher", "licence", "series"]
+        }
+      ],
+      "dependentSchemas": {
+        "content_version": {
+          "$ref": "steps.schema.json#/$defs/version_family"
+        }
+      },
+      "properties": {
+        "ref": {
+          "anyOf": [
+            {
+              "$ref": "steps.schema.json#/$defs/text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "label": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "$ref": "steps.schema.json#/$defs/text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "licence": {
+          "anyOf": [
+            {
+              "$ref": "steps.schema.json#/$defs/text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "series": {
+          "$ref": "#/$defs/nullable_count"
+        },
+        "content_version": {
+          "description": "An input's content version.",
+          "$ref": "steps.schema.json#/$defs/content_version"
+        },
+        "documentation": {
+          "description": "The route of the source's document.",
+          "$ref": "#/$defs/link"
+        },
+        "description": {
+          "description": "The route of an input's own description.",
+          "$ref": "#/$defs/link"
+        }
+      }
+    },
+    "freshness": {
+      "description": "How current and complete it is. A dataset version carries when it was prepared, its latest period and how many series reach it, the source release, the source's downloads at mint and since, the next release, and its estimated and provisional counts. A computed version carries when it was computed, its inputs, its latest period and series reaching it, and its status counts. A card revision drawn from a version carries its latest period, series reaching it and status counts; a source card's carries the downloads and the next release. A field that could not be filled is `null` and named in `gaps`; a `null` field not named there is one the data declares none of.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prepared": {
+          "$ref": "#/$defs/date"
+        },
+        "computed": {
+          "$ref": "#/$defs/date"
+        },
+        "latest_period": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/period"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "series_reaching_it": {
+          "$ref": "#/$defs/nullable_count"
+        },
+        "source_release": {
+          "anyOf": [
+            {
+              "$ref": "steps.schema.json#/$defs/text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_downloaded_at_mint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_downloaded_since": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_release": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/partial_date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "estimated_values": {
+          "$ref": "#/$defs/nullable_count"
+        },
+        "provisional_values": {
+          "$ref": "#/$defs/nullable_count"
+        },
+        "inputs": {
+          "description": "A computed version's inputs, each at the version it used.",
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/input_ref"
+          }
+        }
+      }
+    },
+    "cite": {
+      "description": "How it is cited: one citation line, the identity it cites with its retrieval date, and a link to the data. Its id and content version are of one family, `spec_` with `cv_` or `ops_` with `ocv_`. A dataset version cites its `spec_` identity; a computed version its `ops_` identity and each input's version; a card revision its id and revision, then the version it draws from.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "text"],
+      "$ref": "steps.schema.json#/$defs/version_family",
+      "properties": {
+        "title": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "id": {
+          "$ref": "steps.schema.json#/$defs/version_id"
+        },
+        "content_version": {
+          "$ref": "steps.schema.json#/$defs/content_version"
+        },
+        "retrieved": {
+          "$ref": "#/$defs/date"
+        },
+        "data": {
+          "$ref": "#/$defs/link"
+        },
+        "component_id": {
+          "$ref": "#/$defs/component_id"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inputs": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/input_ref"
+          }
+        }
+      }
+    },
+    "caveat": {
+      "description": "A fact about the data, naming what it applies to: series, entities, periods, or the step that left data out, with `text`, the composer's sentence for it. A stored caveat holds the facts and no `text`. A `step` names a step in the description's `steps`, which `check_description` checks.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text"],
+      "anyOf": [
+        {
+          "required": ["series"]
+        },
+        {
+          "required": ["entities"]
+        },
+        {
+          "required": ["periods"]
+        },
+        {
+          "required": ["step"]
+        }
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "estimated",
+            "provisional",
+            "break_in_series",
+            "coverage_gap"
+          ]
+        },
+        "series": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "entities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "periods": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/period"
+          }
+        },
+        "step": {
+          "$ref": "steps.schema.json#/$defs/step_id"
+        },
+        "count": {
+          "description": "How many values or entities it applies to, when more than the references name.",
+          "$ref": "steps.schema.json#/$defs/count"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192,
+          "pattern": "\\S"
+        }
+      }
+    }
+  }
+}

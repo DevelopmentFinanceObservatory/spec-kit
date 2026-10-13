@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency-extra-member-rejected",
+  "description": "A national-currency binding carrying a member beyond 'role', such as 'prices', is refused: the binding names the entity role whose currency is meant and carries no price basis.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.national-currency.extra-member-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "national_currency": {
+          "role": "origin",
+          "prices": "current"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "unknown_member"
+}

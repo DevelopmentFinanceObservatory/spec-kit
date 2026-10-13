@@ -213,6 +213,9 @@
         "series_id": {
           "type": "string",
           "pattern": "^[a-z0-9_]{1,64}$",
+          "not": {
+            "pattern": "\\n"
+          },
           "description": "the series identity the row belongs to, equal to the id a bar or line series would carry for the same coordinates"
         },
         "dimensions": {
@@ -228,8 +231,7 @@
           "$ref": "#/$defs/observed_period"
         },
         "source_ref": {
-          "type": "string",
-          "pattern": "^src_[a-z0-9_]{1,60}$"
+          "$ref": "#/$defs/source_ref"
         },
         "unit": {
           "$ref": "#/$defs/unit"
@@ -263,6 +265,12 @@
           }
         }
       ]
+    },
+    "source_ref": {
+      "description": "the source a value came from: on a payload with a `description`, the `ref` of an entry in `description.sources` (a provenance dcid such as `provenance/OECDCreditorReportingSystem`); otherwise the `src_` id of an entry in `provenance.sources`, which the envelope schema holds to the `src_` pattern",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
     }
   }
 }

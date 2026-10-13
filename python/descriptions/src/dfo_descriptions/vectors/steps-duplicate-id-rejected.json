@@ -1,0 +1,30 @@
+{
+  "id": "steps-duplicate-id-rejected",
+  "description": "A step reusing an earlier step's id is rejected.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "retrieve",
+      "input": {
+        "id": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+        "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+        "label": "Gross ODA disbursements"
+      }
+    },
+    {
+      "id": "s1",
+      "op": "retrieve",
+      "input": {
+        "id": "spec_7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d",
+        "content_version": "cv_1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "label": "Gross national income"
+      }
+    }
+  ],
+  "error": {
+    "by": "structure",
+    "reason": "duplicate_step_id",
+    "step": 1
+  }
+}

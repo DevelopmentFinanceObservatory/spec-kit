@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ONEcampaign/dfo-spec-kit/main/schemas/registry/unit-registry.schema.json",
+  "title": "Unit registry",
+  "description": "How unit refs read as typed units, for dfo_spec_kit.units. See registries/README.md for the rules this file declares. tools/validate_unit_registry.py checks sort order, uniqueness, the no-prefix-match rule and the package mirror, which this schema cannot express.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "currency_prefixes",
+    "currency_codes",
+    "units"
+  ],
+  "properties": {
+    "format_version": {
+      "description": "The registry format's own version, pinned to the version this schema validates.",
+      "const": 1
+    },
+    "currency_prefixes": {
+      "description": "Prefixes that, followed by a currency code, make a ref money with prices unstated. After the empty prefix the code must be one of currency_codes.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z]*$"
+      }
+    },
+    "currency_codes": {
+      "description": "The ISO 4217 active codes, without XTS and XXX, sorted. A bare ref is money only when it is one of these.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      }
+    },
+    "units": {
+      "description": "Every other typed ref, sorted by ref.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "kind",
+            "currency",
+            "prices",
+            "base_year",
+            "chained",
+            "evidence"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "kind": {
+              "const": "money"
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "prices": {
+              "enum": [
+                "current",
+                "constant"
+              ]
+            },
+            "base_year": {
+              "description": "The year constant prices are expressed in, null when unstated or prices are current.",
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "chained": {
+              "description": "True for a chain-linked series, which only constant prices can be.",
+              "type": "boolean"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            }
+          },
+          "if": {
+            "properties": {
+              "prices": {
+                "const": "current"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "base_year": {
+                "const": null
+              },
+              "chained": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "kind",
+            "currency",
+            "prices",
+            "evidence"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "kind": {
+              "const": "money"
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "prices": {
+              "description": "null: the ref leaves prices unstated.",
+              "const": null
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "kind",
+            "evidence"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "kind": {
+              "const": "percent"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "kind",
+            "evidence"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "kind": {
+              "const": "count"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            }
+          }
+        }
+      ]
+    },
+    "ref": {
+      "description": "The unit's dcid, as a facet carries it.",
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence": {
+      "description": "Where the reading comes from.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency-set-rejected",
+  "description": "A unit set binding carrying 'national_currency' is refused: a set admits any listed unit at every entity, so the national-currency binding appears in value form only.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.national-currency.set-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "set",
+        "refs": [
+          "CurrencyEUR",
+          "CurrencyKES"
+        ],
+        "national_currency": {
+          "role": "observationAbout"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "invalid_binding_shape"
+}

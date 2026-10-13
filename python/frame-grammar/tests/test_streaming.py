@@ -208,6 +208,30 @@ class TestEdgeCaseCellsAcrossChunkBoundaries:
         _assert_streams_match(frame, _chunk_frame(frame, [0, 2, 2, total]))
 
 
+class TestChunksInBothUnitLayouts:
+    """Chunks wrapped one row each by `Frame.from_table`, which gives a
+    chunk the recipe layout only when one of its cells carries a recipe, so
+    the stream alternates between the two layouts."""
+
+    def test_streams_as_the_whole_frame(self) -> None:
+        recipe = {"currency": "EUR", "prices": "current", "recipe": "recipe/eur"}
+        frame = Frame.build(
+            role_keys=_ROLE_KEYS,
+            rows=[
+                _row(time_period="2019", unit=recipe),
+                _row(time_period="2020", unit="USD"),
+                _row(time_period="2021", unit=recipe),
+            ],
+        )
+        chunks = [
+            Frame.from_table(columns=frame.columns, table=chunk.table)
+            for chunk in _chunk_frame(frame, [1, 2])
+        ]
+        layouts = [chunk.table.schema.field("unit").type for chunk in chunks]
+        assert layouts[0] == layouts[2] != layouts[1]
+        _assert_streams_match(frame, chunks)
+
+
 class TestEmptyFrameStreaming:
     def test_a_single_empty_chunk_matches_the_in_memory_empty_frame(self) -> None:
         frame = Frame.build(role_keys=_ROLE_KEYS, rows=[])

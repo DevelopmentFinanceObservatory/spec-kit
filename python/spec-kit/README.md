@@ -1,6 +1,6 @@
 # dfo-spec-kit (Python)
 
-Executable form of the platform's shared contracts: dataset-spec models and identity canonicalisation. See the [repo README](../../README.md) for what this package is and how it fits with the rest of `dfo-spec-kit`.
+Executable form of the platform's shared contracts: dataset-spec models, identity canonicalisation, and unit typing (`dfo_spec_kit.units`, which reads a unit ref into a typed value from the bundled `registries/units.json` mirror). See the [repo README](../../README.md) for what this package is and how it fits with the rest of `dfo-spec-kit`.
 
 ## Installation
 

@@ -1,0 +1,25 @@
+{
+  "id": "steps-currency-lowercase-rejected",
+  "description": "A unit whose currency is not an upper-case ISO 4217 code is rejected by the schema.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "CurrencyEUR",
+        "label": "euros",
+        "prices": "current"
+      },
+      "unit": {
+        "currency": "usd",
+        "prices": "constant",
+        "base_year": 2023
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}

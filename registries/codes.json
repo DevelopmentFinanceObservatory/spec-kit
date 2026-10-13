@@ -1545,6 +1545,11 @@
           "http_status": 500
         },
         {
+          "endpoint": "datasets.description",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
           "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 500
@@ -1602,6 +1607,11 @@
         },
         {
           "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.description",
           "channel": "problem_details",
           "http_status": 500
         },
@@ -1987,6 +1997,16 @@
       "mappings": [
         {
           "endpoint": "graph.node",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "graph.members",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "graph.documentation",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -3229,6 +3249,26 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "graph.nodes",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "graph.members",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "graph.documentation",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.description",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -3636,6 +3676,11 @@
           "http_status": 503
         },
         {
+          "endpoint": "datasets.description",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
           "endpoint": "datasets.observations",
           "channel": "problem_details",
           "http_status": 503
@@ -3715,6 +3760,26 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "graph.nodes",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "graph.members",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "graph.roots",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "graph.documentation",
           "channel": "problem_details",
           "http_status": 503
         }
@@ -4080,6 +4145,26 @@
       "lifecycle": "active"
     },
     {
+      "code": "slot_default_not_applied",
+      "classification": "warning",
+      "definition": "A shape slot default, declared per measure class in the packaged code index, is skipped because no member holding the default value has data at the place while another member does, so the part answers on the slot's other members. The message names the slot and the default value.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "slot_defaulted",
       "classification": "warning",
       "definition": "The query named a constraint slot by its plain name, such as flow, without naming a value for it, and a declared default in the packaged code index fixed that slot to one value, so the answer covers that value alone. The message names the slot and the default value.",
@@ -4134,6 +4219,11 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.description",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -4192,6 +4282,11 @@
           "endpoint": "datasets.mint",
           "channel": "problem_details",
           "http_status": 410
+        },
+        {
+          "endpoint": "datasets.description",
+          "channel": "problem_details",
+          "http_status": 410
         }
       ],
       "lifecycle": "active"
@@ -4200,6 +4295,66 @@
       "code": "source_ambiguous",
       "classification": "refusal",
       "definition": "A source mention in the request matched two or more unrelated sources, and the request did not say which one it meant. The detail lists the candidates.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "source_code_ambiguous",
+      "classification": "refusal",
+      "definition": "The part's source_code is held by more than one source and the part names none. The detail names each source; name one in sources.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "source_code_not_held",
+      "classification": "refusal",
+      "definition": "No series that a source Search serves holds under the part's source_code can answer the part: no served source holds the code, the part's sources exclude every source that does, or the code's series cannot answer the part as asked. The detail names the cause and the sources whose codes Search holds.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "source_code_shares_variable",
+      "classification": "refusal",
+      "definition": "The part's source_code shares its StatVar with other codes of the same source, and the graph does not record what separates them, so Search cannot serve the code alone. The detail names the codes that share the variable; ask in words for the part the code names.",
       "owning_contract": "search",
       "owner": "platform",
       "introduced_in": "v1",
@@ -4355,6 +4510,11 @@
           "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.description",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -4396,7 +4556,7 @@
           "channel": "diagnostics_warning"
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "stat_vars_summed",
@@ -4698,6 +4858,11 @@
           "endpoint": "presentation.write",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "graph.nodes",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -4755,6 +4920,21 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "graph.nodes",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "graph.documentation",
+          "channel": "problem_details",
+          "http_status": 502
+        },
+        {
+          "endpoint": "graph.members",
           "channel": "problem_details",
           "http_status": 502
         }

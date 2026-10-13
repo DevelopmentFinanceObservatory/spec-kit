@@ -26,8 +26,11 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 # uv_build already ships every non-.py file under the module root by
 # default, so this is belt-and-braces: an explicit pin for the packaged
-# registry mirror rather than reliance on that default staying unchanged.
-source-include = ["src/dfo_spec_kit/registry/codes.json"]
+# registry mirrors rather than reliance on that default staying unchanged.
+source-include = [
+    "src/dfo_spec_kit/registry/codes.json",
+    "src/dfo_spec_kit/units/units.json",
+]
 
 [dependency-groups]
 dev = [

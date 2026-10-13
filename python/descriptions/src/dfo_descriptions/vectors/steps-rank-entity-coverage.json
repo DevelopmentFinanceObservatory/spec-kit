@@ -1,0 +1,57 @@
+{
+  "id": "steps-rank-entity-coverage",
+  "description": "A rank recording each ranked entity's coverage, with its limit as a parameter, is accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "retrieve",
+      "input": {
+        "id": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+        "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+        "label": "Gross ODA disbursements"
+      },
+      "options": {
+        "places": [
+          "africa"
+        ]
+      }
+    },
+    {
+      "id": "s2",
+      "op": "rank",
+      "input": "s1",
+      "policy": "rank_what_is_present",
+      "params": {
+        "limit": 2,
+        "order": "descending"
+      },
+      "kept": {
+        "entities": 2
+      },
+      "entity_coverage": [
+        {
+          "entity": {
+            "ref": "country/NGA",
+            "label": "Nigeria"
+          },
+          "periods": 15,
+          "of": 15
+        },
+        {
+          "entity": {
+            "ref": "country/ETH",
+            "label": "Ethiopia"
+          },
+          "periods": 14,
+          "of": 15
+        }
+      ],
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars"
+      }
+    }
+  ],
+  "expect": "accept"
+}

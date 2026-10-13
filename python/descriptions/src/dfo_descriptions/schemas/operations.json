@@ -1,0 +1,388 @@
+{
+  "operations": [
+    {
+      "op": "retrieve",
+      "kind": "retrieval",
+      "input": "single",
+      "roles": [],
+      "policy": "retrieve_minted_version",
+      "new_variable": false,
+      "unit": {
+        "rule": "as_recorded",
+        "text": "The unit the version holds."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "Reads a Datasets version. The step's input is the version and its options are the mint's, so a choice taken at mint shows as a step."
+    },
+    {
+      "op": "sum",
+      "kind": "analysis",
+      "input": "roles",
+      "roles": ["left", "right"],
+      "policy": "sum_of_intersect_periods",
+      "new_variable": true,
+      "unit": {
+        "rule": "same_as_input",
+        "text": "The unit both sides share."
+      },
+      "coverage": null,
+      "left_out": [
+        {
+          "reason": "period_unmatched",
+          "of": ["periods"],
+          "text": "Periods one side reports and the other does not, so their total is unknown."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        }
+      ],
+      "description": "Adds two single-entity series period by period, over the periods both report."
+    },
+    {
+      "op": "quotient",
+      "kind": "analysis",
+      "input": "roles",
+      "roles": ["numerator", "denominator"],
+      "policy": "quotient_of_intersect_periods",
+      "new_variable": true,
+      "unit": {
+        "rule": "composed",
+        "text": "The numerator's unit per the denominator's."
+      },
+      "coverage": "period_coverage",
+      "left_out": [
+        {
+          "reason": "unmatched_key",
+          "of": ["entities"],
+          "text": "Numerator entities with no denominator."
+        },
+        {
+          "reason": "period_unmatched",
+          "of": ["entities", "entity_periods"],
+          "text": "Entities that share no period with their denominator, or values in periods the other side lacks."
+        },
+        {
+          "reason": "zero_denominator",
+          "of": ["entities", "entity_periods"],
+          "text": "Entities, or values, whose denominator sums to zero."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        },
+        {
+          "reason": "party_total",
+          "of": ["pooled_entities"],
+          "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
+        }
+      ],
+      "description": "Divides one slice by another per key and period, over the periods both report."
+    },
+    {
+      "op": "share",
+      "kind": "analysis",
+      "input": "roles",
+      "roles": ["numerator", "denominator"],
+      "policy": "share_of_intersect_periods",
+      "new_variable": true,
+      "unit": {
+        "rule": "percent",
+        "text": "Per cent."
+      },
+      "coverage": "period_coverage",
+      "left_out": [
+        {
+          "reason": "period_unmatched",
+          "of": ["periods", "entity_periods"],
+          "text": "Periods, or values, one side reports and the other does not."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        },
+        {
+          "reason": "party_total",
+          "of": ["pooled_entities"],
+          "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
+        }
+      ],
+      "description": "Gives a numerator's share of a denominator per period, over the periods both report."
+    },
+    {
+      "op": "growth",
+      "kind": "analysis",
+      "input": "single",
+      "roles": [],
+      "policy": "growth_endpoint_years",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input_or_dimensionless",
+        "text": "The input's unit for an absolute change, a dimensionless ratio for a relative one."
+      },
+      "coverage": null,
+      "left_out": [
+        {
+          "reason": "endpoint_missing",
+          "of": ["entities"],
+          "text": "Entities with no value in the start or the end period."
+        },
+        {
+          "reason": "zero_or_sign_crossing_base",
+          "of": ["entities"],
+          "text": "Entities whose base is zero or changes sign, so a relative change is undefined."
+        },
+        {
+          "reason": "non_finite",
+          "of": ["entities"],
+          "text": "Entities whose change overflows to a non-finite value."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        }
+      ],
+      "description": "Gives each entity's change between the window's endpoint periods."
+    },
+    {
+      "op": "rank",
+      "kind": "analysis",
+      "input": "single",
+      "roles": [],
+      "policy": "rank_what_is_present",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input_or_none",
+        "text": "The input's unit; none for a per-period ranking without a limit, whose values are rank positions."
+      },
+      "coverage": "entity_coverage",
+      "left_out": [
+        {
+          "reason": "party_total",
+          "of": ["pooled_entities"],
+          "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        }
+      ],
+      "description": "Orders entities by their value over the window, ranking what each holds."
+    },
+    {
+      "op": "aggregate",
+      "kind": "analysis",
+      "input": "single",
+      "roles": [],
+      "policy": "aggregate_skip_absent_grain_cells",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input",
+        "text": "The input's unit."
+      },
+      "coverage": "period_coverage",
+      "left_out": [
+        {
+          "reason": "party_total",
+          "of": ["pooled_entities"],
+          "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        }
+      ],
+      "description": "Reduces values over the roles it pools, by the keys it groups on, skipping absent cells."
+    },
+    {
+      "op": "filter",
+      "kind": "analysis",
+      "input": "single",
+      "roles": [],
+      "policy": "filter_row_value_predicates",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input",
+        "text": "The input's unit."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "Keeps the values that meet the caller's predicates. What the predicates drop is the caller's selection and stays in the parameters."
+    },
+    {
+      "op": "compare",
+      "kind": "analysis",
+      "input": "roles",
+      "roles": ["left", "right"],
+      "policy": "compare_intersect_periods",
+      "new_variable": true,
+      "unit": {
+        "rule": "same_as_input",
+        "text": "The unit both sides share."
+      },
+      "coverage": null,
+      "left_out": [
+        {
+          "reason": "period_unmatched",
+          "of": ["periods"],
+          "text": "Periods one side reports and the other does not."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        }
+      ],
+      "description": "Subtracts the left series from the right for each period both report, and writes the difference under a variable of its own. The step records in `sides` the entities each side holds."
+    },
+    {
+      "op": "join",
+      "kind": "analysis",
+      "input": "roles",
+      "roles": ["left", "right"],
+      "policy": "join_inner",
+      "new_variable": false,
+      "unit": {
+        "rule": "per_side",
+        "text": "Each side keeps its own unit."
+      },
+      "coverage": null,
+      "left_out": [
+        {
+          "reason": "unmatched_key",
+          "of": ["entity_periods"],
+          "text": "Keys and periods one side holds and the other does not."
+        },
+        {
+          "reason": "unit_unbound",
+          "of": ["entity_periods"],
+          "text": "Values that declare no unit."
+        }
+      ],
+      "description": "Pairs two frames' values on their shared roles and periods, keeping the keys both hold."
+    },
+    {
+      "op": "source_step",
+      "kind": "source_pipeline",
+      "input": "none",
+      "roles": [],
+      "policy": "source_pipeline_as_recorded",
+      "new_variable": false,
+      "unit": {
+        "rule": "as_recorded",
+        "text": "The unit the source's data holds."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "One step the source's pipeline applied to its data, as the mint read it from the source's document. Its parameters hold the source's dcid in `source`, the step's `title`, and its `description` as recorded, which is the step's sentence."
+    },
+    {
+      "op": "choose_source",
+      "kind": "mint_choice",
+      "input": "none",
+      "roles": [],
+      "policy": "facet_default_by_coverage",
+      "new_variable": false,
+      "unit": {
+        "rule": "as_recorded",
+        "text": "The chosen source's unit."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "Chooses one source where several hold the series and DFO precedence does not decide. The step names the source chosen, the others, and the ranking: places covered, then years covered, then observation count."
+    },
+    {
+      "op": "sum_variables",
+      "kind": "mint_choice",
+      "input": "none",
+      "roles": [],
+      "policy": "sum_family_members",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input",
+        "text": "The unit the summed variables share."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "Sums the observations of several variables in the requested family into one series. The step names what was summed."
+    },
+    {
+      "op": "convert",
+      "kind": "mint_choice",
+      "input": "none",
+      "roles": [],
+      "policy": "convert_by_rate_and_deflator",
+      "new_variable": false,
+      "unit": {
+        "rule": "converted",
+        "text": "The unit converted into."
+      },
+      "coverage": null,
+      "left_out": [
+        {
+          "reason": "currency_unmapped",
+          "of": ["entities"],
+          "text": "Entities no single national currency names, in a conversion into each entity's own currency."
+        },
+        {
+          "reason": "deflator_missing",
+          "of": ["entities", "entity_periods"],
+          "text": "Entities with no deflator in the base year, or values in years the deflator table lacks."
+        }
+      ],
+      "description": "Converts values into another currency or price basis. The step names the unit converted from and the unit converted into."
+    },
+    {
+      "op": "continue_series",
+      "kind": "mint_choice",
+      "input": "none",
+      "roles": [],
+      "policy": "continue_with_source_estimates",
+      "new_variable": false,
+      "unit": {
+        "rule": "as_recorded",
+        "text": "The elected series' unit."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "Continues the elected series past its last period with the same source's series under another measurement method, where the version's window runs past it. The reported value wins where both hold a period. The step's params name `method`, the measurement method whose series continues the elected one, such as `Estimated`, and `periods`, the first and last period that series supplies, earlier first."
+    },
+    {
+      "op": "select",
+      "kind": "card_selection",
+      "input": "single",
+      "roles": [],
+      "policy": "card_selection",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input",
+        "text": "The version's unit."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "What a card draws from its version: the series and window the caller chose, as parameters."
+    },
+    {
+      "op": "change",
+      "kind": "card_derivation",
+      "input": "single",
+      "roles": [],
+      "policy": "change_between_basis_periods",
+      "new_variable": false,
+      "unit": {
+        "rule": "same_as_input_or_percent",
+        "text": "The input's unit for a difference, per cent for a percent change."
+      },
+      "coverage": null,
+      "left_out": [],
+      "description": "A stat card's change between its two basis periods. Its parameters hold the `derivation`, `difference` or `percent_change`, and the `basis`, the two periods it compares, earlier first."
+    }
+  ]
+}

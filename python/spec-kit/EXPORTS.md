@@ -86,9 +86,11 @@ version = "0.2.0"
 # re-exports them, never under core directly.
 modules = [
   "dfo_spec_kit",
+  "dfo_spec_kit.currency",
   "dfo_spec_kit.identity",
   "dfo_spec_kit.models",
   "dfo_spec_kit.registry",
+  "dfo_spec_kit.units",
 ]
 
 # --- dfo_spec_kit ------------------------------------------------------
@@ -216,6 +218,82 @@ reason = "bundled-data"
 name = "load_registry"
 module = "dfo_spec_kit.registry"
 kind = "function"
+stability = "provisional"
+reason = "bundled-data"
+
+# --- dfo_spec_kit.currency ---------------------------------------------
+# The currency-code shape test, in a module that reads no data file.
+[[export]]
+name = "is_currency_code"
+module = "dfo_spec_kit.currency"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+# --- dfo_spec_kit.units ------------------------------------------------
+# One typed value per unit ref, read through the bundled registry mirror of
+# registries/units.json. vectors/units/ is the conformance suite.
+[[export]]
+name = "parse_unit"
+module = "dfo_spec_kit.units"
+kind = "function"
+stability = "provisional"
+policy = "the value a ref parses to tracks registries/units.json"
+reason = "bundled-data"
+
+[[export]]
+name = "complete_prices"
+module = "dfo_spec_kit.units"
+kind = "function"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "Money"
+module = "dfo_spec_kit.units"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "UnpricedMoney"
+module = "dfo_spec_kit.units"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "Percent"
+module = "dfo_spec_kit.units"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "Count"
+module = "dfo_spec_kit.units"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "Other"
+module = "dfo_spec_kit.units"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "Unit"
+module = "dfo_spec_kit.units"
+kind = "alias"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "Prices"
+module = "dfo_spec_kit.units"
+kind = "alias"
 stability = "provisional"
 reason = "bundled-data"
 

@@ -1,0 +1,98 @@
+{
+  "id": "description-computed-input-without-id",
+  "description": "A computed version published without steps serves the input no step retrieves with a null id, a null source ref and no description link, each with a gap, and is accepted.",
+  "schema": "description",
+  "input": {
+    "describes": {
+      "kind": "computed_version",
+      "id": "ops_3c9e1f7a2b8d4e6f",
+      "content_version": "ocv_8d2a6f1c9e3b7a5d"
+    },
+    "title": "Gross ODA disbursements per gross national income",
+    "about": {
+      "name": null,
+      "series": 38,
+      "period": {
+        "start": "2010",
+        "end": "2024",
+        "grain": "year"
+      },
+      "unit": {
+        "numerator": {
+          "ref": "USDollar",
+          "label": "US dollars"
+        },
+        "denominator": {
+          "ref": "USDollar",
+          "label": "US dollars"
+        }
+      }
+    },
+    "sources": [
+      {
+        "ref": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+        "label": "Gross ODA disbursements",
+        "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+        "description": "/api/datasets/spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e/cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0/description"
+      },
+      {
+        "ref": null,
+        "label": "Gross national income",
+        "content_version": "cv_1a2b3c4d5e6f708192a3b4c5d6e7f809"
+      }
+    ],
+    "freshness": {
+      "computed": "2026-10-11",
+      "inputs": [
+        {
+          "id": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+          "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+          "label": "Gross ODA disbursements"
+        },
+        {
+          "id": null,
+          "content_version": "cv_1a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "label": "Gross national income"
+        }
+      ],
+      "latest_period": "2024",
+      "series_reaching_it": 32,
+      "estimated_values": 0,
+      "provisional_values": 0
+    },
+    "steps": null,
+    "caveats": [],
+    "cite": {
+      "title": "Gross ODA disbursements per gross national income",
+      "text": "Gross ODA disbursements and Gross national income (2026), processed by the Development Finance Observatory",
+      "id": "ops_3c9e1f7a2b8d4e6f",
+      "content_version": "ocv_8d2a6f1c9e3b7a5d",
+      "retrieved": "2026-10-11",
+      "data": "/api/presentation/frames/ops_3c9e1f7a2b8d4e6f/ocv_8d2a6f1c9e3b7a5d",
+      "inputs": [
+        {
+          "id": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+          "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+          "label": "Gross ODA disbursements"
+        },
+        {
+          "id": null,
+          "content_version": "cv_1a2b3c4d5e6f708192a3b4c5d6e7f809",
+          "label": "Gross national income"
+        }
+      ]
+    },
+    "gaps": [
+      "about.name",
+      "sources.1.ref",
+      "freshness.inputs.1.id",
+      "steps",
+      "cite.inputs.1.id"
+    ],
+    "built_from": {
+      "facts_schema": 1,
+      "vocabulary": "voc_5e1d9a3c7b2f8e64"
+    }
+  },
+  "expect": "accept"
+}

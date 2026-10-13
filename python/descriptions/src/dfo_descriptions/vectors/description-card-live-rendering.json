@@ -1,0 +1,156 @@
+{
+  "id": "description-card-live-rendering",
+  "description": "A card description rendered live, carrying the frame it rendered on, its version's measure with a definition, its fixed values and its drawn values with theirs, is accepted.",
+  "schema": "description",
+  "input": {
+    "describes": {
+      "kind": "card_revision",
+      "component_id": "cmp_Ab3dE5gH7k",
+      "revision": 2
+    },
+    "title": "Gross disbursements to Nigeria for health, 2010 to 2024",
+    "about": {
+      "measure": {
+        "label": "gross disbursements",
+        "definition": "Funds released to a recipient, or spent on goods and services for it, counted in full before any repayments are deducted."
+      },
+      "fixed": [
+        {
+          "property": {
+            "ref": "financingRecipient",
+            "label": "recipient"
+          },
+          "value": {
+            "ref": "country/NGA",
+            "label": "Nigeria"
+          }
+        }
+      ],
+      "drawn": {
+        "dimensions": [
+          {
+            "property": {
+              "ref": "crsPurpose",
+              "label": "sector"
+            },
+            "count": 3,
+            "of": 19,
+            "values": [
+              {
+                "ref": "CRSPurposeCode12220",
+                "label": "basic health care",
+                "definition": "Basic and primary health care programmes; paramedical and nursing care programmes; supply of drugs, medicines, and vaccines related to basic health care; and activities aimed at achieving universal health coverage."
+              },
+              {
+                "ref": "CRSPurposeCode12110",
+                "label": "health policy and administrative management",
+                "definition": "Health sector policy, planning, and programmes; aid to health ministries and public health administration; institution capacity building and advice; medical insurance programmes; health system strengthening and health governance; and unspecified health activities."
+              },
+              {
+                "ref": "CRSPurposeCode12250",
+                "label": "infectious disease control",
+                "definition": "Immunisation and prevention and control of infectious and parasitic diseases, including diarrhoeal diseases, vector-borne diseases, viral diseases, mycosis, helminthiasis, zoonosis, diseases caused by other bacteria and viruses, and pediculosis. Excludes malaria, tuberculosis, COVID-19, and HIV/AIDS and other sexually transmitted diseases."
+              }
+            ]
+          }
+        ],
+        "series": 3,
+        "period": {
+          "start": "2010",
+          "end": "2024",
+          "grain": "year"
+        }
+      },
+      "unit": {
+        "ref": "CurrencyUSD",
+        "label": "US dollars",
+        "prices": "current"
+      }
+    },
+    "sources": [
+      {
+        "ref": "provenance/OECDCreditorReportingSystem",
+        "label": "OECD Creditor Reporting System (CRS)",
+        "publisher": "OECD",
+        "licence": "OECD Terms and Conditions",
+        "series": 3,
+        "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem"
+      }
+    ],
+    "freshness": {
+      "latest_period": "2024",
+      "series_reaching_it": 2,
+      "estimated_values": null,
+      "provisional_values": null
+    },
+    "steps": [
+      {
+        "id": "s1",
+        "op": "select",
+        "input": {
+          "id": "spec_91d7345eec81a029629938b3d0ffd775",
+          "content_version": "cv_b785befb9f87471de96eb31cd7c56f5c",
+          "label": "Gross disbursements to Nigeria for health",
+          "at_mint": true
+        },
+        "policy": "card_selection",
+        "params": {
+          "coordinates": {
+            "crsPurpose": [
+              "CRSPurposeCode12220",
+              "CRSPurposeCode12110",
+              "CRSPurposeCode12250"
+            ]
+          },
+          "window": {
+            "start": "2010",
+            "end": "2024"
+          }
+        },
+        "kept": {
+          "series": 3
+        },
+        "text": "Drew 3 series of gross disbursements to Nigeria for health, 2010 to 2024."
+      }
+    ],
+    "caveats": [
+      {
+        "kind": "provisional",
+        "periods": [
+          "2024"
+        ],
+        "series": [
+          {
+            "ref": "CRSPurposeCode12250",
+            "label": "infectious disease control"
+          }
+        ],
+        "text": "Values of infectious disease control in 2024 are provisional."
+      }
+    ],
+    "cite": {
+      "title": "Gross disbursements to Nigeria for health",
+      "text": "OECD Creditor Reporting System (CRS) (2026), via the Development Finance Observatory",
+      "component_id": "cmp_Ab3dE5gH7k",
+      "revision": 2,
+      "id": "spec_91d7345eec81a029629938b3d0ffd775",
+      "content_version": "cv_b785befb9f87471de96eb31cd7c56f5c",
+      "retrieved": "2026-09-28",
+      "data": "/api/datasets/spec_91d7345eec81a029629938b3d0ffd775/cv_b785befb9f87471de96eb31cd7c56f5c"
+    },
+    "gaps": [
+      "freshness.estimated_values",
+      "freshness.provisional_values"
+    ],
+    "built_from": {
+      "facts_schema": 1,
+      "vocabulary": "voc_5e1d9a3c7b2f8e64"
+    },
+    "rendering": "live",
+    "frame": {
+      "id": "spec_91d7345eec81a029629938b3d0ffd775",
+      "content_version": "cv_b785befb9f87471de96eb31cd7c56f5c"
+    }
+  },
+  "expect": "accept"
+}

@@ -1,8 +1,8 @@
 # Identity (v1)
 
-This document specifies what a spec1 identity's slot bindings and open roles denote: which code, or set of codes, a client asking for a given binding is asking for. `python/spec-kit/src/dfo_spec_kit/identity/core.py` implements spec1 end to end — strict parsing, schema validation, normalisation, projection, canonicalisation, minting — and its own module docstring already states that the vector suite wins over its prose where the two disagree. Neither that module nor the vector suite decides what a binding denotes; this document does.
+This document specifies what a spec1 identity's slot bindings, facet bindings and open roles denote: which code, or set of codes, a client asking for a given binding is asking for. `python/spec-kit/src/dfo_spec_kit/identity/core.py` implements spec1 end to end — strict parsing, schema validation, normalisation, projection, canonicalisation, minting — and its own module docstring already states that the vector suite wins over its prose where the two disagree. Neither that module nor the vector suite decides what a binding denotes; this document does.
 
-**Document version:** `1.2.0` (see "Document versioning" below). This number is never hashed into any byte sequence spec1 describes.
+**Document version:** `1.3.0` (see "Document versioning" below). This number is never hashed into any byte sequence spec1 describes.
 
 ## Precedence
 
@@ -37,6 +37,14 @@ On the `measurementMethod` and `unit` axes, a facet's `value` binding may carry 
 
 The null ref is a single-valued facet ask and nothing wider. A `provenance` binding refuses it, since every facet carries a provenance and a null one names nothing. A facet `set` binding refuses a null member, and a slot binding refuses a null ref. `facet-null-ref-provenance-rejected`, `facet-set-null-member-rejected` and `slot-null-ref-rejected` pin these refusals.
 
+## The national-currency binding
+
+On the `unit` axis, a facet's `value` binding may carry `"national_currency": {"role": R}` in place of a `ref` or a `request`, with `R` one of `observationAbout`, `origin` and `destination`. At each entity bound to role `R`, it denotes the facets whose unit is the one currency the graph's `nationalCurrencyOf` names for that entity, served as published. A consumer keeps one provenance and one measurement method across the entities. An entity the graph maps to no currency, or to several, and an entity with no facet in its own currency are coverage gaps, never converted.
+
+The conversion request `{"currency": {"role": R}, "prices": ...}` names the same currency and converts each row into it. The national-currency binding converts nothing, so the two are different asks and mint different ids: `facet-national-currency` shares everything but its unit binding with `unit-request-currency-role-observation-about-current`. The binding carries no `prices`, since a currency unit states no price basis.
+
+A `value` binding carries exactly one of `ref`, `request` and `national_currency`. A `provenance` or `measurementMethod` binding refuses `national_currency`, as does a facet `set` binding, since a set admits any listed unit at every entity and cannot pair an entity with its own currency. A role outside the three refuses as the conversion request's currency role does. `facet-national-currency-provenance-rejected`, `facet-national-currency-beside-ref-rejected`, `facet-national-currency-beside-request-rejected`, `facet-national-currency-set-rejected` and `facet-national-currency-unknown-role-rejected` pin these refusals.
+
 ## Open roles
 
 The optional top-level `open_roles` member lists flow roles, drawn from the closed set `origin` and `destination`. An open role denotes every member of that role with data: each origin, say each creditor, as its own series. A role absent from both `entities` and `open_roles` denotes the total, where the source publishes one across that role's members. The two are different asks and mint different ids. `open-roles-open-origin` and `open-roles-absent-origin-diverges` differ by `open_roles: ["origin"]` alone.
@@ -51,6 +59,8 @@ No `spec_id` moves under this revision. `identity_version` is hashed into the ca
 
 The null facet ref moves no id either: the identity core refused a null ref before it, so no stored document carries one.
 
+Nor does the national-currency binding. The identity core refused `national_currency` as `unknown_member` before it, so no stored document carries one, and the conversion request keeps its meaning.
+
 Nor does `open_roles`. The identity core refused the member as `unknown_member` before it, and an empty or absent `open_roles` leaves the projection unchanged, so every stored document keeps its id.
 
 The `value` rule records what a producer already meant by a `value` binding, rather than changing what one denotes. A producer that mints an identity from a slot's value only after a retrieval step has already widened that value through the code system's hierarchy, a door that reads a posted `value` binding back through that same descendant walk before any other processing, and a prompt that offers a covering root on the premise that a bound value on a hierarchical system widens to everything beneath it, are all already reading `value` this way. This document states the rule those producers already applied; it asks nothing new of the point where a `value` binding is minted.
@@ -61,7 +71,7 @@ Where a consumer's materialised output changes membership as a result of reading
 
 ## Scope
 
-This document states binding-state denotation, the slot-ref dcid grammar, the null facet ref and open roles; it decides nothing else about spec1. Projection, JCS canonicalisation, the structural and schema limits, and every other refusal category remain specified by `core.py`'s own implementation and by the vector suite, exactly as `schemas/vectors/README.md` and `core.py`'s module docstring already state, until a future revision of this document extends its scope to cover them.
+This document states binding-state denotation, the slot-ref dcid grammar, the null facet ref, the national-currency binding and open roles; it decides nothing else about spec1. Projection, JCS canonicalisation, the structural and schema limits, and every other refusal category remain specified by `core.py`'s own implementation and by the vector suite, exactly as `schemas/vectors/README.md` and `core.py`'s module docstring already state, until a future revision of this document extends its scope to cover them.
 
 Two related gaps are named, not fixed, here. Entity dcids (`entities`'s role values) carry the same bare-dcid convention as slot refs but are not yet run through `_check_dcid_grammar`; closing that gap is out of scope for this revision. And a code system's own declared hierarchy — the parent/child relation `value` and `set` read through — is graph data this document does not carry and cannot pin with a fixture; a reader resolving that hierarchy is a graph-dependent concern the vector suite already excludes for the same reason it excludes alias resolution and role validity (`schemas/vectors/README.md`, "Scope").
 

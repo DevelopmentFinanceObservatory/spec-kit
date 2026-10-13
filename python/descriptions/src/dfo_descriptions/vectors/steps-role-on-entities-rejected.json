@@ -1,0 +1,49 @@
+{
+  "id": "steps-role-on-entities-rejected",
+  "description": "A role on a count of the kept entities is rejected by the schema, since only a pooled_entities count names a role.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "retrieve",
+      "input": {
+        "id": "spec_4b1f0c2d9e8a7b6c5d4e3f2a1b0c9d8e",
+        "content_version": "cv_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+        "label": "Gross ODA disbursements"
+      },
+      "options": {}
+    },
+    {
+      "id": "s2",
+      "op": "share",
+      "inputs": {
+        "numerator": "s1",
+        "denominator": "s1"
+      },
+      "policy": "share_of_intersect_periods",
+      "params": {
+        "numerator_by": [
+          "financingRecipient"
+        ]
+      },
+      "kept": {
+        "entities": 2
+      },
+      "left_out": [
+        {
+          "reason": "party_total",
+          "count": 1,
+          "of": "entities",
+          "role": "financingProvider"
+        }
+      ],
+      "unit": {
+        "ref": "Percent",
+        "label": "per cent"
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}

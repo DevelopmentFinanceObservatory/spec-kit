@@ -75,8 +75,43 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `unit_cell_array` refuses a hand-built cell that validation would not
   return, through `grammar.validate_unit_cell`, with `FrameError`
   `invalid_unit`.
-- `widen_frame_table` takes a table whose `unit` column is the two-member
-  struct and returns it under the current canonical schema.
+- `widen_frame_table(table, recipe=False)` takes a canonical table whose
+  `unit` column is in any layout a release stored and returns it in the
+  recipe layout when `recipe` is true or some cell carries a recipe, and in
+  the layout without `recipe` otherwise.
+- The unit-request cell takes an optional `recipe`, the id of the
+  conversion recipe that produced it, a non-empty NFC string.
+  `UnitRequest.recipe` carries it, `as_json` writes it when set, and rows
+  whose cells differ only in `recipe` are two grains, ordered by their JCS
+  bytes. The identity's unit request stays closed at `currency`, `prices`
+  and `base_year`. The frame grammar's member set (`_UNIT_CELL_KEYS`) is its
+  own, and the frame vector `frame-converted-unit-recipe` and the identity
+  vector `unit-request-recipe-rejected` pin the split. Two negative frame
+  vectors refuse an empty and a non-string `recipe` with `invalid_unit`.
+  `docs/frame-grammar-v1.md` counts the member as an additive minor change
+  within `FRAME_GRAMMAR_VERSION` `1.1.0`: a reader on `1.0.0` refuses a cell
+  carrying `recipe`, so every reader takes `1.1.0` before any producer
+  writes one. No existing frame's bytes, `frame_sha256` or
+  `content_version` change.
+- The `unit` struct's `request` member gains a `recipe: string` child only
+  in a frame where some cell carries a recipe. Every builder,
+  `Frame.from_table` and `unit_cell_array` give a frame without a recipe
+  the `1.0.0` layout, so its Parquet bytes, `frame_sha256` and
+  `content_version` are those kit 959f8bc gives, which
+  `tests/test_stored_frame.py` checks against a file 959f8bc wrote.
+  `canonical_frame_schema(columns, recipe=True)` is the recipe layout, for
+  a writer that fixes its schema before it has seen every chunk and whose
+  plan attaches a recipe; it puts each chunk in that layout with
+  `widen_frame_table(table, recipe=True)`. An explicit argument decides,
+  because a writer cannot infer the layout from its first chunk when a
+  later chunk carries the first recipe, and scanning every chunk first
+  would end the streaming. `stream_canonical_frame_bytes` takes chunks in
+  either layout.
+- `Frame.from_table` accepts the `unit` column in every layout a release
+  stored, `struct<ref, request>` and `struct<ref, request, composed>` with
+  or without `recipe`, and refuses every other `unit` layout and a table
+  with no `unit` column with `FrameError` `schema_violation`.
+  `build_frame_from_arrow` accepts a `request` with or without `recipe`.
 
 ### Changed
 
@@ -111,9 +146,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Breaking for Arrow consumers. The canonical `unit` column type gains a third
   member, `composed: string`, holding the JCS text of a composed unit. A
   column of 10,000 unit refs takes 4.1 bytes a row more than under the
-  two-member `struct<ref, request>`. `Frame.from_table` refuses a table stored
-  under the two-member layout until `widen_frame_table` has widened it;
-  `build_frame_from_arrow` accepts both and returns the three-member layout.
+  two-member `struct<ref, request>`. `Frame.from_table` and
+  `build_frame_from_arrow` accept both and return the three-member layout.
   `build_frame_from_arrow` reads any JSON text of a composed unit and stores
   the JCS form, refuses other text with `FrameError` `invalid_unit`, and
   refuses a `composed` member whose Arrow type is neither a string type nor

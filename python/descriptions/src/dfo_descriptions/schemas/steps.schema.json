@@ -1,0 +1,542 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developmentfinance.org/descriptions/schema/v1/steps.schema.json",
+  "title": "Step records",
+  "description": "What was done to a result, one step per operation, in order. Each step names its inputs by role, its operation's one fixed policy, the caller's own choices, what it kept, what data gaps it left out, and the unit it produces. `op`, `policy` and `left_out[].reason` are bounded strings, so a step with an operation or reason this release does not list still validates; `operations.json` beside this schema lists the known ones. Labels are optional throughout, since a step is a fact and the words are joined when a description is served. The structure rules (unique ids, inputs that name an earlier step or a version, the count and size bounds) are checked by `dfo_descriptions.check_steps`, since a JSON Schema cannot express them.",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/step"
+  },
+  "$defs": {
+    "one_line": {
+      "description": "Text without a newline. Python's `re.search` lets an anchored pattern's `$` match before a final newline, so every pattern here anchored with `$` refers to this as well.",
+      "not": {
+        "pattern": "\\n"
+      }
+    },
+    "name": {
+      "description": "A lower-snake-case name: an operation, a policy, a role, a reason or a count.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "step_id": {
+      "description": "A step's id, unique within its list.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "spec_id": {
+      "description": "A dataset version's id.",
+      "type": "string",
+      "pattern": "^spec_[0-9a-f]{32}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "spec_content_version": {
+      "description": "A dataset version's content version.",
+      "type": "string",
+      "pattern": "^cv_[0-9a-f]{32}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "ops_id": {
+      "description": "A computed version's id.",
+      "type": "string",
+      "pattern": "^ops_[0-9a-f]{6,64}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "ops_content_version": {
+      "description": "A computed version's content version.",
+      "type": "string",
+      "pattern": "^ocv_[0-9a-f]{6,64}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "version_id": {
+      "description": "A Datasets version's id, `spec_` or `ops_`.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/spec_id"
+        },
+        {
+          "$ref": "#/$defs/ops_id"
+        }
+      ]
+    },
+    "content_version": {
+      "description": "A Datasets version's content version, `cv_` or `ocv_`.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/spec_content_version"
+        },
+        {
+          "$ref": "#/$defs/ops_content_version"
+        }
+      ]
+    },
+    "version_family": {
+      "description": "A version id and its content version are of one family: a `spec_` id with a `cv_` content version, or an `ops_` id with an `ocv_` one. The id is the object's `id`, or the `ref` of a description's input source, and a `null` id goes with either family. The object holding the pair says which members it requires and whether its id may be `null`.",
+      "anyOf": [
+        {
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/spec_id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ref": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/spec_id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "content_version": {
+              "$ref": "#/$defs/spec_content_version"
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ops_id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ref": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ops_id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "content_version": {
+              "$ref": "#/$defs/ops_content_version"
+            }
+          }
+        }
+      ]
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ref": {
+      "description": "A reference: the dcid or id it names, and optionally the words for it. A step is a fact stored once, so `label` is optional; a description serves the vocabulary's label first, then this one, else a gap. `at_mint` marks a label taken from the evidence stored when the version was made, in place of today's vocabulary.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/text"
+        },
+        "label": {
+          "$ref": "#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        }
+      }
+    },
+    "version_ref": {
+      "description": "A Datasets version: a `spec_` id with its `cv_` content version, or an `ops_` id with its `ocv_` content version, and optionally the words for it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "content_version"],
+      "$ref": "#/$defs/version_family",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/version_id"
+        },
+        "content_version": {
+          "$ref": "#/$defs/content_version"
+        },
+        "label": {
+          "$ref": "#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        }
+      }
+    },
+    "input": {
+      "description": "One input: an earlier step's id, or a version.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/step_id"
+        },
+        {
+          "$ref": "#/$defs/version_ref"
+        }
+      ]
+    },
+    "simple_unit": {
+      "description": "A unit by reference, by currency, or both, with optional words. `ref` is the unit's dcid. `currency` is an ISO 4217 code, which a converted unit `{currency, prices, base_year}` names in place of a dcid. `prices` says whether money is in `current` or `constant` prices, and `base_year` names the year constant prices are expressed in. As in the frame grammar and the identity core, `base_year` is present exactly when prices are constant.",
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": ["ref"]
+        },
+        {
+          "required": ["currency"]
+        }
+      ],
+      "if": {
+        "required": ["prices"],
+        "properties": {
+          "prices": {
+            "const": "constant"
+          }
+        }
+      },
+      "then": {
+        "required": ["base_year"]
+      },
+      "else": {
+        "not": {
+          "required": ["base_year"]
+        }
+      },
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/text"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "label": {
+          "$ref": "#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        },
+        "prices": {
+          "enum": ["current", "constant"]
+        },
+        "base_year": {
+          "type": "integer",
+          "minimum": 1900,
+          "maximum": 2100
+        }
+      }
+    },
+    "variable_side": {
+      "description": "One side of a composed unit that counts a variable in place of a unit, such as the population in a per-capita denominator. `stat_var` is the variable's bare dcid, without a `dcid:` prefix.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stat_var"],
+      "properties": {
+        "stat_var": {
+          "$ref": "#/$defs/text",
+          "not": {
+            "pattern": "^dcid:"
+          }
+        },
+        "label": {
+          "$ref": "#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        }
+      }
+    },
+    "unit_side": {
+      "description": "One side of a composed unit: a unit, or a variable.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/simple_unit"
+        },
+        {
+          "$ref": "#/$defs/variable_side"
+        }
+      ]
+    },
+    "composed_unit": {
+      "description": "A quotient's unit: the numerator's unit per the denominator's. Either side may be a variable.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": {
+          "$ref": "#/$defs/unit_side"
+        },
+        "denominator": {
+          "$ref": "#/$defs/unit_side"
+        }
+      }
+    },
+    "unit": {
+      "description": "The unit a step produces or a result holds. `null` when the data declares none.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/simple_unit"
+        },
+        {
+          "$ref": "#/$defs/composed_unit"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "role": {
+      "description": "A graph role's name, the bare lower-camel-case property a flow names its party by, such as `financingProvider`.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]{0,63}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "left_out": {
+      "description": "One data gap: why some data was left out, how many, and of what. The caller's own selection is a parameter and never appears here. `pooled_entities` counts the distinct parties of one pooled role, named in `role`, across all the step's inputs; they are never among the entities the step kept, so a reader keeps them out of the kept entities' total. `role` is required with `pooled_entities` and refused with any other `of`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "count", "of"],
+      "properties": {
+        "reason": {
+          "$ref": "#/$defs/name"
+        },
+        "count": {
+          "$ref": "#/$defs/count"
+        },
+        "of": {
+          "enum": ["entities", "periods", "entity_periods", "pooled_entities"]
+        },
+        "role": {
+          "$ref": "#/$defs/role"
+        }
+      },
+      "if": {
+        "properties": {
+          "of": {
+            "const": "pooled_entities"
+          }
+        }
+      },
+      "then": {
+        "required": ["role"]
+      },
+      "else": {
+        "not": {
+          "required": ["role"]
+        }
+      }
+    },
+    "step": {
+      "description": "A stored step: `step_members` and nothing else. A step on a description adds its sentence, `text`, which a stored step never carries.",
+      "$ref": "#/$defs/step_members",
+      "unevaluatedProperties": false
+    },
+    "step_members": {
+      "description": "The members a step may carry, open to the member a description adds. `step` closes it for storage, and the description schema's `served_step` closes it with `text`.",
+      "type": "object",
+      "required": ["id", "op"],
+      "not": {
+        "required": ["input", "inputs"]
+      },
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/step_id"
+        },
+        "op": {
+          "$ref": "#/$defs/name"
+        },
+        "input": {
+          "description": "The input of an operation that takes one.",
+          "$ref": "#/$defs/input"
+        },
+        "inputs": {
+          "description": "The inputs of an operation that takes several, by role: numerator and denominator, left and right.",
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 8,
+          "propertyNames": {
+            "$ref": "#/$defs/name"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/input"
+          }
+        },
+        "policy": {
+          "description": "The operation's one fixed policy for aligning periods and handling gaps.",
+          "$ref": "#/$defs/name"
+        },
+        "params": {
+          "description": "What the caller chose, such as a filter's predicate, a rank's limit or the entity a share takes. Nothing the operation decided.",
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "$ref": "#/$defs/name"
+          }
+        },
+        "options": {
+          "description": "A retrieval's mint options, so a choice taken at mint shows as a step.",
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "$ref": "#/$defs/name"
+          }
+        },
+        "kept": {
+          "description": "What the step kept, by count name, such as entities, periods and entities_with_fewer_periods.",
+          "type": "object",
+          "maxProperties": 16,
+          "propertyNames": {
+            "$ref": "#/$defs/name"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/count"
+          }
+        },
+        "left_out": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/left_out"
+          }
+        },
+        "period_coverage": {
+          "description": "How many entities each period's total covers. Share, quotient and aggregate record it.",
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["period", "entities"],
+            "properties": {
+              "period": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 32
+              },
+              "entities": {
+                "$ref": "#/$defs/count"
+              }
+            }
+          }
+        },
+        "entity_coverage": {
+          "description": "How many of the window's periods each ranked entity holds. Rank records it.",
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["entity", "periods", "of"],
+            "properties": {
+              "entity": {
+                "$ref": "#/$defs/ref"
+              },
+              "periods": {
+                "$ref": "#/$defs/count"
+              },
+              "of": {
+                "$ref": "#/$defs/count"
+              }
+            }
+          }
+        },
+        "choice": {
+          "description": "A choice of source at mint: the source chosen, the others it was chosen over, and the ranking it applied, in order.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["chosen", "others", "ranking"],
+          "properties": {
+            "chosen": {
+              "$ref": "#/$defs/ref"
+            },
+            "others": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/ref"
+              }
+            },
+            "ranking": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "$ref": "#/$defs/name"
+              }
+            }
+          }
+        },
+        "summed": {
+          "description": "A sum at mint: how many variables were summed, and up to 64 of them by reference.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "variables"],
+          "properties": {
+            "count": {
+              "$ref": "#/$defs/count"
+            },
+            "variables": {
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "$ref": "#/$defs/ref"
+              }
+            }
+          }
+        },
+        "converted_from": {
+          "description": "A conversion's source unit. `unit` names the unit it converted into.",
+          "$ref": "#/$defs/unit"
+        },
+        "unit": {
+          "description": "The unit the step produces.",
+          "$ref": "#/$defs/unit"
+        },
+        "stat_var": {
+          "description": "The variable the step writes its rows under, for an operation that makes a new one (`new_variable` in `operations.json`): sum, quotient, share and compare. Its bare dcid, without a `dcid:` prefix. A reader names the variable from the step's output.",
+          "$ref": "#/$defs/text",
+          "not": {
+            "pattern": "^dcid:"
+          }
+        },
+        "sides": {
+          "description": "The entities each side of a two-sided operation holds, by input role (`left` and `right` for compare). A side maps each role column whose narrowed slice holds exactly one value to that entity, as a dcid in the form the step's `params` use. A column with several values or none is absent, so an empty map is valid. `check_steps` requires it on every compare step.",
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 8,
+          "propertyNames": {
+            "$ref": "#/$defs/name"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "maxProperties": 16,
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "format_version": 1,
+  "name": "facet-national-currency-unknown-role-rejected",
+  "description": "A national-currency binding naming a role outside observationAbout, origin and destination is refused, as the conversion request's currency role is.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "facets.national-currency.unknown-role-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "national_currency": {
+          "role": "recipient"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "schema_violation"
+}

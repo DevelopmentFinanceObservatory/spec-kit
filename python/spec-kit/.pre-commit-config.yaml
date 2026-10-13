@@ -88,12 +88,16 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
-        args: [--write-changes]
+        # ZAR is the ISO 4217 code for the South African rand.
+        args: [--write-changes, --ignore-words-list=zar]
+        # The conformance vectors are data: country codes such as SOM read as
+        # misspellings, and --write-changes would rewrite them.
         exclude: |
           (?x)^(
             .*\.lock|
             .*\.parquet|
-            .*\.feather
+            .*\.feather|
+            .*/dfo_descriptions/vectors/.*\.json
           )$
 
   # ---------------------------------------------------------------------------

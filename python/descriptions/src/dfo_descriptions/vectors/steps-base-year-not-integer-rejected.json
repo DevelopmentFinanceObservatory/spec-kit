@@ -1,0 +1,26 @@
+{
+  "id": "steps-base-year-not-integer-rejected",
+  "description": "A unit whose base year is not an integer is rejected by the schema.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "current"
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "constant",
+        "base_year": "2023"
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}

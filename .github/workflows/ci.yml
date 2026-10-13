@@ -27,6 +27,8 @@ jobs:
             module: dfo_spec_kit_components
           - package: python/provenance-docs
             module: dfo_provenance_docs
+          - package: python/descriptions
+            module: dfo_descriptions
     defaults:
       run:
         working-directory: ${{ matrix.package }}
@@ -71,6 +73,7 @@ jobs:
             python/frame-grammar,
             python/dfo-spec-kit-components,
             python/provenance-docs,
+            python/descriptions,
           ]
         python-version: ["3.12", "3.13"]
     defaults:
@@ -118,6 +121,9 @@ jobs:
       - name: Validate code registry
         run: uv run tools/validate_registry.py
 
+      - name: Validate unit registry
+        run: uv run tools/validate_unit_registry.py
+
       - name: Test the registry validator
         run: uv run --with jsonschema --with pytest pytest tools/tests -q
 
@@ -127,5 +133,11 @@ jobs:
       - name: Validate frame grammar vectors
         run: uv run tools/validate_frame_vectors.py
 
+      - name: Validate unit vectors
+        run: uv run tools/validate_unit_vectors.py
+
       - name: Validate provenance docs vectors
         run: uv run tools/validate_provenance_docs_vectors.py
+
+      - name: Validate step and description vectors
+        run: uv run tools/validate_descriptions_vectors.py

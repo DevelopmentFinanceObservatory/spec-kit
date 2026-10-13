@@ -1,7 +1,9 @@
 # Compatibility policy for the component-spec family's Python-packaged
 # artifacts: the presentation catalogue bundle in
 # python/dfo-spec-kit-components/ (envelope schema, component schemas, the
-# intent grammar, intents, and fixtures).
+# intent grammar, intents, and fixtures), and the step and description
+# schemas with the operation list in python/descriptions/, which the
+# envelope references by $id.
 #
 # "Released" below means reachable from the most recent git tag on this
 # repo (pattern v*, found the same way `git describe --tags --abbrev=0`
@@ -47,7 +49,7 @@ major = [
   "removing a component member from the envelope schema's closed union (line_chart, stat_card so far)",
   "narrowing a published component schema's already-required field, or removing one",
   "narrowing the intent grammar's already-admitted shape for a published component type: removing a field, or tightening a bound below its published value",
-  "removing a manifest key (encoding_classes, retry_modes, formatter_profile) or narrowing what it enforces",
+  "removing a manifest key (encoding_classes, retry_modes, formatter_profile, referenced_schemas) or narrowing what it enforces",
 ]
 
 minor = [
@@ -60,5 +62,46 @@ minor = [
 
 patch = [
   "a schema description/title/$comment wording change with no shape change",
-  "regenerating manifest.json's digests after a patch-level content change elsewhere in the bundle",
+  "regenerating manifest.json's digests after a patch-level content change elsewhere in the bundle or in a schema referenced_schemas names",
+]
+
+# ---------------------------------------------------------------------------
+# Step records and descriptions (python/descriptions/)
+# ---------------------------------------------------------------------------
+
+[artifacts.descriptions]
+path = "python/descriptions/src/dfo_descriptions/schemas/"
+governed_by = "python/descriptions/README.md"
+description = """
+steps.schema.json, description.schema.json, operations.json and
+operations.schema.json. The envelope references the description schema by
+$id, so a change here is a change to the component-spec family, and the
+catalogue bundle's manifest.json digests steps.schema.json and
+description.schema.json under referenced_schemas, so a change to either
+regenerates that digest. op,
+policy and left_out[].reason are bounded strings in the step schema, so
+operations.json lists the known values and a consumer reads an unknown one
+as a gap. The vector suite beside the schemas pins every rule below.
+"""
+
+immutable_once_released = [
+  "a schema file's own $id, within a major version",
+]
+
+major = [
+  "removing or renaming an op, a policy name or a known left_out reason in operations.json",
+  "tightening a published bound (a maxItems, maxLength, pattern or the MAX_STEPS and MAX_STEPS_BYTES structure bounds)",
+  "making an optional member required, or removing a member",
+  "adding a structure rule to check_steps, or narrowing a closed vocabulary (caveat kinds, describes kinds, what a left_out count counts)",
+]
+
+minor = [
+  "adding an op, a policy name or a known left_out reason to operations.json",
+  "adding an optional member to a schema",
+  "widening a published bound",
+  "adding a vector",
+]
+
+patch = [
+  "a schema description, title or operations.json text change with no shape change",
 ]

@@ -36,7 +36,7 @@ __all__ = [
     "unit_codes",
 ]
 
-_UNIT_TYPE = _unit_type()
+_UNIT_TYPES = (_unit_type(recipe=False), _unit_type(recipe=True))
 _SAME_WIDTH_INT = {16: pa.int16(), 32: pa.int32(), 64: pa.int64()}
 
 
@@ -290,7 +290,7 @@ def collation_keys(values: pa.Array | pa.ChunkedArray) -> tuple[pa.Array, pa.Arr
     if pa.types.is_string(array.type):
         is_null = array_kernel("is_null", array)
         return _rank(is_null), array_kernel("fill_null", array, "")
-    if array.type == _UNIT_TYPE:
+    if array.type in _UNIT_TYPES:
         is_null = array_kernel("is_null", array)
         has_ref, has_request = (
             array_kernel("is_valid", array_kernel("struct_field", array, member))

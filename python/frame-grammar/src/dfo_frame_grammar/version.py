@@ -26,23 +26,25 @@ What each version component means, by the rule this document locks:
 
 - **Major** -- a byte-rule generation change: anything that changes what
   bytes `canonical_frame_bytes` produces for some frame that was already
-  valid under the prior generation, or that changes the closed cell/column
-  shape a `Frame` accepts. `frame1` (`grammar.FRAME_VERSION`) implies major
-  `1`; a hypothetical `frame2` would imply major `2`. Adding a fourth facet
-  axis is a major change taken knowingly: a positional row format has no
-  sparse way to add a column, so the column set changes and every
-  `content_version` rotates through `frame_sha256`.
-- **Minor** -- a change to the document that moves no existing frame's
-  canonical bytes by itself. One kind is additive: the reserved `status`
-  column starting to carry a non-null value under some newly-declared
-  condition. Every frame where that condition never fires stays
-  byte-identical under the new minor version; a frame that does newly
-  exercise the addition sees its bytes move because of what changed in its
-  own data, not because this version number moved. The other kind is a new
-  `content_version` preimage family under a new `identity_version`
-  separator: frame bytes stand still and every token moves, and this
-  version is what tells a token minted under one family from one minted
-  under the next.
+  valid under the prior generation, or that makes such a frame invalid, such
+  as removing or renaming a member of a closed cell or adding a column.
+  `frame1` (`grammar.FRAME_VERSION`) implies major `1`; a hypothetical
+  `frame2` would imply major `2`. Adding a fourth facet axis is a major
+  change taken knowingly: a positional row format has no sparse way to add a
+  column, so the column set changes and every `content_version` rotates
+  through `frame_sha256`.
+- **Minor** -- a change after which every frame valid under the prior
+  version is still valid and has the same canonical bytes. One kind is
+  additive: the grammar accepts something a reader on the prior version
+  refuses, such as the reserved `status` column carrying a non-null value
+  under a newly-declared condition, or a new optional member in a closed
+  cell. A frame that does not use the addition stays byte-identical; a frame
+  that does is new data only a reader on the new version accepts, so every
+  reader takes the new minor version before any producer writes the
+  addition. The other kind is a new `content_version` preimage family under
+  a new `identity_version` separator: frame bytes stand still and every
+  token moves, and this version is what tells a token minted under one
+  family from one minted under the next.
 - **Patch** -- a document-only revision: prose clarification, a worked
   example, a typo fix. Never changes what `canonical_frame_bytes` produces
   for any frame, old or new.
@@ -50,7 +52,10 @@ What each version component means, by the rule this document locks:
 These rules count from the grammar's first release. `1.0.0` includes the
 interval form of `time_period` and the composed form of the `unit` cell,
 and mints `content_version` under `cv1`. `1.1.0` mints it under `cv2`, the
-hash of the frame alone.
+hash of the frame alone, and adds the optional `recipe` member to the unit
+request object, an additive minor change: a cell without `recipe`
+serialises as it did under `1.0.0`, and a reader on `1.0.0` refuses a cell
+that carries one.
 
 What moves this token, and what deliberately does not
 -------------------------------------------------------
