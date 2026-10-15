@@ -1,6 +1,6 @@
 # dfo-spec-kit
 
-The executable form of the platform's shared contracts. It exists so the consumers of these contracts, the Search API in `dfo-apis`, the harness and Analysis MCP in `dfo-ai`, the website, and the docs, share one source of truth instead of hand-maintained mirrors. This repo is not the spec registry nor the op-spec schema.
+The executable form of the platform's shared contracts. It exists so the consumers of these contracts, the Search API in `apis`, the harness and Analysis MCP in `ai`, the website, and the docs, share one source of truth instead of hand-maintained mirrors. This repo is not the spec registry nor the op-spec schema.
 
 The target design (repository shape, artifact families, versioning, governance, and delivery sequence) lives in the kit design, maintained outside this repo. This README only orients. That document is authoritative.
 
@@ -23,27 +23,27 @@ The Python distributions live at `python/spec-kit/`, `python/frame-grammar/`, `p
 Publishing is undecided: no registry workflow exists for any package. Until that's resolved, install a Python package as a git dependency pinned to one commit, e.g.
 
 ```bash
-uv add "git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/spec-kit"
-uv add "git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/frame-grammar"
-uv add "git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/dfo-spec-kit-components"
-uv add "git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/provenance-docs"
-uv add "git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/descriptions"
+uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/spec-kit"
+uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/frame-grammar"
+uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/dfo-spec-kit-components"
+uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/provenance-docs"
+uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/descriptions"
 ```
 
 A package's metadata names its intra-repo dependency by distribution name alone, and no index serves these distributions. uv reads the path source in `[tool.uv.sources]` and resolves the dependency from the same checkout, so `uv add` of `frame-grammar` or `dfo-spec-kit-components` alone installs `dfo-spec-kit` or `dfo-spec-kit-descriptions` at that commit. Every other installer reads the bare name and fails, so name both distributions at the same commit:
 
 ```bash
 pip install \
-  "dfo-spec-kit-components @ git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/dfo-spec-kit-components" \
-  "dfo-spec-kit-descriptions @ git+https://github.com/ONEcampaign/dfo-spec-kit@<rev>#subdirectory=python/descriptions"
+  "dfo-spec-kit-components @ git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/dfo-spec-kit-components" \
+  "dfo-spec-kit-descriptions @ git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/descriptions"
 ```
 
-A uv project pins each kit distribution it imports in its own `[tool.uv.sources]`, every entry at the same `rev`, as `dfo-apis` pins `dfo-spec-kit-components` and `dfo-spec-kit-frame-grammar`:
+A uv project pins each kit distribution it imports in its own `[tool.uv.sources]`, every entry at the same `rev`, as `apis` pins `dfo-spec-kit-components` and `dfo-spec-kit-frame-grammar`:
 
 ```toml
 [tool.uv.sources]
-dfo-spec-kit-components = { git = "https://github.com/ONEcampaign/dfo-spec-kit.git", rev = "<rev>", subdirectory = "python/dfo-spec-kit-components" }
-dfo-spec-kit-descriptions = { git = "https://github.com/ONEcampaign/dfo-spec-kit.git", rev = "<rev>", subdirectory = "python/descriptions" }
+dfo-spec-kit-components = { git = "https://github.com/DevelopmentFinanceObservatory/spec-kit.git", rev = "<rev>", subdirectory = "python/dfo-spec-kit-components" }
+dfo-spec-kit-descriptions = { git = "https://github.com/DevelopmentFinanceObservatory/spec-kit.git", rev = "<rev>", subdirectory = "python/descriptions" }
 ```
 
 ## Layout

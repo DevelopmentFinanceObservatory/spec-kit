@@ -179,4 +179,4 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `x_axis` and `y_axis`. `schema_version` stays 1; a consuming service's own
   migration rewrites its stored `bar_chart` payloads to the new key names.
 
-[unreleased]: https://github.com/ONEcampaign/dfo-spec-kit/commits/main/python
+[unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python
