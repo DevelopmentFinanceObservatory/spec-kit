@@ -116,7 +116,7 @@ The size bound is on the stored list and `check_steps` checks it where the list 
 
 ## Operations
 
-`operations.json` lists, for each operation, its kind, whether it takes one input, inputs by role or none, its one fixed policy, the rule for the unit it produces, the coverage it records, and the data gaps it can leave out with what each counts. The analysis operations carry the policy names and exclusion reasons dfo-ai's analysis engine already uses.
+`operations.json` lists, for each operation, its kind, whether it takes one input, inputs by role or none, its one fixed policy, the rule for the unit it produces, the coverage it records, and the data gaps it can leave out with what each counts. The analysis operations carry the policy names and exclusion reasons the `ai` repo's analysis engine already uses.
 
 | `op`              | Kind            | Inputs                     | Policy                              | Unit                                  | Coverage   | Known `left_out` reasons                                                               |
 | ----------------- | --------------- | -------------------------- | ----------------------------------- | ------------------------------------- | ---------- | -------------------------------------------------------------------------------------- |

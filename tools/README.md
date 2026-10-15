@@ -1,6 +1,6 @@
 # tools
 
-Codegen and drift-check scripts (e.g. exporting `schemas/` from the pydantic models, checking generated artifacts against their committed source).
+Validators for the registries and the conformance vector suites. Each script checks committed JSON against its schema and against the rules the schema cannot express. None of them generates files or imports the package whose vectors it checks. Their tests are in `tools/tests`.
 
 `validate_registry.py` validates `registries/codes.json` against `schemas/registry/code-registry.schema.json` (which enforces field shapes, the lower-snake-case code pattern, and the closed endpoint/door/channel vocabulary documented in `schemas/registry/README.md`) and checks what a JSON Schema cannot express on its own: code uniqueness, sort order, and classification/channel consistency. It is a PEP 723 script. Run it with:
 
@@ -18,6 +18,12 @@ uv run tools/validate_unit_registry.py
 
 ```bash
 uv run tools/validate_vectors.py
+```
+
+`validate_frame_vectors.py` validates every file under `python/frame-grammar/src/dfo_frame_grammar/vectors/frame/` against `frame-vector.schema.json` beside them, and checks what the schema cannot express: file names match names, names are unique, the suite meets its floor, both classifications are non-empty, vectors over one frame digest share one token and vectors over different digests mint different tokens, and every positive vector's stored bytes, digests and `content_version` are self-consistent. It never imports `dfo_frame_grammar`. `python/frame-grammar/tests/test_vectors.py` drives the real implementation. Also a PEP 723 script:
+
+```bash
+uv run tools/validate_frame_vectors.py
 ```
 
 `validate_provenance_docs_vectors.py` validates every vector under `python/provenance-docs/src/dfo_provenance_docs/vectors/` against `provenance-docs-vector.schema.json` beside them, and checks what the schema cannot express: file names match ids, ids are unique, the suite meets its floor, every reason in the schema's vocabulary has a rejection vector, and every function has an accepting vector. It does not import `dfo_provenance_docs`. Also a PEP 723 script:
@@ -38,4 +44,4 @@ uv run tools/validate_descriptions_vectors.py
 uv run tools/validate_unit_vectors.py
 ```
 
-CI runs every validator on every push and pull request against `main` (see `.github/workflows/ci.yml`'s `registry` job).
+The `registry` job in `.github/workflows/ci.yml` runs all of them and `pytest tools/tests`. It runs on every pull request into `dev` or `main` and on every push to either branch. A draft pull request runs no jobs until it is marked ready for review.
