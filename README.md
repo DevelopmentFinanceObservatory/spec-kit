@@ -1,26 +1,52 @@
-# dfo-spec-kit
+# DFO spec kit
 
-The executable form of the platform's shared contracts. It exists so the consumers of these contracts, the Search API in `apis`, the harness and Analysis MCP in `ai`, the website, and the docs, share one source of truth instead of hand-maintained mirrors. This repo is not the spec registry nor the op-spec schema.
+The spec kit holds the shared data contracts of the Development Finance Observatory as JSON schemas, registries, conformance vectors, and Python packages that implement them. Services that must agree on the same bytes, ids, and document formats import them from here instead of keeping their own copies.
 
-The target design (repository shape, artifact families, versioning, governance, and delivery sequence) lives in the kit design, maintained outside this repo. This README only orients. That document is authoritative.
+It is part of the [Development Finance Observatory](https://github.com/DevelopmentFinanceObservatory), an initiative of [ONE Data](https://data.one.org) built on [Google Data Commons](https://datacommons.org). The org profile has the map of all repositories. The services that consume the kit are `apis` (the Search API), `ai` (the harness and Analysis MCP), `website`, and `docs`.
 
-## Two schema families
+This repository is under active development. Interfaces, schemas, and data may change without notice.
 
-The kit carries two schema families.
+## What the kit is for
 
-The **dataset-spec family** (spec models, identity projection, JCS canonicalisation, SHA-256 hashing) is Python-first. The behaviour lives in Python, and JSON Schema is exported from the pydantic models.
+Each contract answers one question that two or more services must answer identically.
 
-The **component-spec family** (the presentation catalogue, composition schema, operation union) is TypeScript-first. Zod v4 is the author and validator, and generated artifacts (TS prop types, Pydantic models, tool metadata) are frozen and checked for drift. Each family is authored in the language where its behaviour lives. Committed JSON Schema is the neutral frozen centre between them, held together by cross-language conformance fixtures.
+- Which dataset is this request asking for? A dataset spec is reduced to a canonical form and hashed into a `spec_id`, so every service mints the same id for the same request.
+- Has this table of observations changed? A materialised frame is serialised to canonical bytes and hashed into a `content_version`.
+- How do units compare? A unit ref reads as a typed value (money with a currency and price basis, a percent, a count), and refuses comparisons that would mix price bases.
+- What does a card or chart look like on the wire? A catalogue of JSON schemas describes each presentation component.
+- How is a result documented? Step records and descriptions say what was done to a result, and provenance documents carry transformations, changelogs, and methodology.
 
-## Status
+Every contract ships with conformance vectors, language-neutral fixtures that any implementation, in any language, can run against. Where prose and vectors disagree, the vectors win.
 
-Five Python distributions exist so far. `python/spec-kit/` (`dfo-spec-kit`, import `dfo_spec_kit`): `identity/` implements the spec1 identity scheme (role-slot projection, JCS canonicalisation, SHA-256 `spec_id` minting), conformance-tested against the vector suite. `units/` reads a unit ref into a typed value (`Money`, `UnpricedMoney`, `Percent`, `Count` or `Other`) from `registries/units.json`, conformance-tested against `vectors/units/`. Money whose ref leaves prices unstated cannot be compared until `complete_prices` applies the StatVar's measurement qualifier, and constant-price money with no base year cannot be compared at all. `models/` has no code yet; model extraction comes next. `python/frame-grammar/` (`dfo-spec-kit-frame-grammar`, import `dfo_frame_grammar`): the frame grammar's executable form -- canonical frame bytes and `content_version` minting for a materialised observation table -- conformance-tested against its own vector suite, and depending on `dfo-spec-kit` for the identity canonicalisation primitives it reuses. `python/dfo-spec-kit-components/` (`dfo-spec-kit-components`, import `dfo_spec_kit_components`): the presentation contract bundle as package data, holding the envelope schema, the per-member component schemas, the write-side intent grammar, and their conformance fixtures. Generated Pydantic models for the catalogue land in this same package once the catalogue freezes. `python/provenance-docs/` (`dfo-spec-kit-provenance-docs`, import `dfo_provenance_docs`): the provenance documentation grammar, which decodes the escaped Markdown documents a Provenance node carries and parses the transformations, changelog, methodology and notes templates, conformance-tested against its own vector suite. `python/descriptions/` (`dfo-spec-kit-descriptions`, import `dfo_descriptions`): the step records and descriptions contract, holding the step schema, the operation list, the description schema and a check of the structure rules a step list must meet beyond its schema, conformance-tested against its own vector suite.
+## Packages
 
-The Python distributions live at `python/spec-kit/`, `python/frame-grammar/`, `python/dfo-spec-kit-components/`, `python/provenance-docs/`, and `python/descriptions/`, each its own installable unit with its own version and dependency surface. A TypeScript package (`ts/`) opens only when the component catalogue freeze lands.
+Five Python distributions live under `python/`. Each has its own version, dependencies, tests, and README. All need Python 3.12 or later.
 
-`dfo-spec-kit-frame-grammar` depends on `dfo-spec-kit` as an intra-repo path source rather than a git dependency, so the two packages develop together in this repo: a change to identity canonicalisation and a change here that depends on it land in the same commit. `dfo-spec-kit-components` depends on `dfo-spec-kit-descriptions` as an intra-repo path source, because the envelope's `description` references `description.schema.json` by its `$id`. A consumer pins both distributions at one revision. Its catalogue bundle is static data plus one accessor function, `bundle_dir()`. `dfo-spec-kit-provenance-docs` also stands alone, depending on `markdown-it-py` only. `dfo-spec-kit-descriptions` depends on `rfc8785` only.
+| Distribution                   | Import name               | What it does                                                                                                              |
+| ------------------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `dfo-spec-kit`                 | `dfo_spec_kit`            | Dataset-spec identity (canonical form, `spec_id`) and typed units read from `registries/units.json`.                      |
+| `dfo-spec-kit-frame-grammar`   | `dfo_frame_grammar`       | Canonical frame bytes and `content_version` for a materialised observation table.                                         |
+| `dfo-spec-kit-components`      | `dfo_spec_kit_components` | The presentation catalogue: envelope and component schemas, the write-side intent grammar, and fixtures, as package data. |
+| `dfo-spec-kit-provenance-docs` | `dfo_provenance_docs`     | Decoder and parsers for the Markdown documents a Provenance node carries.                                                 |
+| `dfo-spec-kit-descriptions`    | `dfo_descriptions`        | Step and description schemas, the operation list, and a check of the rules a step list must meet.                         |
 
-Publishing is undecided: no registry workflow exists for any package. Until that's resolved, install a Python package as a git dependency pinned to one commit, e.g.
+`dfo-spec-kit-frame-grammar` depends on `dfo-spec-kit`. `dfo-spec-kit-components` depends on `dfo-spec-kit-descriptions`. The other three have no dependency inside the kit.
+
+## What's inside
+
+```text
+docs/         normative specifications: identity-v1.md, frame-grammar-v1.md, and maintainer notes
+policies/     compatibility policy per artifact family
+python/       the five packages
+registries/   codes.json (warning and refusal codes) and units.json (unit refs)
+schemas/      JSON Schema for the registries and the vector suites
+tools/        validators for the registries and vector suites
+vectors/      cross-language conformance vectors for identity and units
+```
+
+## Getting started
+
+No package is published to PyPI. Install from git, pinned to one commit. Replace `<rev>` with a commit SHA from this repository.
 
 ```bash
 uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/spec-kit"
@@ -30,7 +56,7 @@ uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subd
 uv add "git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/descriptions"
 ```
 
-A package's metadata names its intra-repo dependency by distribution name alone, and no index serves these distributions. uv reads the path source in `[tool.uv.sources]` and resolves the dependency from the same checkout, so `uv add` of `frame-grammar` or `dfo-spec-kit-components` alone installs `dfo-spec-kit` or `dfo-spec-kit-descriptions` at that commit. Every other installer reads the bare name and fails, so name both distributions at the same commit:
+A package declares its kit dependency by name only. uv resolves it from the same commit through a path source in the package's `[tool.uv.sources]`, so `uv add` of `frame-grammar` also installs `dfo-spec-kit`. Other installers read the bare name and fail, so with pip name both distributions at the same commit:
 
 ```bash
 pip install \
@@ -38,7 +64,7 @@ pip install \
   "dfo-spec-kit-descriptions @ git+https://github.com/DevelopmentFinanceObservatory/spec-kit@<rev>#subdirectory=python/descriptions"
 ```
 
-A uv project pins each kit distribution it imports in its own `[tool.uv.sources]`, every entry at the same `rev`, as `apis` pins `dfo-spec-kit-components` and `dfo-spec-kit-frame-grammar`:
+A uv project that imports more than one kit distribution pins each in its own `[tool.uv.sources]`, every entry at the same `rev`:
 
 ```toml
 [tool.uv.sources]
@@ -46,28 +72,20 @@ dfo-spec-kit-components = { git = "https://github.com/DevelopmentFinanceObservat
 dfo-spec-kit-descriptions = { git = "https://github.com/DevelopmentFinanceObservatory/spec-kit.git", rev = "<rev>", subdirectory = "python/descriptions" }
 ```
 
-## Layout
+The kit needs no access to ONE's Google Cloud project. Everything here installs, runs, and tests locally.
 
-```
-dfo-spec-kit/
-├── docs/frame-grammar-v1.md          # the normative frame grammar / content_version specification
-├── docs/identity-v1.md               # the normative identity binding-state denotation specification
-├── schemas/registry/                 # JSON Schema for the code registry
-├── schemas/spec/                     # frozen JSON Schema exported from the pydantic models
-├── schemas/vectors/                  # record schemas + docs for the identity and unit vector suites
-├── registries/codes.json             # the seeded warning/refusal code registry
-├── registries/units.json             # the unit refs dfo_spec_kit.units types, its currency prefixes and codes
-├── vectors/identity/                 # cross-language identity conformance fixtures
-├── vectors/units/                    # cross-language typed-unit conformance fixtures
-├── python/spec-kit/                  # the dfo-spec-kit package (import dfo_spec_kit)
-├── python/frame-grammar/             # the dfo-spec-kit-frame-grammar package (import dfo_frame_grammar),
-│                                      # its own frame grammar vector suite shipped as package data
-├── python/dfo-spec-kit-components/   # the dfo-spec-kit-components package (import dfo_spec_kit_components),
-│                                      # the presentation catalogue bundle shipped as package data
-├── python/provenance-docs/           # the dfo-spec-kit-provenance-docs package (import dfo_provenance_docs),
-│                                      # the provenance documentation grammar and its vector suite as package data
-├── python/descriptions/              # the dfo-spec-kit-descriptions package (import dfo_descriptions),
-│                                      # the step and description schemas, the operation list and their vector suite as package data
-├── policies/                         # compatibility policy per artifact family
-└── tools/                            # codegen + drift-check scripts, including the registry and vector validators
-```
+## Documentation
+
+- [docs/identity-v1.md](docs/identity-v1.md) specifies what a spec identity's bindings denote.
+- [docs/frame-grammar-v1.md](docs/frame-grammar-v1.md) specifies the frame byte grammar and `content_version`.
+- Each package README under `python/` documents that package's API and vector suite.
+- [policies/](policies/README.md) states which change to which artifact needs which version bump.
+- [docs/development.md](docs/development.md) holds maintainer notes.
+
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
