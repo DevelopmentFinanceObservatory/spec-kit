@@ -55,6 +55,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that shares its StatVar with other codes of the same source, where the graph
   does not record what separates them, raises the third, naming the codes
   that share the variable. The retired `code_ambiguous` is unchanged.
+- Code `whole_total_available` in `registries/codes.json` and its bundled
+  mirror: a `search.resolve` warning on the raw_text, parsed and
+  dataset_resubmit doors. It flags an answer that lists each member of a flow
+  side whose dataset publishes the total of that side's whole population for
+  the answer's years ("Official Donors, Total" in DAC2a and DAC2b, "All
+  Recipients, Total" in DAC2a from 1984), so a sum of the listed members can
+  differ from the published figure. Its params name the total (`total`,
+  `total_label`) and the kinds of party it holds (`whole_of`, comma-joined).
 
 ### Changed
 

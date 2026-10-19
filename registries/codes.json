@@ -5040,6 +5040,26 @@
       "lifecycle": "active"
     },
     {
+      "code": "whole_total_available",
+      "classification": "warning",
+      "definition": "The answer lists each member of a flow side whose dataset publishes the total of that side's whole population for the answer's years, so a sum of the listed members can differ from the published figure. The params name the total (total, total_label) and the kinds of party it holds (whole_of, comma-joined).",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "withheld_by_registry",
       "classification": "warning",
       "definition": "A series came back empty because every facet for it sits under a provenance the origin registry does not admit; the warning names those provenances.",
