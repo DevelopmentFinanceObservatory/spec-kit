@@ -299,9 +299,10 @@ reason = "bundled-data"
 
 # --- dfo_spec_kit.models -----------------------------------------------
 # The spec1 identity-core document and the canonical definition wrapping
-# it. Extracted from dfo-apis's Search engine; the extraction commit is the
-# provenance. Nothing display-shaped belongs here: a symbol carrying a
-# graph-read label or a human-facing name is engine surface, not identity.
+# it. Extracted from the `apis` repo's Search engine. The extraction
+# commit is the provenance. Nothing display-shaped belongs here. A symbol
+# carrying a graph-read label or a human-facing name is engine surface, not
+# identity.
 [[export]]
 name = "BaseIdentity"
 module = "dfo_spec_kit.models"
@@ -417,7 +418,7 @@ boundary, and their absence is a decision rather than an oversight.
 - **The resubmit edit input.** Its slots are the engine's display shape,
   which carries graph-read labels and human-facing names. It also has a
   reshape already planned — see rows C13, C14 and C18 of
-  `dfo-apis:docs/conformance-search-api-v1.md`.
+  `docs/conformance-search-api-v1.md` in the `apis` repo.
 - **The resolved-spec response payload.** One surface produces it, no
   surface outside that one consumes it, and it reuses the same
   display-shaped types as the edit input.

@@ -66,6 +66,13 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The `$id` of `schemas/registry/code-registry.schema.json`,
+  `schemas/registry/unit-registry.schema.json`,
+  `schemas/vectors/identity-vector.schema.json` and
+  `schemas/vectors/unit-vector.schema.json` now sits under
+  `https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/`,
+  with each file's path unchanged. The previous prefix named a private
+  repository and did not resolve.
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.
