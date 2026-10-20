@@ -35,9 +35,12 @@ document validates against its schema, then what the schemas cannot express:
   code registered with that status.
 - Each scenario's `expect` equals the outcomes its steps reach over its
   exchanges, with error classes and gap kinds from `actions.json`, as
-  `expected_outcomes` derives them; a dataset's rows and columns are left to
-  the Parquet bodies. Every absolute URL a record holds, a `url` request or a
-  `location` header, has the query `X-Goog-Signature=redacted`.
+  `expected_outcomes` derives them; a dataset's rows, columns and per-part
+  row counts are left to the Parquet bodies. Each Search request a record
+  holds posts the input the steps derive: the question, a choice's
+  data_query or dataset_resubmit entries, or a member's identity. Every
+  absolute URL a record holds, a `url` request or a `location` header, has
+  the query `X-Goog-Signature=redacted`.
 - Each ref example's file name matches its `name` and gets the verdict it
   states: from `dataset-ref.schema.json`, then from the rules that each
   member's definition carries its own `spec_id` and that members hold
@@ -74,7 +77,13 @@ REGISTRY_PATH = REPO_ROOT / "registries" / "codes.json"
 _OPENAPI_URI = "urn:dfo-client-contract:served-openapi"
 _ACTION_CHANNELS = {"problem_details", "no_data_reason"}
 _ANSWER_ONLY_ACTIONS = {"choose", "ask_data_question"}
-_ACTS_ON_PREVIOUS = {"choose": {"search", "choose"}, "result": {"mint"}}
+# The steps each step that acts on an earlier result may follow. A fetch of the
+# answer acts on the last search or choice, so it may follow another such fetch.
+_ACTS_ON_PREVIOUS = {
+    "choose": {"search", "choose"},
+    "fetch_answer": {"search", "choose", "fetch_answer"},
+    "result": {"mint"},
+}
 _STRICT_POINTER = re.compile(r"^/components/schemas/([^/]+)/properties/([^/]+)$")
 
 
@@ -551,6 +560,22 @@ def error_outcome(error: str, code: str | None = None) -> dict[str, Any]:
     return {"error": {"class": error, "code": code}}
 
 
+class ClientError(Exception):
+    """A step ends in `outcome`, an error a client raises."""
+
+    def __init__(self, error: str, code: str | None = None) -> None:
+        super().__init__(f"{error} {code}")
+        self.outcome = error_outcome(error, code)
+
+
+# The answer kinds a client reads. Any other kind raises ContractError.
+ANSWER_KINDS = ("resolution", "catalogue", "declined")
+# The variable text an identity resubmit sends for a member no answer part names.
+UNNAMED_VARIABLE_TEXT = "dataset"
+# The warning severities a fetch reports in its SearchWarning; `info` stays quiet.
+SHOWN_SEVERITIES = ("warn", "degraded")
+
+
 @dataclass(frozen=True, slots=True)
 class Answer:
     """A search answer as a client holds it: the response body, its parts,
@@ -563,24 +588,218 @@ class Answer:
 
 
 def answer_from_body(body: dict[str, Any]) -> Answer:
+    """The answer a search response holds; a kind no client knows raises
+    ContractError."""
+    if body.get("kind") not in ANSWER_KINDS:
+        raise ClientError("ContractError")
     return Answer(
         body, body.get("parts", []), body.get("rendered_sentence"), body.get("status")
     )
 
 
-def candidate_answer(answer: Answer, part: int, candidate: int) -> Answer:
+def candidate_answer(answer: Answer, part: int, spec: dict[str, Any]) -> Answer:
     """The answer a choice among one part's candidates makes with no request:
-    that part definite on the chosen spec, with that spec's sentence."""
+    that part definite on the chosen spec, keeping its other members, with
+    that spec's sentence."""
     chosen = answer.parts[part]
-    spec = chosen["candidates"]["specs"][candidate]
     definite = {
+        **{k: v for k, v in chosen.items() if k != "candidates"},
         "status": "definite",
-        "variable_text": chosen["variable_text"],
         "spec": spec,
     }
     return Answer(
         answer.body, [definite], spec["resolved"]["rendered_sentence"], "definite"
     )
+
+
+# --- choices ----------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class Choice:
+    """What a choose step settles: the part's index, and the chosen candidate
+    spec or no_data option."""
+
+    part: int
+    candidate: dict[str, Any] | None = None
+    option: dict[str, Any] | None = None
+
+
+def _refuse() -> ClientError:
+    return ClientError("InvalidRequestError")
+
+
+def choice_for(
+    answer: Answer, kinds: Mapping[str, str], part: int | str | None, option: int | str
+) -> Choice:
+    """The part and option a choose step names, or InvalidRequestError.
+
+    With no part named, exactly one gap must await a choice: a `choice` gap,
+    or any gap with options. A part is named by its index, its variable text,
+    or a word that one gap's options mention, and must be a gap. A
+    candidates part's options are its candidates, chosen by index; any other
+    gap's are its no_data options, chosen by index or label, a label scoped to
+    the options that mention the word the part was named by."""
+    gaps = answer_gaps(answer, kinds)
+    gap_parts = {gap["part"] for gap in gaps}
+    mention = None
+    if part is None:
+        waiting = [g["part"] for g in gaps if g["kind"] == "choice" or g["options"]]
+        if len(waiting) != 1:
+            raise _refuse()
+        index = waiting[0]
+    elif isinstance(part, int):
+        index = part
+    else:
+        named = [
+            i for i, p in enumerate(answer.parts) if p.get("variable_text") == part
+        ]
+        if not named:
+            mention = part
+            named = [
+                i
+                for i in sorted(gap_parts)
+                if any(part in o.get("mentions", []) for o in _options(answer, i))
+            ]
+        if len(named) != 1:
+            raise _refuse()
+        index = named[0]
+    if index not in gap_parts:
+        raise _refuse()
+
+    chosen = answer.parts[index]
+    if chosen.get("status") == "candidates":
+        specs = chosen["candidates"]["specs"]
+        if not isinstance(option, int):
+            raise _UnfitError("candidates are chosen by index")
+        if not 0 <= option < len(specs):
+            raise _refuse()
+        return Choice(index, candidate=specs[option])
+    options = _options(answer, index)
+    if isinstance(option, int):
+        found = [options[option]] if 0 <= option < len(options) else []
+    else:
+        found = [
+            o
+            for o in options
+            if o.get("label") == option
+            and (mention is None or mention in o.get("mentions", []))
+        ]
+    if len(found) != 1:
+        raise _refuse()
+    return Choice(index, option=found[0])
+
+
+def _options(answer: Answer, index: int) -> list[dict[str, Any]]:
+    return answer.parts[index].get("no_data", {}).get("options", [])
+
+
+def choice_input(answer: Answer, choice: Choice) -> dict[str, Any] | None:
+    """The Search input a choice posts, or None for a choice among one part's
+    candidates, which makes no request. In a one-part answer an option posts
+    its data_query; in a several-part answer the choice posts
+    dataset_resubmit with one entry per part, in part order."""
+    if len(answer.parts) == 1:
+        if choice.option is None:
+            return None
+        return choice.option["data_query"]
+    entries = [
+        resubmit_entry(part, choice if index == choice.part else None)
+        for index, part in enumerate(answer.parts)
+    ]
+    return {"kind": "dataset_resubmit", "entries": entries}
+
+
+def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any]:
+    """One part's dataset_resubmit entry. The chosen candidate posts its
+    identity and the chosen option its one parsed part. Otherwise a definite
+    part posts its spec's identity, a candidates part its candidate set in the
+    server's order with its ordering and truncated echoed, and any other part
+    its restatement as a parsed entry, or a placeholder when it has none."""
+    if choice is not None and choice.candidate is not None:
+        return _echo(part, entry_kind="identity", **_identity(choice.candidate))
+    if choice is not None and choice.option is not None:
+        parts = choice.option["data_query"].get("parts")
+        if not isinstance(parts, list) or len(parts) != 1:
+            raise ClientError("ContractError")
+        return {"entry_kind": "parsed", "part": parts[0]}
+    match part.get("status"):
+        case "definite":
+            return _echo(part, entry_kind="identity", **_identity(part["spec"]))
+        case "candidates":
+            candidates = part["candidates"]
+            return _echo(
+                part,
+                entry_kind="candidates",
+                ordering=candidates.get("ordering"),
+                truncated=candidates.get("truncated") is True,
+                candidates=[_identity(spec) for spec in candidates["specs"]],
+            )
+    return _restated_entry(part)
+
+
+def _restated_entry(part: dict[str, Any]) -> dict[str, Any]:
+    """A part without a reading: its restatement as a parsed entry, else a
+    placeholder of its no_data reason or unsupported code. A part of unknown
+    status without a restatement cannot be posted back."""
+    if isinstance(part.get("restatement"), dict):
+        return {"entry_kind": "parsed", "part": part["restatement"]}
+    match part.get("status"):
+        case "no_data":
+            reason = part["no_data"]["reason"]
+            return _echo(
+                part, entry_kind="placeholder", status="no_data", reason=reason
+            )
+        case "unsupported":
+            code = part["unsupported"]["code"]
+            return _echo(
+                part, entry_kind="placeholder", status="unsupported", code=code
+            )
+    raise _refuse()
+
+
+def _identity(spec: dict[str, Any]) -> dict[str, Any]:
+    """A spec's identity, and its entity groups when it has any."""
+    item: dict[str, Any] = {"identity": spec["definition"]["identity"]}
+    groups = spec.get("resolved", {}).get("entity_groups")
+    if groups:
+        item["entity_groups"] = groups
+    return item
+
+
+def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
+    """An entry with the members every entry but a parsed one echoes from its
+    part: variable_text, separate when true, and operations when any."""
+    if not part.get("variable_text"):
+        raise _refuse()
+    entry: dict[str, Any] = {**members, "variable_text": part["variable_text"]}
+    if part.get("separate") is True:
+        entry["separate"] = True
+    if part.get("operations"):
+        entry["operations"] = part["operations"]
+    return entry
+
+
+def search_warns(answer: Answer) -> bool:
+    """Whether fetching `answer` issues a SearchWarning: a definite part has
+    an operation Search did not run, a departure, or a warning shown at
+    `warn` or `degraded` severity, or the answer's diagnostics carry such a
+    warning. An `info` warning issues nothing."""
+
+    def shown(warnings: Any) -> bool:
+        return any(
+            w.get("severity") in SHOWN_SEVERITIES and w.get("message")
+            for w in warnings or []
+        )
+
+    for part in answer.parts:
+        if part.get("status") != "definite":
+            continue
+        if part.get("operations") or part.get("departures"):
+            return True
+        if shown(part.get("warnings")):
+            return True
+    return shown(answer.body.get("diagnostics", {}).get("warnings"))
 
 
 def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]]:
@@ -637,12 +856,23 @@ def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
     return {"answer": outcome}
 
 
+def part_label(member: Mapping[str, Any]) -> str:
+    """The `part` column's value on a member's rows in a dataset of several
+    members: the member's parts joined by `; `, or its sentence when it
+    answers no part."""
+    return "; ".join(member["parts"]) or member["sentence"]
+
+
 def dataset_summary(
-    members: Sequence[Mapping[str, Any]], missing: Sequence[Mapping[str, Any]]
+    members: Sequence[Mapping[str, Any]],
+    missing: Sequence[Mapping[str, Any]],
+    *,
+    search_warning: bool | None = None,
 ) -> dict[str, Any]:
-    """A dataset outcome's members and gaps, without the rows and columns the
-    Parquet bodies hold."""
-    return {
+    """A dataset outcome's members and gaps, and for a fetch of an answer
+    whether it issued a SearchWarning, without the rows, columns and per-part
+    row counts the Parquet bodies hold."""
+    summary: dict[str, Any] = {
         "complete": not missing,
         "members": [
             {
@@ -655,6 +885,9 @@ def dataset_summary(
         ],
         "missing": [{"part": gap["part"], "kind": gap["kind"]} for gap in missing],
     }
+    if search_warning is not None:
+        summary["search_warning"] = search_warning
+    return summary
 
 
 def _strict_members(strict: dict[str, Any]) -> dict[str, list[str]]:
@@ -721,14 +954,6 @@ def strict_gaps(
                 strict_gaps(openapi, members, schema["items"], item, f"{where}/{index}")
             )
     return gaps
-
-
-class _StepEndedError(Exception):
-    """A step ends in `outcome`, an error a client raises."""
-
-    def __init__(self, outcome: dict[str, Any]) -> None:
-        super().__init__(outcome)
-        self.outcome = outcome
 
 
 class _UnfitError(Exception):
@@ -799,7 +1024,7 @@ class _Replay:
         if response["status"] >= 400:
             code = refusal_code(body)
             error = error_class(response["status"], code, self.actions)
-            raise _StepEndedError(error_outcome(error, code))
+            raise ClientError(error, code)
         schema = self.routes.response_schema(
             self.base_path, exchange["request"], response["status"]
         )
@@ -808,7 +1033,7 @@ class _Replay:
 
     def strict(self, schema: Any, body: Any) -> None:
         if strict_gaps(self.routes.openapi, self.members, schema, body):
-            raise _StepEndedError(error_outcome("ContractError"))
+            raise ClientError("ContractError")
 
     def download(self) -> None:
         """The files route, then its signed URL; a refused signed URL asks the
@@ -818,8 +1043,17 @@ class _Replay:
             if self.call("GET", "url")["response"]["status"] < 400:
                 return
 
-    def resolve(self) -> Answer:
-        return answer_from_body(self.acted_on(self.call(*_SEARCH)))
+    def resolve(self, posts: dict[str, Any]) -> Answer:
+        """A Search request whose recorded body, when it has one, posts the
+        input `posts`."""
+        exchange = self.call(*_SEARCH)
+        sent = exchange["request"].get("json")
+        if sent is not None and sent.get("input") != posts:
+            raise _UnfitError(
+                f"exchange {self.cursor - 1} posts {json.dumps(sent.get('input'))[:300]}"
+                f", where the rules post {json.dumps(posts)[:300]}"
+            )
+        return answer_from_body(self.acted_on(exchange))
 
     def wait(self, operation: dict[str, Any]) -> dict[str, Any]:
         """Polls until the operation is done. The done resource's manifest is
@@ -829,7 +1063,7 @@ class _Replay:
             resource = self.acted_on(self.call(*_POLL))
             operation, manifest = resource["operation"], resource.get("manifest")
         if not isinstance(manifest, dict):
-            raise _StepEndedError(error_outcome("ContractError"))
+            raise ClientError("ContractError")
         self.strict(_MANIFEST, manifest)
         return manifest
 
@@ -847,7 +1081,14 @@ class _Replay:
         built = manifest["definition"]["spec_id"]
         sentence = spec.get("sentence")
         if built != spec["spec_id"] or sentence is None:
-            (part,) = self.resolve().parts
+            entry = {
+                "entry_kind": "identity",
+                "variable_text": parts[0] if parts else UNNAMED_VARIABLE_TEXT,
+                "identity": manifest["definition"]["identity"],
+            }
+            (part,) = self.resolve(
+                {"kind": "dataset_resubmit", "entries": [entry]}
+            ).parts
             sentence = part["spec"]["resolved"]["rendered_sentence"]
         self.download()
         return {
@@ -868,7 +1109,7 @@ class _Replay:
             )
         try:
             return getattr(self, f"_{op}")(step)
-        except _StepEndedError as ended:
+        except ClientError as ended:
             if op in {"search", "choose"}:
                 self.answer = None
             return ended.outcome
@@ -879,36 +1120,38 @@ class _Replay:
         return self.answer
 
     def _search(self, step: dict[str, Any]) -> dict[str, Any]:
-        self.answer = self.resolve()
+        self.answer = self.resolve({"kind": "raw_text", "query": step["question"]})
         return answer_outcome(self.answer, self.kinds)
 
     def _choose(self, step: dict[str, Any]) -> dict[str, Any]:
         answer = self._answered()
-        part, option = step.get("part"), step["option"]
-        if isinstance(part, str):
-            part = next(
-                i for i, p in enumerate(answer.parts) if p.get("variable_text") == part
-            )
-        index = answer_gaps(answer, self.kinds)[0]["part"] if part is None else part
-        chosen = answer.parts[index]
-        if chosen.get("status") == "candidates" and len(answer.parts) == 1:
-            if not isinstance(option, int):
-                raise _UnfitError("candidates are chosen by index")
-            self.answer = candidate_answer(answer, index, option)
+        choice = choice_for(answer, self.kinds, step.get("part"), step["option"])
+        posts = choice_input(answer, choice)
+        if posts is not None:
+            chosen = self.resolve(posts)
+        elif choice.candidate is not None:
+            chosen = candidate_answer(answer, choice.part, choice.candidate)
         else:
-            options = chosen.get("no_data", {}).get("options", [])
-            if not any(option in (i, o.get("label")) for i, o in enumerate(options)):
-                raise _StepEndedError(error_outcome("InvalidRequestError"))
-            self.answer = self.resolve()
-        return answer_outcome(self.answer, self.kinds)
+            raise _UnfitError("a choice posts unless it picks a candidate")
+        self.answer = chosen
+        return answer_outcome(chosen, self.kinds)
 
     def _fetch(self, step: dict[str, Any]) -> dict[str, Any]:
+        """A fetch of the answer: a declined or catalogue answer raises
+        DeclinedError; a gap raises IncompleteAnswerError unless the fetch is
+        partial and some part has a reading; a strict fetch whose readings
+        depart from the question raises SearchWarning; all before any
+        request."""
         answer = self._answered()
         if answer.body.get("kind") != "resolution":
-            raise _StepEndedError(error_outcome("DeclinedError"))
+            raise ClientError("DeclinedError")
         gaps = answer_gaps(answer, self.kinds)
-        if gaps and not step.get("partial", False):
-            raise _StepEndedError(error_outcome("IncompleteAnswerError"))
+        readings = answer_members(answer)
+        if gaps and (not step.get("partial", False) or not readings):
+            raise ClientError("IncompleteAnswerError")
+        warns = search_warns(answer)
+        if warns and step.get("strict", False):
+            raise ClientError("SearchWarning")
         members = [
             self.build(
                 parts,
@@ -917,9 +1160,9 @@ class _Replay:
                     "sentence": spec["resolved"]["rendered_sentence"],
                 },
             )
-            for parts, spec in answer_members(answer)
+            for parts, spec in readings
         ]
-        return {"dataset": dataset_summary(members, gaps)}
+        return {"dataset": dataset_summary(members, gaps, search_warning=warns)}
 
     def _fetch_spec(self, step: dict[str, Any]) -> dict[str, Any]:
         return {"dataset": dataset_summary([self.build([], step["spec"])], [])}
@@ -1040,8 +1283,9 @@ def _check_expect(
     derived: list[dict[str, Any]],
 ) -> list[str]:
     """Each outcome in `expect` against the one its exchanges give. A dataset
-    outcome's rows and columns are the Parquet bodies' and are not derived,
-    except that several members put the `part` column first."""
+    outcome's rows, columns and per-part row counts are the Parquet bodies'
+    and are not derived, except that several members put the `part` column
+    first and list each member's `part` value, rows summing to the dataset's."""
     problems = []
     for index, (stated, wanted) in enumerate(
         zip(record["expect"], derived, strict=False)
@@ -1051,21 +1295,53 @@ def _check_expect(
             dataset = stated["dataset"]
             compared = {
                 "dataset": {
-                    k: v for k, v in dataset.items() if k not in {"rows", "columns"}
+                    k: v
+                    for k, v in dataset.items()
+                    if k not in {"rows", "columns", "part_rows"}
                 }
             }
-            several = len(dataset["members"]) > 1
-            if (dataset["columns"][:1] == ["part"]) != several:
-                problems.append(
-                    f"scenarios/{file_name}: step {index}: the part column comes "
-                    "first exactly when the dataset has several members"
-                )
+            problems.extend(
+                f"scenarios/{file_name}: step {index}: {problem}"
+                for problem in _part_problems(dataset, wanted["dataset"]["members"])
+            )
         if compared != wanted:
             problems.append(
                 f"scenarios/{file_name}: step {index} expects "
                 f"{json.dumps(compared)[:300]}, but its exchanges give "
                 f"{json.dumps(wanted)[:300]}"
             )
+    return problems
+
+
+def _part_problems(
+    dataset: dict[str, Any], members: Sequence[Mapping[str, Any]]
+) -> list[str]:
+    """A dataset of several members has the `part` column first and a
+    `part_rows` entry per member, in member order, whose `part` is that
+    member's `part_label` and whose rows sum to the dataset's; a dataset of
+    one member has neither."""
+    several = len(members) > 1
+    problems = []
+    if (dataset["columns"][:1] == ["part"]) != several:
+        problems.append(
+            "the part column comes first exactly when the dataset has several members"
+        )
+    part_rows = dataset.get("part_rows")
+    if (part_rows is not None) != several:
+        problems.append(
+            "part_rows is given exactly when the dataset has several members"
+        )
+        return problems
+    if part_rows is None:
+        return problems
+    labels = [part_label(member) for member in members]
+    if [entry["part"] for entry in part_rows] != labels:
+        problems.append(
+            f"part_rows names {[entry['part'] for entry in part_rows]}, but the "
+            f"members' part values are {labels}"
+        )
+    if sum(entry["rows"] for entry in part_rows) != dataset["rows"]:
+        problems.append("part_rows' rows do not sum to the dataset's rows")
     return problems
 
 
@@ -1168,9 +1444,8 @@ def _check_steps(file_name: str, record: dict[str, Any]) -> list[str]:
     for index, step in enumerate(call):
         op = step["op"]
         if op == "fetch" and "spec" not in step and "ref" not in step:
-            needs = {"search", "choose"}
-        else:
-            needs = _ACTS_ON_PREVIOUS.get(op)
+            op = "fetch_answer"
+        needs = _ACTS_ON_PREVIOUS.get(op)
         if needs is not None and previous not in needs:
             problems.append(
                 f"scenarios/{file_name}: step {index} ({op}) does not follow "

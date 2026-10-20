@@ -92,7 +92,10 @@ def _without_shapes(expect: list[dict[str, Any]]) -> list[dict[str, Any]]:
     expect = copy.deepcopy(expect)
     for outcome in expect:
         if "dataset" in outcome:
-            del outcome["dataset"]["rows"], outcome["dataset"]["columns"]
+            dataset = outcome["dataset"]
+            del dataset["rows"], dataset["columns"]
+            for entry in dataset.get("part_rows", []):
+                del entry["rows"]
     return expect
 
 
@@ -117,7 +120,11 @@ def _drive(session: Any, call: list[dict[str, Any]]) -> None:
             case {"op": "fetch", "ref": ref}:
                 session.fetch_ref(ref)
             case {"op": "fetch"}:
-                session.fetch_answer(answer, partial=step.get("partial", False))
+                session.fetch_answer(
+                    answer,
+                    partial=step.get("partial", False),
+                    strict=step.get("strict", False),
+                )
             case {"op": "mint", "spec": spec}:
                 session.mint(
                     capture.Spec(
@@ -128,9 +135,14 @@ def _drive(session: Any, call: list[dict[str, Any]]) -> None:
                 session.result()
 
 
-@pytest.mark.parametrize(
-    "name", [*_records("recorded"), "choose-place-one-part", "choose-place-two-parts"]
-)
+_LIVE = sorted(d.name for d in capture.SYNTHETIC if d.live)
+
+
+def test_every_synthetic_record_has_a_definition() -> None:
+    assert sorted(d.name for d in capture.SYNTHETIC) == _records("synthetic")
+
+
+@pytest.mark.parametrize("name", [*_records("recorded"), *_LIVE])
 def test_the_recorder_reproduces_each_record_from_its_steps(name: str) -> None:
     record = _load(name)
     served = _Served(record)
@@ -212,9 +224,7 @@ def test_every_absolute_url_loses_its_query(url: str, expected: str) -> None:
     assert capture.redact_external_url(url) == expected
 
 
-@pytest.mark.parametrize(
-    "name", [n for n in _records("synthetic") if not n.startswith("choose-place-")]
-)
+@pytest.mark.parametrize("name", [n for n in _records("synthetic") if n not in _LIVE])
 def test_each_derived_record_follows_from_its_parent(name: str) -> None:
     record = _load(name)
     definition = next(d for d in capture.SYNTHETIC if d.name == name)
@@ -285,9 +295,17 @@ def test_several_members_stack_with_a_part_column_first() -> None:
     other = capture.Member(
         [], {"spec_id": "spec_b"}, "cv_b", "B.", "sha256:b", 3, ["y", "z"]
     )
-    dataset = capture.dataset_outcome([member, other])["dataset"]
+    unnamed = capture.Member(
+        ["p", "q"], {"spec_id": "spec_b"}, "cv_b", "B.", "sha256:b", 3, ["y", "z"]
+    )
+    dataset = capture.dataset_outcome([member, unnamed])["dataset"]
     assert dataset["columns"] == ["part", "x", "y", "z"]
     assert dataset["rows"] == 5
+    assert dataset["part_rows"] == [
+        {"part": "A.", "rows": 2},
+        {"part": "p; q", "rows": 3},
+    ]
+    assert "part_rows" not in capture.dataset_outcome([other])["dataset"]
     assert capture.dataset_outcome([member])["dataset"]["columns"] == ["x", "y"]
 
 

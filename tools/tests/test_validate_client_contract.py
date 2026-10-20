@@ -34,6 +34,15 @@ _spec.loader.exec_module(validator)
 _SEARCH = "scenarios/search-place-ambiguous.json"
 _FETCH = "scenarios/fetch-spec-known-sentence.json"
 _MIXED = "scenarios/answer-mixed-fetch-raises.json"
+_FOLDED = "scenarios/answer-several-readings-folded.json"
+_TOP5 = "scenarios/search-warning-top5.json"
+
+
+def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the input the record's second exchange posts."""
+    return lambda doc: change(
+        doc["exchanges"][1]["request"]["json"]["input"]["entries"][index]
+    )
 
 
 @pytest.fixture
@@ -111,6 +120,14 @@ def _set_outcome(index: int, change: Callable[[Any], None]) -> Callable[[Any], N
 
 def _first_gap(**fields: Any) -> Callable[[Any], None]:
     return _set_outcome(0, lambda o: o["answer"]["gaps"][0].update(fields))
+
+
+def _part_rows(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return _set_outcome(1, lambda o: change(o["dataset"]))
+
+
+def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
+    return lambda doc: doc["call"][index].update(fields)
 
 
 @pytest.mark.parametrize(
@@ -279,6 +296,115 @@ def _first_gap(**fields: Any) -> Callable[[Any], None]:
             "the part column comes first",
         ),
         (
+            _FOLDED,
+            _part_rows(lambda d: d["part_rows"][0].update(part="health")),
+            "part_rows names",
+        ),
+        (
+            _FOLDED,
+            _part_rows(lambda d: d.pop("part_rows")),
+            "part_rows is given exactly when",
+        ),
+        (
+            _FOLDED,
+            _part_rows(lambda d: d["part_rows"][1].update(rows=1)),
+            "rows do not sum",
+        ),
+        (
+            _TOP5,
+            _set_outcome(2, lambda o: o["dataset"].update(search_warning=False)),
+            "step 2 expects",
+        ),
+        (
+            _TOP5,
+            _set_step(1, strict=False),
+            "the steps make a POST /datasets the record lacks",
+        ),
+        (
+            "scenarios/fetch-strict-info-notice.json",
+            _set_body(
+                0, lambda body: body["parts"][0]["warnings"][0].update(severity="warn")
+            ),
+            "the steps never make exchanges 1 to 3",
+        ),
+        (
+            "scenarios/answer-timed-out.json",
+            _first_gap(kind="not_understood"),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/answer-unsupported-part.json",
+            _first_gap(kind="unknown"),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/answer-unknown-kind.json",
+            _set_body(0, lambda body: body.update(kind="resolution")),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/fetch-partial-nothing-answered.json",
+            _set_outcome(1, lambda o: o["error"].update({"class": "DeclinedError"})),
+            "step 1 expects",
+        ),
+        (
+            "scenarios/choose-refused-option-out-of-range.json",
+            _set_step(1, option=2),
+            "step 1 expects",
+        ),
+        (
+            "scenarios/choose-refused-mention-names-two-parts.json",
+            _set_step(1, part=1),
+            "the steps make a POST /search/resolve the record lacks",
+        ),
+        (
+            "scenarios/choose-part-by-mention.json",
+            _set_step(1, part="Germany"),
+            "the steps never make exchanges 1 to 1",
+        ),
+        (
+            "scenarios/choose-candidate-two-parts.json",
+            _posted(1, lambda entry: entry.pop("entity_groups")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/resubmit-candidates-sibling.json",
+            _posted(1, lambda entry: entry["candidates"].reverse()),
+            "where the rules post",
+        ),
+        (
+            "scenarios/resubmit-candidates-sibling.json",
+            _posted(1, lambda entry: entry.update(ordering="broadest_first")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/resubmit-placeholder-without-restatement.json",
+            _posted(1, lambda entry: entry.update(reason="entity_ambiguous")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/choose-place-beside-definite.json",
+            _posted(0, lambda entry: entry.update(entry_kind="parsed")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/choose-place-two-parts.json",
+            _posted(0, lambda entry: entry.update(entry_kind="placeholder")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/fetch-spec-narrowed.json",
+            lambda doc: doc["exchanges"][1]["request"]["json"]["input"]["entries"][
+                0
+            ].update(variable_text="ODA"),
+            "where the rules post",
+        ),
+        (
+            _FETCH,
+            lambda doc: doc["call"].append({"op": "fetch"}),
+            "does not follow a step in ['choose', 'fetch_answer', 'search']",
+        ),
+        (
             _SEARCH,
             lambda doc: doc["exchanges"].append(doc["exchanges"][0]),
             "never make exchanges 1 to 1",
@@ -383,6 +509,27 @@ def _first_gap(**fields: Any) -> Callable[[Any], None]:
         "answer-without-kind",
         "expect-wrong-content-version",
         "stacked-without-part-column",
+        "part-rows-wrong-part-value",
+        "part-rows-missing",
+        "part-rows-wrong-sum",
+        "expect-wrong-search-warning",
+        "strict-fetch-made-lenient",
+        "warn-notice-raises-on-strict",
+        "expect-wrong-timed-out-gap",
+        "expect-wrong-unsupported-gap",
+        "known-kind-raises-nothing",
+        "partial-fetch-nothing-answered",
+        "refusal-option-in-range",
+        "refusal-part-named",
+        "mention-names-no-part",
+        "definite-entry-without-groups",
+        "candidates-entry-reordered",
+        "candidates-entry-ordering-recomputed",
+        "placeholder-entry-wrong-reason",
+        "definite-part-posted-parsed",
+        "restated-part-posted-placeholder",
+        "identity-resubmit-wrong-variable-text",
+        "answer-fetch-after-spec-fetch",
         "exchange-never-made",
         "exchanges-unfit",
         "location-v2-signed",

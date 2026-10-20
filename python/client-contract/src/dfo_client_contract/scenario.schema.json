@@ -251,7 +251,7 @@
       }
     },
     "choose_step": {
-      "description": "A choice on the answer the previous step produced. part names the part by index or variable text, and may be left out when one part awaits a choice. option names the option by index or label.",
+      "description": "A choice on the answer the previous step produced. part names the part by index, by variable text, or by a word that one part's options mention, and may be left out when one part awaits a choice. option names the option by index or label; a candidate is named by index.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -289,7 +289,7 @@
       }
     },
     "fetch_answer_step": {
-      "description": "A fetch of the answer the previous step produced.",
+      "description": "A fetch of the answer the last search or choose step produced.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -663,6 +663,29 @@
             "minLength": 1
           }
         },
+        "part_rows": {
+          "description": "For a dataset of several members only: one entry per member, in member order, with the value of the part column on that member's rows and the number of those rows.",
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "part",
+              "rows"
+            ],
+            "properties": {
+              "part": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
         "complete": {
           "type": "boolean"
         },
@@ -718,6 +741,10 @@
               }
             }
           }
+        },
+        "search_warning": {
+          "description": "For a fetch of an answer only: whether the fetch issued a SearchWarning.",
+          "type": "boolean"
         }
       }
     },
@@ -765,6 +792,7 @@
             "QuotaExceededError",
             "ServerError",
             "ContractError",
+            "SearchWarning",
             "NetworkError",
             "DfoTimeoutError"
           ]

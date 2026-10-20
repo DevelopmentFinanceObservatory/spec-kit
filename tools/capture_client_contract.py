@@ -63,18 +63,24 @@ from typing import Any, Protocol
 from urllib.parse import urlsplit, urlunsplit
 
 from validate_client_contract import (
+    UNNAMED_VARIABLE_TEXT,
     Answer,
+    ClientError,
     answer_from_body,
     answer_gaps,
     answer_members,
     answer_outcome,
     candidate_answer,
+    choice_for,
+    choice_input,
     dataset_summary,
     error_class,
     error_outcome,
     gap_kinds,
     owns_body_file,
+    part_label,
     refusal_code,
+    search_warns,
 )
 from validate_client_contract import main as validate_main
 
@@ -88,8 +94,6 @@ BINARY_BUDGET = 5_000_000
 RENDERING = {"format": "parquet", "bundle": False}
 # The response headers a client reads, and so the ones a record keeps.
 KEPT_HEADERS = ("content-type", "location", "retry-after")
-# The variable text an identity resubmit sends for a member no answer part names.
-UNNAMED_VARIABLE_TEXT = "dataset"
 POLL_PATH = "/datasets/operations/{operation_id}"
 
 
@@ -452,28 +456,35 @@ class Member:
 
 
 def dataset_outcome(
-    members: Sequence[Member], *, missing: Sequence[Mapping[str, Any]] = ()
+    members: Sequence[Member],
+    *,
+    missing: Sequence[Mapping[str, Any]] = (),
+    search_warning: bool | None = None,
 ) -> dict[str, Any]:
     """A dataset outcome. Several members stack into one long table with a
-    `part` column first, then every member's columns in member order."""
+    `part` column first, holding each member's `part_label`, then every
+    member's columns in member order."""
+    summaries = [
+        {
+            "parts": member.parts,
+            "spec_id": member.spec_id,
+            "content_version": member.content_version,
+            "sentence": member.sentence,
+        }
+        for member in members
+    ]
+    dataset: dict[str, Any] = {"rows": sum(member.rows for member in members)}
     if len(members) == 1:
-        columns = list(members[0].columns)
+        dataset["columns"] = list(members[0].columns)
     else:
-        columns = ["part", *dict.fromkeys(c for m in members for c in m.columns)]
-    summary = dataset_summary(
-        [
-            {
-                "parts": member.parts,
-                "spec_id": member.spec_id,
-                "content_version": member.content_version,
-                "sentence": member.sentence,
-            }
-            for member in members
-        ],
-        missing,
-    )
-    rows = sum(member.rows for member in members)
-    return {"dataset": {"rows": rows, "columns": columns, **summary}}
+        columns = dict.fromkeys(c for m in members for c in m.columns)
+        dataset["columns"] = ["part", *columns]
+        dataset["part_rows"] = [
+            {"part": part_label(summary), "rows": member.rows}
+            for summary, member in zip(summaries, members, strict=True)
+        ]
+    summary = dataset_summary(summaries, missing, search_warning=search_warning)
+    return {"dataset": {**dataset, **summary}}
 
 
 def parquet_shape(data: bytes) -> tuple[int, list[str]]:
@@ -488,14 +499,6 @@ def _reached[T](results: list[T], step: str) -> T:
     if not results:
         raise ShapeError(f"{step} refused, so the steps after it cannot run")
     return results[0]
-
-
-class StepError(Exception):
-    """A step ended in an error a client raises."""
-
-    def __init__(self, error: str, code: str | None = None) -> None:
-        super().__init__(f"{error} {code}")
-        self.outcome = error_outcome(error, code)
 
 
 class ShapeError(Exception):
@@ -527,7 +530,7 @@ class Session:
         self.call.append(step)
         try:
             outcome = run()
-        except StepError as refusal:
+        except ClientError as refusal:
             outcome = refusal.outcome
         self.expect.append(outcome)
 
@@ -552,17 +555,13 @@ class Session:
         return _reached(answers, "the search")
 
     def choose(
-        self, answer: Answer, option: int | str, *, part: int | None = None
-    ) -> Answer:
-        """A choice in a one-part answer is local for candidates and posts the
-        option's data_query for a no_data part. In a several-part answer it
-        posts dataset_resubmit, with the chosen option's part as a parsed
-        entry, each definite part as an identity entry and each other part's
-        restatement as a parsed entry."""
-        index = (
-            part if part is not None else answer_gaps(answer, self.gap_kinds)[0]["part"]
-        )
-        chosen = answer.parts[index]
+        self, answer: Answer, option: int | str, *, part: int | str | None = None
+    ) -> Answer | None:
+        """Settles a part by the rules `choice_for` and `choice_input` state,
+        and returns the new answer, or None when the choice refused.
+
+        A choice among one part's candidates is local; any other choice posts
+        to Search."""
         step: dict[str, Any] = {"op": "choose"}
         if part is not None:
             step["part"] = part
@@ -570,50 +569,42 @@ class Session:
         answers: list[Answer] = []
 
         def run() -> dict[str, Any]:
-            if chosen["status"] == "candidates":
-                require(len(answer.parts) == 1, "a candidates choice here is one-part")
-                if not isinstance(option, int):
-                    raise ShapeError("candidates are chosen by index here")
-                answers.append(candidate_answer(answer, index, option))
-                return self._answered(answers[0])
-            options = chosen["no_data"]["options"]
-            picked = next(
-                (o for i, o in enumerate(options) if option in (i, o["label"])), None
-            )
-            if picked is None:
-                raise ShapeError(f"the gap offers no option {option!r}")
-            if len(answer.parts) == 1:
-                answers.append(self._resolve(picked["data_query"]))
-                return self._answered(answers[0])
-            entries = [
-                {"entry_kind": "parsed", "part": picked["data_query"]["parts"][0]}
-                if i == index
-                else _resubmit_entry(p)
-                for i, p in enumerate(answer.parts)
-            ]
-            answers.append(
-                self._resolve({"kind": "dataset_resubmit", "entries": entries})
-            )
+            choice = choice_for(answer, self.gap_kinds, part, option)
+            posts = choice_input(answer, choice)
+            if posts is not None:
+                answers.append(self._resolve(posts))
+            elif choice.candidate is not None:
+                answers.append(candidate_answer(answer, choice.part, choice.candidate))
             return self._answered(answers[0])
 
         self._step(step, run)
-        return _reached(answers, "the choice")
+        return answers[0] if answers else None
 
-    def fetch_answer(self, answer: Answer, *, partial: bool = False) -> None:
+    def fetch_answer(
+        self, answer: Answer, *, partial: bool = False, strict: bool = False
+    ) -> None:
+        """Builds the answer's readings. A declined or catalogue answer, a gap
+        outside a partial fetch, a partial fetch with no reading, and a strict
+        fetch whose readings depart from the question each raise before any
+        request."""
         step: dict[str, Any] = {"op": "fetch"}
         if partial:
             step["partial"] = True
+        if strict:
+            step["strict"] = True
 
         def run() -> dict[str, Any]:
             if answer.body["kind"] != "resolution":
-                raise StepError("DeclinedError")
+                raise ClientError("DeclinedError")
             gaps = answer_gaps(answer, self.gap_kinds)
-            if gaps and not partial:
-                raise StepError("IncompleteAnswerError")
-            members = [
-                self.build(parts, spec, None) for parts, spec in _members(answer)
-            ]
-            return dataset_outcome(members, missing=gaps)
+            readings = _members(answer)
+            if gaps and (not partial or not readings):
+                raise ClientError("IncompleteAnswerError")
+            warns = search_warns(answer)
+            if warns and strict:
+                raise ClientError("SearchWarning")
+            members = [self.build(parts, spec, None) for parts, spec in readings]
+            return dataset_outcome(members, missing=gaps, search_warning=warns)
 
         self._step(step, run)
 
@@ -792,7 +783,7 @@ class Session:
         if response.status < 400:
             return
         code = refusal_code(response.json())
-        raise StepError(error_class(response.status, code, self.actions), code)
+        raise ClientError(error_class(response.status, code, self.actions), code)
 
 
 def _window(window: str | tuple[int, int]) -> dict[str, Any]:
@@ -810,21 +801,6 @@ def _build_body(spec: Spec, scope: dict[str, Any] | None) -> dict[str, Any]:
     if scope:
         input_["scope"] = scope
     return {"schema_version": 1, "input": input_, "options": dict(RENDERING)}
-
-
-def _resubmit_entry(part: dict[str, Any]) -> dict[str, Any]:
-    if part["status"] == "definite":
-        spec = part["spec"]
-        entry = {
-            "entry_kind": "identity",
-            "variable_text": part["variable_text"],
-            "identity": spec["definition"]["identity"],
-        }
-        groups = spec["resolved"].get("entity_groups")
-        if groups:
-            entry["entity_groups"] = groups
-        return entry
-    return {"entry_kind": "parsed", "part": part["restatement"]}
 
 
 def with_place_options(body: Any) -> Any:
@@ -866,6 +842,14 @@ PLACE = "ODA disbursements from Germany to Congo"
 TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
+TOP5 = "top 5 donors to Ethiopia in 2022"
+CANDIDATES_BESIDE_GROUP = (
+    "GNI of Germany from 2015 to 2022, and ODA disbursements from Germany to "
+    "sub-Saharan Africa"
+)
+TWO_CANDIDATES = "GNI of Germany and tax revenue of Kenya from 2015 to 2022"
+CANDIDATES_BESIDE_UNRESTATED = "GNI of Germany and debt of Kenya from 2015 to 2022"
+GROUP_DEFINITE = "GDP of the least developed countries"
 ASYNC = "ODA received by every recipient country from every provider (DAC2a) from 2018 to 2024"
 NARROW_WINDOW = (2020, 2023)
 SYNC_ROWS = 100_000
@@ -1039,6 +1023,60 @@ def _search_place(question: str, parts: int) -> Callable[[Session, Context], Non
     return run
 
 
+def _statuses(answer: Answer) -> list[str]:
+    return [part.get("status") for part in answer.parts]
+
+
+def _search_warning_top5(s: Session, ctx: Context) -> None:
+    answer = s.search(TOP5)
+    require(_statuses(answer) == ["definite"], "one definite part")
+    operations = answer.parts[0].get("operations") or []
+    require(any(o.get("verb") == "rank" for o in operations), "the rank is not done")
+    s.fetch_answer(answer, strict=True)
+    s.fetch_answer(answer)
+
+
+def _choose_candidate_two_parts(s: Session, ctx: Context) -> None:
+    answer = s.search(CANDIDATES_BESIDE_GROUP)
+    require(_statuses(answer) == ["candidates", "definite"], "candidates, definite")
+    require(
+        bool(answer.parts[1]["spec"]["resolved"].get("entity_groups")),
+        "the definite part names an entity group",
+    )
+    chosen = s.choose(answer, 0, part=0)
+    require(
+        chosen is not None and _statuses(chosen) == ["definite", "definite"],
+        "the choice answers both parts definite",
+    )
+    if chosen is not None:
+        s.fetch_answer(chosen)
+
+
+def _resubmit_candidates_sibling(s: Session, ctx: Context) -> None:
+    answer = s.search(TWO_CANDIDATES)
+    require(_statuses(answer) == ["candidates", "candidates"], "two candidates parts")
+    chosen = s.choose(answer, 0, part=0)
+    require(
+        chosen is not None and _statuses(chosen) == ["definite", "candidates"],
+        "the choice settles part 0 and leaves part 1's candidates",
+    )
+    if chosen is not None:
+        before = [c["spec_id"] for c in answer.parts[1]["candidates"]["specs"]]
+        after = [c["spec_id"] for c in chosen.parts[1]["candidates"]["specs"]]
+        require(before == after, "the candidates keep their posted order")
+
+
+def _resubmit_placeholder(s: Session, ctx: Context) -> None:
+    answer = s.search(CANDIDATES_BESIDE_UNRESTATED)
+    require(_statuses(answer) == ["candidates", "no_data"], "candidates, no_data")
+    require("restatement" not in answer.parts[1], "part 1 has no restatement")
+    chosen = s.choose(answer, 0, part=0)
+    require(
+        chosen is not None and _statuses(chosen)[0] == "definite",
+        "the choice settles part 0",
+    )
+
+
 RECORDED = (
     Recorded(
         "answer-definite-fetch",
@@ -1149,6 +1187,35 @@ RECORDED = (
         "offer none.",
         _search_place(TWO_PLACES, 2),
     ),
+    Recorded(
+        "search-warning-top5",
+        "A question asking for a ranking answers one definite part that does not run the rank, "
+        "with a departure and two warn-severity warnings. A strict fetch raises SearchWarning "
+        "before any build; a fetch that is not strict builds the dataset and issues one "
+        "SearchWarning for all of them.",
+        _search_warning_top5,
+    ),
+    Recorded(
+        "choose-candidate-two-parts",
+        "Choosing candidate 0 on the candidates part of a two-part answer posts dataset_resubmit "
+        "with one entry per part in part order: the chosen candidate's identity, and the definite "
+        "part's identity with its entity_groups. Both parts answer definite, and the fetch stacks "
+        "two members with each member's parts as its part column value.",
+        _choose_candidate_two_parts,
+    ),
+    Recorded(
+        "resubmit-candidates-sibling",
+        "Choosing candidate 0 on part 0 of an answer with two candidates parts posts part 1 as a "
+        "candidates entry: its candidate set in the server's order, each with its identity, and "
+        "its ordering and truncated echoed. Part 1 answers candidates again in the same order.",
+        _resubmit_candidates_sibling,
+    ),
+    Recorded(
+        "resubmit-placeholder-without-restatement",
+        "Choosing candidate 0 on part 0 posts part 1, a no_data part with no restatement, as a "
+        "placeholder entry with its variable_text, status and reason.",
+        _resubmit_placeholder,
+    ),
 )
 
 
@@ -1210,11 +1277,15 @@ class Derived:
 
 @dataclass(frozen=True)
 class Synthetic:
+    """A scenario derived from a recorded one. A `live` derivation records
+    some of its exchanges against the base URL."""
+
     name: str
     derived_from: str
     edit: str
     description: str
     derive: Callable[[dict[str, Any], Context], Derived]
+    live: bool = False
 
 
 def _same(parent: dict[str, Any], exchanges: list[dict[str, Any]]) -> Derived:
@@ -1288,13 +1359,8 @@ def _signed_url_refused(parent: dict[str, Any], ctx: Context) -> Derived:
     return _same(parent, exchanges)
 
 
-def _unknown_part_status(parent: dict[str, Any], ctx: Context) -> Derived:
-    exchanges = copy.deepcopy(parent["exchanges"])
-    body = exchanges[0]["response"]["json"]
+def _deferred(body: dict[str, Any]) -> None:
     body["parts"][1]["status"] = "deferred"
-    expect = copy.deepcopy(parent["expect"])
-    expect[0] = answer_outcome(answer_from_body(body), gap_kinds(ctx.actions))
-    return Derived(copy.deepcopy(parent["call"]), exchanges, expect)
 
 
 def _unknown_enum_value(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -1330,26 +1396,132 @@ def _renamed_strict_field(parent: dict[str, Any], ctx: Context) -> Derived:
     )
 
 
-def _place_choice(
-    option: str, part: int | None
+type BodyEdit = Callable[[Any, Context], Any]
+
+
+def _with_options(body: Any, ctx: Context) -> Any:
+    return with_place_options(body)
+
+
+def _choice(
+    option: int | str,
+    part: int | str | None = None,
+    *,
+    edit: BodyEdit | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent's search, its answer body changed by `edit`, then a choice.
+    A choice that posts is recorded live, its answer changed by
+    `with_place_options`; one that refuses makes no request."""
+
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
-        canned = [
-            {
-                **e,
-                "response": {
-                    **e["response"],
-                    "json": with_place_options(e["response"]["json"]),
-                },
-            }
-            for e in copy.deepcopy(parent["exchanges"])
-        ]
+        canned = copy.deepcopy(parent["exchanges"][:1])
+        if edit is not None:
+            response = canned[0]["response"]
+            response["json"] = edit(response["json"], ctx)
         session = ctx.session("synthetic", canned=canned, edit=with_place_options)
         answer = session.search(parent["call"][0]["question"])
         session.choose(answer, option, part=part)
         return Derived(session.call, session.recorder.exchanges, session.expect)
 
     return derive
+
+
+def _definite_beside(body: Any, ctx: Context) -> Any:
+    """Part 0 becomes the definite part a live search for GROUP_DEFINITE
+    answers, and the other part's data_query becomes options."""
+    body = with_place_options(body)
+    (part,) = copy.deepcopy(ctx.definite_answer(GROUP_DEFINITE).parts)
+    require(bool(part["spec"]["resolved"].get("entity_groups")), "a group part")
+    body["parts"][0] = part
+    body["status"] = "mixed"
+    return body
+
+
+def _choice_refused(
+    option: int | str, part: int | str | None = None, *, options: bool = False
+) -> Callable[[dict[str, Any], Context], Derived]:
+    choose = _choice(option, part, edit=_with_options if options else None)
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        derived = choose(parent, ctx)
+        require(
+            derived.expect[-1] == error_outcome("InvalidRequestError"),
+            "the choice refuses",
+        )
+        return derived
+
+    return derive
+
+
+def _answer_edit(
+    change: Callable[[dict[str, Any]], None],
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent with its first answer body changed, and that answer's
+    outcome derived again."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        exchanges = copy.deepcopy(parent["exchanges"])
+        body = exchanges[0]["response"]["json"]
+        change(body)
+        expect = copy.deepcopy(parent["expect"])
+        expect[0] = answer_outcome(answer_from_body(body), gap_kinds(ctx.actions))
+        return Derived(copy.deepcopy(parent["call"]), exchanges, expect)
+
+    return derive
+
+
+def _timed_out(body: dict[str, Any]) -> None:
+    body["diagnostics"]["timed_out"] = True
+
+
+def _unsupported(body: dict[str, Any]) -> None:
+    part = body["parts"][1]
+    del part["no_data"]
+    part["status"] = "unsupported"
+    part["unsupported"] = {
+        "code": "scope_too_broad",
+        "pointer": "/definition/identity",
+        "detail": "the family is too broad to settle; bind a what or how slot",
+    }
+
+
+def _unknown_kind(parent: dict[str, Any], ctx: Context) -> Derived:
+    exchanges = copy.deepcopy(parent["exchanges"])
+    exchanges[0]["response"]["json"]["kind"] = "verdict"
+    return Derived(
+        copy.deepcopy(parent["call"]), exchanges, [error_outcome("ContractError")]
+    )
+
+
+def _partial_nothing_answered(parent: dict[str, Any], ctx: Context) -> Derived:
+    require(parent["expect"][0]["answer"]["specs"] == [], "no part has a reading")
+    return Derived(
+        [*copy.deepcopy(parent["call"]), {"op": "fetch", "partial": True}],
+        copy.deepcopy(parent["exchanges"]),
+        [*copy.deepcopy(parent["expect"]), error_outcome("IncompleteAnswerError")],
+    )
+
+
+_INFO_NOTICE = {
+    "code": "retrieval_score_weak",
+    "severity": "info",
+    "message": (
+        "the chosen reading's match to the query is weak; treat it with less "
+        "confidence than a strong match."
+    ),
+}
+
+
+def _strict_info_notice(parent: dict[str, Any], ctx: Context) -> Derived:
+    exchanges = copy.deepcopy(parent["exchanges"])
+    exchanges[0]["response"]["json"]["parts"][0]["warnings"].append(dict(_INFO_NOTICE))
+    call = copy.deepcopy(parent["call"])
+    call[1]["strict"] = True
+    require(
+        parent["expect"][1]["dataset"]["search_warning"] is False,
+        "the parent's fetch issues no SearchWarning",
+    )
+    return Derived(call, exchanges, copy.deepcopy(parent["expect"]))
 
 
 SYNTHETIC = (
@@ -1402,7 +1574,7 @@ SYNTHETIC = (
         "A part status the client does not know parses as an unknown part, counts as an "
         "unknown gap with no options, and makes fetching the answer raise "
         "IncompleteAnswerError.",
-        _unknown_part_status,
+        _answer_edit(_deferred),
     ),
     Synthetic(
         "answer-unknown-enum-value",
@@ -1436,7 +1608,8 @@ SYNTHETIC = (
         "A place refusal offers one option per candidate, so its choice gap has two options. "
         'Choosing "Congo [DRC]" by label in a one-part answer posts that option\'s data_query '
         "unchanged as the input of a new search, which answers definite.",
-        _place_choice("Congo [DRC]", None),
+        _choice("Congo [DRC]", edit=_with_options),
+        live=True,
     ),
     Synthetic(
         "choose-place-two-parts",
@@ -1446,7 +1619,131 @@ SYNTHETIC = (
         "entry per part in part order: the chosen option's data_query part as a parsed entry, "
         "and part 0, still a refusal, as a parsed entry of its restatement. Part 1 answers "
         "definite and part 0 refuses again with its two options.",
-        _place_choice("Congo [DRC]", 1),
+        _choice("Congo [DRC]", 1, edit=_with_options),
+        live=True,
+    ),
+    Synthetic(
+        "choose-place-beside-definite",
+        "search-two-parts-place-ambiguous",
+        f"Part 0 becomes the definite part, entity groups included, of a live search for "
+        f'"{GROUP_DEFINITE}"; part 1\'s data_query becomes options; the choice is recorded live.',
+        'Choosing "Congo [DRC]" on part 1 beside a definite part posts dataset_resubmit with the '
+        "definite part's identity and entity_groups as an identity entry, and the chosen "
+        "option's data_query part as a parsed entry. Both parts answer definite.",
+        _choice("Congo [DRC]", 1, edit=_definite_beside),
+        live=True,
+    ),
+    Synthetic(
+        "choose-part-by-mention",
+        "search-place-ambiguous",
+        "The refusal's data_query becomes options, and the choice is recorded live.",
+        'Naming the part by "Congo", a word its options mention, and the option by label posts '
+        "that option's data_query, as naming the part by index does.",
+        _choice("Congo [DRC]", "Congo", edit=_with_options),
+        live=True,
+    ),
+    Synthetic(
+        "answer-timed-out",
+        "answer-mixed-fetch-raises",
+        "The answer's diagnostics.timed_out becomes true.",
+        "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, "
+        "whatever its reason, and fetching the answer raises IncompleteAnswerError.",
+        _answer_edit(_timed_out),
+    ),
+    Synthetic(
+        "answer-unsupported-part",
+        "answer-mixed-fetch-raises",
+        "Part 1 becomes an unsupported part with code scope_too_broad.",
+        "An unsupported part is an unsupported gap with no options, and fetching the answer "
+        "raises IncompleteAnswerError.",
+        _answer_edit(_unsupported),
+    ),
+    Synthetic(
+        "answer-unknown-kind",
+        "search-place-ambiguous",
+        'The answer\'s kind becomes "verdict", a kind no client knows.',
+        "A search response whose kind the client does not know raises ContractError, since the "
+        "client cannot read the answer.",
+        _unknown_kind,
+    ),
+    Synthetic(
+        "fetch-partial-nothing-answered",
+        "search-place-ambiguous",
+        "A partial fetch of the answer follows the search.",
+        "A partial fetch of an answer in which no part has a reading raises "
+        "IncompleteAnswerError with no request.",
+        _partial_nothing_answered,
+    ),
+    Synthetic(
+        "fetch-strict-info-notice",
+        "answer-definite-fetch",
+        "Part 0 carries an info-severity warning, and the fetch is strict.",
+        "An info-severity warning issues no SearchWarning, so a strict fetch of the answer "
+        "builds the same dataset.",
+        _strict_info_notice,
+    ),
+    Synthetic(
+        "choose-refused-no-choice",
+        "answer-definite-fetch",
+        "A choice of option 0 follows the search.",
+        "Choosing on an answer in which no part awaits a choice raises InvalidRequestError "
+        "with no request.",
+        _choice_refused(0),
+    ),
+    Synthetic(
+        "choose-refused-two-choices",
+        "search-two-parts-place-ambiguous",
+        "A choice of option 0, naming no part, follows the search.",
+        "Choosing without naming a part when two parts await a choice raises "
+        "InvalidRequestError with no request.",
+        _choice_refused(0),
+    ),
+    Synthetic(
+        "choose-refused-no-options",
+        "search-place-ambiguous",
+        "A choice of option 0 follows the search.",
+        "Choosing in a choice gap that offers no options raises InvalidRequestError with no "
+        "request.",
+        _choice_refused(0),
+    ),
+    Synthetic(
+        "choose-refused-option-out-of-range",
+        "answer-candidates-choose-fetch",
+        "A choice of candidate 3 follows the search.",
+        "Choosing candidate 3 of three raises InvalidRequestError with no request.",
+        _choice_refused(3),
+    ),
+    Synthetic(
+        "choose-refused-unknown-label",
+        "search-place-ambiguous",
+        'The refusal\'s data_query becomes options, and a choice of "Congo [Nowhere]" follows.',
+        "Choosing an option by a label no option has raises InvalidRequestError with no "
+        "request.",
+        _choice_refused("Congo [Nowhere]", options=True),
+    ),
+    Synthetic(
+        "choose-refused-answered-part",
+        "answer-mixed-fetch-raises",
+        "A choice of option 0 on part 0, which has a reading, follows the search.",
+        "Choosing on a part that already has a reading raises InvalidRequestError with no "
+        "request.",
+        _choice_refused(0, 0),
+    ),
+    Synthetic(
+        "choose-refused-unknown-part",
+        "answer-mixed-fetch-raises",
+        'A choice of option 0 on part "rainfall" follows the search.',
+        "Naming a part by words that are neither a part's variable text nor a word its "
+        "options mention raises InvalidRequestError with no request.",
+        _choice_refused(0, "rainfall"),
+    ),
+    Synthetic(
+        "choose-refused-mention-names-two-parts",
+        "search-two-parts-place-ambiguous",
+        'Each refusal\'s data_query becomes options, and a choice on part "Congo" follows.',
+        'Naming a part by "Congo", a word both parts\' options mention, raises '
+        "InvalidRequestError with no request.",
+        _choice_refused("Congo [DRC]", "Congo", options=True),
     ),
 )
 
