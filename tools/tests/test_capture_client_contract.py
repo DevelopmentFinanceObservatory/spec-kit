@@ -17,7 +17,7 @@ import importlib.util
 import json
 import subprocess
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -67,7 +67,7 @@ class _Served:
         assert method == request["method"]
         if "url" in request:
             assert headers == {}, "a signed download carries no client header"
-            assert capture.redact_signed_url(url) == request["url"]
+            assert capture.redact_external_url(url) == request["url"]
         elif "origin_path" in request:
             assert url == capture._origin(self.base_url) + request["origin_path"]
         else:
@@ -193,15 +193,23 @@ def test_a_recorder_keeps_bodies_redacts_signed_urls_and_names_the_commit() -> N
             "https://storage.googleapis.com/b/o?X-Goog-Algorithm=A&X-Goog-Signature=s",
             "https://storage.googleapis.com/b/o?X-Goog-Signature=redacted",
         ),
-        ("https://storage.googleapis.com/b/o", "https://storage.googleapis.com/b/o"),
+        (
+            "https://storage.googleapis.com/b/o?GoogleAccessId=sa%40p.iam.gserviceaccount.com&Signature=s",
+            "https://storage.googleapis.com/b/o?X-Goog-Signature=redacted",
+        ),
+        (
+            "https://storage.googleapis.com/b/o",
+            "https://storage.googleapis.com/b/o?X-Goog-Signature=redacted",
+        ),
         (
             "/api/datasets/operations/op_1?page=2",
             "/api/datasets/operations/op_1?page=2",
         ),
     ],
+    ids=["v4-signed", "v2-signed", "no-query", "root-relative"],
 )
-def test_only_a_signed_query_is_redacted(url: str, expected: str) -> None:
-    assert capture.redact_signed_url(url) == expected
+def test_every_absolute_url_loses_its_query(url: str, expected: str) -> None:
+    assert capture.redact_external_url(url) == expected
 
 
 @pytest.mark.parametrize(
@@ -213,13 +221,10 @@ def test_each_derived_record_follows_from_its_parent(name: str) -> None:
     parent = _load(record["origin"]["derived_from"])
     ctx = capture.Context(capture.DEV_BASE_URL, _Served(parent), ACTIONS)
     derived = definition.derive(copy.deepcopy(parent), ctx)
-    bodies = capture._renamed_bodies(parent, derived, name, SCENARIOS)
     assert record["origin"]["edit"] == definition.edit
     assert record["call"] == derived.call
     assert record["exchanges"] == derived.exchanges
     assert record["expect"] == derived.expect
-    for body_file, data in bodies.items():
-        assert (SCENARIOS / body_file).read_bytes() == data
 
 
 def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:
@@ -312,8 +317,13 @@ def test_a_rewritten_record_drops_the_body_files_it_no_longer_names(
         {"s.parquet": b"1", "s-2.parquet": b"2"},
     )
     (tmp_path / "s-other.parquet").write_bytes(b"kept")
+    (tmp_path / "parent.parquet").write_bytes(b"kept")
+    capture.write_record(
+        tmp_path, record("s.parquet", "parent.parquet"), {"s.parquet": b"3"}
+    )
     capture.write_record(tmp_path, record("s.parquet"), {"s.parquet": b"3"})
     assert sorted(p.name for p in tmp_path.iterdir()) == [
+        "parent.parquet",
         "s-other.parquet",
         "s.json",
         "s.parquet",
@@ -340,16 +350,62 @@ def test_the_capture_environment_takes_nothing_else_from_the_caller(
     )
 
 
-def test_a_checkout_with_uncommitted_changes_is_refused(tmp_path: Path) -> None:
+def _checkout(path: Path) -> Path:
+    """A git checkout with one committed file."""
+
     def git(*args: str) -> None:
-        subprocess.run(
-            ["git", "-C", str(tmp_path), *args], check=True, capture_output=True
-        )
+        subprocess.run(["git", "-C", str(path), *args], check=True, capture_output=True)
 
     git("init", "-q")
-    (tmp_path / "f").write_text("a", encoding="utf-8")
+    (path / "f").write_text("a", encoding="utf-8")
     git("add", "f")
     git("-c", "user.name=t", "-c", "user.email=t@example.com", "commit", "-qm", "f")
-    (tmp_path / "f").write_text("b", encoding="utf-8")
-    with pytest.raises(SystemExit, match="uncommitted changes"):
-        capture.capture_openapi(tmp_path)
+    return path
+
+
+@pytest.mark.parametrize(
+    ("change", "refusal"),
+    [
+        (
+            lambda p: (p / "f").write_text("b", encoding="utf-8"),
+            "uncommitted changes or untracked files",
+        ),
+        (
+            lambda p: (p / "stray.py").write_text("", encoding="utf-8"),
+            "uncommitted changes or untracked files",
+        ),
+    ],
+    ids=["tracked-change", "untracked-file"],
+)
+def test_a_checkout_that_is_not_its_commit_is_refused(
+    tmp_path: Path, change: Callable[[Path], None], refusal: str
+) -> None:
+    checkout = _checkout(tmp_path)
+    change(checkout)
+    with pytest.raises(SystemExit, match=refusal):
+        capture.capture_openapi(checkout)
+
+
+def test_an_environment_out_of_step_with_the_lock_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """uv reports the environment differs, so nothing runs in it."""
+    checkout = _checkout(tmp_path)
+    run = subprocess.run
+    commands: list[list[str]] = []
+
+    def fake_run(args: list[str], **kwargs: Any) -> Any:
+        if args[0] != "uv":
+            return run(args, **kwargs)
+        commands.append(args)
+        return subprocess.CompletedProcess(args, 1, "", "Would install 3 packages")
+
+    monkeypatch.setattr(capture.subprocess, "run", fake_run)
+    with pytest.raises(SystemExit, match=r"differs from its uv\.lock"):
+        capture.capture_openapi(checkout)
+    (command,) = commands
+    assert command[:2] == ["uv", "sync"]
+    assert {"--frozen", "--check"} <= set(command)
+    assert {a for a in command if a.startswith("--extra=")} == {
+        f"--extra={e}" for e in ("eval", "api", "engine", "datasets", "graph")
+    }

@@ -4,7 +4,8 @@ The real contract must validate, and each fault the schemas cannot catch
 must be reported: a strict pointer the served document does not hold or holds
 as optional or nullable, an action row out of step with the code registry, a
 recorded body the served document rejects, a scenario whose steps or body
-files do not fit, and a ref example with the wrong verdict.
+files do not fit, an outcome its exchanges and actions.json do not give, an
+unredacted URL, and a ref example with the wrong verdict.
 
 Each case validates a whole copy of the contract, the served document's
 bodies included, which takes about a third of a second.
@@ -32,6 +33,7 @@ _spec.loader.exec_module(validator)
 
 _SEARCH = "scenarios/search-place-ambiguous.json"
 _FETCH = "scenarios/fetch-spec-known-sentence.json"
+_MIXED = "scenarios/answer-mixed-fetch-raises.json"
 
 
 @pytest.fixture
@@ -95,6 +97,20 @@ def _retire(code: str) -> Callable[[Any], None]:
 
 def _set_body(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
     return lambda doc: change(doc["exchanges"][index]["response"]["json"])
+
+
+def _set_property(schema: str, name: str, value: Any) -> Callable[[Any], None]:
+    return lambda doc: doc["components"]["schemas"][schema]["properties"].update(
+        {name: value}
+    )
+
+
+def _set_outcome(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return lambda doc: change(doc["expect"][index])
+
+
+def _first_gap(**fields: Any) -> Callable[[Any], None]:
+    return _set_outcome(0, lambda o: o["answer"]["gaps"][0].update(fields))
 
 
 @pytest.mark.parametrize(
@@ -200,6 +216,99 @@ def _set_body(index: int, change: Callable[[Any], None]) -> Callable[[Any], None
             ),
             "not an active code registered with status 404",
         ),
+        (
+            "served/openapi.json",
+            _set_property("Manifest", "content_version", {"title": "Content Version"}),
+            "content_version admits null",
+        ),
+        (
+            "served/openapi.json",
+            _set_property(
+                "ArtifactEntryModel", "url", {"anyOf": [{"type": "string"}, {}]}
+            ),
+            "url admits null",
+        ),
+        (
+            "scenarios/fetch-ref-unknown-version.json",
+            _set_outcome(0, lambda o: o["error"].update({"class": "ServerError"})),
+            "step 0 expects",
+        ),
+        (
+            _MIXED,
+            _first_gap(kind="no_data"),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/choose-place-one-part.json",
+            _first_gap(options=7),
+            "step 0 expects",
+        ),
+        (
+            _MIXED,
+            _set_outcome(0, lambda o: o["answer"].update(complete=True)),
+            "step 0 expects",
+        ),
+        (
+            "actions.json",
+            _set_action("snapshot_not_found", action="report"),
+            "scenarios/fetch-ref-unknown-version.json: step 0 expects",
+        ),
+        (
+            "actions.json",
+            _set_action("variable_not_resolved", gap_kind="no_data"),
+            "scenarios/answer-mixed-fetch-raises.json: step 0 expects",
+        ),
+        (
+            _SEARCH,
+            _set_body(0, lambda body: body.pop("kind")),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            _set_outcome(
+                0,
+                lambda o: o["dataset"]["members"][0].update(
+                    content_version="cv_" + "0" * 32
+                ),
+            ),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/answer-several-readings-folded.json",
+            _set_outcome(1, lambda o: o["dataset"]["columns"].pop(0)),
+            "the part column comes first",
+        ),
+        (
+            _SEARCH,
+            lambda doc: doc["exchanges"].append(doc["exchanges"][0]),
+            "never make exchanges 1 to 1",
+        ),
+        (
+            _FETCH,
+            lambda doc: doc["exchanges"].pop(0),
+            "do not fit the steps",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            lambda doc: doc["exchanges"][1]["response"]["headers"].update(
+                location="https://storage.googleapis.com/b/o?GoogleAccessId=sa&Signature=s"
+            ),
+            "keeps a query other than",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            lambda doc: doc["exchanges"][2]["request"].update(
+                url="https://storage.googleapis.com/b/o"
+            ),
+            "keeps a query other than",
+        ),
+        (
+            "scenarios/fetch-null-member.json",
+            lambda doc: doc["exchanges"][3]["response"].update(
+                body_file="fetch-ref.parquet"
+            ),
+            "neither the scenario's own nor one its parent names",
+        ),
         (_SEARCH, lambda doc: doc.update(name="search-other"), "differs"),
         (
             _SEARCH,
@@ -221,7 +330,7 @@ def _set_body(index: int, change: Callable[[Any], None]) -> Callable[[Any], None
         (
             _FETCH,
             lambda doc: doc["exchanges"][2]["response"].update(body_file="other.bin"),
-            "does not start with the scenario's name",
+            "neither the scenario's own",
         ),
         (
             "refs/ref-one-member.json",
@@ -263,6 +372,22 @@ def _set_body(index: int, change: Callable[[Any], None]) -> Callable[[Any], None
         "unrouted-path",
         "unserved-method",
         "problem-code-wrong-status",
+        "strict-member-untyped",
+        "strict-member-open-union",
+        "expect-wrong-error-class",
+        "expect-wrong-gap-kind",
+        "expect-wrong-option-count",
+        "expect-wrong-complete",
+        "expect-stale-after-action-change",
+        "expect-stale-after-gap-kind-change",
+        "answer-without-kind",
+        "expect-wrong-content-version",
+        "stacked-without-part-column",
+        "exchange-never-made",
+        "exchanges-unfit",
+        "location-v2-signed",
+        "signed-url-without-redacted-query",
+        "body-file-of-another-scenario",
         "scenario-name-mismatch",
         "step-out-of-order",
         "outcome-count-mismatch",

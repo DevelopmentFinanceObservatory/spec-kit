@@ -66,6 +66,8 @@ uv run ty check src/dfo_client_contract
 
 `strict-fields.json` lists the members a client cannot act without. Each pointer names one property of one component schema, `/components/schemas/<Schema>/properties/<member>`. A `required` entry stays in its schema's `required` list and admits no null, so a client raises `ContractError` when one is missing or null. An `enums` entry keeps every listed value, the values a client branches on: the answer kinds, the part statuses and the operation statuses. A client still accepts a value no entry lists.
 
+The answer's `kind` and each part's `status` are the discriminators of their unions in the served document. A search response with no `kind` raises `ContractError`, as a part with no `status` does, although the served document gives `kind` a default and leaves it out of `required`. A `kind` or `status` a client does not know raises nothing.
+
 The required members are each part's `status` and its payload (`spec`, `candidates`, `no_data`, `unsupported`), `Resolution.parts`, `CandidateSet.specs`, `NoData.reason`, `Unsupported.code`, `Spec.spec_id` and `definition`, `SpecDefinition.spec_id`, the manifest's `definition`, `definition.spec_id`, `content_version` and `artifacts`, each artifact's `artifact_digest`, `rendering` and `url`, and the operation resource's `operation`, `operation_id` and `status`. The operation's `poll` is nullable in the served document, so a client builds the poll path from `operation_id`.
 
 ## Actions
@@ -86,7 +88,7 @@ The required members are each part's `status` and its payload (`spec`, `candidat
 | `report`              | `ServerError`             | Reports the trace id, after the client's retries |
 | `upgrade`             | `ContractError`           | Upgrades the client                              |
 
-A code that maps to `no_data_reason` also carries `gap_kind`, the kind of gap a no_data part with that reason becomes: `choice`, `no_data`, `not_understood` or `unsupported`. `choose` goes with `choice` and only with it. `choose` and `ask_data_question` name a next step inside an answer, so a code that also reaches a problem document takes another action. A client maps an unknown code on its HTTP status, and a no_data reason with no row becomes a `no_data` gap.
+A code that maps to `no_data_reason` also carries `gap_kind`, the kind of gap a no_data part with that reason becomes: `choice`, `no_data`, `not_understood` or `unsupported`. `choose` goes with `choice` and only with it. `choose` and `ask_data_question` name a next step inside an answer, so a code that also reaches a problem document takes another action. A client maps a code with no row on its HTTP status: 400 and 422 to `InvalidRequestError`, 401 to `AuthenticationError`, 403 to `PermissionDeniedError`, 404 to `NotFoundError`, 429 to `RateLimitError`, any other 5xx to `ServerError` and any other 4xx to `InvalidRequestError`. The website proxy's own `{error, retry, detail}` body carries its code in `error`. A no_data reason with no row becomes a `no_data` gap.
 
 An answer's gaps follow from its parts. A candidates part is a `choice` gap, its options the candidates. A no_data part is a gap of its reason's `gap_kind`, its options the no_data `options`, and of kind `timed_out` instead when the answer's `diagnostics.timed_out` is true. An unsupported part is an `unsupported` gap. A part whose status a client does not know is an `unknown` gap.
 
@@ -106,9 +108,11 @@ A scenario is one client-level call, the HTTP exchanges it makes, and the outcom
 
 A step that acts on an earlier result follows one: `choose` and a `fetch` with no target follow `search` or `choose`, and `result` follows `mint`. A `spec` in a step holds `spec_id`, the server's unmodified `definition`, and the `sentence` when the client knows it.
 
-An exchange's request names its target in one of three ways. `path` is a path the client composes under the base URL, such as `/search/resolve`. `origin_path` is a root-relative URL the server returned, such as an artifact's `url`, which resolves against the base URL's origin and never against its path. `url` is an absolute URL outside the API, such as the signed storage URL a files route redirects to, which the client fetches with a bare request carrying no client header and no key. `json` holds the request body members that must match; a recorded scenario lists every member the client sent. The response gives `status`, the `headers` a client reads, and a `json` body or a `body_file`, a binary body in `scenarios/` whose name starts with the scenario's name.
+An exchange's request names its target in one of three ways. `path` is a path the client composes under the base URL, such as `/search/resolve`. `origin_path` is a root-relative URL the server returned, such as an artifact's `url`, which resolves against the base URL's origin and never against its path. `url` is an absolute URL outside the API, such as the signed storage URL a files route redirects to, which the client fetches with a bare request carrying no client header and no key. `json` holds the request body members that must match; a recorded scenario lists every member the client sent. The response gives `status`, the `headers` a client reads, and a `json` body or a `body_file`, a binary body in `scenarios/`. A scenario's own body files are named `<name>.<ext>` and `<name>-<n>.<ext>`; a synthetic scenario may instead name a body file its parent names.
 
 An answer outcome gives `kind`, `status`, `sentence`, `complete`, the distinct `specs` of its definite parts, and its `gaps`, each with the `part` index, the gap `kind` and the number of `options`. A dataset outcome gives `rows`, `columns`, `complete`, its `members`, each with `parts`, `spec_id`, `content_version` and `sentence`, and the `missing` gaps. For one member the columns are the artifact's columns; a dataset of several members adds a `part` column. An error outcome gives the error `class` and the problem's `code`, or null when no problem document carries the error.
+
+Each outcome follows from the exchanges and `actions.json`, and `tools/validate_client_contract.py` fails a record whose `expect` says otherwise. It runs the steps over the exchanges by the rules below: a refusal followed by the same request is a retry, an error's class is its code's action or else its status, a gap's kind is its reason's `gap_kind`, option and candidate counts are those the bodies hold, and a dataset's members, `complete` and `missing` follow from the answer and the manifests. A dataset's `rows` and `columns` are the Parquet bodies' and are not derived, except that `part` comes first exactly when the dataset has several members.
 
 A recorded scenario's request and response bodies validate against their route's schemas in `served/openapi.json`, with one allowance: a required member whose schema admits null may be absent, because the server leaves null members out of the bodies it serves.
 
@@ -118,7 +122,7 @@ A client replays a scenario by serving the exchanges in order:
 - A request with no exchange left, or one that matches none, fails the scenario, and so does an exchange the call never makes.
 - `path` resolves against the base URL the replay gives the client, and `origin_path` against that base URL's origin, so a replay can run under any base URL form.
 - Sleeps are not replayed: the replay injects the client's clock and sleep, and each wait the client asks for advances the clock at once.
-- A recorded signed storage URL keeps its scheme, host and path, and its query reads `X-Goog-Signature=redacted`.
+- Every absolute URL a record holds, a `url` request or a `location` header, keeps its scheme, host and path, and its query reads `X-Goog-Signature=redacted`, whatever signed it.
 
 The records also fix these client rules:
 
@@ -132,7 +136,7 @@ The records also fix these client rules:
 
 ## Recording
 
-`tools/capture_client_contract.py` refreshes the served document and the scenarios. Its `openapi` command calls `dfo_apis.app.create_app()` in process, every surface flag on, in a dfo-apis checkout with no uncommitted changes to tracked files, and writes `served/openapi.json` and `served/SOURCE.json`. The checkout needs its environment first. From the repository root, with the checkout at `../dfo-apis`:
+`tools/capture_client_contract.py` refreshes the served document and the scenarios. Its `openapi` command calls `dfo_apis.app.create_app()` in process, every surface flag on, in a dfo-apis checkout with no uncommitted changes and no untracked files, and writes `served/openapi.json` and `served/SOURCE.json`. It refuses an environment that `uv sync --frozen --check` with the five extras below finds out of step with the checkout's `uv.lock`, so the checkout needs its environment first. From the repository root, with the checkout at `../dfo-apis`:
 
 ```bash
 uv sync --directory ../dfo-apis --extra eval --extra api --extra engine --extra datasets --extra graph

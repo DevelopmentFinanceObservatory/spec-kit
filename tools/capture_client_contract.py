@@ -27,13 +27,17 @@ client would, and writes each record and its binary bodies to `scenarios/`.
 Each recorded scenario checks that its live answer still has the shape the
 scenario is named for and refuses to write one that does not. Synthetic
 scenarios are derived from the recorded records after them, so a recording
-refreshes both. Signed storage URLs keep their path, and their query becomes
+refreshes both, and a synthetic record names its parent's body files rather
+than copies. Every absolute URL a record keeps, a signed download or a
+`location` header, keeps its path, and its query becomes
 `X-Goog-Signature=redacted`. The run ends by validating the whole contract
 with `tools/validate_client_contract.py`, and fails when it reports a
 problem or the binary bodies pass 5 MB.
 
-The module imports only the standard library at load time, so its tests run
-without pyarrow.
+The outcome rules, error classes and gap kinds come from
+`tools/validate_client_contract.py`, so a record's `expect` is written by
+the code that checks it. pyarrow loads only when a Parquet body is read, so
+the tests run without it.
 """
 
 from __future__ import annotations
@@ -41,7 +45,6 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
-import importlib.util
 import io
 import json
 import os
@@ -57,7 +60,23 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
-from urllib.parse import parse_qsl, urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit
+
+from validate_client_contract import (
+    Answer,
+    answer_from_body,
+    answer_gaps,
+    answer_members,
+    answer_outcome,
+    candidate_answer,
+    dataset_summary,
+    error_class,
+    error_outcome,
+    gap_kinds,
+    owns_body_file,
+    refusal_code,
+)
+from validate_client_contract import main as validate_main
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_DIR = REPO_ROOT / "python" / "client-contract" / "src" / "dfo_client_contract"
@@ -72,29 +91,6 @@ KEPT_HEADERS = ("content-type", "location", "retry-after")
 # The variable text an identity resubmit sends for a member no answer part names.
 UNNAMED_VARIABLE_TEXT = "dataset"
 POLL_PATH = "/datasets/operations/{operation_id}"
-
-# The class each action in actions.json maps to, as the contract README states.
-ACTION_CLASSES = {
-    "fix_request": "InvalidRequestError",
-    "check_id": "NotFoundError",
-    "choose": "IncompleteAnswerError",
-    "ask_data_question": "IncompleteAnswerError",
-    "take_newest_version": "VersionUnavailableError",
-    "log_in": "AuthenticationError",
-    "request_scope": "PermissionDeniedError",
-    "wait": "RateLimitError",
-    "wait_for_reset": "QuotaExceededError",
-    "report": "ServerError",
-    "upgrade": "ContractError",
-}
-STATUS_CLASSES = {
-    400: "InvalidRequestError",
-    401: "AuthenticationError",
-    403: "PermissionDeniedError",
-    404: "NotFoundError",
-    422: "InvalidRequestError",
-    429: "RateLimitError",
-}
 
 
 def dump_json(document: Any) -> str:
@@ -137,6 +133,10 @@ _CAPTURE_ENV = {
     "DFO_SKILLS_SURFACE": "1",
 }
 _PASSED_ENV = ("HOME", "PATH", "TMPDIR", "UV_CACHE_DIR", "UV_PYTHON")
+# The dfo-apis extras the composed app imports.
+_EXTRAS = tuple(
+    f"--extra={extra}" for extra in ("eval", "api", "engine", "datasets", "graph")
+)
 
 
 def capture_env(checkout: Path, environ: Mapping[str, str]) -> dict[str, str]:
@@ -159,10 +159,27 @@ def _git(checkout: Path, *args: str) -> str:
 
 
 def capture_openapi(checkout: Path) -> tuple[dict[str, Any], str]:
-    """`app.openapi()` of the composed app in `checkout`, and its commit."""
-    if _git(checkout, "status", "--porcelain", "--untracked-files=no"):
-        raise SystemExit(f"{checkout} has uncommitted changes to tracked files")
+    """`app.openapi()` of the composed app in `checkout`, and its commit.
+
+    Refuses a checkout with uncommitted changes or untracked files, and an
+    environment that differs from the checkout's `uv.lock` with every extra
+    the composed app needs, since either would make the commit misdescribe
+    the document."""
+    if _git(checkout, "status", "--porcelain"):
+        raise SystemExit(f"{checkout} has uncommitted changes or untracked files")
     commit = _git(checkout, "rev-parse", "HEAD")
+    check = subprocess.run(
+        ["uv", "sync", "--project", str(checkout), "--frozen", "--check", *_EXTRAS],
+        cwd=checkout,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if check.returncode != 0:
+        raise SystemExit(
+            f"the environment in {checkout} differs from its uv.lock; run "
+            f"`uv sync --frozen {' '.join(_EXTRAS)}` there:\n{check.stderr}"
+        )
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "openapi.json"
         result = subprocess.run(
@@ -185,11 +202,7 @@ def capture_openapi(checkout: Path) -> tuple[dict[str, Any], str]:
             check=False,
         )
         if result.returncode != 0:
-            raise SystemExit(
-                f"the capture failed in {checkout}; its environment needs "
-                "`uv sync --extra eval --extra api --extra engine --extra datasets "
-                f"--extra graph`:\n{result.stderr}"
-            )
+            raise SystemExit(f"the capture failed in {checkout}:\n{result.stderr}")
         return json.loads(out.read_text(encoding="utf-8")), commit
 
 
@@ -264,10 +277,11 @@ def _lower(items: Any) -> dict[str, str]:
     return {name.lower(): value for name, value in items}
 
 
-def redact_signed_url(url: str) -> str:
-    """`url` with a signed query replaced by `X-Goog-Signature=redacted`."""
+def redact_external_url(url: str) -> str:
+    """An absolute `url` with its query, whatever signs it, replaced by
+    `X-Goog-Signature=redacted`; a root-relative URL as it stands."""
     parts = urlsplit(url)
-    if not any(name.startswith("X-Goog-") for name, _ in parse_qsl(parts.query)):
+    if not parts.netloc:
         return url
     return urlunsplit(parts._replace(query="X-Goog-Signature=redacted"))
 
@@ -314,7 +328,9 @@ class Recorder:
 
     def external(self, url: str) -> Response:
         """A bare GET outside the API, with no client header and no key."""
-        return self._send("GET", {"url": redact_signed_url(url)}, url, None, bare=True)
+        return self._send(
+            "GET", {"url": redact_external_url(url)}, url, None, bare=True
+        )
 
     def _send(
         self,
@@ -352,7 +368,7 @@ class Recorder:
     def _keep(self, response: Response) -> dict[str, Any]:
         kept: dict[str, Any] = {"status": response.status}
         headers = {
-            name: redact_signed_url(response.headers[name])
+            name: redact_external_url(response.headers[name])
             if name == "location"
             else response.headers[name]
             for name in KEPT_HEADERS
@@ -407,71 +423,8 @@ def _part_spec(spec: dict[str, Any]) -> Spec:
     )
 
 
-@dataclass(frozen=True, slots=True)
-class Answer:
-    body: dict[str, Any]
-    parts: list[dict[str, Any]]
-    sentence: str | None
-    status: str | None
-
-
-def answer_from_body(body: dict[str, Any]) -> Answer:
-    return Answer(
-        body, body.get("parts", []), body.get("rendered_sentence"), body.get("status")
-    )
-
-
-def answer_gaps(answer: Answer, gap_kinds: Mapping[str, str]) -> list[dict[str, Any]]:
-    """Each part without a reading: a candidates part is a choice among its
-    specs; a no_data part takes its reason's gap kind, or `timed_out` when the
-    answer timed out; a part of unknown status is an `unknown` gap."""
-    timed_out = answer.body.get("diagnostics", {}).get("timed_out") is True
-    gaps = []
-    for index, part in enumerate(answer.parts):
-        match part.get("status"):
-            case "definite":
-                continue
-            case "candidates":
-                kind, options = "choice", len(part["candidates"]["specs"])
-            case "no_data":
-                no_data = part["no_data"]
-                kind = (
-                    "timed_out"
-                    if timed_out
-                    else gap_kinds.get(no_data["reason"], "no_data")
-                )
-                options = len(no_data.get("options", []))
-            case "unsupported":
-                kind, options = "unsupported", 0
-            case _:
-                kind, options = "unknown", 0
-        gaps.append({"part": index, "kind": kind, "options": options})
-    return gaps
-
-
-def answer_outcome(answer: Answer, gap_kinds: Mapping[str, str]) -> dict[str, Any]:
-    """An answer outcome. A declined or catalogue answer is never complete."""
-    gaps = answer_gaps(answer, gap_kinds)
-    outcome: dict[str, Any] = {"kind": answer.body["kind"]}
-    if answer.status is not None:
-        outcome["status"] = answer.status
-    outcome["sentence"] = answer.sentence
-    outcome["complete"] = answer.body["kind"] == "resolution" and not gaps
-    outcome["specs"] = list(dict.fromkeys(spec.spec_id for _, spec in _members(answer)))
-    outcome["gaps"] = gaps
-    return {"answer": outcome}
-
-
 def _members(answer: Answer) -> list[tuple[list[str], Spec]]:
-    """One member per distinct spec_id of the definite parts, in part order,
-    with the variable text of every part it answers."""
-    members: dict[str, tuple[list[str], Spec]] = {}
-    for part in answer.parts:
-        if part.get("status") != "definite":
-            continue
-        spec = _part_spec(part["spec"])
-        members.setdefault(spec.spec_id, ([], spec))[0].append(part["variable_text"])
-    return list(members.values())
+    return [(parts, _part_spec(spec)) for parts, spec in answer_members(answer)]
 
 
 @dataclass(frozen=True, slots=True)
@@ -507,23 +460,20 @@ def dataset_outcome(
         columns = list(members[0].columns)
     else:
         columns = ["part", *dict.fromkeys(c for m in members for c in m.columns)]
-    return {
-        "dataset": {
-            "rows": sum(member.rows for member in members),
-            "columns": columns,
-            "complete": not missing,
-            "members": [
-                {
-                    "parts": member.parts,
-                    "spec_id": member.spec_id,
-                    "content_version": member.content_version,
-                    "sentence": member.sentence,
-                }
-                for member in members
-            ],
-            "missing": [{"part": gap["part"], "kind": gap["kind"]} for gap in missing],
-        }
-    }
+    summary = dataset_summary(
+        [
+            {
+                "parts": member.parts,
+                "spec_id": member.spec_id,
+                "content_version": member.content_version,
+                "sentence": member.sentence,
+            }
+            for member in members
+        ],
+        missing,
+    )
+    rows = sum(member.rows for member in members)
+    return {"dataset": {"rows": rows, "columns": columns, **summary}}
 
 
 def parquet_shape(data: bytes) -> tuple[int, list[str]]:
@@ -531,11 +481,6 @@ def parquet_shape(data: bytes) -> tuple[int, list[str]]:
 
     parquet = pq.ParquetFile(io.BytesIO(data))
     return parquet.metadata.num_rows, list(parquet.schema_arrow.names)
-
-
-def gap_kinds(actions: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
-    """The gap kind of each no_data reason in actions.json."""
-    return {code: row["gap_kind"] for code, row in actions.items() if "gap_kind" in row}
 
 
 def _reached[T](results: list[T], step: str) -> T:
@@ -548,9 +493,9 @@ def _reached[T](results: list[T], step: str) -> T:
 class StepError(Exception):
     """A step ended in an error a client raises."""
 
-    def __init__(self, error_class: str, code: str | None) -> None:
-        super().__init__(f"{error_class} {code}")
-        self.outcome = {"error": {"class": error_class, "code": code}}
+    def __init__(self, error: str, code: str | None = None) -> None:
+        super().__init__(f"{error} {code}")
+        self.outcome = error_outcome(error, code)
 
 
 class ShapeError(Exception):
@@ -629,20 +574,7 @@ class Session:
                 require(len(answer.parts) == 1, "a candidates choice here is one-part")
                 if not isinstance(option, int):
                     raise ShapeError("candidates are chosen by index here")
-                spec = chosen["candidates"]["specs"][option]
-                part_ = {
-                    "status": "definite",
-                    "variable_text": chosen["variable_text"],
-                    "spec": spec,
-                }
-                answers.append(
-                    Answer(
-                        answer.body,
-                        [part_],
-                        spec["resolved"]["rendered_sentence"],
-                        "definite",
-                    )
-                )
+                answers.append(candidate_answer(answer, index, option))
                 return self._answered(answers[0])
             options = chosen["no_data"]["options"]
             picked = next(
@@ -674,10 +606,10 @@ class Session:
 
         def run() -> dict[str, Any]:
             if answer.body["kind"] != "resolution":
-                raise StepError("DeclinedError", None)
+                raise StepError("DeclinedError")
             gaps = answer_gaps(answer, self.gap_kinds)
             if gaps and not partial:
-                raise StepError("IncompleteAnswerError", None)
+                raise StepError("IncompleteAnswerError")
             members = [
                 self.build(parts, spec, None) for parts, spec in _members(answer)
             ]
@@ -859,13 +791,8 @@ class Session:
     def _raise_problem(self, response: Response) -> None:
         if response.status < 400:
             return
-        problem = response.json()
-        code = problem.get("code")
-        row = self.actions.get(code)
-        if row is not None:
-            raise StepError(ACTION_CLASSES[row["action"]], code)
-        fallback = "ServerError" if response.status >= 500 else "InvalidRequestError"
-        raise StepError(STATUS_CLASSES.get(response.status, fallback), code)
+        code = refusal_code(response.json())
+        raise StepError(error_class(response.status, code, self.actions), code)
 
 
 def _window(window: str | tuple[int, int]) -> dict[str, Any]:
@@ -1322,7 +1249,8 @@ def _proxy_502(parent: dict[str, Any], ctx: Context) -> Derived:
     refused = [
         _refusal(first["request"], 502, dict(_PROXY_UNAVAILABLE)) for _ in range(3)
     ]
-    error = {"error": {"class": "ServerError", "code": "transient_unavailable"}}
+    code = refusal_code(_PROXY_UNAVAILABLE)
+    error = error_outcome(error_class(502, code, ctx.actions), code)
     return Derived(copy.deepcopy(parent["call"]), refused, [error])
 
 
@@ -1396,7 +1324,7 @@ def _renamed_strict_field(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
     manifest = exchanges[index]["response"]["json"]
     manifest["contentVersion"] = manifest.pop("content_version")
-    error = {"error": {"class": "ContractError", "code": None}}
+    error = error_outcome("ContractError")
     return Derived(
         copy.deepcopy(parent["call"]), exchanges, [parent["expect"][0], error]
     )
@@ -1547,36 +1475,19 @@ def _record(
 def write_record(
     directory: Path, record: dict[str, Any], bodies: Mapping[str, bytes]
 ) -> None:
-    """Writes `record` and its bodies, removing the body files an earlier
-    record of the same name named."""
+    """Writes `record` and its bodies, removing the body files of its own an
+    earlier record of the same name named. A parent's body file it names
+    stays."""
     path = directory / f"{record['name']}.json"
     if path.exists():
         old = json.loads(path.read_text(encoding="utf-8"))
         for exchange in old["exchanges"]:
             body_file = exchange["response"].get("body_file")
-            if body_file:
+            if body_file and owns_body_file(record["name"], body_file):
                 (directory / body_file).unlink(missing_ok=True)
     for body_file, data in bodies.items():
         (directory / body_file).write_bytes(data)
     _write_json(path, record)
-
-
-def _renamed_bodies(
-    parent: dict[str, Any], derived: Derived, name: str, directory: Path
-) -> dict[str, bytes]:
-    """Copies of the parent's body files the derived exchanges keep, renamed
-    to start with `name`."""
-    bodies: dict[str, bytes] = {}
-    renamed: dict[str, str] = {}
-    for exchange in derived.exchanges:
-        old = exchange["response"].get("body_file")
-        if old is None:
-            continue
-        if old not in renamed:
-            renamed[old] = name + old.removeprefix(parent["name"])
-            bodies[renamed[old]] = (directory / old).read_bytes()
-        exchange["response"]["body_file"] = renamed[old]
-    return bodies
 
 
 def record_recorded(definition: Recorded, ctx: Context, directory: Path) -> None:
@@ -1605,7 +1516,6 @@ def record_synthetic(definition: Synthetic, ctx: Context, directory: Path) -> No
     parent_path = directory / f"{definition.derived_from}.json"
     parent = json.loads(parent_path.read_text(encoding="utf-8"))
     derived = definition.derive(parent, ctx)
-    bodies = _renamed_bodies(parent, derived, definition.name, directory)
     origin = {
         "kind": "synthetic",
         "derived_from": definition.derived_from,
@@ -1614,7 +1524,7 @@ def record_synthetic(definition: Synthetic, ctx: Context, directory: Path) -> No
     write_record(
         directory,
         _record(definition.name, definition.description, origin, derived),
-        bodies,
+        {},
     )
 
 
@@ -1624,17 +1534,6 @@ def binary_total(directory: Path) -> int:
         for p in directory.iterdir()
         if p.is_file() and p.suffix != ".json"
     )
-
-
-def _load_validator() -> Any:
-    path = Path(__file__).resolve().parent / "validate_client_contract.py"
-    spec = importlib.util.spec_from_file_location("validate_client_contract", path)
-    if spec is None or spec.loader is None:
-        raise SystemExit(f"cannot load {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["validate_client_contract"] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 def load_actions(package_dir: Path) -> dict[str, dict[str, Any]]:
@@ -1673,7 +1572,7 @@ def run_record(args: argparse.Namespace) -> int:
         return 1
     if args.scenarios_dir is not None:
         return 0
-    return _load_validator().main()
+    return validate_main()
 
 
 def run_openapi(args: argparse.Namespace) -> int:
