@@ -1,0 +1,85 @@
+{
+  "format_version": 1,
+  "codes": [
+    {
+      "code": "answer_declined",
+      "class": "DeclinedError",
+      "condition": "Fetching an answer Search declined or answered with the catalogue."
+    },
+    {
+      "code": "answer_incomplete",
+      "class": "IncompleteAnswerError",
+      "condition": "Fetching an answer with a part that has no reading, when the fetch is not partial or no part has a reading."
+    },
+    {
+      "code": "choice_invalid",
+      "class": "InvalidRequestError",
+      "condition": "A choice whose part or option names no gap, several gaps or no option, or a choice that cannot post back a part."
+    },
+    {
+      "code": "contract_violation",
+      "class": "ContractError",
+      "condition": "A response lacks a member the client acts on, or holds one that contradicts the request."
+    },
+    {
+      "code": "credentials_file_invalid",
+      "class": "AuthenticationError",
+      "condition": "The credentials file breaks the credentials-file rule."
+    },
+    {
+      "code": "deadline_exceeded",
+      "class": "DfoTimeoutError",
+      "condition": "The call's deadline passed before it finished."
+    },
+    {
+      "code": "digest_mismatch",
+      "class": "ServerError",
+      "condition": "A downloaded file does not hash to the digest its manifest names."
+    },
+    {
+      "code": "download_failed",
+      "class": "ServerError",
+      "condition": "A signed storage URL answered a status other than 2xx."
+    },
+    {
+      "code": "invalid_argument",
+      "class": "InvalidRequestError",
+      "condition": "A call's arguments break a rule the client checks before any request."
+    },
+    {
+      "code": "network_error",
+      "class": "NetworkError",
+      "condition": "The connection failed before a response arrived."
+    },
+    {
+      "code": "offline",
+      "class": "NetworkError",
+      "condition": "DFO_OFFLINE=1 is set, and the call needs the server."
+    },
+    {
+      "code": "profile_not_found",
+      "class": "AuthenticationError",
+      "condition": "DFO_PROFILE names a profile the credentials file lacks."
+    },
+    {
+      "code": "profile_without_key",
+      "class": "AuthenticationError",
+      "condition": "The chosen profile in the credentials file has no key."
+    },
+    {
+      "code": "refusal_without_code",
+      "class": "by_status",
+      "condition": "A refusal whose body carries no code: neither a problem document nor the website proxy's own body."
+    },
+    {
+      "code": "unexpected_response",
+      "class": "ContractError",
+      "condition": "A response of a status or form the call does not act on: a redirect it does not follow, a body that is not JSON, or a status the route does not answer."
+    },
+    {
+      "code": "version_unavailable",
+      "class": "VersionUnavailableError",
+      "condition": "A stored version can no longer be fetched, and no refusal names why."
+    }
+  ]
+}

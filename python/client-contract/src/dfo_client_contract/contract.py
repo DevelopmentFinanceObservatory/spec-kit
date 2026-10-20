@@ -69,6 +69,16 @@ def actions_schema() -> dict[str, Any]:
     return _load("actions.schema.json")
 
 
+def client_codes() -> dict[str, Any]:
+    """`client-codes.json`: the code of each error a client raises itself."""
+    return _load("client-codes.json")
+
+
+def client_codes_schema() -> dict[str, Any]:
+    """`client-codes.schema.json`: the shape of `client-codes.json`."""
+    return _load("client-codes.schema.json")
+
+
 def scenario_schema() -> dict[str, Any]:
     """`scenario.schema.json`: the shape of one scenario record."""
     return _load("scenario.schema.json")

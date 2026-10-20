@@ -36,6 +36,9 @@ _FETCH = "scenarios/fetch-spec-known-sentence.json"
 _MIXED = "scenarios/answer-mixed-fetch-raises.json"
 _FOLDED = "scenarios/answer-several-readings-folded.json"
 _TOP5 = "scenarios/search-warning-top5.json"
+_NO_CHOICE = "scenarios/choose-refused-no-choice.json"
+_DECLINED = "scenarios/answer-declined.json"
+_REQUEST_INVALID = "scenarios/fetch-spec-request-invalid.json"
 
 
 def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -128,6 +131,17 @@ def _part_rows(change: Callable[[Any], None]) -> Callable[[Any], None]:
 
 def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
     return lambda doc: doc["call"][index].update(fields)
+
+
+def _error_code(index: int, code: str | None) -> Callable[[Any], None]:
+    return _set_outcome(index, lambda o: o["error"].update(code=code))
+
+
+def _one_hint(body: Any) -> None:
+    """Leaves the answer's one definite part a single warn warning."""
+    part = body["parts"][0]
+    part["operations"], part["departures"] = [], []
+    del part["warnings"][1:]
 
 
 @pytest.mark.parametrize(
@@ -474,6 +488,84 @@ def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
             "vector 'secret-key-passes' repeats",
         ),
         (
+            "client-codes.json",
+            _set_action("offline", condition=None),
+            "'condition' is a required property",
+        ),
+        (
+            "client-codes.json",
+            lambda doc: doc["codes"].reverse(),
+            "codes are not sorted",
+        ),
+        (
+            "client-codes.json",
+            lambda doc: doc["codes"].insert(1, doc["codes"][0]),
+            "'answer_declined' is listed twice",
+        ),
+        (
+            "client-codes.json",
+            _add_action(
+                {"code": "spec_not_found", "class": "NotFoundError", "condition": "x"}
+            ),
+            "'spec_not_found' is also a code in actions.json",
+        ),
+        (
+            "client-codes.json",
+            _add_action(
+                {
+                    "code": "alternates_unevaluated",
+                    "class": "ServerError",
+                    "condition": "x",
+                }
+            ),
+            "'alternates_unevaluated' is also a code in registries/codes.json",
+        ),
+        (
+            "client-codes.json",
+            _set_action("answer_declined", **{"class": "SearchWarning"}),
+            "raises 'SearchWarning', a class no scenario names",
+        ),
+        (
+            "client-codes.json",
+            _set_action("offline", **{"class": "by_status"}),
+            "where 'refusal_without_code' alone does",
+        ),
+        (
+            "client-codes.json",
+            _drop_action("answer_declined"),
+            "'answer_declined' is not a client code of one class",
+        ),
+        (
+            "client-codes.json",
+            _set_action("choice_invalid", **{"class": "ContractError"}),
+            "client code 'choice_invalid' raises ContractError, not InvalidRequestError",
+        ),
+        (
+            _NO_CHOICE,
+            _error_code(1, None),
+            "InvalidRequestError code None is neither a refusal's code",
+        ),
+        (
+            _DECLINED,
+            _error_code(1, "choice_invalid"),
+            "raises InvalidRequestError, not DeclinedError",
+        ),
+        (
+            _NO_CHOICE,
+            _error_code(1, "invalid_argument"),
+            '"code": "choice_invalid"}}',
+        ),
+        (
+            _REQUEST_INVALID,
+            _set_body(0, lambda body: body.pop("code")),
+            '"code": "refusal_without_code"}}',
+        ),
+        (
+            _TOP5,
+            _set_body(0, _one_hint),
+            '"code": "slot_defaulted"}}',
+        ),
+        (
             "served/SOURCE.json",
             lambda doc: doc.update(commit="8408f1f"),
             "commit is not a 40-character sha",
@@ -543,6 +635,20 @@ def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
         "ref-example-both-verdicts",
         "ref-example-wrong-verdict",
         "rule-vector-repeated",
+        "client-code-without-condition",
+        "client-codes-unsorted",
+        "client-code-repeated",
+        "client-code-is-an-action-code",
+        "client-code-is-a-registry-code",
+        "client-code-raises-a-warning",
+        "client-code-by-status-beside-refusal-without-code",
+        "client-code-the-rules-raise-missing",
+        "client-code-class-changed",
+        "client-error-without-code",
+        "client-error-code-of-another-class",
+        "client-error-code-the-rules-do-not-raise",
+        "refusal-without-code",
+        "search-warning-one-hint-code",
         "source-commit-short",
     ],
 )

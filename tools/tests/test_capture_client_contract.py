@@ -31,6 +31,7 @@ _spec.loader.exec_module(capture)
 
 SCENARIOS = capture.PACKAGE_DIR / "scenarios"
 ACTIONS = capture.load_actions(capture.PACKAGE_DIR)
+CLIENT_CODES = capture.load_client_codes(capture.PACKAGE_DIR)
 
 
 def _load(name: str) -> dict[str, Any]:
@@ -43,45 +44,6 @@ def _records(kind: str) -> list[str]:
         for p in SCENARIOS.glob("*.json")
         if json.loads(p.read_text(encoding="utf-8"))["origin"]["kind"] == kind
     )
-
-
-class _Served:
-    """A transport serving one record's responses, and failing on any request
-    the record does not hold in that order."""
-
-    def __init__(self, record: dict[str, Any]) -> None:
-        self.base_url = record["origin"].get("base_url", capture.DEV_BASE_URL)
-        self.pending = copy.deepcopy(record["exchanges"])
-
-    def __call__(
-        self,
-        method: str,
-        url: str,
-        *,
-        body: bytes | None,
-        headers: Mapping[str, str],
-        timeout: float,
-    ) -> Any:
-        exchange = self.pending.pop(0)
-        request, response = exchange["request"], exchange["response"]
-        assert method == request["method"]
-        if "url" in request:
-            assert headers == {}, "a signed download carries no client header"
-            assert capture.redact_external_url(url) == request["url"]
-        elif "origin_path" in request:
-            assert url == capture._origin(self.base_url) + request["origin_path"]
-        else:
-            assert url == self.base_url + request["path"]
-        assert (json.loads(body) if body else None) == request.get("json")
-        if "json" in response:
-            data = json.dumps(response["json"]).encode()
-        elif "body_file" in response:
-            data = (SCENARIOS / response["body_file"]).read_bytes()
-        else:
-            data = b""
-        return capture.Response(
-            response["status"], dict(response.get("headers", {})), data
-        )
 
 
 def _shape(data: bytes) -> tuple[int, list[str]]:
@@ -99,42 +61,6 @@ def _without_shapes(expect: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return expect
 
 
-def _drive(session: Any, call: list[dict[str, Any]]) -> None:
-    """Runs a record's steps through the recorder's client."""
-    answer = None
-    for step in call:
-        match step:
-            case {"op": "search", "question": question}:
-                answer = session.search(question)
-            case {"op": "choose", "option": option}:
-                answer = session.choose(answer, option, part=step.get("part"))
-            case {"op": "fetch", "spec": spec}:
-                window = step.get("window")
-                session.fetch_spec(
-                    capture.Spec(
-                        spec["spec_id"], spec["definition"], spec.get("sentence")
-                    ),
-                    window=tuple(window) if isinstance(window, list) else window,
-                    facets=step.get("facets"),
-                )
-            case {"op": "fetch", "ref": ref}:
-                session.fetch_ref(ref)
-            case {"op": "fetch"}:
-                session.fetch_answer(
-                    answer,
-                    partial=step.get("partial", False),
-                    strict=step.get("strict", False),
-                )
-            case {"op": "mint", "spec": spec}:
-                session.mint(
-                    capture.Spec(
-                        spec["spec_id"], spec["definition"], spec.get("sentence")
-                    )
-                )
-            case {"op": "result"}:
-                session.result()
-
-
 _LIVE = sorted(d.name for d in capture.SYNTHETIC if d.live)
 
 
@@ -145,12 +71,12 @@ def test_every_synthetic_record_has_a_definition() -> None:
 @pytest.mark.parametrize("name", [*_records("recorded"), *_LIVE])
 def test_the_recorder_reproduces_each_record_from_its_steps(name: str) -> None:
     record = _load(name)
-    served = _Served(record)
+    served = capture.Served(record, SCENARIOS)
     recorder = capture.Recorder(name, served.base_url, served)
     session = capture.Session(
-        recorder, ACTIONS, read_shape=_shape, sleep=lambda _: None
+        recorder, ACTIONS, CLIENT_CODES, read_shape=_shape, sleep=lambda _: None
     )
-    _drive(session, record["call"])
+    capture.drive(session, record["call"])
     assert served.pending == [], "the client skipped a recorded exchange"
     assert session.call == record["call"]
     assert recorder.exchanges == record["exchanges"]
@@ -229,7 +155,9 @@ def test_each_derived_record_follows_from_its_parent(name: str) -> None:
     record = _load(name)
     definition = next(d for d in capture.SYNTHETIC if d.name == name)
     parent = _load(record["origin"]["derived_from"])
-    ctx = capture.Context(capture.DEV_BASE_URL, _Served(parent), ACTIONS)
+    ctx = capture.Context(
+        capture.DEV_BASE_URL, capture.Served(parent, SCENARIOS), ACTIONS, CLIENT_CODES
+    )
     derived = definition.derive(copy.deepcopy(parent), ctx)
     assert record["origin"]["edit"] == definition.edit
     assert record["call"] == derived.call
@@ -237,12 +165,34 @@ def test_each_derived_record_follows_from_its_parent(name: str) -> None:
     assert record["expect"] == derived.expect
 
 
+def test_an_offline_rederivation_rewrites_only_the_expect(tmp_path: Path) -> None:
+    name = "answer-declined"
+    for path in SCENARIOS.glob(f"{name}*"):
+        (tmp_path / path.name).write_bytes(path.read_bytes())
+    stale = _load(name)
+    stale["expect"][1]["error"]["code"] = None
+    capture.write_record(tmp_path, stale, {})
+    ctx = capture.Context(
+        capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES, read_shape=_shape
+    )
+    capture.rederive_recorded(name, ctx, tmp_path)
+    fresh = (tmp_path / f"{name}.json").read_text(encoding="utf-8")
+    assert fresh == (SCENARIOS / f"{name}.json").read_text(encoding="utf-8")
+
+
+def test_an_offline_run_refuses_a_live_scenario() -> None:
+    with pytest.raises(SystemExit, match="derives no live scenario"):
+        capture.main(["record", "--offline", "--only", _LIVE[0]])
+
+
 def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:
     record = _load("fetch-renamed-strict-field")
     manifest = record["exchanges"][-1]["response"]["json"]
     assert "content_version" not in manifest
     assert "contentVersion" in manifest
-    assert record["expect"][-1] == {"error": {"class": "ContractError", "code": None}}
+    assert record["expect"][-1] == {
+        "error": {"class": "ContractError", "code": "contract_violation"}
+    }
 
 
 def test_place_options_pin_each_candidate_on_the_ambiguous_wording() -> None:

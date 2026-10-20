@@ -24,6 +24,10 @@ document validates against its schema, then what the schemas cannot express:
   when its code has a `no_data_reason` mapping; `choose` goes with the
   `choice` gap kind and only with it; and a code with a `problem_details`
   mapping takes an action a problem document can carry.
+- `client-codes.json` lists codes in order, each once, none of them a code in
+  `actions.json` or `registries/codes.json`. Each row's class is one a
+  scenario's error may name, other than `SearchWarning`, and only
+  `refusal_without_code` takes the class its status maps to.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
   one, a synthetic scenario derives from a recorded one, and every body file
@@ -33,9 +37,12 @@ document validates against its schema, then what the schemas cannot express:
   route's request schema, each JSON response body validates against the
   route's schema for its status, and a problem document's `code` is an active
   code registered with that status.
+- Each error a scenario expects, other than a `SearchWarning`, carries a
+  refusal's code from its exchanges or a client code of its class.
 - Each scenario's `expect` equals the outcomes its steps reach over its
-  exchanges, with error classes and gap kinds from `actions.json`, as
-  `expected_outcomes` derives them; a dataset's rows, columns and per-part
+  exchanges, with refusals' error classes and gap kinds from `actions.json`
+  and the class of each error the client raises itself from
+  `client-codes.json`, as `expected_outcomes` derives them; a dataset's rows, columns and per-part
   row counts are left to the Parquet bodies. Each Search request a record
   holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity. Every
@@ -122,6 +129,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
     names = (
         "strict-fields.schema.json",
         "actions.schema.json",
+        "client-codes.schema.json",
         "scenario.schema.json",
         "dataset-ref.schema.json",
         "rules/rules.schema.json",
@@ -317,6 +325,53 @@ def _check_actions(document: dict[str, Any], registry: dict[str, Any]) -> list[s
                 f"actions.json: {code!r} reaches problem documents, which cannot "
                 f"carry action {row['action']!r}"
             )
+    return problems
+
+
+# --- client codes -----------------------------------------------------------
+
+
+def error_classes(scenario_schema: dict[str, Any]) -> list[str]:
+    """The error classes a scenario's error outcome may name."""
+    return scenario_schema["$defs"]["error"]["properties"]["class"]["enum"]
+
+
+def _check_client_codes(
+    document: dict[str, Any],
+    actions: dict[str, Any],
+    registry: dict[str, Any],
+    classes: Sequence[str],
+) -> list[str]:
+    codes = [row["code"] for row in document["codes"]]
+    problems = [
+        f"client-codes.json: code {code!r} is listed twice"
+        for code in sorted({c for c in codes if codes.count(c) > 1})
+    ]
+    if codes != sorted(codes):
+        problems.append("client-codes.json: codes are not sorted")
+    taken = {
+        "actions.json": {row["code"] for row in actions["codes"]},
+        "registries/codes.json": {entry["code"] for entry in registry["entries"]},
+    }
+    for source, server_codes in taken.items():
+        problems.extend(
+            f"client-codes.json: {code!r} is also a code in {source}"
+            for code in sorted(set(codes) & server_codes)
+        )
+    # A SearchWarning is a warning and carries the server's code.
+    known = {*classes, BY_STATUS} - {"SearchWarning"}
+    problems.extend(
+        f"client-codes.json: {row['code']!r} raises {row['class']!r}, a class "
+        "no scenario names"
+        for row in document["codes"]
+        if row["class"] not in known
+    )
+    by_status = [row["code"] for row in document["codes"] if row["class"] == BY_STATUS]
+    if by_status != [REFUSAL_WITHOUT_CODE]:
+        problems.append(
+            f"client-codes.json: {by_status} take the class {BY_STATUS}, where "
+            f"{REFUSAL_WITHOUT_CODE!r} alone does"
+        )
     return problems
 
 
@@ -556,16 +611,54 @@ def error_class(
     return STATUS_CLASSES.get(status, fallback)
 
 
-def error_outcome(error: str, code: str | None = None) -> dict[str, Any]:
+# The class of a client code that takes the class its refusal's HTTP status
+# maps to, and the client code of a refusal whose body carries no code.
+BY_STATUS = "by_status"
+REFUSAL_WITHOUT_CODE = "refusal_without_code"
+
+
+def error_outcome(error: str, code: str | None) -> dict[str, Any]:
     return {"error": {"class": error, "code": code}}
 
 
 class ClientError(Exception):
-    """A step ends in `outcome`, an error a client raises."""
+    """A step ends in an error a client raises. A refusal names its class and
+    the server's code, a SearchWarning names the server's warning or
+    departure code, and any other error names a code from
+    `client-codes.json`, whose row gives its class."""
 
-    def __init__(self, error: str, code: str | None = None) -> None:
-        super().__init__(f"{error} {code}")
-        self.outcome = error_outcome(error, code)
+    def __init__(self, code: str | None, *, error: str | None = None) -> None:
+        super().__init__(f"{error or 'client'} {code}")
+        self.code = code
+        self.error = error
+
+    def outcome(self, client_codes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+        """The error outcome, its class from `client_codes` when the error
+        names none.
+
+        Raises:
+            ValueError: The code is not a client code of one class.
+        """
+        if self.error is not None:
+            return error_outcome(self.error, self.code)
+        row = client_codes.get(self.code) if self.code is not None else None
+        if row is None or row["class"] == BY_STATUS:
+            raise ValueError(
+                f"{self.code!r} is not a client code of one class in client-codes.json"
+            )
+        return error_outcome(row["class"], self.code)
+
+
+def refusal_error(
+    status: int, body: Any, actions: Mapping[str, Mapping[str, Any]]
+) -> ClientError:
+    """The error a refusal raises: its code's class and the server's code, or
+    for a body with no code the class its status maps to and
+    `refusal_without_code`."""
+    code = refusal_code(body)
+    return ClientError(
+        code or REFUSAL_WITHOUT_CODE, error=error_class(status, code, actions)
+    )
 
 
 # The answer kinds a client reads. Any other kind raises ContractError.
@@ -591,7 +684,7 @@ def answer_from_body(body: dict[str, Any]) -> Answer:
     """The answer a search response holds; a kind no client knows raises
     ContractError."""
     if body.get("kind") not in ANSWER_KINDS:
-        raise ClientError("ContractError")
+        raise ClientError("contract_violation")
     return Answer(
         body, body.get("parts", []), body.get("rendered_sentence"), body.get("status")
     )
@@ -626,7 +719,7 @@ class Choice:
 
 
 def _refuse() -> ClientError:
-    return ClientError("InvalidRequestError")
+    return ClientError("choice_invalid")
 
 
 def choice_for(
@@ -721,7 +814,7 @@ def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any
     if choice is not None and choice.option is not None:
         parts = choice.option["data_query"].get("parts")
         if not isinstance(parts, list) or len(parts) != 1:
-            raise ClientError("ContractError")
+            raise ClientError("contract_violation")
         return {"entry_kind": "parsed", "part": parts[0]}
     match part.get("status"):
         case "definite":
@@ -780,26 +873,43 @@ def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
     return entry
 
 
-def search_warns(answer: Answer) -> bool:
-    """Whether fetching `answer` issues a SearchWarning: a definite part has
-    an operation Search did not run, a departure, or a warning shown at
-    `warn` or `degraded` severity, or the answer's diagnostics carry such a
-    warning. An `info` warning issues nothing."""
+def reading_hints(answer: Answer) -> dict[str, str]:
+    """How `answer`'s readings differ from the question, each line a client
+    shows once, with its code. In part order, each definite part gives each
+    operation Search did not run, coded by its verb, each departure, and each
+    warning shown at `warn` or `degraded` severity; the answer's diagnostics
+    warnings follow. An `info` warning gives nothing."""
+    hints: dict[str, str] = {}
 
-    def shown(warnings: Any) -> bool:
-        return any(
-            w.get("severity") in SHOWN_SEVERITIES and w.get("message")
-            for w in warnings or []
-        )
+    def notices(warnings: Any) -> None:
+        for warning in warnings or []:
+            if warning.get("severity") in SHOWN_SEVERITIES and warning.get("message"):
+                hints.setdefault(f"Note: {warning['message']}", warning["code"])
 
     for part in answer.parts:
         if part.get("status") != "definite":
             continue
-        if part.get("operations") or part.get("departures"):
-            return True
-        if shown(part.get("warnings")):
-            return True
-    return shown(answer.body.get("diagnostics", {}).get("warnings"))
+        for operation in part.get("operations") or []:
+            line = f"Not done: {operation['verb']} ({json.dumps(operation['phrase'])})"
+            hints.setdefault(line, operation["verb"])
+        for departure in part.get("departures") or []:
+            hints.setdefault(departure["text"], departure["code"])
+        notices(part.get("warnings"))
+    notices(answer.body.get("diagnostics", {}).get("warnings"))
+    return hints
+
+
+def search_warns(answer: Answer) -> bool:
+    """Whether fetching `answer` issues a SearchWarning: its readings differ
+    from the question in some way `reading_hints` lists."""
+    return bool(reading_hints(answer))
+
+
+def search_warning_code(answer: Answer) -> str | None:
+    """The code a SearchWarning on `answer` carries: the one hint's code, or
+    None when the readings differ in several ways."""
+    codes = list(reading_hints(answer).values())
+    return codes[0] if len(codes) == 1 else None
 
 
 def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]]:
@@ -976,6 +1086,7 @@ class _Replay:
     base_path: str
     members: Mapping[str, Sequence[str]]
     actions: Mapping[str, Mapping[str, Any]]
+    client_codes: Mapping[str, Mapping[str, Any]]
     cursor: int = 0
     answer: Answer | None = None
     minted: tuple[dict[str, Any], dict[str, Any]] | None = None
@@ -1022,9 +1133,7 @@ class _Replay:
         response = exchange["response"]
         body = response.get("json")
         if response["status"] >= 400:
-            code = refusal_code(body)
-            error = error_class(response["status"], code, self.actions)
-            raise ClientError(error, code)
+            raise refusal_error(response["status"], body, self.actions)
         schema = self.routes.response_schema(
             self.base_path, exchange["request"], response["status"]
         )
@@ -1033,7 +1142,7 @@ class _Replay:
 
     def strict(self, schema: Any, body: Any) -> None:
         if strict_gaps(self.routes.openapi, self.members, schema, body):
-            raise ClientError("ContractError")
+            raise ClientError("contract_violation")
 
     def download(self) -> None:
         """The files route, then its signed URL; a refused signed URL asks the
@@ -1063,7 +1172,7 @@ class _Replay:
             resource = self.acted_on(self.call(*_POLL))
             operation, manifest = resource["operation"], resource.get("manifest")
         if not isinstance(manifest, dict):
-            raise ClientError("ContractError")
+            raise ClientError("contract_violation")
         self.strict(_MANIFEST, manifest)
         return manifest
 
@@ -1112,7 +1221,7 @@ class _Replay:
         except ClientError as ended:
             if op in {"search", "choose"}:
                 self.answer = None
-            return ended.outcome
+            return ended.outcome(self.client_codes)
 
     def _answered(self) -> Answer:
         if self.answer is None:
@@ -1144,14 +1253,14 @@ class _Replay:
         request."""
         answer = self._answered()
         if answer.body.get("kind") != "resolution":
-            raise ClientError("DeclinedError")
+            raise ClientError("answer_declined")
         gaps = answer_gaps(answer, self.kinds)
         readings = answer_members(answer)
         if gaps and (not step.get("partial", False) or not readings):
-            raise ClientError("IncompleteAnswerError")
+            raise ClientError("answer_incomplete")
         warns = search_warns(answer)
         if warns and step.get("strict", False):
-            raise ClientError("SearchWarning")
+            raise ClientError(search_warning_code(answer), error="SearchWarning")
         members = [
             self.build(
                 parts,
@@ -1196,16 +1305,24 @@ def expected_outcomes(
     base_path: str,
     strict: dict[str, Any],
     actions: Mapping[str, Mapping[str, Any]],
+    client_codes: Mapping[str, Mapping[str, Any]],
 ) -> list[dict[str, Any]]:
-    """The outcome each of `record`'s steps reaches over its exchanges, and
-    over `actions` for error classes and gap kinds. A dataset outcome holds
-    what `dataset_summary` gives, without rows and columns.
+    """The outcome each of `record`'s steps reaches over its exchanges, over
+    `actions` for refusals' error classes and gap kinds, and over
+    `client_codes` for the class of each error the client raises itself. A
+    dataset outcome holds what `dataset_summary` gives, without rows and
+    columns.
 
     Raises:
         ValueError: The exchanges do not fit the steps.
     """
     replay = _Replay(
-        record["exchanges"], routes, base_path, _strict_members(strict), actions
+        record["exchanges"],
+        routes,
+        base_path,
+        _strict_members(strict),
+        actions,
+        client_codes,
     )
     try:
         outcomes = [replay.step(step) for step in record["call"]]
@@ -1348,9 +1465,11 @@ def _part_problems(
 def _check_scenarios(
     validator: jsonschema.Draft202012Validator,
     openapi: dict[str, Any],
+    *,
     registry: dict[str, Any],
     strict: dict[str, Any],
     actions: Mapping[str, Mapping[str, Any]],
+    client_codes: Mapping[str, Mapping[str, Any]],
 ) -> list[str]:
     directory = PACKAGE_DIR / "scenarios"
     paths = sorted(directory.glob("*.json"))
@@ -1375,6 +1494,7 @@ def _check_scenarios(
             problems.append(f"scenarios/{path.name}: name {name!r} repeats")
         records[name] = record
         problems.extend(_check_steps(path.name, record))
+        problems.extend(_check_client_errors(path.name, record, client_codes))
         for index, exchange in enumerate(record["exchanges"]):
             problems.extend(
                 _check_redaction(f"scenarios/{path.name}: exchange {index}", exchange)
@@ -1419,6 +1539,7 @@ def _check_scenarios(
                 base_path=base_path,
                 strict=strict,
                 actions=actions,
+                client_codes=client_codes,
             )
         except ValueError as exc:
             problems.append(f"scenarios/{file_name}: {exc}")
@@ -1430,6 +1551,51 @@ def _check_scenarios(
         for p in sorted(directory.iterdir())
         if p.is_file() and p.suffix != ".json" and p.name not in named_files
     )
+    return problems
+
+
+# The classes a refusal's HTTP status maps to.
+_STATUS_ONLY_CLASSES = {*STATUS_CLASSES.values(), "ServerError", "InvalidRequestError"}
+
+
+def _check_client_errors(
+    file_name: str,
+    record: dict[str, Any],
+    client_codes: Mapping[str, Mapping[str, Any]],
+) -> list[str]:
+    """Each error outcome no refusal in the record carries the code of names
+    a client code of its class. A SearchWarning carries the server's code."""
+    refused = {
+        refusal_code(e["response"].get("json"))
+        for e in record["exchanges"]
+        if e["response"]["status"] >= 400
+    }
+    problems = []
+    for index, outcome in enumerate(record["expect"]):
+        error = outcome.get("error")
+        if error is None or error["class"] == "SearchWarning":
+            continue
+        code = error["code"]
+        if code in refused:
+            continue
+        label = f"scenarios/{file_name}: step {index}"
+        row = client_codes.get(code) if code is not None else None
+        if row is None:
+            problems.append(
+                f"{label}: {error['class']} code {code!r} is neither a refusal's "
+                "code in the exchanges nor a client code"
+            )
+        elif row["class"] == BY_STATUS:
+            if error["class"] not in _STATUS_ONLY_CLASSES:
+                problems.append(
+                    f"{label}: {code!r} raises the class a status maps to, which "
+                    f"{error['class']} is not"
+                )
+        elif row["class"] != error["class"]:
+            problems.append(
+                f"{label}: client code {code!r} raises {row['class']}, not "
+                f"{error['class']}"
+            )
     return problems
 
 
@@ -1553,13 +1719,27 @@ def validate() -> list[str]:
     )
     problems.extend(errors or _check_actions(actions, registry))
 
+    client_codes = _load(PACKAGE_DIR / "client-codes.json")
+    errors = _schema_problems(
+        "client-codes.json", validators["client-codes.schema.json"], client_codes
+    )
+    scenario_schema = validators["scenario.schema.json"].schema
+    problems.extend(
+        errors
+        or _check_client_codes(
+            client_codes, actions, registry, error_classes(scenario_schema)
+        )
+    )
+    client_rows = [] if errors else client_codes["codes"]
+
     problems.extend(
         _check_scenarios(
             validators["scenario.schema.json"],
             openapi,
-            registry,
-            strict,
-            {row["code"]: row for row in actions["codes"]},
+            registry=registry,
+            strict=strict,
+            actions={row["code"]: row for row in actions["codes"]},
+            client_codes={row["code"]: row for row in client_rows},
         )
     )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
@@ -1577,7 +1757,9 @@ def main() -> int:
     strict = _load(PACKAGE_DIR / "strict-fields.json")
     print(
         f"client contract valid: {len(_load(PACKAGE_DIR / 'actions.json')['codes'])} "
-        f"action rows, {len(strict['required'])} required and "
+        "action rows, "
+        f"{len(_load(PACKAGE_DIR / 'client-codes.json')['codes'])} client codes, "
+        f"{len(strict['required'])} required and "
         f"{len(strict['enums'])} enum pointers, "
         f"{len(list((PACKAGE_DIR / 'scenarios').glob('*.json')))} scenarios"
     )

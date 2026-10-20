@@ -43,3 +43,11 @@ def test_an_empty_record_set_is_a_hard_failure(
 def test_an_unknown_rule_is_refused() -> None:
     with pytest.raises(ValueError, match="unknown rule"):
         dfo_client_contract.rule("cache")
+
+
+def test_client_codes_are_disjoint_from_the_refusal_codes() -> None:
+    client = [row["code"] for row in dfo_client_contract.client_codes()["codes"]]
+    refusals = {row["code"] for row in dfo_client_contract.actions()["codes"]}
+    assert client == sorted(set(client))
+    assert not refusals & set(client)
+    assert dfo_client_contract.client_codes_schema()["title"] == "Client codes"

@@ -40,6 +40,8 @@ uv run ty check src/dfo_client_contract
 | `strict-fields.schema.json` | The shape of `strict-fields.json`                                                     |
 | `actions.json`              | The caller's next step for each refusal code, and the gap kind of each no_data reason |
 | `actions.schema.json`       | The shape of `actions.json`                                                           |
+| `client-codes.json`         | The code, class and condition of each error a client raises itself                    |
+| `client-codes.schema.json`  | The shape of `client-codes.json`                                                      |
 | `scenario.schema.json`      | One scenario record                                                                   |
 | `scenarios/`                | The scenario records, and the binary response bodies they name                        |
 | `dataset-ref.schema.json`   | The frozen `DatasetRef` format                                                        |
@@ -52,6 +54,7 @@ uv run ty check src/dfo_client_contract
 | `served_source()` | `served/SOURCE.json`, parsed                                |
 | `strict_fields()` | `strict-fields.json`, parsed                                |
 | `actions()`       | `actions.json`, parsed                                      |
+| `client_codes()`  | `client-codes.json`, parsed                                 |
 | `scenarios()`     | Every scenario record; raises `RuntimeError` when none load |
 | `ref_examples()`  | Every `DatasetRef` example; raises `RuntimeError` when none |
 | `rule(name)`      | The vector file for one of `RULES`                          |
@@ -92,6 +95,10 @@ A code that maps to `no_data_reason` also carries `gap_kind`, the kind of gap a 
 
 An answer's gaps follow from its parts. A candidates part is a `choice` gap, its options the candidates. A no_data part is a gap of its reason's `gap_kind`, its options the no_data `options`, and of kind `timed_out` instead when the answer's `diagnostics.timed_out` is true. An unsupported part is an `unsupported` gap. A part whose status a client does not know is an `unknown` gap.
 
+## Client codes
+
+`client-codes.json` lists, sorted by code, each code a client sets on an error it raises when no problem document carries one: the `code`, the error `class` it raises, and a one-line `condition`. Both clients set an error's `code` from this list, so every error a client raises carries a code. A refusal keeps the server's code: the problem document's `code`, or the website proxy's `error`. A refusal whose body carries neither raises `refusal_without_code` with the class its HTTP status maps to, which its row gives as `by_status`; no other row does. No client code is a code in `actions.json` or `registries/codes.json`, and each class is one the scenario schema names. The list holds no warning: a `SearchWarning` carries the code of the one way the readings differ from the question, a departure's or a warning's code or the verb of an operation Search did not run, and null when they differ in several ways.
+
 ## Scenarios
 
 A scenario is one client-level call, the HTTP exchanges it makes, and the outcome each step reaches. Each record is one file, `scenarios/<name>.json`, validated by `scenario.schema.json`.
@@ -110,9 +117,9 @@ A step that acts on an earlier result follows one: `choose` follows `search` or 
 
 An exchange's request names its target in one of three ways. `path` is a path the client composes under the base URL, such as `/search/resolve`. `origin_path` is a root-relative URL the server returned, such as an artifact's `url`, which resolves against the base URL's origin and never against its path. `url` is an absolute URL outside the API, such as the signed storage URL a files route redirects to, which the client fetches with a bare request carrying no client header and no key. `json` holds the request body members that must match; a recorded scenario lists every member the client sent. The response gives `status`, the `headers` a client reads, and a `json` body or a `body_file`, a binary body in `scenarios/`. A scenario's own body files are named `<name>.<ext>` and `<name>-<n>.<ext>`; a synthetic scenario may instead name a body file its parent names.
 
-An answer outcome gives `kind`, `status`, `sentence`, `complete`, the distinct `specs` of its definite parts, and its `gaps`, each with the `part` index, the gap `kind` and the number of `options`. A dataset outcome gives `rows`, `columns`, `complete`, its `members`, each with `parts`, `spec_id`, `content_version` and `sentence`, and the `missing` gaps. For one member the columns are the artifact's columns; a dataset of several members adds a `part` column and gives `part_rows`, one entry per member in member order with the `part` value of that member's rows and their number. A fetch of an answer also gives `search_warning`, whether the fetch issued a `SearchWarning`. An error outcome gives the error `class` and the problem's `code`, or null when no problem document carries the error.
+An answer outcome gives `kind`, `status`, `sentence`, `complete`, the distinct `specs` of its definite parts, and its `gaps`, each with the `part` index, the gap `kind` and the number of `options`. A dataset outcome gives `rows`, `columns`, `complete`, its `members`, each with `parts`, `spec_id`, `content_version` and `sentence`, and the `missing` gaps. For one member the columns are the artifact's columns; a dataset of several members adds a `part` column and gives `part_rows`, one entry per member in member order with the `part` value of that member's rows and their number. A fetch of an answer also gives `search_warning`, whether the fetch issued a `SearchWarning`. An error outcome gives the error `class` and its `code`: a refusal's code, a `SearchWarning`'s code or null, or for any other error the client raises itself its code in `client-codes.json`.
 
-Each outcome follows from the exchanges and `actions.json`, and `tools/validate_client_contract.py` fails a record whose `expect` says otherwise. It runs the steps over the exchanges by the rules below: a refusal followed by the same request is a retry, an error's class is its code's action or else its status, a gap's kind is its reason's `gap_kind`, option and candidate counts are those the bodies hold, a dataset's members, `complete`, `missing` and `search_warning` follow from the answer and the manifests, and each Search request posts the input the rules give: the question, a choice's input, or a member's identity. A dataset's `rows`, `columns` and `part_rows` row counts are the Parquet bodies' and are not derived, except that `part` comes first and `part_rows` is given exactly when the dataset has several members, each entry's `part` is its member's value and their rows sum to `rows`.
+Each outcome follows from the exchanges and `actions.json`, and `tools/validate_client_contract.py` fails a record whose `expect` says otherwise. It runs the steps over the exchanges by the rules below: a refusal followed by the same request is a retry, a refusal's class is its code's action or else its status, the class of an error the client raises itself is its code's row in `client-codes.json`, a gap's kind is its reason's `gap_kind`, option and candidate counts are those the bodies hold, a dataset's members, `complete`, `missing` and `search_warning` follow from the answer and the manifests, and each Search request posts the input the rules give: the question, a choice's input, or a member's identity. A dataset's `rows`, `columns` and `part_rows` row counts are the Parquet bodies' and are not derived, except that `part` comes first and `part_rows` is given exactly when the dataset has several members, each entry's `part` is its member's value and their rows sum to `rows`.
 
 A recorded scenario's request and response bodies validate against their route's schemas in `served/openapi.json`, with one allowance: a required member whose schema admits null may be absent, because the server leaves null members out of the bodies it serves.
 
@@ -148,7 +155,13 @@ uv sync --directory ../dfo-apis --extra eval --extra api --extra engine --extra 
 uv run tools/capture_client_contract.py openapi --dfo-apis ../dfo-apis
 ```
 
-Its `record` command runs every scenario against a base URL, dev's Cloud Run URL by default, checks each live answer still has the shape its scenario names, derives the synthetic scenarios from the fresh records, and then runs the validator. It fails when the validator reports a problem or the binary bodies pass 5 MB. `--only` records the scenarios it names. Each record names the commit in the responses' `x-dfo-commit` header, and the run refuses responses that name none or several. To record against a local app, run the composed app, every surface mounted, from the checkout the document came from, with `DFO_BUILD_COMMIT` set to that checkout's commit, then pass its base URL:
+Its `record` command runs every scenario against a base URL, dev's Cloud Run URL by default, checks each live answer still has the shape its scenario names, derives the synthetic scenarios from the fresh records, and then runs the validator. It fails when the validator reports a problem or the binary bodies pass 5 MB. `--only` records the scenarios it names. `--offline` makes no request: each recorded scenario's steps run again over its own exchanges and rewrite its `expect`, and each synthetic scenario that records nothing live is derived again from its parent, so a change to the outcome rules or to `client-codes.json` reaches the records without a recording:
+
+```bash
+uv run tools/capture_client_contract.py record --offline --only answer-declined choose-refused-no-choice
+```
+
+ Each record names the commit in the responses' `x-dfo-commit` header, and the run refuses responses that name none or several. To record against a local app, run the composed app, every surface mounted, from the checkout the document came from, with `DFO_BUILD_COMMIT` set to that checkout's commit, then pass its base URL:
 
 ```bash
 uv run tools/capture_client_contract.py record --base-url http://127.0.0.1:8083/api

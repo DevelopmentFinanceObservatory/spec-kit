@@ -10,7 +10,7 @@
 Usage:
     uv run tools/capture_client_contract.py openapi --dfo-apis PATH
     uv run tools/capture_client_contract.py record [--base-url URL]
-        [--only NAME ...] [--scenarios-dir DIR]
+        [--only NAME ...] [--offline] [--scenarios-dir DIR]
 
 `openapi` builds the composed dfo-apis app from the checkout at PATH, every
 surface flag on, by calling `dfo_apis.app.create_app()` in that checkout's
@@ -25,7 +25,10 @@ refused, because the commit would not describe the document.
 URL (dev by default; a local app at `http://127.0.0.1:8083/api`), the way a
 client would, and writes each record and its binary bodies to `scenarios/`.
 Each recorded scenario checks that its live answer still has the shape the
-scenario is named for and refuses to write one that does not. Synthetic
+scenario is named for and refuses to write one that does not. With
+`--offline` no request is made: each recorded scenario's steps run again
+over its own exchanges and rewrite its `expect`, and each synthetic scenario
+that records nothing live is derived again from its parent. Synthetic
 scenarios are derived from the recorded records after them, so a recording
 refreshes both, and a synthetic record names its parent's body files rather
 than copies. Every absolute URL a record keeps, a signed download or a
@@ -74,12 +77,11 @@ from validate_client_contract import (
     choice_for,
     choice_input,
     dataset_summary,
-    error_class,
-    error_outcome,
     gap_kinds,
     owns_body_file,
     part_label,
-    refusal_code,
+    refusal_error,
+    search_warning_code,
     search_warns,
 )
 from validate_client_contract import main as validate_main
@@ -516,6 +518,7 @@ class Session:
 
     recorder: Recorder
     actions: Mapping[str, Mapping[str, Any]]
+    client_codes: Mapping[str, Mapping[str, Any]]
     read_shape: Callable[[bytes], tuple[int, list[str]]] = parquet_shape
     sleep: Callable[[float], None] = time.sleep
     call: list[dict[str, Any]] = field(default_factory=list)
@@ -530,8 +533,8 @@ class Session:
         self.call.append(step)
         try:
             outcome = run()
-        except ClientError as refusal:
-            outcome = refusal.outcome
+        except ClientError as error:
+            outcome = error.outcome(self.client_codes)
         self.expect.append(outcome)
 
     def _answered(self, answer: Answer) -> dict[str, Any]:
@@ -595,14 +598,14 @@ class Session:
 
         def run() -> dict[str, Any]:
             if answer.body["kind"] != "resolution":
-                raise ClientError("DeclinedError")
+                raise ClientError("answer_declined")
             gaps = answer_gaps(answer, self.gap_kinds)
             readings = _members(answer)
             if gaps and (not partial or not readings):
-                raise ClientError("IncompleteAnswerError")
+                raise ClientError("answer_incomplete")
             warns = search_warns(answer)
             if warns and strict:
-                raise ClientError("SearchWarning")
+                raise ClientError(search_warning_code(answer), error="SearchWarning")
             members = [self.build(parts, spec, None) for parts, spec in readings]
             return dataset_outcome(members, missing=gaps, search_warning=warns)
 
@@ -782,8 +785,7 @@ class Session:
     def _raise_problem(self, response: Response) -> None:
         if response.status < 400:
             return
-        code = refusal_code(response.json())
-        raise ClientError(error_class(response.status, code, self.actions), code)
+        raise refusal_error(response.status, response.json(), self.actions)
 
 
 def _window(window: str | tuple[int, int]) -> dict[str, Any]:
@@ -862,6 +864,7 @@ class Context:
     base_url: str
     transport: Transport
     actions: Mapping[str, Mapping[str, Any]]
+    client_codes: Mapping[str, Mapping[str, Any]]
     read_shape: Callable[[bytes], tuple[int, list[str]]] = parquet_shape
     _cache: dict[str, Any] = field(default_factory=dict)
 
@@ -869,8 +872,13 @@ class Context:
         return Session(
             Recorder(name, self.base_url, self.transport, **recorder),
             self.actions,
+            self.client_codes,
             read_shape=self.read_shape,
         )
+
+    def raised(self, code: str) -> dict[str, Any]:
+        """The outcome of an error the client raises with `code`."""
+        return ClientError(code).outcome(self.client_codes)
 
     def definite_answer(self, question: str) -> Answer:
         if question not in self._cache:
@@ -1320,8 +1328,9 @@ def _proxy_502(parent: dict[str, Any], ctx: Context) -> Derived:
     refused = [
         _refusal(first["request"], 502, dict(_PROXY_UNAVAILABLE)) for _ in range(3)
     ]
-    code = refusal_code(_PROXY_UNAVAILABLE)
-    error = error_outcome(error_class(502, code, ctx.actions), code)
+    error = refusal_error(502, _PROXY_UNAVAILABLE, ctx.actions).outcome(
+        ctx.client_codes
+    )
     return Derived(copy.deepcopy(parent["call"]), refused, [error])
 
 
@@ -1390,7 +1399,7 @@ def _renamed_strict_field(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
     manifest = exchanges[index]["response"]["json"]
     manifest["contentVersion"] = manifest.pop("content_version")
-    error = error_outcome("ContractError")
+    error = ctx.raised("contract_violation")
     return Derived(
         copy.deepcopy(parent["call"]), exchanges, [parent["expect"][0], error]
     )
@@ -1445,7 +1454,7 @@ def _choice_refused(
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         derived = choose(parent, ctx)
         require(
-            derived.expect[-1] == error_outcome("InvalidRequestError"),
+            derived.expect[-1] == ctx.raised("choice_invalid"),
             "the choice refuses",
         )
         return derived
@@ -1489,7 +1498,7 @@ def _unknown_kind(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"])
     exchanges[0]["response"]["json"]["kind"] = "verdict"
     return Derived(
-        copy.deepcopy(parent["call"]), exchanges, [error_outcome("ContractError")]
+        copy.deepcopy(parent["call"]), exchanges, [ctx.raised("contract_violation")]
     )
 
 
@@ -1498,7 +1507,7 @@ def _partial_nothing_answered(parent: dict[str, Any], ctx: Context) -> Derived:
     return Derived(
         [*copy.deepcopy(parent["call"]), {"op": "fetch", "partial": True}],
         copy.deepcopy(parent["exchanges"]),
-        [*copy.deepcopy(parent["expect"]), error_outcome("IncompleteAnswerError")],
+        [*copy.deepcopy(parent["expect"]), ctx.raised("answer_incomplete")],
     )
 
 
@@ -1833,11 +1842,135 @@ def binary_total(directory: Path) -> int:
     )
 
 
-def load_actions(package_dir: Path) -> dict[str, dict[str, Any]]:
-    rows = json.loads((package_dir / "actions.json").read_text(encoding="utf-8"))[
-        "codes"
-    ]
+def _rows(path: Path) -> dict[str, dict[str, Any]]:
+    rows = json.loads(path.read_text(encoding="utf-8"))["codes"]
     return {row["code"]: row for row in rows}
+
+
+def load_actions(package_dir: Path) -> dict[str, dict[str, Any]]:
+    return _rows(package_dir / "actions.json")
+
+
+def load_client_codes(package_dir: Path) -> dict[str, dict[str, Any]]:
+    return _rows(package_dir / "client-codes.json")
+
+
+class Served:
+    """A transport serving one record's exchanges in order, its binary bodies
+    read from `body_dir`. A request the record does not hold next raises
+    `ValueError`."""
+
+    def __init__(self, record: dict[str, Any], body_dir: Path) -> None:
+        self.name = record["name"]
+        self.base_url = record["origin"].get("base_url", DEV_BASE_URL)
+        self.body_dir = body_dir
+        self.pending = copy.deepcopy(record["exchanges"])
+
+    def __call__(
+        self,
+        method: str,
+        url: str,
+        *,
+        body: bytes | None,
+        headers: Mapping[str, str],
+        timeout: float,
+    ) -> Response:
+        if not self.pending:
+            raise ValueError(f"{self.name}: {method} {url} follows the last exchange")
+        request, response = self.pending[0]["request"], self.pending[0]["response"]
+        if "url" in request:
+            target, sent = request["url"], redact_external_url(url)
+            if headers:
+                raise ValueError(f"{self.name}: a signed download carries headers")
+        elif "origin_path" in request:
+            target, sent = _origin(self.base_url) + request["origin_path"], url
+        else:
+            target, sent = self.base_url + request["path"], url
+        posted = json.loads(body) if body else None
+        if (method, sent, posted) != (request["method"], target, request.get("json")):
+            raise ValueError(
+                f"{self.name}: {method} {sent} is not the next exchange, "
+                f"{request['method']} {target}"
+            )
+        self.pending.pop(0)
+        if "json" in response:
+            data = json.dumps(response["json"]).encode()
+        elif "body_file" in response:
+            data = (self.body_dir / response["body_file"]).read_bytes()
+        else:
+            data = b""
+        return Response(response["status"], dict(response.get("headers", {})), data)
+
+
+def _offline(method: str, url: str, **_: Any) -> Response:
+    raise SystemExit(f"--offline makes no request, and a scenario sent {method} {url}")
+
+
+def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
+    """Runs a record's steps through `session`."""
+    answer = None
+    for step in call:
+        match step:
+            case {"op": "search", "question": question}:
+                answer = session.search(question)
+            case {"op": "choose", "option": option}:
+                if answer is None:
+                    raise ValueError("a choice follows no answer")
+                answer = session.choose(answer, option, part=step.get("part"))
+            case {"op": "fetch", "spec": spec}:
+                window = step.get("window")
+                session.fetch_spec(
+                    Spec(spec["spec_id"], spec["definition"], spec.get("sentence")),
+                    window=tuple(window) if isinstance(window, list) else window,
+                    facets=step.get("facets"),
+                )
+            case {"op": "fetch", "ref": ref}:
+                session.fetch_ref(ref)
+            case {"op": "fetch"}:
+                if answer is None:
+                    raise ValueError("a fetch of an answer follows no answer")
+                session.fetch_answer(
+                    answer,
+                    partial=step.get("partial", False),
+                    strict=step.get("strict", False),
+                )
+            case {"op": "mint", "spec": spec}:
+                session.mint(
+                    Spec(spec["spec_id"], spec["definition"], spec.get("sentence"))
+                )
+            case {"op": "result"}:
+                session.result()
+
+
+def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
+    """Derives a recorded scenario's `expect` again from its own steps over
+    its own exchanges, with no request, and keeps the rest of the record."""
+    path = directory / f"{name}.json"
+    if not path.exists():
+        raise SystemExit(f"{name}: no record to derive from; record it live")
+    record = json.loads(path.read_text(encoding="utf-8"))
+    served = Served(record, directory)
+    session = Session(
+        Recorder(name, served.base_url, served),
+        ctx.actions,
+        ctx.client_codes,
+        read_shape=ctx.read_shape,
+        sleep=lambda _: None,
+    )
+    try:
+        drive(session, record["call"])
+    except (ValueError, ShapeError) as exc:
+        raise SystemExit(f"{name}: {exc}; record it live") from exc
+    unchanged = (
+        not served.pending
+        and session.call == record["call"]
+        and session.recorder.exchanges == record["exchanges"]
+    )
+    if not unchanged:
+        raise SystemExit(f"{name}: its steps no longer make its exchanges")
+    write_record(
+        directory, {**record, "expect": session.expect}, session.recorder.bodies
+    )
 
 
 def run_record(args: argparse.Namespace) -> int:
@@ -1848,13 +1981,26 @@ def run_record(args: argparse.Namespace) -> int:
     if unknown:
         raise SystemExit(f"no scenario is named {sorted(unknown)}")
     chosen = set(args.only or names)
-    ctx = Context(args.base_url, urllib_transport, load_actions(package_dir))
+    live = sorted(d.name for d in SYNTHETIC if d.live and d.name in chosen)
+    if args.offline and live:
+        raise SystemExit(f"--offline derives no live scenario, and {live} are live")
+    ctx = Context(
+        args.base_url,
+        _offline if args.offline else urllib_transport,
+        load_actions(package_dir),
+        load_client_codes(package_dir),
+    )
     count = 0
     for definition in RECORDED:
-        if definition.name in chosen:
+        if definition.name not in chosen:
+            continue
+        if args.offline:
+            print(f"deriving {definition.name} from its record", flush=True)
+            rederive_recorded(definition.name, ctx, directory)
+        else:
             print(f"recording {definition.name}", flush=True)
             record_recorded(definition, ctx, directory)
-            count += 1
+        count += 1
     for synthetic in SYNTHETIC:
         if synthetic.name in chosen:
             print(f"deriving {synthetic.name}", flush=True)
@@ -1893,6 +2039,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     record = commands.add_parser("record", help="record the scenarios")
     record.add_argument("--base-url", default=DEV_BASE_URL)
     record.add_argument("--only", nargs="+", metavar="NAME")
+    record.add_argument(
+        "--offline",
+        action="store_true",
+        help="derive each outcome again from the records, with no request",
+    )
     record.add_argument(
         "--scenarios-dir",
         type=Path,
