@@ -62,7 +62,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the answer's years ("Official Donors, Total" in DAC2a and DAC2b, "All
   Recipients, Total" in DAC2a from 1984), so a sum of the listed members can
   differ from the published figure. Its params name the total (`total`,
-  `total_label`) and the member classes it covers (`whole_of`: `official`,
+  `total_label`) and the party classes it covers (`whole_of`: `official`,
   `private` or `residual`, comma-joined).
 
 ### Changed
