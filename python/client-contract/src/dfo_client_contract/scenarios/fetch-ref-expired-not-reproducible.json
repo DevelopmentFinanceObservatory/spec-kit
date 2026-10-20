@@ -1,0 +1,259 @@
+{
+  "format_version": 1,
+  "name": "fetch-ref-expired-not-reproducible",
+  "description": "When the stored version has expired and the build is refused, the client reads the versions route for the newest version. Dev refuses the keyless recorder 403 publish_not_permitted there, so the client raises VersionUnavailableError with the snapshot's artifact_expired code and no newest version.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "fetch-ref",
+    "edit": "The snapshot refuses 410 artifact_expired and the rebuild 422 member_not_resolvable; the versions route is recorded live."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "ref": {
+        "format_version": 1,
+        "members": [
+          {
+            "parts": [
+              "ODA disbursements for basic health care"
+            ],
+            "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+            "spec": {
+              "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+              "definition": {
+                "schema_version": 1,
+                "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                "identity": {
+                  "shape": {
+                    "kind": "statvar_schema",
+                    "stat_type": "measuredValue",
+                    "population_type": "FinancialFlow",
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal"
+                  },
+                  "slots": [
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "crsCooperationModality"
+                    },
+                    {
+                      "binding": {
+                        "ref": "CRSPurposeCode12220",
+                        "state": "value"
+                      },
+                      "property": "crsPurpose"
+                    },
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "crsTypeOfFinance"
+                    },
+                    {
+                      "binding": {
+                        "ref": "CRSTypeOfFlow10",
+                        "state": "value"
+                      },
+                      "property": "crsTypeOfFlow"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Disbursement",
+                        "state": "value"
+                      },
+                      "property": "financialFlowType"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Gross",
+                        "state": "value"
+                      },
+                      "property": "nettingBasis"
+                    }
+                  ],
+                  "entities": {
+                    "origin": [
+                      "country/DEU"
+                    ],
+                    "destination": [
+                      "country/NGA"
+                    ]
+                  },
+                  "identity_version": "spec1",
+                  "requested_window": {
+                    "kind": "all"
+                  }
+                }
+              }
+            },
+            "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
+            "artifact": {
+              "digest": "sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde",
+              "rendering": {
+                "format": "parquet",
+                "bundle": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756"
+      },
+      "response": {
+        "status": 410,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/artifact_expired",
+          "title": "Gone",
+          "status": 410,
+          "detail": "Every listable artifact of this version aged out of the working tier unpinned.",
+          "code": "artifact_expired",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsCooperationModality"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSPurposeCode12220",
+                      "state": "value"
+                    },
+                    "property": "crsPurpose"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsTypeOfFinance"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSTypeOfFlow10",
+                      "state": "value"
+                    },
+                    "property": "crsTypeOfFlow"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Disbursement",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Gross",
+                      "state": "value"
+                    },
+                    "property": "nettingBasis"
+                  }
+                ],
+                "entities": {
+                  "origin": [
+                    "country/DEU"
+                  ],
+                  "destination": [
+                    "country/NGA"
+                  ]
+                },
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "all"
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/member_not_resolvable",
+          "title": "Unprocessable Entity",
+          "status": 422,
+          "detail": "The spec's variable no longer resolves in the graph.",
+          "code": "member_not_resolvable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/versions"
+      },
+      "response": {
+        "status": 403,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/publish_not_permitted",
+          "title": "Publish Not Permitted",
+          "status": 403,
+          "detail": "no principal header was presented; the publish permission is not granted to this caller",
+          "code": "publish_not_permitted",
+          "trace_id": "85846c77110a4f20924573e2f3654b1e",
+          "capability_version": "dset_1e6cd9546fac19e9",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "VersionUnavailableError",
+        "code": "artifact_expired",
+        "newest_version": null
+      }
+    }
+  ]
+}

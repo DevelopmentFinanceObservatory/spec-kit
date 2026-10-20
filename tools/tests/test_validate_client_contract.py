@@ -15,6 +15,7 @@ Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import json
 import shutil
@@ -39,6 +40,8 @@ _TOP5 = "scenarios/search-warning-top5.json"
 _NO_CHOICE = "scenarios/choose-refused-no-choice.json"
 _DECLINED = "scenarios/answer-declined.json"
 _REQUEST_INVALID = "scenarios/fetch-spec-request-invalid.json"
+_UNKNOWN_VERSION = "scenarios/fetch-ref-unknown-version.json"
+_NEWER = "scenarios/fetch-ref-expired-newer-version.json"
 
 
 def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -142,6 +145,31 @@ def _one_hint(body: Any) -> None:
     part = body["parts"][0]
     part["operations"], part["departures"] = [], []
     del part["warnings"][1:]
+
+
+def _refused_without_code(status: int) -> Callable[[Any], None]:
+    """The snapshot refuses at `status` with a body that carries no code,
+    and the record expects the 4xx fallback, InvalidRequestError."""
+
+    def change(doc: Any) -> None:
+        response = doc["exchanges"][0]["response"]
+        response["status"] = response["json"]["status"] = status
+        del response["json"]["code"]
+        doc["expect"][0] = {
+            "error": {"class": "InvalidRequestError", "code": "refusal_without_code"}
+        }
+
+    return change
+
+
+def _resubmit_answers_built(doc: Any) -> None:
+    """Search answers the identity resubmit with the built spec_id."""
+    built = doc["exchanges"][0]["response"]["json"]["definition"]["spec_id"]
+    doc["exchanges"][1]["response"]["json"]["parts"][0]["spec"]["spec_id"] = built
+
+
+def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return lambda doc: change(doc["exchanges"][-1]["response"])
 
 
 @pytest.mark.parametrize(
@@ -453,7 +481,7 @@ def _one_hint(body: Any) -> None:
         (
             _SEARCH,
             lambda doc: doc["call"].insert(0, {"op": "result"}),
-            "does not follow a step in ['mint']",
+            "does not follow a step in ['mint', 'operation']",
         ),
         (
             _SEARCH,
@@ -570,6 +598,73 @@ def _one_hint(body: Any) -> None:
             lambda doc: doc.update(commit="8408f1f"),
             "commit is not a 40-character sha",
         ),
+        (
+            _UNKNOWN_VERSION,
+            _refused_without_code(408),
+            '"class": "DfoTimeoutError"',
+        ),
+        (
+            _UNKNOWN_VERSION,
+            _refused_without_code(410),
+            '"class": "NotFoundError"',
+        ),
+        (
+            _NEWER,
+            _set_outcome(
+                0, lambda o: o["error"].update(newest_version="cv_" + "2" * 32)
+            ),
+            "step 0 expects",
+        ),
+        (
+            _NEWER,
+            _set_outcome(0, lambda o: o["error"].pop("newest_version")),
+            (
+                "expect/0: {'error': {'class': 'VersionUnavailableError', 'code': "
+                "'artifact_expired'}} is not valid"
+            ),
+        ),
+        (
+            "scenarios/fetch-ref-expired-not-reproducible.json",
+            _last_response(
+                lambda r: r.update(
+                    status=200,
+                    json={"versions": [{"content_version": "cv_" + "3" * 32}]},
+                )
+            ),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/fetch-ref-expired-rebuild-same-version.json",
+            _set_body(0, lambda body: body.update(code="snapshot_not_found")),
+            "the steps never make exchanges 1 to 3",
+        ),
+        (
+            "scenarios/fetch-spec-strict-warning.json",
+            _set_body(0, lambda body: body["warnings"][0].update(severity="info")),
+            "the steps make a GET origin the record lacks",
+        ),
+        (
+            "scenarios/fetch-spec-digest-mismatch.json",
+            _last_response(
+                lambda r: r.update(body_file="fetch-spec-known-sentence.parquet")
+            ),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/fetch-spec-frame-layout.json",
+            lambda doc: doc["exchanges"][0]["request"]["json"]["options"].pop("layout"),
+            "where the rules post",
+        ),
+        (
+            "scenarios/fetch-spec-resubmit-other-spec.json",
+            _resubmit_answers_built,
+            "the steps make a GET origin the record lacks",
+        ),
+        (
+            "scenarios/fetch-frame-several-readings.json",
+            lambda doc: doc["call"][1].pop("layout"),
+            "the steps make a POST /datasets the record lacks",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -650,6 +745,17 @@ def _one_hint(body: Any) -> None:
         "refusal-without-code",
         "search-warning-one-hint-code",
         "source-commit-short",
+        "status-408-without-code",
+        "status-410-without-code",
+        "expect-wrong-newest-version",
+        "version-unavailable-without-newest-version",
+        "newest-version-from-the-versions-route",
+        "unknown-version-ends-the-lookup",
+        "info-warning-raises-on-strict",
+        "digest-match-raises",
+        "frame-build-posts-long-options",
+        "resubmit-answering-another-spec",
+        "several-readings-fetched-long",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -686,3 +792,151 @@ def test_no_scenarios_is_a_hard_failure(package_dir: Path) -> None:
     for path in (package_dir / "scenarios").iterdir():
         path.unlink()
     assert "scenarios: no scenario records found" in validator.validate()
+
+
+_OPERATION_ID = "op_" + "a" * 64
+
+
+def _write_long_build(package_dir: Path, kind: str) -> Path:
+    """A synthetic record in which fetch-spec-known-sentence's build answers
+    202 and two polls finish it, the first after the 202's 1.5 s pacing and
+    the second after a 1 s backoff. `rate_limited` adds a 429 with
+    Retry-After 3 before the first poll; `resubmitted` has the first poll
+    answer a retryable failed operation and the build posted again."""
+    scenarios = package_dir / "scenarios"
+    parent = json.loads(
+        (scenarios / "fetch-spec-known-sentence.json").read_text(encoding="utf-8")
+    )
+    build, files, signed = parent["exchanges"]
+    operation = {
+        "operation_id": _OPERATION_ID,
+        "status": "pending",
+        "poll": f"/api/datasets/operations/{_OPERATION_ID}",
+        "retry_after_ms": 1500,
+    }
+    poll = {"method": "GET", "path": f"/datasets/operations/{_OPERATION_ID}"}
+
+    def polled(status: str, **members: Any) -> dict[str, Any]:
+        resource = {
+            "operation": {**operation, "status": status, "retry_after_ms": None}
+        }
+        return {
+            "request": poll,
+            "response": {"status": 200, "json": resource | members},
+        }
+
+    started = {
+        "request": build["request"],
+        "response": {"status": 202, "json": {"operation": operation}},
+    }
+    polls = [polled("running"), polled("done", manifest=build["response"]["json"])]
+    waits = [1.5, 1.0]
+    resubmissions = 0
+    if kind == "rate_limited":
+        polls.insert(
+            0,
+            {
+                "request": poll,
+                "response": {"status": 429, "headers": {"retry-after": "3"}},
+            },
+        )
+        waits = [1.5, 3.0, 1.0]
+    elif kind == "resubmitted":
+        error = {
+            "type": "/codes/operation_failed",
+            "title": "Internal Server Error",
+            "status": 500,
+            "detail": "The build's worker stopped.",
+            "code": "operation_failed",
+            "trace_id": "0" * 32,
+            "capability_version": "synthetic",
+            "retryable": True,
+        }
+        polls[:0] = [polled("failed", error=error), started]
+        waits = [1.5, 1.5, 1.0]
+        resubmissions = 1
+    outcome = copy.deepcopy(parent["expect"][0])
+    outcome["dataset"]["long_builds"] = [
+        {
+            "operation_id": _OPERATION_ID,
+            "poll_waits": waits,
+            "resubmissions": resubmissions,
+        }
+    ]
+    record = {
+        "format_version": 1,
+        "name": "fetch-spec-long-build",
+        "description": "The parent's build runs on as an operation.",
+        "origin": {
+            "kind": "synthetic",
+            "derived_from": "fetch-spec-known-sentence",
+            "edit": "The build answers 202, and polls finish it.",
+        },
+        "call": parent["call"],
+        "exchanges": [started, *polls, files, signed],
+        "expect": [outcome],
+    }
+    path = scenarios / "fetch-spec-long-build.json"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    return path
+
+
+def _long_builds(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return _set_outcome(0, lambda o: change(o["dataset"]["long_builds"][0]))
+
+
+@pytest.mark.parametrize("kind", ["plain", "rate_limited", "resubmitted"])
+def test_a_long_build_record_is_valid(package_dir: Path, kind: str) -> None:
+    _write_long_build(package_dir, kind)
+    assert validator.validate() == []
+
+
+@pytest.mark.parametrize(
+    ("kind", "change", "expected"),
+    [
+        (
+            "plain",
+            _long_builds(lambda b: b.update(poll_waits=[1.5, 2.0])),
+            "step 0 expects",
+        ),
+        (
+            "plain",
+            _long_builds(lambda b: b.update(operation_id="op_" + "b" * 64)),
+            "step 0 expects",
+        ),
+        (
+            "plain",
+            _set_outcome(0, lambda o: o["dataset"].pop("long_builds")),
+            "step 0 expects",
+        ),
+        (
+            "rate_limited",
+            _long_builds(lambda b: b.update(poll_waits=[1.5, 1.5, 1.0])),
+            "step 0 expects",
+        ),
+        (
+            "resubmitted",
+            _long_builds(lambda b: b.update(resubmissions=0)),
+            "step 0 expects",
+        ),
+        (
+            "resubmitted",
+            _set_body(1, lambda body: body["error"].update(retryable=False)),
+            "the steps never make exchanges 2 to 6",
+        ),
+    ],
+    ids=[
+        "poll-waits-without-backoff",
+        "long-build-other-operation",
+        "long-build-unnamed",
+        "rate-limited-poll-without-its-wait",
+        "resubmission-uncounted",
+        "failed-operation-not-retryable",
+    ],
+)
+def test_a_broken_long_build_is_reported(
+    package_dir: Path, kind: str, change: Callable[[Any], None], expected: str
+) -> None:
+    _edit(_write_long_build(package_dir, kind), change)
+    problems = validator.validate()
+    assert any(expected in problem for problem in problems), problems

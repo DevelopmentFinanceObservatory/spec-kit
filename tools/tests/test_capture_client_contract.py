@@ -62,10 +62,36 @@ def _without_shapes(expect: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 _LIVE = sorted(d.name for d in capture.SYNTHETIC if d.live)
+_SERVED = json.loads(
+    (capture.PACKAGE_DIR / "served" / "openapi.json").read_text(encoding="utf-8")
+)
+_WAITING = capture.waiting(_SERVED)
 
 
-def test_every_synthetic_record_has_a_definition() -> None:
-    assert sorted(d.name for d in capture.SYNTHETIC) == _records("synthetic")
+def test_every_record_has_a_definition_and_every_definition_a_record() -> None:
+    """Each definition has its record unless it waits for the served document."""
+    for kind, definitions in (
+        ("recorded", capture.RECORDED),
+        ("synthetic", capture.SYNTHETIC),
+    ):
+        landed = sorted(d.name for d in definitions if d.name not in _WAITING)
+        assert landed == _records(kind)
+
+
+def test_a_scenario_waits_for_its_own_needs_and_its_parents() -> None:
+    assert _WAITING == {
+        "mint-async-build": ["POST /api/datasets 202"],
+        "operation-resume": ["POST /api/datasets 202"],
+        "fetch-spec-async-build": ["POST /api/datasets 202"],
+        "fetch-spec-poll-rate-limited": ["POST /api/datasets 202"],
+        "fetch-spec-operation-failed-resubmitted": ["POST /api/datasets 202"],
+        "fetch-ref-expired-file-selector": [
+            "GET /api/datasets/{id}/{content_version}/file 302"
+        ],
+    }
+    served = copy.deepcopy(_SERVED)
+    served["paths"]["/api/datasets"]["post"]["responses"]["202"] = {}
+    assert sorted(capture.waiting(served)) == ["fetch-ref-expired-file-selector"]
 
 
 @pytest.mark.parametrize("name", [*_records("recorded"), *_LIVE])

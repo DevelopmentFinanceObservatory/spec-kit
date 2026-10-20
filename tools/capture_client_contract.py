@@ -33,13 +33,16 @@ scenarios are derived from the recorded records after them, so a recording
 refreshes both, and a synthetic record names its parent's body files rather
 than copies. Every absolute URL a record keeps, a signed download or a
 `location` header, keeps its path, and its query becomes
-`X-Goog-Signature=redacted`. The run ends by validating the whole contract
-with `tools/validate_client_contract.py`, and fails when it reports a
-problem or the binary bodies pass 5 MB.
+`X-Goog-Signature=redacted`. A scenario that needs a route or status
+`served/openapi.json` does not declare, or whose parent does, waits: the
+run names it and writes nothing for it, unless `--scenarios-dir` writes
+outside the package. The run ends by validating the whole contract with
+`tools/validate_client_contract.py`, and fails when it reports a problem or
+the binary bodies pass 5 MB.
 
-The outcome rules, error classes and gap kinds come from
-`tools/validate_client_contract.py`, so a record's `expect` is written by
-the code that checks it. pyarrow loads only when a Parquet body is read, so
+The outcome rules, error classes, gap kinds and long-build pacing come
+from `tools/validate_client_contract.py`, so a record's `expect` is written
+by the code that checks it. pyarrow loads only when a Parquet body is read, so
 the tests run without it.
 """
 
@@ -47,7 +50,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import hashlib
 import io
 import json
 import os
@@ -66,9 +68,15 @@ from typing import Any, Protocol
 from urllib.parse import urlsplit, urlunsplit
 
 from validate_client_contract import (
+    FILE_EXPIRED,
+    FILE_GONE,
+    NO_VERSIONS,
+    REBUILD_REFUSED,
     UNNAMED_VARIABLE_TEXT,
+    VERSION_UNAVAILABLE,
     Answer,
     ClientError,
+    LongBuild,
     answer_from_body,
     answer_gaps,
     answer_members,
@@ -76,13 +84,19 @@ from validate_client_contract import (
     candidate_answer,
     choice_for,
     choice_input,
+    data_warning,
     dataset_summary,
+    digest_of,
     gap_kinds,
     owns_body_file,
     part_label,
+    pick_artifact,
     refusal_error,
+    rendering_for,
+    resubmitted_sentence,
     search_warning_code,
     search_warns,
+    selector_path,
 )
 from validate_client_contract import main as validate_main
 
@@ -442,6 +456,7 @@ class Member:
     digest: str
     rows: int
     columns: list[str]
+    rendering: dict[str, Any] = field(default_factory=lambda: dict(RENDERING))
 
     @property
     def spec_id(self) -> str:
@@ -453,7 +468,7 @@ class Member:
             "sentence": self.sentence,
             "spec": {"spec_id": self.spec_id, "definition": self.definition},
             "content_version": self.content_version,
-            "artifact": {"digest": self.digest, "rendering": dict(RENDERING)},
+            "artifact": {"digest": self.digest, "rendering": dict(self.rendering)},
         }
 
 
@@ -512,6 +527,30 @@ def require(condition: bool, message: str) -> None:
         raise ShapeError(message)
 
 
+@dataclass(frozen=True, slots=True)
+class Minted:
+    """The operation a mint started or a resume read: its resource, the
+    headers that came with it, the build request a failed operation posts
+    again (None for a resumed one), the spec the client holds, and the
+    rendering it downloads."""
+
+    resource: dict[str, Any]
+    headers: dict[str, str]
+    request: dict[str, Any] | None
+    spec: Spec | None
+    rendering: dict[str, Any]
+
+
+def _step_options(
+    step: dict[str, Any], *, layout: str | None, strict: bool
+) -> dict[str, Any]:
+    if layout is not None:
+        step["layout"] = layout
+    if strict:
+        step["strict"] = True
+    return step
+
+
 @dataclass
 class Session:
     """A client over a recorder: each step appends to `call` and `expect`."""
@@ -523,7 +562,8 @@ class Session:
     sleep: Callable[[float], None] = time.sleep
     call: list[dict[str, Any]] = field(default_factory=list)
     expect: list[dict[str, Any]] = field(default_factory=list)
-    minted: tuple[Spec, dict[str, Any]] | None = None
+    minted: Minted | None = None
+    long_builds: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def gap_kinds(self) -> dict[str, str]:
@@ -531,10 +571,14 @@ class Session:
 
     def _step(self, step: dict[str, Any], run: Callable[[], dict[str, Any]]) -> None:
         self.call.append(step)
+        self.long_builds = []
         try:
             outcome = run()
         except ClientError as error:
             outcome = error.outcome(self.client_codes)
+        if self.long_builds:
+            (value,) = outcome.values()
+            value["long_builds"] = self.long_builds
         self.expect.append(outcome)
 
     def _answered(self, answer: Answer) -> dict[str, Any]:
@@ -544,8 +588,7 @@ class Session:
         response = self.recorder.api(
             "POST", "/search/resolve", {"schema_version": 1, "input": input_}
         )
-        self._raise_problem(response)
-        return answer_from_body(response.json())
+        return answer_from_body(self._acted(response))
 
     def search(self, question: str) -> Answer:
         answers: list[Answer] = []
@@ -584,17 +627,20 @@ class Session:
         return answers[0] if answers else None
 
     def fetch_answer(
-        self, answer: Answer, *, partial: bool = False, strict: bool = False
+        self,
+        answer: Answer,
+        *,
+        partial: bool = False,
+        strict: bool = False,
+        layout: str | None = None,
     ) -> None:
         """Builds the answer's readings. A declined or catalogue answer, a gap
-        outside a partial fetch, a partial fetch with no reading, and a strict
-        fetch whose readings depart from the question each raise before any
-        request."""
+        outside a partial fetch, a partial fetch with no reading, a strict
+        fetch whose readings depart from the question, and the frame layout
+        with several readings each raise before any request."""
         step: dict[str, Any] = {"op": "fetch"}
         if partial:
             step["partial"] = True
-        if strict:
-            step["strict"] = True
 
         def run() -> dict[str, Any]:
             if answer.body["kind"] != "resolution":
@@ -606,10 +652,16 @@ class Session:
             warns = search_warns(answer)
             if warns and strict:
                 raise ClientError(search_warning_code(answer), error="SearchWarning")
-            members = [self.build(parts, spec, None) for parts, spec in readings]
+            rendering = rendering_for(layout)
+            if "layout" in rendering and len(readings) > 1:
+                raise ClientError("invalid_argument")
+            members = [
+                self.build(parts, spec, None, rendering, strict=strict)
+                for parts, spec in readings
+            ]
             return dataset_outcome(members, missing=gaps, search_warning=warns)
 
-        self._step(step, run)
+        self._step(_step_options(step, layout=layout, strict=strict), run)
 
     def fetch_spec(
         self,
@@ -617,6 +669,8 @@ class Session:
         *,
         window: str | tuple[int, int] | None = None,
         facets: Mapping[str, str] | None = None,
+        layout: str | None = None,
+        strict: bool = False,
     ) -> list[Member]:
         step: dict[str, Any] = {"op": "fetch", "spec": spec.step()}
         scope: dict[str, Any] = {}
@@ -629,111 +683,124 @@ class Session:
         built: list[Member] = []
 
         def run() -> dict[str, Any]:
-            built.append(self.build([], spec, scope or None))
+            rendering = rendering_for(layout)
+            built.append(self.build([], spec, scope or None, rendering, strict=strict))
             return dataset_outcome(built)
 
-        self._step(step, run)
+        self._step(_step_options(step, layout=layout, strict=strict), run)
         return built
 
     def fetch_ref(self, ref: dict[str, Any]) -> None:
-        """The exact versions a ref names, through the snapshot and files routes."""
+        """The exact versions a ref names, through the lookup order."""
 
         def run() -> dict[str, Any]:
-            members = []
-            for member in ref["members"]:
-                spec_id = member["spec"]["spec_id"]
-                cv = member["content_version"]
-                response = self.recorder.api("GET", f"/datasets/{spec_id}/{cv}")
-                self._raise_problem(response)
-                digest = member["artifact"]["digest"]
-                artifact = next(
-                    a
-                    for a in response.json()["artifacts"]
-                    if a["artifact_digest"] == digest
-                )
-                rows, columns = self.read_shape(self._download(artifact))
-                members.append(
-                    Member(
-                        member["parts"],
-                        member["spec"]["definition"],
-                        cv,
-                        member["sentence"],
-                        digest,
-                        rows,
-                        columns,
-                    )
-                )
-            return dataset_outcome(members)
+            return dataset_outcome([self._stored(member) for member in ref["members"]])
 
         self._step({"op": "fetch", "ref": ref}, run)
 
-    def mint(self, spec: Spec) -> str:
-        operation: list[dict[str, Any]] = []
+    def mint(self, spec: Spec, *, layout: str | None = None) -> str:
+        operation: list[str] = []
 
         def run() -> dict[str, Any]:
-            response = self.recorder.api("POST", "/datasets", _build_body(spec, None))
-            self._raise_problem(response)
+            rendering = rendering_for(layout)
+            body = _build_body(spec, None, rendering)
+            response = self.recorder.api("POST", "/datasets", body)
+            resource = self._acted(response)
             require(
                 response.status == 202, f"the build answered {response.status}, not 202"
             )
-            operation.append(response.json()["operation"])
-            return {
-                "operation": {
-                    "operation_id": operation[0]["operation_id"],
-                    "status": operation[0]["status"],
-                }
-            }
+            self.minted = Minted(resource, response.headers, body, spec, rendering)
+            operation.append(resource["operation"]["operation_id"])
+            return _operation_outcome(resource)
 
-        self._step({"op": "mint", "spec": spec.step()}, run)
-        self.minted = (spec, _reached(operation, "the mint"))
-        return self.minted[1]["operation_id"]
+        self._step(
+            _step_options(
+                {"op": "mint", "spec": spec.step()}, layout=layout, strict=False
+            ),
+            run,
+        )
+        return _reached(operation, "the mint")
 
-    def result(self) -> None:
-        """Waits for the operation the last mint started."""
-        if self.minted is None:
-            raise ValueError("result follows mint")
-        spec, operation = self.minted
+    def resume(self, operation_id: str, *, layout: str | None = None) -> None:
+        """Reads a build another process started, by its operation id."""
 
         def run() -> dict[str, Any]:
-            manifest = self._wait(operation)
-            return dataset_outcome([self._member([], spec, manifest)])
+            path = POLL_PATH.format(operation_id=operation_id)
+            response = self.recorder.api("GET", path)
+            resource = self._acted(response)
+            self.minted = Minted(
+                resource, response.headers, None, None, rendering_for(layout)
+            )
+            return _operation_outcome(resource)
+
+        step = {"op": "operation", "operation_id": operation_id}
+        self._step(_step_options(step, layout=layout, strict=False), run)
+
+    def result(self) -> None:
+        """Waits for the operation the last mint or operation step holds."""
+        if self.minted is None:
+            raise ValueError("result follows mint or operation")
+        minted = self.minted
+
+        def run() -> dict[str, Any]:
+            manifest = self._wait(minted.resource, minted.headers, minted.request)
+            member = self._member([], minted.spec, manifest, minted.rendering, False)
+            return dataset_outcome([member])
 
         self._step({"op": "result"}, run)
 
     # -- building --
 
     def build(
-        self, parts: list[str], spec: Spec, scope: dict[str, Any] | None
+        self,
+        parts: list[str],
+        spec: Spec,
+        scope: dict[str, Any] | None,
+        rendering: dict[str, Any],
+        *,
+        strict: bool = False,
     ) -> Member:
         """Builds one member: the build, the sentence when the client lacks it,
         then the file."""
-        response = self.recorder.api("POST", "/datasets", _build_body(spec, scope))
-        self._raise_problem(response)
-        body = response.json()
-        manifest = self._wait(body["operation"]) if response.status == 202 else body
-        return self._member(parts, spec, manifest)
+        manifest = self._built(_build_body(spec, scope, rendering))
+        return self._member(parts, spec, manifest, rendering, strict)
 
-    def _member(self, parts: list[str], spec: Spec, manifest: dict[str, Any]) -> Member:
+    def _built(self, body: dict[str, Any]) -> dict[str, Any]:
+        """The manifest a build answers, through a long build on a 202."""
+        response = self.recorder.api("POST", "/datasets", body)
+        reply = self._acted(response)
+        if response.status != 202:
+            return reply
+        return self._wait(reply, response.headers, body)
+
+    def _member(
+        self,
+        parts: list[str],
+        spec: Spec | None,
+        manifest: dict[str, Any],
+        rendering: dict[str, Any],
+        strict: bool,
+    ) -> Member:
+        if strict and (warning := data_warning(manifest)) is not None:
+            raise warning
+        artifact = pick_artifact(manifest, rendering)
+        if artifact is None:
+            raise ClientError("contract_violation")
         definition = manifest["definition"]
-        sentence = spec.sentence
-        if definition["spec_id"] != spec.spec_id or sentence is None:
+        sentence = None if spec is None else spec.sentence
+        if spec is None or definition["spec_id"] != spec.spec_id or sentence is None:
             sentence = self._identity_sentence(parts, definition)
-        artifact = next(
-            a
-            for a in manifest["artifacts"]
-            if a["rendering"].get("format") == "parquet"
-            and a["rendering"].get("bundle") is False
-            and a["rendering"].get("layout") != "frame"
-        )
-        rows, columns = self.read_shape(self._download(artifact))
+        digest = artifact["artifact_digest"]
+        rows, columns = self.read_shape(self._download(artifact["url"], digest))
         return Member(
             parts,
             definition,
             manifest["content_version"],
             sentence,
-            artifact["artifact_digest"],
+            digest,
             rows,
             columns,
+            dict(rendering),
         )
 
     def _identity_sentence(self, parts: list[str], definition: dict[str, Any]) -> str:
@@ -743,49 +810,166 @@ class Session:
             "identity": definition["identity"],
         }
         answer = self._resolve({"kind": "dataset_resubmit", "entries": [entry]})
-        (part,) = answer.parts
-        require(part["status"] == "definite", "the identity resubmit is definite")
-        require(
-            part["spec"]["spec_id"] == definition["spec_id"],
-            "the resubmit keeps the id",
-        )
-        return part["spec"]["resolved"]["rendered_sentence"]
+        return resubmitted_sentence(answer, definition["spec_id"])
 
-    def _download(self, artifact: dict[str, Any]) -> bytes:
-        files = self.recorder.origin("GET", artifact["url"])
-        self._raise_problem(files)
-        require(files.status == 302, f"the files route answered {files.status}")
-        data = self.recorder.external(files.headers["location"])
-        require(data.status == 200, f"the signed download answered {data.status}")
-        digest = "sha256:" + hashlib.sha256(data.body).hexdigest()
-        require(
-            digest == artifact["artifact_digest"], "the download matches its digest"
-        )
-        return data.body
+    def _download(self, target: str, digest: str, *, origin: bool = True) -> bytes:
+        """A file through the route that redirects to it: an artifact's
+        root-relative url, or a path under the base URL. A refused signed URL
+        or bytes of another digest ask the route once more."""
+        failure = ClientError("download_failed")
+        for _ in range(2):
+            files = (
+                self.recorder.origin("GET", target)
+                if origin
+                else self.recorder.api("GET", target)
+            )
+            self._raise_problem(files)
+            require(files.status == 302, f"the files route answered {files.status}")
+            data = self.recorder.external(files.headers["location"])
+            if data.status >= 400:
+                failure = ClientError("download_failed")
+                continue
+            if digest_of(data.body) == digest:
+                return data.body
+            failure = ClientError("digest_mismatch")
+        raise failure
 
-    def _wait(self, operation: dict[str, Any]) -> dict[str, Any]:
-        """Polls at the server's pacing, else backs off from 1 to 8 seconds."""
-        backoff = 1.0
+    def _wait(
+        self,
+        resource: dict[str, Any],
+        headers: Mapping[str, str],
+        request: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Polls as `LongBuild` rules, sleeping each wait, for at most 30
+        minutes."""
+        build = LongBuild(resource, headers, request, self.actions)
+        self.long_builds.append(build.entry)
         deadline = time.monotonic() + 1800
-        while time.monotonic() < deadline:
-            if "retry_after_ms" in operation:
-                self.sleep(operation["retry_after_ms"] / 1000)
-            else:
-                self.sleep(backoff)
-                backoff = min(backoff * 2, 8.0)
-            path = POLL_PATH.format(operation_id=operation["operation_id"])
+        while build.result is None:
+            if time.monotonic() >= deadline:
+                raise SystemExit(f"{build.entry['operation_id']} ran past 30 minutes")
+            self.sleep(build.next_wait())
+            path = POLL_PATH.format(operation_id=build.entry["operation_id"])
             response = self.recorder.api("GET", path)
-            self._raise_problem(response)
-            resource = response.json()
-            operation = resource["operation"]
-            if operation["status"] == "done":
-                return resource["manifest"]
-        raise SystemExit(f"{operation['operation_id']} did not finish in 30 minutes")
+            if build.polled(response.status, response.headers, _json(response)):
+                again = self.recorder.api("POST", "/datasets", request)
+                build.reposted(again.status, again.headers, _json(again))
+        return build.result
+
+    # -- stored versions --
+
+    def _stored(self, member: dict[str, Any]) -> Member:
+        """One version a ref names, through the lookup order
+        `validate_client_contract._Replay.stored_version` states."""
+        spec = member["spec"]
+        spec_id, version = spec["spec_id"], member["content_version"]
+        rendering = member["artifact"]["rendering"]
+        held = Spec(spec_id, spec["definition"], member["sentence"])
+        refusal: ClientError | None = None
+        manifest = None
+        try:
+            manifest = self._acted(
+                self.recorder.api("GET", f"/datasets/{spec_id}/{version}")
+            )
+        except ClientError as error:
+            if error.code != FILE_EXPIRED:
+                raise
+            refusal = error
+        if manifest is not None:
+            built = (manifest["definition"]["spec_id"], manifest["content_version"])
+            if built != (spec_id, version):
+                raise ClientError("contract_violation")
+            data, refusal = self._stored_file(member, manifest)
+            if data is not None:
+                rows, columns = self.read_shape(data)
+                return Member(
+                    member["parts"],
+                    spec["definition"],
+                    version,
+                    member["sentence"],
+                    member["artifact"]["digest"],
+                    rows,
+                    columns,
+                    dict(rendering),
+                )
+        try:
+            manifest = self._built(_build_body(held, None, rendering))
+        except ClientError as error:
+            if error.error_class(self.client_codes) not in REBUILD_REFUSED:
+                raise
+            refusal = refusal if refusal is not None else error
+            newest = self._newest(spec_id)
+        else:
+            if manifest["content_version"] == version:
+                return self._member(member["parts"], held, manifest, rendering, False)
+            newest = manifest["content_version"]
+        raise ClientError(
+            refusal.code if refusal is not None else "version_unavailable",
+            error=VERSION_UNAVAILABLE,
+            newest_version=newest,
+        )
+
+    def _stored_file(
+        self, member: dict[str, Any], manifest: dict[str, Any]
+    ) -> tuple[bytes | None, ClientError | None]:
+        digest = member["artifact"]["digest"]
+        refusal = None
+        artifact = next(
+            (a for a in manifest["artifacts"] if a["artifact_digest"] == digest), None
+        )
+        if artifact is not None:
+            try:
+                return self._download(artifact["url"], digest), None
+            except ClientError as error:
+                if error.code not in FILE_GONE:
+                    raise
+                refusal = error
+        path = selector_path(
+            member["spec"]["spec_id"],
+            member["content_version"],
+            member["artifact"]["rendering"],
+        )
+        try:
+            return self._download(path, digest, origin=False), None
+        except ClientError as error:
+            if error.code == "digest_mismatch":
+                return None, refusal
+            if error.code in FILE_GONE:
+                return None, refusal if refusal is not None else error
+            raise
+
+    def _newest(self, spec_id: str) -> str | None:
+        try:
+            body = self._acted(
+                self.recorder.api("GET", f"/datasets/{spec_id}/versions")
+            )
+        except ClientError as error:
+            if error.error_class(self.client_codes) in NO_VERSIONS:
+                return None
+            raise
+        versions = body.get("versions") if isinstance(body, dict) else None
+        first = versions[0] if isinstance(versions, list) and versions else None
+        newest = first.get("content_version") if isinstance(first, dict) else None
+        return newest if isinstance(newest, str) else None
+
+    def _acted(self, response: Response) -> Any:
+        self._raise_problem(response)
+        return response.json()
 
     def _raise_problem(self, response: Response) -> None:
         if response.status < 400:
             return
-        raise refusal_error(response.status, response.json(), self.actions)
+        raise refusal_error(response.status, _json(response), self.actions)
+
+
+def _json(response: Response) -> Any:
+    """A response's JSON body, or None for an empty one."""
+    return response.json() if response.body else None
+
+
+def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
+    operation = resource["operation"]
+    return {"operation": {k: operation[k] for k in ("operation_id", "status")}}
 
 
 def _window(window: str | tuple[int, int]) -> dict[str, Any]:
@@ -794,7 +978,9 @@ def _window(window: str | tuple[int, int]) -> dict[str, Any]:
     return {"kind": window}
 
 
-def _build_body(spec: Spec, scope: dict[str, Any] | None) -> dict[str, Any]:
+def _build_body(
+    spec: Spec, scope: dict[str, Any] | None, rendering: Mapping[str, Any]
+) -> dict[str, Any]:
     input_: dict[str, Any] = {
         "kind": "spec_id",
         "spec_id": spec.spec_id,
@@ -802,7 +988,7 @@ def _build_body(spec: Spec, scope: dict[str, Any] | None) -> dict[str, Any]:
     }
     if scope:
         input_["scope"] = scope
-    return {"schema_version": 1, "input": input_, "options": dict(RENDERING)}
+    return {"schema_version": 1, "input": input_, "options": dict(rendering)}
 
 
 def with_place_options(body: Any) -> Any:
@@ -907,9 +1093,48 @@ class Context:
             answer = self.definite_answer(DEFINITE)
             session = self.session("prerequisite")
             ((parts, spec),) = _members(answer)
-            member = session.build(parts, spec, None)
+            member = session.build(parts, spec, None, dict(RENDERING))
             self._cache["ref"] = {"format_version": 1, "members": [member.ref()]}
         return self._cache["ref"]
+
+    def async_spec(self) -> Spec:
+        """The spec whose estimate is just above the sync budget."""
+        (part,) = self.definite_answer(ASYNC).parts
+        rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
+        require(
+            SYNC_ROWS < rows < 2 * SYNC_ROWS,
+            f"{rows} rows is just above the sync budget",
+        )
+        return _part_spec(part["spec"])
+
+    def running_operation(self) -> str:
+        """The id of a long build another process started."""
+        if "operation" not in self._cache:
+            self._cache["operation"] = self.session("prerequisite").mint(
+                self.async_spec()
+            )
+        return self._cache["operation"]
+
+
+# A route and status the served document must declare before a scenario that
+# needs them is recorded: the method, the route template as the served
+# document names it, and the status.
+type Need = tuple[str, str, str]
+ASYNC_BUILD: Need = ("POST", "/api/datasets", "202")
+FILE_SELECTOR: Need = ("GET", "/api/datasets/{id}/{content_version}/file", "302")
+
+
+def unmet(needs: Sequence[Need], openapi: Mapping[str, Any]) -> list[Need]:
+    """The needs the served document does not declare."""
+    return [
+        (method, path, status)
+        for method, path, status in needs
+        if status
+        not in openapi["paths"]
+        .get(path, {})
+        .get(method.lower(), {})
+        .get("responses", {})
+    ]
 
 
 @dataclass(frozen=True)
@@ -917,6 +1142,7 @@ class Recorded:
     name: str
     description: str
     run: Callable[[Session, Context], None]
+    needs: tuple[Need, ...] = ()
 
 
 def _answer_definite_fetch(s: Session, ctx: Context) -> None:
@@ -1001,13 +1227,18 @@ def _fetch_ref_unknown_version(s: Session, ctx: Context) -> None:
 
 
 def _mint_async(s: Session, ctx: Context) -> None:
-    (part,) = ctx.definite_answer(ASYNC).parts
-    rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
-    require(
-        SYNC_ROWS < rows < 2 * SYNC_ROWS, f"{rows} rows is just above the sync budget"
-    )
-    s.mint(_part_spec(part["spec"]))
+    s.mint(ctx.async_spec())
     s.result()
+
+
+def _operation_resume(s: Session, ctx: Context) -> None:
+    s.resume(ctx.running_operation())
+    s.result()
+
+
+def _fetch_spec_frame(s: Session, ctx: Context) -> None:
+    (member,) = s.fetch_spec(ctx.definite_spec(DEFINITE), layout="frame")
+    require(member.rendering.get("layout") == "frame", "the frame artifact is fetched")
 
 
 def _answer_kind(question: str, kind: str) -> Callable[[Session, Context], None]:
@@ -1168,6 +1399,24 @@ RECORDED = (
         "backing off from 1 to 8 seconds otherwise, until done; the done manifest's file is "
         "then downloaded.",
         _mint_async,
+        needs=(ASYNC_BUILD,),
+    ),
+    Recorded(
+        "operation-resume",
+        "Resuming a long build another process started reads its operation by id, and the "
+        "operation is pending or running. Waiting polls it at the server's pacing until done; "
+        "the client holds no spec, so it takes the sentence from Search by posting the built "
+        'identity with variable_text "dataset", then downloads the file. A resumed build holds '
+        "no request, so a failed operation is not posted again.",
+        _operation_resume,
+        needs=(ASYNC_BUILD,),
+    ),
+    Recorded(
+        "fetch-spec-frame-layout",
+        'Fetching a spec with layout="frame" posts the frame rendering as the build\'s options '
+        "and downloads the manifest's frame artifact, matched on format, bundle and its frame "
+        "layout, with no Search call.",
+        _fetch_spec_frame,
     ),
     Recorded(
         "answer-declined",
@@ -1281,12 +1530,14 @@ class Derived:
     call: list[dict[str, Any]]
     exchanges: list[dict[str, Any]]
     expect: list[dict[str, Any]]
+    bodies: dict[str, bytes] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class Synthetic:
     """A scenario derived from a recorded one. A `live` derivation records
-    some of its exchanges against the base URL."""
+    some of its exchanges against the base URL. A synthetic scenario waits
+    for its own needs and its parent's."""
 
     name: str
     derived_from: str
@@ -1294,6 +1545,7 @@ class Synthetic:
     description: str
     derive: Callable[[dict[str, Any], Context], Derived]
     live: bool = False
+    needs: tuple[Need, ...] = ()
 
 
 def _same(parent: dict[str, Any], exchanges: list[dict[str, Any]]) -> Derived:
@@ -1342,18 +1594,312 @@ def _build_index(parent: dict[str, Any]) -> int:
     )
 
 
+_TIMEOUT = _problem(
+    "timeout",
+    504,
+    "Gateway Timeout",
+    "The build passed its 120 s limit.",
+    retryable=True,
+)
+_EXPIRED = _problem(
+    "artifact_expired",
+    410,
+    "Gone",
+    "Every listable artifact of this version aged out of the working tier unpinned.",
+    retryable=False,
+)
+_NOT_RESOLVABLE = _problem(
+    "member_not_resolvable",
+    422,
+    "Unprocessable Entity",
+    "The spec's variable no longer resolves in the graph.",
+    retryable=False,
+)
+_OPERATION_FAILED = _problem(
+    "operation_failed",
+    500,
+    "Internal Server Error",
+    "The build's worker stopped before it finished.",
+    retryable=True,
+)
+# The content version a rebuild answers when the data moved on.
+NEWER_VERSION = "cv_" + "1" * 32
+
+
 def _retry_after_504(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"])
     index = _build_index(parent)
-    problem = _problem(
-        "timeout",
-        504,
-        "Gateway Timeout",
-        "The build passed its 120 s limit.",
-        retryable=True,
-    )
-    exchanges.insert(index, _refusal(exchanges[index]["request"], 504, problem))
+    exchanges.insert(index, _refusal(exchanges[index]["request"], 504, _TIMEOUT))
     return _same(parent, exchanges)
+
+
+def _ends_at_build(
+    response: Callable[
+        [dict[str, Any], Context], tuple[dict[str, Any], dict[str, Any]]
+    ],
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent's exchanges up to its first build, which `response` turns
+    into the exchanges the build makes and the outcome the last step reaches."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        index = _build_index(parent)
+        exchanges = copy.deepcopy(parent["exchanges"][:index])
+        made, outcome = response(copy.deepcopy(parent["exchanges"][index]), ctx)
+        return Derived(
+            copy.deepcopy(parent["call"]),
+            [*exchanges, *made],
+            [*copy.deepcopy(parent["expect"][:-1]), outcome],
+        )
+
+    return derive
+
+
+def _cut_off_twice(
+    build: dict[str, Any], ctx: Context
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    refused = _refusal(build["request"], 504, _TIMEOUT)
+    error = refusal_error(504, _TIMEOUT, ctx.actions).outcome(ctx.client_codes)
+    return [refused, copy.deepcopy(refused)], error
+
+
+def _not_resolvable(
+    build: dict[str, Any], ctx: Context
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    error = refusal_error(422, _NOT_RESOLVABLE, ctx.actions).outcome(ctx.client_codes)
+    return [_refusal(build["request"], 422, _NOT_RESOLVABLE)], error
+
+
+def _strict_warning(parent: dict[str, Any], ctx: Context) -> Derived:
+    index = _build_index(parent)
+    manifest = parent["exchanges"][index]["response"]["json"]
+    warning = data_warning(manifest)
+    require(warning is not None, "the manifest carries a warning above info")
+    call = copy.deepcopy(parent["call"])
+    call[-1]["strict"] = True
+    return Derived(
+        call,
+        copy.deepcopy(parent["exchanges"][: index + 1]),
+        [*copy.deepcopy(parent["expect"][:-1]), warning.outcome(ctx.client_codes)],
+    )
+
+
+def _digest_mismatch(name: str) -> Callable[[dict[str, Any], Context], Derived]:
+    """The signed URL serves the scenario's own bytes, of another digest, on
+    both downloads."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        exchanges = copy.deepcopy(parent["exchanges"])
+        index = next(i for i, e in enumerate(exchanges) if "url" in e["request"])
+        files, signed = exchanges[index - 1], exchanges[index]
+        body_file = f"{name}.bin"
+        signed["response"]["body_file"] = body_file
+        exchanges[index + 1 : index + 1] = [copy.deepcopy(files), copy.deepcopy(signed)]
+        return Derived(
+            copy.deepcopy(parent["call"]),
+            exchanges[: index + 3],
+            [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("digest_mismatch")],
+            {body_file: b"Not the stored file.\n"},
+        )
+
+    return derive
+
+
+def _resubmit_other_spec(parent: dict[str, Any], ctx: Context) -> Derived:
+    """Search answers the built identity with the spec the fetch posted
+    rather than the one the build answered."""
+    index = next(
+        i
+        for i, e in enumerate(parent["exchanges"])
+        if e["request"].get("path") == "/search/resolve"
+    )
+    exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
+    spec = exchanges[index]["response"]["json"]["parts"][0]["spec"]
+    posted = parent["call"][-1]["spec"]["spec_id"]
+    require(spec["spec_id"] != posted, "the build answered another spec_id")
+    spec["spec_id"] = spec["definition"]["spec_id"] = posted
+    return Derived(
+        copy.deepcopy(parent["call"]),
+        exchanges,
+        [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("contract_violation")],
+    )
+
+
+def _frame_several(parent: dict[str, Any], ctx: Context) -> Derived:
+    require(len(parent["expect"][-1]["dataset"]["members"]) > 1, "several members")
+    return Derived(
+        [copy.deepcopy(parent["call"][0]), {"op": "fetch", "layout": "frame"}],
+        copy.deepcopy(parent["exchanges"][:1]),
+        [copy.deepcopy(parent["expect"][0]), ctx.raised("invalid_argument")],
+    )
+
+
+def _answer_ref(parent: dict[str, Any]) -> dict[str, Any]:
+    """The ref the parent's fetch of a one-member answer writes."""
+    build = parent["exchanges"][_build_index(parent)]
+    manifest = build["response"]["json"]
+    (member,) = parent["expect"][-1]["dataset"]["members"]
+    artifact = pick_artifact(manifest, RENDERING)
+    require(artifact is not None, "the manifest lists the long Parquet artifact")
+    assert artifact is not None
+    return {
+        "format_version": 1,
+        "members": [
+            {
+                "parts": member["parts"],
+                "sentence": member["sentence"],
+                "spec": {
+                    "spec_id": member["spec_id"],
+                    "definition": build["request"]["json"]["input"]["definition"],
+                },
+                "content_version": member["content_version"],
+                "artifact": {
+                    "digest": artifact["artifact_digest"],
+                    "rendering": dict(RENDERING),
+                },
+            }
+        ],
+    }
+
+
+def _snapshot_expired(ref: dict[str, Any]) -> dict[str, Any]:
+    (member,) = ref["members"]
+    path = f"/datasets/{member['spec']['spec_id']}/{member['content_version']}"
+    return _refusal({"method": "GET", "path": path}, 410, _EXPIRED)
+
+
+def _expired_rebuilt(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The ref the parent's fetch writes, its snapshot expired, and the
+    parent's build, files and download as the rebuild."""
+    ref = _answer_ref(parent)
+    index = _build_index(parent)
+    dataset = copy.deepcopy(parent["expect"][-1]["dataset"])
+    del dataset["search_warning"]
+    return Derived(
+        [{"op": "fetch", "ref": ref}],
+        [_snapshot_expired(ref), *copy.deepcopy(parent["exchanges"][index:])],
+        [{"dataset": dataset}],
+    )
+
+
+def _expired_newer(parent: dict[str, Any], ctx: Context) -> Derived:
+    """As `_expired_rebuilt`, with the rebuild answering a newer version."""
+    ref = _answer_ref(parent)
+    build = copy.deepcopy(parent["exchanges"][_build_index(parent)])
+    build["response"]["json"]["content_version"] = NEWER_VERSION
+    error = ClientError(
+        FILE_EXPIRED, error=VERSION_UNAVAILABLE, newest_version=NEWER_VERSION
+    )
+    return Derived(
+        [{"op": "fetch", "ref": ref}],
+        [_snapshot_expired(ref), build],
+        [error.outcome(ctx.client_codes)],
+    )
+
+
+def _expired_not_reproducible(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's ref, its snapshot expired and its rebuild refused; the
+    versions route is recorded live."""
+    ref = copy.deepcopy(parent["call"][0]["ref"])
+    (member,) = ref["members"]
+    spec = Spec(member["spec"]["spec_id"], member["spec"]["definition"])
+    body = _build_body(spec, None, member["artifact"]["rendering"])
+    canned = [
+        _snapshot_expired(ref),
+        _refusal(
+            {"method": "POST", "path": "/datasets", "json": body}, 422, _NOT_RESOLVABLE
+        ),
+    ]
+    session = ctx.session("synthetic", canned=canned)
+    session.fetch_ref(ref)
+    require(
+        session.expect[-1].get("error", {}).get("class") == VERSION_UNAVAILABLE,
+        "the lookup raises VersionUnavailableError",
+    )
+    return Derived(session.call, session.recorder.exchanges, session.expect)
+
+
+def _expired_file_selector(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The files route refuses artifact_expired, and the file selector
+    redirects to the parent's signed download."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    (member,) = parent["call"][0]["ref"]["members"]
+    index = next(i for i, e in enumerate(exchanges) if "origin_path" in e["request"])
+    files = exchanges[index]
+    path = selector_path(
+        member["spec"]["spec_id"],
+        member["content_version"],
+        member["artifact"]["rendering"],
+    )
+    selector = {
+        "request": {"method": "GET", "path": path},
+        "response": copy.deepcopy(files["response"]),
+    }
+    exchanges[index : index + 1] = [_refusal(files["request"], 410, _EXPIRED), selector]
+    return _same(parent, exchanges)
+
+
+def _poll_index(exchanges: Sequence[dict[str, Any]]) -> int:
+    return next(
+        i
+        for i, e in enumerate(exchanges)
+        if e["request"].get("path", "").startswith("/datasets/operations/")
+    )
+
+
+def _async_fetch(
+    change: Callable[[list[dict[str, Any]], dict[str, Any]], None] | None = None,
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent's mint and result as one fetch of its spec, which makes the
+    same exchanges; `change` edits the exchanges and the fetch's outcome."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        mint, result = parent["call"]
+        require(
+            mint["op"] == "mint" and result["op"] == "result", "a mint, then result"
+        )
+        require(
+            "retry_after_ms" in parent["exchanges"][0]["response"]["json"]["operation"],
+            "the build's operation carries its pacing",
+        )
+        exchanges = copy.deepcopy(parent["exchanges"])
+        outcome = copy.deepcopy(parent["expect"][1])
+        if change is not None:
+            change(exchanges, outcome["dataset"]["long_builds"][0])
+        return Derived(
+            [{"op": "fetch", "spec": copy.deepcopy(mint["spec"])}], exchanges, [outcome]
+        )
+
+    return derive
+
+
+def _poll_rate_limited(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
+    """A 429 with Retry-After 3 and no body answers the first poll."""
+    index = _poll_index(exchanges)
+    refused = {
+        "request": copy.deepcopy(exchanges[index]["request"]),
+        "response": {"status": 429, "headers": {"retry-after": "3"}},
+    }
+    exchanges.insert(index, refused)
+    build["poll_waits"].insert(1, 3.0)
+
+
+def _operation_failed(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
+    """The first poll answers the operation failed with a retryable
+    operation_failed, and the build is posted again and runs as recorded. The
+    second build's operation is paced as the first's, so the waits repeat the
+    first wait."""
+    index = _poll_index(exchanges)
+    failed = copy.deepcopy(exchanges[index])
+    operation = failed["response"]["json"]["operation"]
+    operation["status"] = "failed"
+    operation.pop("progress", None)
+    failed["response"]["json"] = {
+        "operation": operation,
+        "error": dict(_OPERATION_FAILED),
+    }
+    exchanges[index:index] = [failed, copy.deepcopy(exchanges[0])]
+    build["poll_waits"].insert(0, build["poll_waits"][0])
+    build["resubmissions"] = 1
 
 
 def _signed_url_refused(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -1567,6 +2113,118 @@ SYNTHETIC = (
         "A synchronous build cut off at the server's limit answers a retryable 504 timeout; the "
         "client builds once more and reaches the same dataset.",
         _retry_after_504,
+    ),
+    Synthetic(
+        "fetch-spec-504-twice",
+        "fetch-spec-known-sentence",
+        "A 504 timeout with retryable true answers the build and its one retry.",
+        "A synchronous build cut off twice is retried once only: the second 504 raises the "
+        "timeout code's ServerError.",
+        _ends_at_build(_cut_off_twice),
+    ),
+    Synthetic(
+        "fetch-spec-member-not-resolvable",
+        "fetch-spec-known-sentence",
+        "A 422 member_not_resolvable answers the build.",
+        "A build refused because the spec no longer resolves raises InvalidRequestError with "
+        "the server's code, and makes no further request.",
+        _ends_at_build(_not_resolvable),
+    ),
+    Synthetic(
+        "fetch-spec-strict-warning",
+        "fetch-spec-known-sentence",
+        "The fetch is strict, and the exchanges after the build go.",
+        "A strict fetch raises the manifest's first warning above info severity, "
+        "coverage_below_scope at warn here, as DataWarning before the download.",
+        _strict_warning,
+    ),
+    Synthetic(
+        "fetch-spec-digest-mismatch",
+        "fetch-spec-known-sentence",
+        "The signed download serves other bytes, and the files route is asked once more for the same.",
+        "Bytes that do not hash to the artifact's digest ask the files route for a fresh "
+        "redirect once; a second mismatch raises ServerError digest_mismatch.",
+        _digest_mismatch("fetch-spec-digest-mismatch"),
+    ),
+    Synthetic(
+        "fetch-spec-resubmit-other-spec",
+        "fetch-spec-narrowed",
+        "Search answers the built identity with the posted spec_id, and the exchanges after it go.",
+        "When Search answers the built identity with a spec_id other than the built one, the "
+        "client raises ContractError before the download.",
+        _resubmit_other_spec,
+    ),
+    Synthetic(
+        "fetch-frame-several-readings",
+        "answer-several-readings-folded",
+        'The fetch of the answer asks for layout "frame", and the exchanges after the search go.',
+        "The frame layout holds one reading, so fetching an answer with two members in it "
+        "raises InvalidRequestError before any build.",
+        _frame_several,
+    ),
+    Synthetic(
+        "fetch-ref-expired-rebuild-same-version",
+        "answer-definite-fetch",
+        "A ref to the fetched member, whose snapshot route refuses 410 artifact_expired; the parent's build, files and download follow.",
+        "A ref whose snapshot refuses artifact_expired builds its spec again with the ref's "
+        "rendering; the build answers the same content_version, so the client downloads it "
+        "and returns the ref's member, its parts and sentence kept, with no Search call.",
+        _expired_rebuilt,
+    ),
+    Synthetic(
+        "fetch-ref-expired-newer-version",
+        "answer-definite-fetch",
+        f"As fetch-ref-expired-rebuild-same-version, with the rebuild answering {NEWER_VERSION}.",
+        "A rebuild that answers another content_version cannot return the stored one: the "
+        "client raises VersionUnavailableError with the snapshot's artifact_expired code and "
+        "the rebuilt version as the newest, and downloads nothing.",
+        _expired_newer,
+    ),
+    Synthetic(
+        "fetch-ref-expired-not-reproducible",
+        "fetch-ref",
+        "The snapshot refuses 410 artifact_expired and the rebuild 422 member_not_resolvable; the versions route is recorded live.",
+        "When the stored version has expired and the build is refused, the client reads the "
+        "versions route for the newest version. Dev refuses the keyless recorder 403 "
+        "publish_not_permitted there, so the client raises VersionUnavailableError with the "
+        "snapshot's artifact_expired code and no newest version.",
+        _expired_not_reproducible,
+        live=True,
+    ),
+    Synthetic(
+        "fetch-ref-expired-file-selector",
+        "fetch-ref",
+        "The files route refuses 410 artifact_expired, and the file selector redirects to the parent's signed download.",
+        "When the files route refuses artifact_expired, the client asks the file selector for "
+        "the stored version in the ref's rendering and downloads the file it redirects to, "
+        "which hashes to the stored digest.",
+        _expired_file_selector,
+        needs=(FILE_SELECTOR,),
+    ),
+    Synthetic(
+        "fetch-spec-async-build",
+        "mint-async-build",
+        "The mint and result steps become one fetch of the spec, which makes the same exchanges.",
+        "Fetching a spec whose build answers 202 polls the operation: it waits the 202's "
+        "retry_after_ms, then each poll's, backing off from 1 to 8 seconds when a poll gives "
+        "none, and downloads the done manifest's file.",
+        _async_fetch(),
+    ),
+    Synthetic(
+        "fetch-spec-poll-rate-limited",
+        "mint-async-build",
+        "As fetch-spec-async-build, with a bodiless 429 and Retry-After 3 answering the first poll.",
+        "A 429 on a poll spends no retry: the client waits the Retry-After seconds, polls "
+        "again and keeps the server's pacing after it.",
+        _async_fetch(_poll_rate_limited),
+    ),
+    Synthetic(
+        "fetch-spec-operation-failed-resubmitted",
+        "mint-async-build",
+        "As fetch-spec-async-build, with the first poll answering failed with a retryable operation_failed, and the build posted again.",
+        "A poll that answers a failed operation whose error is retryable posts the same build "
+        "once more and polls the operation it starts; long_builds counts one resubmission.",
+        _async_fetch(_operation_failed),
     ),
     Synthetic(
         "fetch-ref-signed-url-refused",
@@ -1830,7 +2488,7 @@ def record_synthetic(definition: Synthetic, ctx: Context, directory: Path) -> No
     write_record(
         directory,
         _record(definition.name, definition.description, origin, derived),
-        {},
+        derived.bodies,
     )
 
 
@@ -1923,6 +2581,8 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                     Spec(spec["spec_id"], spec["definition"], spec.get("sentence")),
                     window=tuple(window) if isinstance(window, list) else window,
                     facets=step.get("facets"),
+                    layout=step.get("layout"),
+                    strict=step.get("strict", False),
                 )
             case {"op": "fetch", "ref": ref}:
                 session.fetch_ref(ref)
@@ -1933,11 +2593,15 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                     answer,
                     partial=step.get("partial", False),
                     strict=step.get("strict", False),
+                    layout=step.get("layout"),
                 )
             case {"op": "mint", "spec": spec}:
                 session.mint(
-                    Spec(spec["spec_id"], spec["definition"], spec.get("sentence"))
+                    Spec(spec["spec_id"], spec["definition"], spec.get("sentence")),
+                    layout=step.get("layout"),
                 )
+            case {"op": "operation", "operation_id": operation_id}:
+                session.resume(operation_id, layout=step.get("layout"))
             case {"op": "result"}:
                 session.result()
 
@@ -1973,6 +2637,20 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
     )
 
 
+def waiting(openapi: Mapping[str, Any]) -> dict[str, list[str]]:
+    """Each scenario that waits for a route or status `openapi` does not
+    declare, its own or its parent's, with what it waits for."""
+    recorded = {d.name: d.needs for d in RECORDED}
+    found = {}
+    for definition in (*RECORDED, *SYNTHETIC):
+        needs = definition.needs
+        if isinstance(definition, Synthetic):
+            needs = (*needs, *recorded.get(definition.derived_from, ()))
+        if missing := unmet(needs, openapi):
+            found[definition.name] = [" ".join(need) for need in missing]
+    return found
+
+
 def run_record(args: argparse.Namespace) -> int:
     package_dir: Path = args.package_dir
     directory: Path = args.scenarios_dir or package_dir / "scenarios"
@@ -1980,7 +2658,17 @@ def run_record(args: argparse.Namespace) -> int:
     unknown = set(args.only or ()) - names
     if unknown:
         raise SystemExit(f"no scenario is named {sorted(unknown)}")
+    served = json.loads(
+        (package_dir / "served" / "openapi.json").read_text(encoding="utf-8")
+    )
     chosen = set(args.only or names)
+    # A record outside the package is not validated, so it waits for nothing.
+    for name, needs in waiting(served).items() if args.scenarios_dir is None else ():
+        if name in chosen:
+            print(
+                f"waiting {name}: the served document declares no {needs}", flush=True
+            )
+            chosen.discard(name)
     live = sorted(d.name for d in SYNTHETIC if d.live and d.name in chosen)
     if args.offline and live:
         raise SystemExit(f"--offline derives no live scenario, and {live} are live")

@@ -80,6 +80,11 @@
       "pattern": "^cv_[0-9a-f]{32}$",
       "$ref": "#/$defs/one_line"
     },
+    "operation_id": {
+      "type": "string",
+      "pattern": "^op_[0-9a-f]{64}$",
+      "$ref": "#/$defs/one_line"
+    },
     "recorded": {
       "type": "object",
       "additionalProperties": false,
@@ -223,6 +228,9 @@
         },
         {
           "$ref": "#/$defs/mint_step"
+        },
+        {
+          "$ref": "#/$defs/operation_step"
         },
         {
           "$ref": "#/$defs/result_step"
@@ -388,8 +396,28 @@
         "facets": true
       }
     },
+    "operation_step": {
+      "description": "Resuming, by its id, a long build another process started.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "operation_id"
+      ],
+      "properties": {
+        "op": {
+          "const": "operation"
+        },
+        "operation_id": {
+          "$ref": "#/$defs/operation_id"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        }
+      }
+    },
     "result_step": {
-      "description": "Waiting for the operation the previous mint step started, and taking its dataset.",
+      "description": "Waiting for the operation the previous mint or operation step holds, and taking its dataset.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -745,6 +773,9 @@
         "search_warning": {
           "description": "For a fetch of an answer only: whether the fetch issued a SearchWarning.",
           "type": "boolean"
+        },
+        "long_builds": {
+          "$ref": "#/$defs/long_builds"
         }
       }
     },
@@ -757,9 +788,7 @@
       ],
       "properties": {
         "operation_id": {
-          "type": "string",
-          "pattern": "^op_[0-9a-f]{64}$",
-          "$ref": "#/$defs/one_line"
+          "$ref": "#/$defs/operation_id"
         },
         "status": {
           "enum": [
@@ -793,16 +822,83 @@
             "ServerError",
             "ContractError",
             "SearchWarning",
+            "DataWarning",
             "NetworkError",
             "DfoTimeoutError"
           ]
         },
         "code": {
-          "description": "A refusal's code: the problem document's code, the website proxy's error member, or refusal_without_code for a body with neither. A SearchWarning's code is the server's warning or departure code, or null when the readings differ from the question in several ways. Any other error the client raises itself carries its code from client-codes.json.",
+          "description": "A refusal's code: the problem document's code, the website proxy's error member, or refusal_without_code for a body with neither. A SearchWarning's code is the server's warning or departure code, or the verb of an operation Search did not run, or null when the readings differ from the question in several ways. A DataWarning's code is the manifest warning's. Any other error the client raises itself carries its code from client-codes.json.",
           "type": [
             "string",
             "null"
           ]
+        },
+        "newest_version": {
+          "description": "For a VersionUnavailableError only: the newest version the lookup found, or null.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/content_version"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "long_builds": {
+          "$ref": "#/$defs/long_builds"
+        }
+      },
+      "if": {
+        "properties": {
+          "class": {
+            "const": "VersionUnavailableError"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "newest_version"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "newest_version"
+          ]
+        }
+      }
+    },
+    "long_builds": {
+      "description": "One entry per build the step saw the server run on, in order.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation_id",
+          "poll_waits",
+          "resubmissions"
+        ],
+        "properties": {
+          "operation_id": {
+            "description": "The operation the client polled last, the one a deadline error names.",
+            "$ref": "#/$defs/operation_id"
+          },
+          "poll_waits": {
+            "description": "The seconds the client waited before each poll, in order.",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "resubmissions": {
+            "description": "How many times the client posted the build again after the operation failed.",
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     }

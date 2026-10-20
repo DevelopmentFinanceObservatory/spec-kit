@@ -1,0 +1,200 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-member-not-resolvable",
+  "description": "A build refused because the spec no longer resolves raises InvalidRequestError with the server's code, and makes no further request.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "fetch-spec-known-sentence",
+    "edit": "A 422 member_not_resolvable answers the build."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+          "identity": {
+            "shape": {
+              "kind": "statvar_schema",
+              "stat_type": "measuredValue",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "binding": {
+                  "state": "unbound"
+                },
+                "property": "crsCooperationModality"
+              },
+              {
+                "binding": {
+                  "ref": "CRSPurposeCode12220",
+                  "state": "value"
+                },
+                "property": "crsPurpose"
+              },
+              {
+                "binding": {
+                  "state": "unbound"
+                },
+                "property": "crsTypeOfFinance"
+              },
+              {
+                "binding": {
+                  "ref": "CRSTypeOfFlow10",
+                  "state": "value"
+                },
+                "property": "crsTypeOfFlow"
+              },
+              {
+                "binding": {
+                  "ref": "Disbursement",
+                  "state": "value"
+                },
+                "property": "financialFlowType"
+              },
+              {
+                "binding": {
+                  "ref": "Gross",
+                  "state": "value"
+                },
+                "property": "nettingBasis"
+              }
+            ],
+            "entities": {
+              "origin": [
+                "country/DEU"
+              ],
+              "destination": [
+                "country/NGA"
+              ]
+            },
+            "identity_version": "spec1",
+            "requested_window": {
+              "kind": "range",
+              "end_year": 2023,
+              "start_year": 2020
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS)."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsCooperationModality"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSPurposeCode12220",
+                      "state": "value"
+                    },
+                    "property": "crsPurpose"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsTypeOfFinance"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSTypeOfFlow10",
+                      "state": "value"
+                    },
+                    "property": "crsTypeOfFlow"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Disbursement",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Gross",
+                      "state": "value"
+                    },
+                    "property": "nettingBasis"
+                  }
+                ],
+                "entities": {
+                  "origin": [
+                    "country/DEU"
+                  ],
+                  "destination": [
+                    "country/NGA"
+                  ]
+                },
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "range",
+                  "end_year": 2023,
+                  "start_year": 2020
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/member_not_resolvable",
+          "title": "Unprocessable Entity",
+          "status": 422,
+          "detail": "The spec's variable no longer resolves in the graph.",
+          "code": "member_not_resolvable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "member_not_resolvable"
+      }
+    }
+  ]
+}

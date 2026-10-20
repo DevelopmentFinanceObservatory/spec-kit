@@ -26,7 +26,7 @@ document validates against its schema, then what the schemas cannot express:
   mapping takes an action a problem document can carry.
 - `client-codes.json` lists codes in order, each once, none of them a code in
   `actions.json` or `registries/codes.json`. Each row's class is one a
-  scenario's error may name, other than `SearchWarning`, and only
+  scenario's error may name, other than a warning's, and only
   `refusal_without_code` takes the class its status maps to.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
@@ -37,15 +37,19 @@ document validates against its schema, then what the schemas cannot express:
   route's request schema, each JSON response body validates against the
   route's schema for its status, and a problem document's `code` is an active
   code registered with that status.
-- Each error a scenario expects, other than a `SearchWarning`, carries a
-  refusal's code from its exchanges or a client code of its class.
+- Each error a scenario expects, other than a `SearchWarning` or
+  `DataWarning`, carries a refusal's code from its exchanges, a failed
+  operation's included, or a client code of its class.
 - Each scenario's `expect` equals the outcomes its steps reach over its
   exchanges, with refusals' error classes and gap kinds from `actions.json`
   and the class of each error the client raises itself from
-  `client-codes.json`, as `expected_outcomes` derives them; a dataset's rows, columns and per-part
-  row counts are left to the Parquet bodies. Each Search request a record
-  holds posts the input the steps derive: the question, a choice's
-  data_query or dataset_resubmit entries, or a member's identity. Every
+  `client-codes.json`, as `expected_outcomes` derives them, the waits
+  before each poll included; a dataset's rows, columns and per-part row
+  counts are left to the Parquet bodies, and each download hashes to its
+  artifact's digest or the outcome says it does not. Each Search request a
+  record holds posts the input the steps derive: the question, a choice's
+  data_query or dataset_resubmit entries, or a member's identity, and each
+  build posts the options its layout gives. Every
   absolute URL a record holds, a `url` request or a `location` header, has
   the query `X-Goog-Signature=redacted`.
 - Each ref example's file name matches its `name` and gets the verdict it
@@ -64,11 +68,12 @@ rules from here, so the records are written by the code that checks them.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -89,7 +94,7 @@ _ANSWER_ONLY_ACTIONS = {"choose", "ask_data_question"}
 _ACTS_ON_PREVIOUS = {
     "choose": {"search", "choose"},
     "fetch_answer": {"search", "choose", "fetch_answer"},
-    "result": {"mint"},
+    "result": {"mint", "operation"},
 }
 _STRICT_POINTER = re.compile(r"^/components/schemas/([^/]+)/properties/([^/]+)$")
 
@@ -358,8 +363,8 @@ def _check_client_codes(
             f"client-codes.json: {code!r} is also a code in {source}"
             for code in sorted(set(codes) & server_codes)
         )
-    # A SearchWarning is a warning and carries the server's code.
-    known = {*classes, BY_STATUS} - {"SearchWarning"}
+    # A warning raised under strict carries the server's code.
+    known = {*classes, BY_STATUS} - set(WARNING_CLASSES)
     problems.extend(
         f"client-codes.json: {row['code']!r} raises {row['class']!r}, a class "
         "no scenario names"
@@ -545,8 +550,10 @@ def _check_problem_code(
         }
         if entry["lifecycle"] != "active" or response["status"] not in statuses:
             return [
-                f"{label}: problem code {body['code']!r} is not an active code "
-                f"registered with status {response['status']}"
+                (
+                    f"{label}: problem code {body['code']!r} is not an active code "
+                    f"registered with status {response['status']}"
+                )
             ]
         return []
     return [f"{label}: problem code {body['code']!r} is not in the registry"]
@@ -580,9 +587,17 @@ STATUS_CLASSES = {
     401: "AuthenticationError",
     403: "PermissionDeniedError",
     404: "NotFoundError",
+    408: "DfoTimeoutError",
+    410: "NotFoundError",
     422: "InvalidRequestError",
     429: "RateLimitError",
 }
+# The statuses a refusal is retried on when its body does not say.
+RETRYABLE_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
+# The website proxy's `retry` value that makes its refusal retryable.
+_PROXY_RETRY = "retry_after_delay"
+# The retries a client makes by default after a retryable refusal.
+MAX_RETRIES = 2
 
 
 def gap_kinds(actions: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
@@ -611,26 +626,116 @@ def error_class(
     return STATUS_CLASSES.get(status, fallback)
 
 
+def retryable(status: int, body: Any) -> bool:
+    """Whether a client retries a refusal: as a problem document's `retryable`
+    says, or the website proxy's `retry`, and otherwise by its status."""
+    if isinstance(body, dict):
+        if "code" not in body and "error" in body:
+            return body.get("retry") == _PROXY_RETRY
+        if isinstance(body.get("retryable"), bool):
+            return body["retryable"]
+    return status in RETRYABLE_STATUSES
+
+
+def retry_after(headers: Mapping[str, str]) -> float | None:
+    """The seconds a `Retry-After` header asks for, or None."""
+    try:
+        wait = float(headers.get("retry-after", ""))
+    except ValueError:
+        return None
+    return wait if wait >= 0 else None
+
+
+POLL_BACKOFF_FIRST = 1.0
+POLL_BACKOFF_CAP = 8.0
+
+
+@dataclass
+class PollPacing:
+    """The wait before each poll of one long build: the `Retry-After` of a 429
+    that refused the last poll, else the last operation resource's
+    `retry_after_ms`, else the `Retry-After` of the response that carried that
+    resource, else a backoff that doubles from 1 to 8 seconds and advances
+    only when it is used."""
+
+    paced: float | None = None
+    header: float | None = None
+    refused: float | None = None
+    backoff_step: int = 0
+
+    def took(self, operation: Mapping[str, Any], headers: Mapping[str, str]) -> None:
+        """An operation resource arrived, with its response's headers."""
+        ms = operation.get("retry_after_ms")
+        number = isinstance(ms, int | float) and not isinstance(ms, bool)
+        self.paced = ms / 1000 if number and ms >= 0 else None
+        self.header = retry_after(headers)
+
+    def rate_limited(self, headers: Mapping[str, str]) -> None:
+        """A 429 refused the last poll; it spends no retry."""
+        self.refused = retry_after(headers)
+
+    def next_wait(self) -> float:
+        if self.refused is not None:
+            wait, self.refused = self.refused, None
+            return wait
+        if self.paced is not None:
+            return self.paced
+        if self.header is not None:
+            return self.header
+        wait = min(POLL_BACKOFF_FIRST * 2**self.backoff_step, POLL_BACKOFF_CAP)
+        self.backoff_step += 1
+        return wait
+
+
 # The class of a client code that takes the class its refusal's HTTP status
 # maps to, and the client code of a refusal whose body carries no code.
 BY_STATUS = "by_status"
 REFUSAL_WITHOUT_CODE = "refusal_without_code"
 
 
-def error_outcome(error: str, code: str | None) -> dict[str, Any]:
-    return {"error": {"class": error, "code": code}}
+def error_outcome(error: str, code: str | None, **members: Any) -> dict[str, Any]:
+    return {"error": {"class": error, "code": code, **members}}
+
+
+# The warnings a client raises as errors under strict, which carry the
+# server's code rather than a client code.
+WARNING_CLASSES = ("SearchWarning", "DataWarning")
+VERSION_UNAVAILABLE = "VersionUnavailableError"
 
 
 class ClientError(Exception):
     """A step ends in an error a client raises. A refusal names its class and
-    the server's code, a SearchWarning names the server's warning or
-    departure code, and any other error names a code from
-    `client-codes.json`, whose row gives its class."""
+    the server's code, a SearchWarning or DataWarning names the server's
+    warning, departure or operation code, and any other error names a code
+    from `client-codes.json`, whose row gives its class. A
+    VersionUnavailableError also names the newest version, or None."""
 
-    def __init__(self, code: str | None, *, error: str | None = None) -> None:
+    def __init__(
+        self,
+        code: str | None,
+        *,
+        error: str | None = None,
+        newest_version: str | None = None,
+    ) -> None:
         super().__init__(f"{error or 'client'} {code}")
         self.code = code
         self.error = error
+        self.newest_version = newest_version
+
+    def error_class(self, client_codes: Mapping[str, Mapping[str, Any]]) -> str:
+        """The error class: the one it names, else its client code's.
+
+        Raises:
+            ValueError: The code is not a client code of one class.
+        """
+        if self.error is not None:
+            return self.error
+        row = client_codes.get(self.code) if self.code is not None else None
+        if row is None or row["class"] == BY_STATUS:
+            raise ValueError(
+                f"{self.code!r} is not a client code of one class in client-codes.json"
+            )
+        return row["class"]
 
     def outcome(self, client_codes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
         """The error outcome, its class from `client_codes` when the error
@@ -639,14 +744,10 @@ class ClientError(Exception):
         Raises:
             ValueError: The code is not a client code of one class.
         """
-        if self.error is not None:
-            return error_outcome(self.error, self.code)
-        row = client_codes.get(self.code) if self.code is not None else None
-        if row is None or row["class"] == BY_STATUS:
-            raise ValueError(
-                f"{self.code!r} is not a client code of one class in client-codes.json"
-            )
-        return error_outcome(row["class"], self.code)
+        error = self.error_class(client_codes)
+        if error == VERSION_UNAVAILABLE:
+            return error_outcome(error, self.code, newest_version=self.newest_version)
+        return error_outcome(error, self.code)
 
 
 def refusal_error(
@@ -1074,6 +1175,199 @@ _SEARCH = ("POST", "/search/resolve")
 _BUILD = ("POST", "/datasets")
 _POLL = ("GET", "/datasets/operations/")
 _MANIFEST = {"$ref": "#/components/schemas/Manifest"}
+_OPERATION = {"$ref": "#/components/schemas/OperationResource"}
+# The bare Parquet rendering a fetch asks for, by layout.
+LAYOUT_RENDERINGS = {
+    "long": {"format": "parquet", "bundle": False},
+    "frame": {"format": "parquet", "bundle": False, "layout": "frame"},
+}
+# The snapshot refusal after which a stored version's lookup builds it again:
+# the version exists, but its file has expired. Any other refusal ends it.
+FILE_EXPIRED = "artifact_expired"
+# The file route refusals after which the lookup takes its next step.
+FILE_GONE = frozenset({FILE_EXPIRED, "artifact_not_found", "not_found"})
+# The classes of a rebuild refusal after which the lookup reads the newest
+# version, and of a versions refusal that leaves the newest version unknown.
+REBUILD_REFUSED = frozenset(
+    {"InvalidRequestError", "NotFoundError", VERSION_UNAVAILABLE}
+)
+NO_VERSIONS = frozenset({"NotFoundError", "PermissionDeniedError"})
+OPERATION_FAILED = "operation_failed"
+
+
+def rendering_for(layout: str | None) -> dict[str, Any]:
+    """The build request's `options` for a fetch's `layout`, long by default."""
+    return dict(LAYOUT_RENDERINGS[layout or "long"])
+
+
+def pick_artifact(
+    manifest: Mapping[str, Any], rendering: Mapping[str, Any]
+) -> dict[str, Any] | None:
+    """The artifact a manifest lists for `rendering`, matched on format,
+    bundle and whether its layout is the frame."""
+    frame = rendering.get("layout") == "frame"
+    for artifact in manifest["artifacts"]:
+        found = artifact.get("rendering")
+        if (
+            isinstance(found, dict)
+            and found.get("format") == rendering["format"]
+            and found.get("bundle") is rendering["bundle"]
+            and (found.get("layout") == "frame") == frame
+        ):
+            return artifact
+    return None
+
+
+def digest_of(data: bytes) -> str:
+    """The `sha256:<hex>` digest the server names a stored file by."""
+    return "sha256:" + hashlib.sha256(data).hexdigest()
+
+
+def selector_path(
+    spec_id: str, content_version: str, rendering: Mapping[str, Any]
+) -> str:
+    """The file selector's path for a stored version, its rendering as the
+    query."""
+    query = "&".join(
+        f"{name}={str(value).lower() if isinstance(value, bool) else value}"
+        for name, value in rendering.items()
+    )
+    return f"/datasets/{spec_id}/{content_version}/file?{query}"
+
+
+def data_warning(manifest: Mapping[str, Any]) -> ClientError | None:
+    """The DataWarning a strict fetch raises for a manifest: its first warning
+    above `info` severity, with that warning's code; None when it has none."""
+    for warning in manifest.get("warnings") or []:
+        if isinstance(warning, dict) and warning.get("severity") != "info":
+            return ClientError(warning.get("code"), error="DataWarning")
+    return None
+
+
+def resubmitted_sentence(answer: Answer, spec_id: str) -> str:
+    """The sentence Search gives a built identity it was posted: the answer
+    must be one definite part of `spec_id`, with a sentence, or the client
+    raises ContractError."""
+    found = answer.parts[0] if len(answer.parts) == 1 else {}
+    spec = found.get("spec") if found.get("status") == "definite" else None
+    if answer.body.get("kind") != "resolution" or not isinstance(spec, dict):
+        raise ClientError("contract_violation")
+    resolved = spec.get("resolved")
+    sentence = resolved.get("rendered_sentence") if isinstance(resolved, dict) else None
+    if spec.get("spec_id") != spec_id or not isinstance(sentence, str) or not sentence:
+        raise ClientError("contract_violation")
+    return sentence
+
+
+def failed_operation(
+    resource: Mapping[str, Any], actions: Mapping[str, Mapping[str, Any]]
+) -> tuple[ClientError, bool]:
+    """A failed operation's error, the refusal its problem document states at
+    that document's status or else 500, and whether it is retryable."""
+    problem = resource.get("error")
+    status = problem.get("status") if isinstance(problem, dict) else None
+    status = status if isinstance(status, int) else 500
+    return refusal_error(status, problem, actions), retryable(status, problem)
+
+
+class LongBuild:
+    """A build the server runs on, followed the way a client polls it. Each
+    wait before a poll is `PollPacing`'s. A 429 poll spends no retry, any
+    other retryable refused poll one of MAX_RETRIES, and any other refused
+    poll raises. A poll answering a failed operation, retryable by its
+    error, posts the build again once when the client holds its request;
+    otherwise, and for an operation that failed before the client polled
+    it, the operation's error raises. `entry` is the build's `long_builds`
+    entry, and `result` its manifest once it is done."""
+
+    def __init__(
+        self,
+        resource: Mapping[str, Any],
+        headers: Mapping[str, str],
+        request: Any,
+        actions: Mapping[str, Mapping[str, Any]],
+    ) -> None:
+        self.request = request
+        self.actions = actions
+        self.pacing = PollPacing()
+        self.retries = 0
+        self.result: dict[str, Any] | None = None
+        self.entry: dict[str, Any] = {
+            "operation_id": resource["operation"]["operation_id"],
+            "poll_waits": [],
+            "resubmissions": 0,
+        }
+        self._take(resource, headers)
+
+    def _take(self, resource: Mapping[str, Any], headers: Mapping[str, str]) -> None:
+        self.resource = resource
+        self.pacing.took(resource["operation"], headers)
+        if resource["operation"]["status"] == "done":
+            manifest = resource.get("manifest")
+            if not isinstance(manifest, dict):
+                raise ClientError("contract_violation")
+            self.result = manifest
+
+    def next_wait(self) -> float:
+        """The wait before the next poll, kept in `entry`."""
+        if self.resource["operation"]["status"] == "failed":
+            raise failed_operation(self.resource, self.actions)[0]
+        wait = self.pacing.next_wait()
+        self.entry["poll_waits"].append(wait)
+        return wait
+
+    def polled(self, status: int, headers: Mapping[str, str], body: Any) -> bool:
+        """Takes a poll's response, and says whether to post the build again.
+
+        Raises:
+            ClientError: The error that ends the build.
+        """
+        if status < 400:
+            self.retries = 0
+            self._take(body, headers)
+            if body["operation"]["status"] != "failed":
+                return False
+            error, again = failed_operation(body, self.actions)
+        else:
+            error = refusal_error(status, body, self.actions)
+            again = retryable(status, body)
+            if error.code != OPERATION_FAILED:
+                if status == 429:
+                    self.pacing.rate_limited(headers)
+                elif again and self.retries < MAX_RETRIES:
+                    self.retries += 1
+                else:
+                    raise error
+                return False
+        if not again or self.request is None or self.entry["resubmissions"]:
+            raise error
+        self.entry["resubmissions"] += 1
+        return True
+
+    def reposted(self, status: int, headers: Mapping[str, str], body: Any) -> None:
+        """Takes the answer to the build posted again: a refusal raises, a
+        202 starts the operation the client polls next, and a 200 is done."""
+        if status >= 400:
+            raise refusal_error(status, body, self.actions)
+        if status != 202:
+            self.result = body
+            return
+        self.entry["operation_id"] = body["operation"]["operation_id"]
+        self._take(body, headers)
+
+
+@dataclass
+class _Minted:
+    """An operation a mint started or a resume read, for the result step:
+    its resource, the headers that came with it, the build request a failed
+    operation resubmits (None for a resumed one), the spec the client holds,
+    and the rendering it downloads."""
+
+    resource: dict[str, Any]
+    headers: dict[str, str]
+    request: dict[str, Any] | None
+    spec: dict[str, Any] | None
+    rendering: dict[str, Any]
 
 
 @dataclass
@@ -1087,9 +1381,11 @@ class _Replay:
     members: Mapping[str, Sequence[str]]
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
+    body_dir: Path
     cursor: int = 0
     answer: Answer | None = None
-    minted: tuple[dict[str, Any], dict[str, Any]] | None = None
+    minted: _Minted | None = None
+    long_builds: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def kinds(self) -> dict[str, str]:
@@ -1097,11 +1393,11 @@ class _Replay:
 
     # -- exchanges --
 
-    def call(self, method: str, target: str) -> dict[str, Any]:
-        """The exchange a client acts on for its next request: the last of a
-        run that repeats one request, each refusal before it a retry.
-        `target` is a path under the base URL, a path prefix ending in `/`,
-        `origin` for a root-relative URL or `url` for an absolute one."""
+    def call(self, method: str, target: str, *, retries: bool = True) -> dict[str, Any]:
+        """The exchange a client acts on for its next request: with `retries`,
+        the last of a run that repeats one request, each refusal before it a
+        retry. `target` is a path under the base URL, a path prefix ending in
+        `/`, `origin` for a root-relative URL or `url` for an absolute one."""
         if self.cursor >= len(self.exchanges):
             raise _UnfitError(f"the steps make a {method} {target} the record lacks")
         exchange = self.exchanges[self.cursor]
@@ -1119,7 +1415,8 @@ class _Replay:
             )
         self.cursor += 1
         while (
-            exchange["response"]["status"] >= 400
+            retries
+            and exchange["response"]["status"] >= 400
             and self.cursor < len(self.exchanges)
             and self.exchanges[self.cursor]["request"] == request
         ):
@@ -1127,16 +1424,18 @@ class _Replay:
             self.cursor += 1
         return exchange
 
-    def acted_on(self, exchange: dict[str, Any]) -> Any:
-        """The JSON body a client acts on. A refusal raises its error, and a
-        body without a strict member raises ContractError."""
+    def acted_on(self, exchange: dict[str, Any], schema: Any = None) -> Any:
+        """The JSON body a client acts on, read through `schema` or else its
+        route's schema for its status. A refusal raises its error, and a body
+        without a strict member raises ContractError."""
         response = exchange["response"]
         body = response.get("json")
         if response["status"] >= 400:
             raise refusal_error(response["status"], body, self.actions)
-        schema = self.routes.response_schema(
-            self.base_path, exchange["request"], response["status"]
-        )
+        if schema is None:
+            schema = self.routes.response_schema(
+                self.base_path, exchange["request"], response["status"]
+            )
         self.strict(schema, body)
         return body
 
@@ -1144,13 +1443,38 @@ class _Replay:
         if strict_gaps(self.routes.openapi, self.members, schema, body):
             raise ClientError("contract_violation")
 
-    def download(self) -> None:
-        """The files route, then its signed URL; a refused signed URL asks the
-        files route again."""
-        while True:
-            self.acted_on(self.call("GET", "origin"))
-            if self.call("GET", "url")["response"]["status"] < 400:
+    def body(self, response: dict[str, Any]) -> bytes:
+        if "body_file" in response:
+            path = self.body_dir / response["body_file"]
+            if not path.is_file():
+                raise _UnfitError(f"body file {response['body_file']!r} is missing")
+            return path.read_bytes()
+        if "json" in response:
+            return json.dumps(response["json"]).encode()
+        return b""
+
+    def download(self, target: str, digest: str, *, origin: bool) -> None:
+        """A file through the route that redirects to its signed URL: an
+        artifact's root-relative `url` when `origin`, else a path under the
+        base URL. A refused signed URL, or bytes that do not hash to `digest`,
+        ask the route once more, and a second failure raises."""
+        failure = ClientError("download_failed")
+        for _ in range(2):
+            exchange = self.call("GET", "origin" if origin else target)
+            asked = exchange["request"].get("origin_path", target)
+            if asked != target:
+                raise _UnfitError(
+                    f"the record asks {asked}, where the rules ask {target}"
+                )
+            self.acted_on(exchange)
+            signed = self.call("GET", "url", retries=False)["response"]
+            if signed["status"] >= 400:
+                failure = ClientError("download_failed")
+                continue
+            if digest_of(self.body(signed)) == digest:
                 return
+            failure = ClientError("digest_mismatch")
+        raise failure
 
     def resolve(self, posts: dict[str, Any]) -> Answer:
         """A Search request whose recorded body, when it has one, posts the
@@ -1164,42 +1488,89 @@ class _Replay:
             )
         return answer_from_body(self.acted_on(exchange))
 
-    def wait(self, operation: dict[str, Any]) -> dict[str, Any]:
-        """Polls until the operation is done. The done resource's manifest is
-        untyped in the served document, so it is checked as a Manifest."""
-        manifest = None
-        while operation["status"] != "done":
-            resource = self.acted_on(self.call(*_POLL))
-            operation, manifest = resource["operation"], resource.get("manifest")
-        if not isinstance(manifest, dict):
-            raise ClientError("contract_violation")
-        self.strict(_MANIFEST, manifest)
-        return manifest
+    # -- builds --
 
-    def build(self, parts: list[str], spec: dict[str, Any]) -> dict[str, Any]:
+    def build(self, rendering: dict[str, Any]) -> dict[str, Any]:
+        """A build of the latest version, posting `rendering` as its options:
+        the manifest it answers, through a long build when it answers 202."""
+        exchange = self.call(*_BUILD)
+        sent = exchange["request"].get("json")
+        if sent is not None and sent.get("options") != rendering:
+            raise _UnfitError(
+                f"exchange {self.cursor - 1} posts options {sent.get('options')}, "
+                f"where the rules post {rendering}"
+            )
+        if exchange["response"]["status"] != 202:
+            return self.acted_on(exchange)
+        resource = self.acted_on(exchange, _OPERATION)
+        headers = exchange["response"].get("headers", {})
+        return self.long_build(resource, headers, exchange["request"])
+
+    def long_build(
+        self,
+        resource: dict[str, Any],
+        headers: Mapping[str, str],
+        request: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Polls an operation as `LongBuild` rules until it is done and
+        returns its manifest. A build posted again posts the same request."""
+        build = LongBuild(resource, headers, request, self.actions)
+        self.long_builds.append(build.entry)
+        while build.result is None:
+            build.next_wait()
+            response = self.call(*_POLL, retries=False)["response"]
+            body = response.get("json")
+            if response["status"] < 400:
+                self.strict(_OPERATION, body)
+            if not build.polled(response["status"], response.get("headers", {}), body):
+                continue
+            again = self.call(*_BUILD)
+            if again["request"] != request:
+                raise _UnfitError("the build posted again posts another request")
+            reply = again["response"]
+            if reply["status"] < 400:
+                self.strict(
+                    _OPERATION if reply["status"] == 202 else _MANIFEST,
+                    reply.get("json"),
+                )
+            build.reposted(reply["status"], reply.get("headers", {}), reply.get("json"))
+        self.strict(_MANIFEST, build.result)
+        return build.result
+
+    def note_warnings(self, manifest: dict[str, Any], strict: bool) -> None:
+        if strict and (warning := data_warning(manifest)) is not None:
+            raise warning
+
+    def fetched(
+        self,
+        parts: list[str],
+        spec: dict[str, Any],
+        rendering: dict[str, Any],
+        strict: bool,
+    ) -> dict[str, Any]:
         """One member: the build, then the member's files."""
-        body = self.acted_on(self.call(*_BUILD))
-        manifest = self.wait(body["operation"]) if "operation" in body else body
-        return self.member(parts, spec, manifest)
+        return self.member(parts, spec, self.build(rendering), rendering, strict)
 
     def member(
-        self, parts: list[str], spec: dict[str, Any], manifest: dict[str, Any]
+        self,
+        parts: list[str],
+        spec: dict[str, Any] | None,
+        manifest: dict[str, Any],
+        rendering: dict[str, Any],
+        strict: bool,
     ) -> dict[str, Any]:
-        """A built member: its sentence from Search when the build changed the
-        spec_id or the client lacks it, then the download."""
+        """A built member: its warnings under strict, its sentence from
+        Search when the build changed the spec_id or the client lacks it,
+        then the download. `spec` is None for a resumed operation."""
+        self.note_warnings(manifest, strict)
+        artifact = pick_artifact(manifest, rendering)
+        if artifact is None:
+            raise ClientError("contract_violation")
         built = manifest["definition"]["spec_id"]
-        sentence = spec.get("sentence")
-        if built != spec["spec_id"] or sentence is None:
-            entry = {
-                "entry_kind": "identity",
-                "variable_text": parts[0] if parts else UNNAMED_VARIABLE_TEXT,
-                "identity": manifest["definition"]["identity"],
-            }
-            (part,) = self.resolve(
-                {"kind": "dataset_resubmit", "entries": [entry]}
-            ).parts
-            sentence = part["spec"]["resolved"]["rendered_sentence"]
-        self.download()
+        sentence = None if spec is None else spec.get("sentence")
+        if spec is None or built != spec["spec_id"] or sentence is None:
+            sentence = self.sentence(parts, manifest["definition"])
+        self.download(artifact["url"], artifact["artifact_digest"], origin=True)
         return {
             "parts": parts,
             "spec_id": built,
@@ -1207,21 +1578,141 @@ class _Replay:
             "sentence": sentence,
         }
 
+    def sentence(self, parts: list[str], definition: dict[str, Any]) -> str:
+        """Search's sentence for a built identity. An answer that is not one
+        definite part of the built spec_id, with a sentence, raises
+        ContractError."""
+        entry = {
+            "entry_kind": "identity",
+            "variable_text": parts[0] if parts else UNNAMED_VARIABLE_TEXT,
+            "identity": definition["identity"],
+        }
+        answer = self.resolve({"kind": "dataset_resubmit", "entries": [entry]})
+        return resubmitted_sentence(answer, definition["spec_id"])
+
+    # -- stored versions --
+
+    def stored_version(self, member: dict[str, Any]) -> dict[str, Any]:
+        """One version a ref names, through the lookup order: the snapshot
+        route and the files route at the stored digest, then the file
+        selector, then a build that must answer the same version. A snapshot
+        refusal other than artifact_expired ends the lookup; otherwise a
+        lookup that finds no file raises VersionUnavailableError with the
+        first refusal's code, or version_unavailable, and the newest version:
+        the one the build answered, or the versions route's first."""
+        spec = member["spec"]
+        spec_id, version = spec["spec_id"], member["content_version"]
+        rendering = member["artifact"]["rendering"]
+        stored = {
+            "parts": member["parts"],
+            "spec_id": spec_id,
+            "content_version": version,
+            "sentence": member["sentence"],
+        }
+        refusal: ClientError | None = None
+        try:
+            manifest = self.acted_on(self.call("GET", f"/datasets/{spec_id}/{version}"))
+        except ClientError as error:
+            if error.code != FILE_EXPIRED:
+                raise
+            refusal, manifest = error, None
+        if manifest is not None:
+            built = (manifest["definition"]["spec_id"], manifest["content_version"])
+            if built != (spec_id, version):
+                raise ClientError("contract_violation")
+            found, refusal = self.stored_file(member, manifest)
+            if found:
+                return stored
+
+        try:
+            manifest = self.build(rendering)
+        except ClientError as error:
+            if error.error_class(self.client_codes) not in REBUILD_REFUSED:
+                raise
+            refusal = refusal if refusal is not None else error
+            newest = self.newest(spec_id)
+        else:
+            if manifest["content_version"] == version:
+                held = {"spec_id": spec_id, "sentence": member["sentence"]}
+                return self.member(member["parts"], held, manifest, rendering, False)
+            newest = manifest["content_version"]
+        raise ClientError(
+            refusal.code if refusal is not None else "version_unavailable",
+            error=VERSION_UNAVAILABLE,
+            newest_version=newest,
+        )
+
+    def stored_file(
+        self, member: dict[str, Any], manifest: dict[str, Any]
+    ) -> tuple[bool, ClientError | None]:
+        """Whether the files route at the stored digest, or else the file
+        selector, served the stored file, and the files route's refusal when
+        it refused. A selector refusal outside FILE_GONE, and a files route
+        one, raise; a selector file of another digest is not the stored one."""
+        digest = member["artifact"]["digest"]
+        refusal = None
+        artifact = next(
+            (a for a in manifest["artifacts"] if a["artifact_digest"] == digest), None
+        )
+        if artifact is not None:
+            try:
+                self.download(artifact["url"], digest, origin=True)
+            except ClientError as error:
+                if error.code not in FILE_GONE:
+                    raise
+                refusal = error
+            else:
+                return True, None
+        path = selector_path(
+            member["spec"]["spec_id"],
+            member["content_version"],
+            member["artifact"]["rendering"],
+        )
+        try:
+            self.download(path, digest, origin=False)
+        except ClientError as error:
+            if error.code == "digest_mismatch":
+                return False, refusal
+            if error.code in FILE_GONE:
+                return False, refusal or error
+            raise
+        return True, None
+
+    def newest(self, spec_id: str) -> str | None:
+        """The newest stored version the versions route lists first, or None
+        when it lists none or refuses as unknown or forbidden."""
+        try:
+            body = self.acted_on(self.call("GET", f"/datasets/{spec_id}/versions"))
+        except ClientError as error:
+            if error.error_class(self.client_codes) in NO_VERSIONS:
+                return None
+            raise
+        versions = body.get("versions") if isinstance(body, dict) else None
+        first = versions[0] if isinstance(versions, list) and versions else None
+        newest = first.get("content_version") if isinstance(first, dict) else None
+        return newest if isinstance(newest, str) else None
+
     # -- steps --
 
     def step(self, step: dict[str, Any]) -> dict[str, Any]:
-        """The outcome `step` reaches."""
+        """The outcome `step` reaches. A step that made a long build names
+        each in `long_builds`, whatever its outcome."""
+        self.long_builds = []
         op = step["op"]
         if op == "fetch":
             op = (
                 "fetch_ref" if "ref" in step else "fetch_spec" if "spec" in step else op
             )
         try:
-            return getattr(self, f"_{op}")(step)
+            outcome = getattr(self, f"_{op}")(step)
         except ClientError as ended:
             if op in {"search", "choose"}:
                 self.answer = None
-            return ended.outcome(self.client_codes)
+            outcome = ended.outcome(self.client_codes)
+        if self.long_builds:
+            (value,) = outcome.values()
+            value["long_builds"] = self.long_builds
+        return outcome
 
     def _answered(self) -> Answer:
         if self.answer is None:
@@ -1249,8 +1740,8 @@ class _Replay:
         """A fetch of the answer: a declined or catalogue answer raises
         DeclinedError; a gap raises IncompleteAnswerError unless the fetch is
         partial and some part has a reading; a strict fetch whose readings
-        depart from the question raises SearchWarning; all before any
-        request."""
+        depart from the question raises SearchWarning; the frame layout with
+        several members raises InvalidRequestError; all before any request."""
         answer = self._answered()
         if answer.body.get("kind") != "resolution":
             raise ClientError("answer_declined")
@@ -1259,43 +1750,67 @@ class _Replay:
         if gaps and (not step.get("partial", False) or not readings):
             raise ClientError("answer_incomplete")
         warns = search_warns(answer)
-        if warns and step.get("strict", False):
+        strict = step.get("strict", False)
+        if warns and strict:
             raise ClientError(search_warning_code(answer), error="SearchWarning")
+        rendering = rendering_for(step.get("layout"))
+        if "layout" in rendering and len(readings) > 1:
+            raise ClientError("invalid_argument")
         members = [
-            self.build(
+            self.fetched(
                 parts,
                 {
                     "spec_id": spec["spec_id"],
                     "sentence": spec["resolved"]["rendered_sentence"],
                 },
+                rendering,
+                strict,
             )
             for parts, spec in readings
         ]
         return {"dataset": dataset_summary(members, gaps, search_warning=warns)}
 
     def _fetch_spec(self, step: dict[str, Any]) -> dict[str, Any]:
-        return {"dataset": dataset_summary([self.build([], step["spec"])], [])}
+        rendering = rendering_for(step.get("layout"))
+        member = self.fetched([], step["spec"], rendering, step.get("strict", False))
+        return {"dataset": dataset_summary([member], [])}
 
     def _fetch_ref(self, step: dict[str, Any]) -> dict[str, Any]:
-        members = []
-        for member in step["ref"]["members"]:
-            spec_id, version = member["spec"]["spec_id"], member["content_version"]
-            self.acted_on(self.call("GET", f"/datasets/{spec_id}/{version}"))
-            self.download()
-            members.append({**member, "spec_id": spec_id})
+        members = [self.stored_version(member) for member in step["ref"]["members"]]
         return {"dataset": dataset_summary(members, [])}
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
-        operation = self.acted_on(self.call(*_BUILD))["operation"]
-        self.minted = (step["spec"], operation)
-        return {"operation": {k: operation[k] for k in ("operation_id", "status")}}
+        rendering = rendering_for(step.get("layout"))
+        exchange = self.call(*_BUILD)
+        if exchange["response"]["status"] == 200:
+            raise _UnfitError("a mint step's build answers an operation")
+        resource = self.acted_on(exchange, _OPERATION)
+        headers = exchange["response"].get("headers", {})
+        self.minted = _Minted(
+            resource, headers, exchange["request"], step["spec"], rendering
+        )
+        return _operation_outcome(resource)
+
+    def _operation(self, step: dict[str, Any]) -> dict[str, Any]:
+        exchange = self.call("GET", f"/datasets/operations/{step['operation_id']}")
+        resource = self.acted_on(exchange, _OPERATION)
+        headers = exchange["response"].get("headers", {})
+        rendering = rendering_for(step.get("layout"))
+        self.minted = _Minted(resource, headers, None, None, rendering)
+        return _operation_outcome(resource)
 
     def _result(self, step: dict[str, Any]) -> dict[str, Any]:
         if self.minted is None:
-            raise _UnfitError("result follows no mint")
-        spec, operation = self.minted
-        member = self.member([], spec, self.wait(operation))
+            raise _UnfitError("result follows no mint or operation")
+        minted = self.minted
+        manifest = self.long_build(minted.resource, minted.headers, minted.request)
+        member = self.member([], minted.spec, manifest, minted.rendering, False)
         return {"dataset": dataset_summary([member], [])}
+
+
+def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
+    operation = resource["operation"]
+    return {"operation": {k: operation[k] for k in ("operation_id", "status")}}
 
 
 def expected_outcomes(
@@ -1306,8 +1821,10 @@ def expected_outcomes(
     strict: dict[str, Any],
     actions: Mapping[str, Mapping[str, Any]],
     client_codes: Mapping[str, Mapping[str, Any]],
+    body_dir: Path,
 ) -> list[dict[str, Any]]:
-    """The outcome each of `record`'s steps reaches over its exchanges, over
+    """The outcome each of `record`'s steps reaches over its exchanges, its
+    binary bodies read from `body_dir`, over
     `actions` for refusals' error classes and gap kinds, and over
     `client_codes` for the class of each error the client raises itself. A
     dataset outcome holds what `dataset_summary` gives, without rows and
@@ -1323,6 +1840,7 @@ def expected_outcomes(
         _strict_members(strict),
         actions,
         client_codes,
+        body_dir,
     )
     try:
         outcomes = [replay.step(step) for step in record["call"]]
@@ -1540,6 +2058,7 @@ def _check_scenarios(
                 strict=strict,
                 actions=actions,
                 client_codes=client_codes,
+                body_dir=directory,
             )
         except ValueError as exc:
             problems.append(f"scenarios/{file_name}: {exc}")
@@ -1564,16 +2083,18 @@ def _check_client_errors(
     client_codes: Mapping[str, Mapping[str, Any]],
 ) -> list[str]:
     """Each error outcome no refusal in the record carries the code of names
-    a client code of its class. A SearchWarning carries the server's code."""
+    a client code of its class. A refusal is a response of status 400 or
+    more, or a failed operation's error. A SearchWarning or DataWarning
+    carries the server's code."""
     refused = {
         refusal_code(e["response"].get("json"))
         for e in record["exchanges"]
         if e["response"]["status"] >= 400
-    }
+    } | {refusal_code(body.get("error")) for body in _failed_operations(record)}
     problems = []
     for index, outcome in enumerate(record["expect"]):
         error = outcome.get("error")
-        if error is None or error["class"] == "SearchWarning":
+        if error is None or error["class"] in WARNING_CLASSES:
             continue
         code = error["code"]
         if code in refused:
@@ -1597,6 +2118,16 @@ def _check_client_errors(
                 f"{error['class']}"
             )
     return problems
+
+
+def _failed_operations(record: dict[str, Any]) -> Iterator[dict[str, Any]]:
+    """Each operation resource in the record's responses whose status is
+    failed."""
+    for exchange in record["exchanges"]:
+        body = exchange["response"].get("json")
+        operation = body.get("operation") if isinstance(body, dict) else None
+        if isinstance(operation, dict) and operation.get("status") == "failed":
+            yield body
 
 
 def _check_steps(file_name: str, record: dict[str, Any]) -> list[str]:
