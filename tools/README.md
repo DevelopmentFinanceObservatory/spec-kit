@@ -44,6 +44,12 @@ uv run tools/validate_descriptions_vectors.py
 uv run tools/validate_client_contract.py
 ```
 
+`capture_client_contract.py` refreshes the client contract from dfo-apis. `openapi --dfo-apis PATH` builds the composed app in that checkout's environment, in process, and writes `served/openapi.json` and `served/SOURCE.json`; `record` runs the contract's scenarios against a base URL, dev by default, writes the records with signed URLs redacted, derives the synthetic ones and validates the result. `python/client-contract/README.md` has the recipe. A PEP 723 script; its tests run without network or pyarrow:
+
+```bash
+uv run tools/capture_client_contract.py record
+```
+
 `validate_unit_vectors.py` validates every file under `vectors/units/` against `schemas/vectors/unit-vector.schema.json`, and checks what the schema cannot express: file names match names, names are unique, the suite meets its floor, and every classification, compare outcome and typed-unit kind has a vector. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 
 ```bash

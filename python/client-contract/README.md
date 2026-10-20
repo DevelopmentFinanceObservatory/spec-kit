@@ -120,6 +120,33 @@ A client replays a scenario by serving the exchanges in order:
 - Sleeps are not replayed: the replay injects the client's clock and sleep, and each wait the client asks for advances the clock at once.
 - A recorded signed storage URL keeps its scheme, host and path, and its query reads `X-Goog-Signature=redacted`.
 
+The records also fix these client rules:
+
+- A fetch builds each distinct `spec_id` once, in part order, and finishes one member (build, the sentence when the client lacks it, files, download) before the next.
+- A built `spec_id` that differs from the posted one, or a spec with no sentence, takes its sentence from Search: the client posts the built definition's `identity` as one `dataset_resubmit` identity entry, with the member's first part as `variable_text`, or `"dataset"` when no answer part names it, and checks the answer's `spec_id` equals the built one.
+- A dataset of several members puts the `part` column first, then each member's columns in member order, each column once.
+- A choice among candidates in a one-part answer makes no request. A choice of a no_data option in a one-part answer posts the option's `data_query` as the input. In a several-part answer a choice posts `dataset_resubmit` with one entry per part in part order: the chosen option's part as a parsed entry, a definite part as an identity entry with its `entity_groups`, and any other part's `restatement` as a parsed entry.
+- A declined or catalogue answer is not complete, and fetching it raises `DeclinedError`.
+- A ref whose version the snapshot route refuses with `snapshot_not_found` raises `NotFoundError` with no further request.
+- A retry waits `Retry-After` when the response carries it. A synthetic scenario that retries assumes the default of two retries.
+
+## Recording
+
+`tools/capture_client_contract.py` refreshes the served document and the scenarios. Its `openapi` command calls `dfo_apis.app.create_app()` in process, every surface flag on, in a dfo-apis checkout with no uncommitted changes to tracked files, and writes `served/openapi.json` and `served/SOURCE.json`. The checkout needs its environment first. From the repository root, with the checkout at `../dfo-apis`:
+
+```bash
+uv sync --directory ../dfo-apis --extra eval --extra api --extra engine --extra datasets --extra graph
+uv run tools/capture_client_contract.py openapi --dfo-apis ../dfo-apis
+```
+
+Its `record` command runs every scenario against a base URL, dev's Cloud Run URL by default, checks each live answer still has the shape its scenario names, derives the synthetic scenarios from the fresh records, and then runs the validator. It fails when the validator reports a problem or the binary bodies pass 5 MB. `--only` records the scenarios it names. Each record names the commit in the responses' `x-dfo-commit` header, and the run refuses responses that name none or several. To record against a local app, run the composed app, every surface mounted, from the checkout the document came from, with `DFO_BUILD_COMMIT` set to that checkout's commit, then pass its base URL:
+
+```bash
+uv run tools/capture_client_contract.py record --base-url http://127.0.0.1:8083/api
+```
+
+`mint-async-build` lands only from a server whose document declares the build's 202 response, since the validator checks each recorded body against its route's schema for that status. `--scenarios-dir` writes records outside the package, unvalidated.
+
 ## DatasetRef
 
 `dataset-ref.schema.json` is the frozen format a client writes for `data.ref` and reads back in any language: `format_version: 1` and one or more `members`, each `{parts, sentence, spec: {spec_id, definition}, content_version, artifact: {digest, rendering}}`. `parts` holds the variable text of each answer part the member answers, in query order, and is empty for a spec fetched outside an answer. `rendering` is the selector a client matches an artifact on, `{format, bundle}` with `layout: "frame"` for the frame layout, never the server's rendering object. Beyond the schema, each member's `definition.spec_id` equals its `spec.spec_id`, and members hold distinct `spec_id`s. `refs/` holds accepted examples and rejected ones, each `{format_version, name, description, ref}` with `expect: "accept"` or `error`, `{by: "schema"}` or `{by: "rule", reason}`, the reason `definition_spec_id_mismatch` or `repeated_spec_id`.

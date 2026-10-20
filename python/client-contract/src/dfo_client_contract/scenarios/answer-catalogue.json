@@ -1,0 +1,87 @@
+{
+  "format_version": 1,
+  "name": "answer-catalogue",
+  "description": "A question about what data exists answers catalogue, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
+    "recorded_at": "2026-10-20T16:04:09Z"
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "what data do you have?"
+    },
+    {
+      "op": "fetch"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "what data do you have?"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "what data do you have?",
+            "normalized_query": "what data do you have?",
+            "extract_skipped": true
+          },
+          "diagnostics": {
+            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
+            "trace_id": "a0dc5b26977c494a945c88be3342ca62",
+            "warnings": [],
+            "timing_ms": {
+              "total": 1,
+              "by_step": {
+                "coverage": 0,
+                "response_cache_layer1": 1
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
+            },
+            "timed_out": false
+          },
+          "kind": "catalogue",
+          "scope": {}
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "catalogue",
+        "sentence": null,
+        "complete": false,
+        "specs": [],
+        "gaps": []
+      }
+    },
+    {
+      "error": {
+        "class": "DeclinedError",
+        "code": null
+      }
+    }
+  ]
+}

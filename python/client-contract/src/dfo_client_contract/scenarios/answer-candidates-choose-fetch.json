@@ -1,0 +1,2879 @@
+{
+  "format_version": 1,
+  "name": "answer-candidates-choose-fetch",
+  "description": "A question with three readings answers one candidates part, a choice gap with three options. Choosing option 0 makes no request: the new answer is definite, its sentence is that candidate's spec.resolved.rendered_sentence, and fetching it builds that candidate's spec.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
+    "recorded_at": "2026-10-20T16:03:53Z"
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "GNI of Germany from 2015 to 2022"
+    },
+    {
+      "op": "choose",
+      "option": 0
+    },
+    {
+      "op": "fetch"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "GNI of Germany from 2015 to 2022"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "GNI of Germany from 2015 to 2022",
+            "normalized_query": "GNI of Germany from 2015 to 2022",
+            "extract_skipped": true
+          },
+          "diagnostics": {
+            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
+            "trace_id": "b018f4db7a8e41cbac1f24b9e43abab8",
+            "warnings": [],
+            "timing_ms": {
+              "total": 2,
+              "by_step": {
+                "coverage": 0,
+                "response_cache_layer1": 0
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [
+            {
+              "variable_text": "GNI",
+              "warnings": [],
+              "timing_ms": {
+                "total": 4620,
+                "by_step": {
+                  "recall": 478,
+                  "shape_arcs": 3,
+                  "shape_probe_coverage": 13,
+                  "shape_probe": 108,
+                  "shape_groups": 200,
+                  "shape_labels": 12,
+                  "shape_admission": 10,
+                  "shape": 1457,
+                  "bind": 2338,
+                  "materialise": 186,
+                  "answer": 161
+                }
+              },
+              "rendered_sentence": "3 readings. Germany's primary income for gross of fixed capital consumption. OECD DAC1 · 2015 to 2022 · Current US dollars. Germany's gross national income based on purchasing power parity in international dollars. World Development Indicators · 2015 to 2022. Germany's gross national income based on purchasing power parity per capita in international dollars. World Development Indicators · 2015 to 2022.",
+              "sentence_plan": [
+                {
+                  "kind": "text",
+                  "text": "3 readings.",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "Germany",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "'s",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "primary income",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " for ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "gross of fixed capital consumption",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": ".",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "OECD DAC1",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " · ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "2015 to 2022",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " · ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "Current US dollars",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": ".",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "Germany",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "'s",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "gross national income based on purchasing power parity",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "in international dollars",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": ".",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "World Development Indicators",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " · ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "2015 to 2022",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": ".",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "Germany",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "'s",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "gross national income based on purchasing power parity per capita",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "in international dollars",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": ".",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "World Development Indicators",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": " · ",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "2015 to 2022",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": ".",
+                  "segment": "byline",
+                  "entity_refs": [],
+                  "states": []
+                }
+              ],
+              "restatement": {
+                "variable_text": "GNI",
+                "entities": [
+                  {
+                    "text": "Germany"
+                  }
+                ],
+                "time_text": "2015 to 2022",
+                "sources": [],
+                "operations": []
+              },
+              "operations": [],
+              "departures": [],
+              "status": "candidates",
+              "candidates": {
+                "ordering": "intent_rank",
+                "max_candidates": 6,
+                "specs": [
+                  {
+                    "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+                    "definition": {
+                      "schema_version": 1,
+                      "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "EconomicUnit",
+                          "measured_property": "primaryIncome",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "fixedCapitalConsumptionBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "GrossOfFixedCapitalConsumption"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "observationAbout": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "range",
+                          "start_year": 2015,
+                          "end_year": 2022
+                        }
+                      }
+                    },
+                    "resolved": {
+                      "shape": {
+                        "shape_id": "economicunit_primaryincome_measuredvalue_nominal",
+                        "label": "Gross national income",
+                        "population_type": {
+                          "ref": "EconomicUnit",
+                          "label": "economic unit"
+                        },
+                        "measured_property": {
+                          "ref": "primaryIncome",
+                          "label": "primary income"
+                        },
+                        "stat_type": {
+                          "ref": "measuredValue",
+                          "label": "measuredValue"
+                        },
+                        "measurement_qualifier": {
+                          "ref": "Nominal",
+                          "label": "Nominal"
+                        },
+                        "measurement_denominator_unresolved": false,
+                        "slot_keys": [
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "fixedCapitalConsumptionBasis",
+                              "label": "fixed capital consumption basis"
+                            },
+                            "label": "fixed capital consumption basis"
+                          },
+                          {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          {
+                            "axis": "source",
+                            "label": "data source"
+                          }
+                        ],
+                        "member_count": 1,
+                        "member_digest": "e118bc2c1c5ac817a6d4a269c5276b7d2c74f3033dde9cad5925de58239c55b4",
+                        "refine_supported": true,
+                        "data_commons": [
+                          {
+                            "id": "dfo",
+                            "label": "Development Finance Observatory"
+                          }
+                        ]
+                      },
+                      "slots": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "fixedCapitalConsumptionBasis",
+                              "label": "fixed capital consumption basis"
+                            },
+                            "label": "fixed capital consumption basis"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "GrossOfFixedCapitalConsumption",
+                                "label": "gross of fixed capital consumption"
+                              },
+                              "value_kind": "enum_value"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "country/DEU",
+                                "label": "Germany"
+                              },
+                              "value_kind": "entity"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "value_kind": "time_window",
+                              "time_window": {
+                                "start_year": 2015,
+                                "end_year": 2022
+                              }
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "source",
+                            "label": "data source"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        }
+                      ],
+                      "inapplicable_slots": [],
+                      "unresolved_slots": [],
+                      "stat_vars": {
+                        "member_count": 1,
+                        "member_count_exact": false,
+                        "served_count": 1,
+                        "data_date_range": {
+                          "start": "2015",
+                          "end": "2022"
+                        }
+                      },
+                      "entities": [
+                        {
+                          "ref": "country/DEU",
+                          "label": "Germany",
+                          "entity_type": "Country",
+                          "role": "observationAbout"
+                        }
+                      ],
+                      "coverage": {
+                        "kind": "exact",
+                        "has_data": true,
+                        "observation_count": 8,
+                        "evidence": "facet_metadata",
+                        "dimensions": [
+                          {
+                            "label": "sources",
+                            "count": 1
+                          },
+                          {
+                            "label": "observations",
+                            "count": 8
+                          },
+                          {
+                            "label": "variables",
+                            "count": 1
+                          }
+                        ],
+                        "window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        }
+                      },
+                      "download": {
+                        "rows": 8,
+                        "rows_exact": true,
+                        "series": 1,
+                        "window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        },
+                        "licence": {
+                          "label": "OECD Terms and Conditions"
+                        }
+                      },
+                      "facets": {
+                        "provenance": {
+                          "basis": "fallback",
+                          "ref": "provenance/OECDDAC1",
+                          "label": "OECD DAC1",
+                          "source": {
+                            "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
+                            "label": "Organisation for Economic Co-operation and Development (OECD)"
+                          },
+                          "data_commons": {
+                            "id": "dfo",
+                            "label": "Development Finance Observatory"
+                          },
+                          "documentation": "/api/graph/documentation/provenance/OECDDAC1",
+                          "account": "provider"
+                        },
+                        "unit": {
+                          "basis": "fallback",
+                          "ref": "CurrencyUSD",
+                          "label": "US Dollar",
+                          "currency": "USD"
+                        }
+                      },
+                      "slot_options": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "fixedCapitalConsumptionBasis",
+                              "label": "fixed capital consumption basis"
+                            },
+                            "label": "fixed capital consumption basis"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "GrossOfFixedCapitalConsumption",
+                                  "label": "gross of fixed capital consumption"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        }
+                      ],
+                      "entity_options": [],
+                      "facet_options": [
+                        {
+                          "axis": "provenance",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "provenance/OECDDAC1",
+                                  "label": "OECD DAC1"
+                                },
+                                "value_kind": "source"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        },
+                        {
+                          "axis": "unit",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "CurrencyUSD",
+                                  "label": "US Dollar"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        }
+                      ],
+                      "rendered_sentence": "Germany's primary income for gross of fixed capital consumption, 2015 to 2022. Current US dollars · OECD DAC1.",
+                      "sentence_plan": [
+                        {
+                          "kind": "slot",
+                          "text": "Germany",
+                          "axis": "where",
+                          "segment": "heading",
+                          "binding_ref": "where:",
+                          "entity_refs": [],
+                          "states": [
+                            "where:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": "'s",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "primary income",
+                          "axis": "what",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": [],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": " for ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "gross of fixed capital consumption",
+                          "axis": "how",
+                          "segment": "heading",
+                          "property_dcid": "fixedCapitalConsumptionBasis",
+                          "binding_ref": "how:fixedCapitalConsumptionBasis",
+                          "entity_refs": [],
+                          "states": [
+                            "how:fixedCapitalConsumptionBasis"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": ", ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "2015 to 2022",
+                          "axis": "when",
+                          "segment": "heading",
+                          "binding_ref": "when:",
+                          "entity_refs": [],
+                          "states": [
+                            "when:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "Current US dollars",
+                          "axis": "unit",
+                          "segment": "byline",
+                          "binding_ref": "unit:",
+                          "entity_refs": [],
+                          "states": [
+                            "unit:",
+                            "axis:measurementQualifier"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": " · ",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "OECD DAC1",
+                          "axis": "source",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": [
+                            "source:"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        }
+                      ],
+                      "trace": {
+                        "resolved_entities": [
+                          {
+                            "ref": "country/DEU",
+                            "label": "Germany"
+                          }
+                        ],
+                        "resolved_sources": [
+                          {
+                            "ref": "provenance/OECDDAC1",
+                            "label": "OECD DAC1",
+                            "source": {
+                              "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
+                              "label": "Organisation for Economic Co-operation and Development (OECD)"
+                            },
+                            "data_commons": {
+                              "id": "dfo",
+                              "label": "Development Finance Observatory"
+                            },
+                            "documentation": "/api/graph/documentation/provenance/OECDDAC1"
+                          }
+                        ],
+                        "slot_filters": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "GrossOfFixedCapitalConsumption",
+                                "label": "gross of fixed capital consumption"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "country/DEU",
+                                "label": "Germany"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            "binding_kind": "value",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "source",
+                              "label": "data source"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          }
+                        ],
+                        "query_qualifiers": [],
+                        "requested_window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        },
+                        "capability_version": "cap_3f35867df5a65761",
+                        "default_reading": {
+                          "applied": true,
+                          "removed_stat_vars": [
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSHealthCareSocialAssistance_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
+                            "InflationAdjustedGDP",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                            "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                            "dc/qt7ewllmt3826"
+                          ]
+                        }
+                      },
+                      "confidence": "high",
+                      "available_at_place": true,
+                      "measure_label_axes": [],
+                      "measure_axis_values": []
+                    }
+                  },
+                  {
+                    "spec_id": "spec_403a96317ee8b97f1d8569c71015e5ce",
+                    "definition": {
+                      "schema_version": 1,
+                      "spec_id": "spec_403a96317ee8b97f1d8569c71015e5ce",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "EconomicActivity",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "PurchasingPowerParity"
+                        },
+                        "slots": [
+                          {
+                            "property": "activitySource",
+                            "binding": {
+                              "state": "value",
+                              "ref": "GrossNationalIncome"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "observationAbout": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "range",
+                          "start_year": 2015,
+                          "end_year": 2022
+                        }
+                      }
+                    },
+                    "resolved": {
+                      "shape": {
+                        "shape_id": "economicactivity_amount_measuredvalue_purchasingpowerparity",
+                        "label": "Gross National Income Based on Purchasing Power Parity",
+                        "population_type": {
+                          "ref": "EconomicActivity",
+                          "label": "EconomicActivity"
+                        },
+                        "measured_property": {
+                          "ref": "amount",
+                          "label": "amount"
+                        },
+                        "stat_type": {
+                          "ref": "measuredValue",
+                          "label": "measuredValue"
+                        },
+                        "measurement_qualifier": {
+                          "ref": "PurchasingPowerParity",
+                          "label": "PurchasingPowerParity"
+                        },
+                        "measurement_denominator_unresolved": false,
+                        "slot_keys": [
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "activitySource",
+                              "label": "activitySource"
+                            },
+                            "label": "activity source"
+                          },
+                          {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          {
+                            "axis": "source",
+                            "label": "data source"
+                          }
+                        ],
+                        "member_count": 1,
+                        "member_digest": "833b9da89613fa6c1775652daac2388f38204c6c9f9929ca113deed9a0d08369",
+                        "refine_supported": true,
+                        "data_commons": [
+                          {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          }
+                        ],
+                        "upstream": {
+                          "source": {
+                            "ref": "dc/s/WorldBank",
+                            "label": "World Bank"
+                          },
+                          "data_commons": {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          }
+                        }
+                      },
+                      "slots": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "activitySource",
+                              "label": "activitySource"
+                            },
+                            "label": "activity source"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "GrossNationalIncome",
+                                "label": "GrossNationalIncome"
+                              },
+                              "value_kind": "enum_value"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "country/DEU",
+                                "label": "Germany"
+                              },
+                              "value_kind": "entity"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "value_kind": "time_window",
+                              "time_window": {
+                                "start_year": 2015,
+                                "end_year": 2022
+                              }
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "source",
+                            "label": "data source"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        }
+                      ],
+                      "inapplicable_slots": [],
+                      "unresolved_slots": [],
+                      "stat_vars": {
+                        "member_count": 1,
+                        "member_count_exact": false,
+                        "served_count": 1,
+                        "data_date_range": {
+                          "start": "2015",
+                          "end": "2022"
+                        }
+                      },
+                      "entities": [
+                        {
+                          "ref": "country/DEU",
+                          "label": "Germany",
+                          "entity_type": "Country",
+                          "role": "observationAbout"
+                        }
+                      ],
+                      "coverage": {
+                        "kind": "exact",
+                        "has_data": true,
+                        "observation_count": 8,
+                        "evidence": "facet_metadata",
+                        "dimensions": [
+                          {
+                            "label": "sources",
+                            "count": 1
+                          },
+                          {
+                            "label": "observations",
+                            "count": 8
+                          },
+                          {
+                            "label": "variables",
+                            "count": 1
+                          }
+                        ],
+                        "window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        }
+                      },
+                      "download": {
+                        "rows": 8,
+                        "rows_exact": true,
+                        "series": 1,
+                        "window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        },
+                        "licence": {
+                          "label": "Creative Commons Attribution License"
+                        }
+                      },
+                      "facets": {
+                        "provenance": {
+                          "basis": "fallback",
+                          "ref": "dc/base/WorldDevelopmentIndicators",
+                          "label": "World Development Indicators",
+                          "source": {
+                            "ref": "dc/s/WorldBank",
+                            "label": "World Bank"
+                          },
+                          "data_commons": {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          },
+                          "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                        },
+                        "unit": {
+                          "basis": "fallback",
+                          "ref": "InternationalDollar",
+                          "label": "InternationalDollar"
+                        }
+                      },
+                      "slot_options": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "activitySource",
+                              "label": "activitySource"
+                            },
+                            "label": "activity source"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "GrossNationalIncome",
+                                  "label": "GrossNationalIncome"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        }
+                      ],
+                      "entity_options": [],
+                      "facet_options": [
+                        {
+                          "axis": "provenance",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "dc/base/WorldDevelopmentIndicators",
+                                  "label": "World Development Indicators"
+                                },
+                                "value_kind": "source"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        },
+                        {
+                          "axis": "unit",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "InternationalDollar",
+                                  "label": "InternationalDollar"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        }
+                      ],
+                      "rendered_sentence": "Germany's gross national income based on purchasing power parity in international dollars, 2015 to 2022. World Development Indicators.",
+                      "sentence_plan": [
+                        {
+                          "kind": "slot",
+                          "text": "Germany",
+                          "axis": "where",
+                          "segment": "heading",
+                          "binding_ref": "where:",
+                          "entity_refs": [],
+                          "states": [
+                            "where:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": "'s",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "gross national income based on purchasing power parity",
+                          "axis": "what",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": [
+                            "how:activitySource"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "in international dollars",
+                          "axis": "unit",
+                          "segment": "heading",
+                          "binding_ref": "unit:",
+                          "entity_refs": [],
+                          "states": [
+                            "unit:"
+                          ]
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "",
+                          "axis": "how",
+                          "segment": "heading",
+                          "property_dcid": "activitySource",
+                          "binding_ref": "how:activitySource",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": ", ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "2015 to 2022",
+                          "axis": "when",
+                          "segment": "heading",
+                          "binding_ref": "when:",
+                          "entity_refs": [],
+                          "states": [
+                            "when:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "World Development Indicators",
+                          "axis": "source",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": [
+                            "source:"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        }
+                      ],
+                      "trace": {
+                        "resolved_entities": [
+                          {
+                            "ref": "country/DEU",
+                            "label": "Germany"
+                          }
+                        ],
+                        "resolved_sources": [
+                          {
+                            "ref": "dc/base/WorldDevelopmentIndicators",
+                            "label": "World Development Indicators",
+                            "source": {
+                              "ref": "dc/s/WorldBank",
+                              "label": "World Bank"
+                            },
+                            "data_commons": {
+                              "id": "base",
+                              "label": "Data Commons by Google"
+                            },
+                            "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                          }
+                        ],
+                        "slot_filters": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "activitySource",
+                                "label": "activitySource"
+                              },
+                              "label": "activity source"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "GrossNationalIncome",
+                                "label": "GrossNationalIncome"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "country/DEU",
+                                "label": "Germany"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            "binding_kind": "value",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "source",
+                              "label": "data source"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          }
+                        ],
+                        "query_qualifiers": [],
+                        "requested_window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        },
+                        "capability_version": "cap_3f35867df5a65761",
+                        "default_reading": {
+                          "applied": true,
+                          "removed_stat_vars": [
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSHealthCareSocialAssistance_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
+                            "InflationAdjustedGDP",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                            "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                            "dc/qt7ewllmt3826"
+                          ]
+                        }
+                      },
+                      "confidence": "high",
+                      "basis": "nominated",
+                      "available_at_place": true,
+                      "measure_label_axes": [],
+                      "measure_axis_values": []
+                    }
+                  },
+                  {
+                    "spec_id": "spec_d94656e5d53b7b6c6b0c683145a1cd98",
+                    "definition": {
+                      "schema_version": 1,
+                      "spec_id": "spec_d94656e5d53b7b6c6b0c683145a1cd98",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "EconomicActivity",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "PurchasingPowerParity",
+                          "measurement_denominator": {
+                            "unresolved": true
+                          }
+                        },
+                        "slots": [
+                          {
+                            "property": "activitySource",
+                            "binding": {
+                              "state": "value",
+                              "ref": "GrossNationalIncome"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "observationAbout": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "range",
+                          "start_year": 2015,
+                          "end_year": 2022
+                        }
+                      }
+                    },
+                    "resolved": {
+                      "shape": {
+                        "shape_id": "economicactivity_amount_measuredvalue_purchasingpowerparity_per_unresolved",
+                        "label": "Gross National Income Based on Purchasing Power Parity Per Capita",
+                        "population_type": {
+                          "ref": "EconomicActivity",
+                          "label": "EconomicActivity"
+                        },
+                        "measured_property": {
+                          "ref": "amount",
+                          "label": "amount"
+                        },
+                        "stat_type": {
+                          "ref": "measuredValue",
+                          "label": "measuredValue"
+                        },
+                        "measurement_qualifier": {
+                          "ref": "PurchasingPowerParity",
+                          "label": "PurchasingPowerParity"
+                        },
+                        "measurement_denominator": {
+                          "ref": "PerCapita",
+                          "label": "PerCapita"
+                        },
+                        "measurement_denominator_unresolved": true,
+                        "slot_keys": [
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "activitySource",
+                              "label": "activitySource"
+                            },
+                            "label": "activity source"
+                          },
+                          {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          {
+                            "axis": "source",
+                            "label": "data source"
+                          }
+                        ],
+                        "member_count": 1,
+                        "member_digest": "7b2d5b0fc09cfc0215c8d7c6c21a5195fa21e79f2a148a6bca9ce6c3af8bbb9f",
+                        "refine_supported": true,
+                        "data_commons": [
+                          {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          }
+                        ],
+                        "upstream": {
+                          "source": {
+                            "ref": "dc/s/WorldBank",
+                            "label": "World Bank"
+                          },
+                          "data_commons": {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          }
+                        }
+                      },
+                      "slots": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "activitySource",
+                              "label": "activitySource"
+                            },
+                            "label": "activity source"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "GrossNationalIncome",
+                                "label": "GrossNationalIncome"
+                              },
+                              "value_kind": "enum_value"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "country/DEU",
+                                "label": "Germany"
+                              },
+                              "value_kind": "entity"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "value_kind": "time_window",
+                              "time_window": {
+                                "start_year": 2015,
+                                "end_year": 2022
+                              }
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "source",
+                            "label": "data source"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        }
+                      ],
+                      "inapplicable_slots": [],
+                      "unresolved_slots": [],
+                      "stat_vars": {
+                        "member_count": 1,
+                        "member_count_exact": false,
+                        "served_count": 1,
+                        "data_date_range": {
+                          "start": "2015",
+                          "end": "2022"
+                        }
+                      },
+                      "entities": [
+                        {
+                          "ref": "country/DEU",
+                          "label": "Germany",
+                          "entity_type": "Country",
+                          "role": "observationAbout"
+                        }
+                      ],
+                      "coverage": {
+                        "kind": "exact",
+                        "has_data": true,
+                        "observation_count": 8,
+                        "evidence": "facet_metadata",
+                        "dimensions": [
+                          {
+                            "label": "sources",
+                            "count": 1
+                          },
+                          {
+                            "label": "observations",
+                            "count": 8
+                          },
+                          {
+                            "label": "variables",
+                            "count": 1
+                          }
+                        ],
+                        "window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        }
+                      },
+                      "download": {
+                        "rows": 8,
+                        "rows_exact": true,
+                        "series": 1,
+                        "window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        },
+                        "licence": {
+                          "label": "Creative Commons Attribution License"
+                        }
+                      },
+                      "facets": {
+                        "provenance": {
+                          "basis": "fallback",
+                          "ref": "dc/base/WorldDevelopmentIndicators",
+                          "label": "World Development Indicators",
+                          "source": {
+                            "ref": "dc/s/WorldBank",
+                            "label": "World Bank"
+                          },
+                          "data_commons": {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          },
+                          "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                        },
+                        "unit": {
+                          "basis": "fallback",
+                          "ref": "InternationalDollar",
+                          "label": "InternationalDollar"
+                        }
+                      },
+                      "slot_options": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "activitySource",
+                              "label": "activitySource"
+                            },
+                            "label": "activity source"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "GrossNationalIncome",
+                                  "label": "GrossNationalIncome"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        }
+                      ],
+                      "entity_options": [],
+                      "facet_options": [
+                        {
+                          "axis": "provenance",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "dc/base/WorldDevelopmentIndicators",
+                                  "label": "World Development Indicators"
+                                },
+                                "value_kind": "source"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        },
+                        {
+                          "axis": "unit",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "InternationalDollar",
+                                  "label": "InternationalDollar"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        }
+                      ],
+                      "rendered_sentence": "Germany's gross national income based on purchasing power parity per capita in international dollars, 2015 to 2022. World Development Indicators.",
+                      "sentence_plan": [
+                        {
+                          "kind": "slot",
+                          "text": "Germany",
+                          "axis": "where",
+                          "segment": "heading",
+                          "binding_ref": "where:",
+                          "entity_refs": [],
+                          "states": [
+                            "where:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": "'s",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "gross national income based on purchasing power parity per capita",
+                          "axis": "what",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": [
+                            "how:activitySource"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "in international dollars",
+                          "axis": "unit",
+                          "segment": "heading",
+                          "binding_ref": "unit:",
+                          "entity_refs": [],
+                          "states": [
+                            "unit:"
+                          ]
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "",
+                          "axis": "how",
+                          "segment": "heading",
+                          "property_dcid": "activitySource",
+                          "binding_ref": "how:activitySource",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": ", ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "2015 to 2022",
+                          "axis": "when",
+                          "segment": "heading",
+                          "binding_ref": "when:",
+                          "entity_refs": [],
+                          "states": [
+                            "when:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "World Development Indicators",
+                          "axis": "source",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": [
+                            "source:"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        }
+                      ],
+                      "trace": {
+                        "resolved_entities": [
+                          {
+                            "ref": "country/DEU",
+                            "label": "Germany"
+                          }
+                        ],
+                        "resolved_sources": [
+                          {
+                            "ref": "dc/base/WorldDevelopmentIndicators",
+                            "label": "World Development Indicators",
+                            "source": {
+                              "ref": "dc/s/WorldBank",
+                              "label": "World Bank"
+                            },
+                            "data_commons": {
+                              "id": "base",
+                              "label": "Data Commons by Google"
+                            },
+                            "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                          }
+                        ],
+                        "slot_filters": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "activitySource",
+                                "label": "activitySource"
+                              },
+                              "label": "activity source"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "GrossNationalIncome",
+                                "label": "GrossNationalIncome"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "country/DEU",
+                                "label": "Germany"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            "binding_kind": "value",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "source",
+                              "label": "data source"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          }
+                        ],
+                        "query_qualifiers": [],
+                        "requested_window": {
+                          "start_year": 2015,
+                          "end_year": 2022
+                        },
+                        "capability_version": "cap_3f35867df5a65761",
+                        "default_reading": {
+                          "applied": true,
+                          "removed_stat_vars": [
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSHealthCareSocialAssistance_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                            "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
+                            "InflationAdjustedGDP",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                            "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                            "dc/qt7ewllmt3826"
+                          ]
+                        }
+                      },
+                      "confidence": "high",
+                      "basis": "nominated",
+                      "available_at_place": true,
+                      "measure_label_axes": [],
+                      "measure_axis_values": []
+                    }
+                  }
+                ],
+                "truncated": false
+              }
+            }
+          ],
+          "rendered_sentence": "3 readings. Germany's primary income for gross of fixed capital consumption. OECD DAC1 · 2015 to 2022 · Current US dollars. Germany's gross national income based on purchasing power parity in international dollars. World Development Indicators · 2015 to 2022. Germany's gross national income based on purchasing power parity per capita in international dollars. World Development Indicators · 2015 to 2022.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "3 readings.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Germany",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "'s",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "primary income",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " for ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "gross of fixed capital consumption",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "OECD DAC1",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "2015 to 2022",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Current US dollars",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Germany",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "'s",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "gross national income based on purchasing power parity",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "in international dollars",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "World Development Indicators",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "2015 to 2022",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Germany",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "'s",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "gross national income based on purchasing power parity per capita",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "in international dollars",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "World Development Indicators",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "2015 to 2022",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            }
+          ],
+          "status": "candidates"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+              "identity": {
+                "identity_version": "spec1",
+                "shape": {
+                  "kind": "statvar_schema",
+                  "population_type": "EconomicUnit",
+                  "measured_property": "primaryIncome",
+                  "stat_type": "measuredValue",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "property": "fixedCapitalConsumptionBasis",
+                    "binding": {
+                      "state": "value",
+                      "ref": "GrossOfFixedCapitalConsumption"
+                    }
+                  }
+                ],
+                "entities": {
+                  "observationAbout": [
+                    "country/DEU"
+                  ]
+                },
+                "requested_window": {
+                  "kind": "range",
+                  "start_year": 2015,
+                  "end_year": 2022
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "schema_version": 1,
+          "definition": {
+            "schema_version": 1,
+            "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+            "identity": {
+              "shape": {
+                "kind": "statvar_schema",
+                "stat_type": "measuredValue",
+                "population_type": "EconomicUnit",
+                "measured_property": "primaryIncome",
+                "measurement_qualifier": "Nominal"
+              },
+              "slots": [
+                {
+                  "binding": {
+                    "ref": "GrossOfFixedCapitalConsumption",
+                    "state": "value"
+                  },
+                  "property": "fixedCapitalConsumptionBasis"
+                }
+              ],
+              "entities": {
+                "observationAbout": [
+                  "country/DEU"
+                ]
+              },
+              "identity_version": "spec1",
+              "requested_window": {
+                "kind": "range",
+                "end_year": 2022,
+                "start_year": 2015
+              }
+            }
+          },
+          "content_version": "cv_3cae36487750f272df16f77858171e89",
+          "prepared_at": "2026-10-20T15:55:37Z",
+          "coverage": {
+            "rows": 8,
+            "dimensions": [
+              {
+                "label": "observationAbout",
+                "count": 1
+              },
+              {
+                "label": "years",
+                "count": 8
+              }
+            ],
+            "window": {
+              "kind": "range",
+              "origin": "query",
+              "end_year": 2022,
+              "start_year": 2015
+            }
+          },
+          "citation": {
+            "text": "OECD DAC1 (2026), via the Development Finance Observatory",
+            "sources": [
+              {
+                "ref": "provenance/OECDDAC1",
+                "label": "OECD DAC1",
+                "license": "OECD Terms and Conditions",
+                "license_type": "OECDTermsAndConditions",
+                "license_url": "https://www.oecd.org/en/about/terms-conditions.html",
+                "url": "https://data-explorer.oecd.org/vis?fs[0]=Topic,0%7CDevelopment%23DEV%23&fs[1]=Topic,1%7CDevelopment%23DEV%23%7COfficial%20Development%20Assistance%20%28ODA%29%23DEV_ODA%23&pg=0&fc=Topic&snb=23&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_DAC1%40DF_DAC1&df[ag]=OECD.DCD.FSD&df[vs]=1.7&dq=._Z.....&pd=,&to[TIME_PERIOD]=false&isAvailabilityDisabled=false&page=0",
+                "source": {
+                  "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
+                  "label": "Organisation for Economic Co-operation and Development (OECD)"
+                },
+                "data_commons": {
+                  "id": "dfo",
+                  "label": "Development Finance Observatory"
+                },
+                "documentation": {
+                  "publisher": "Organisation for Economic Co-operation and Development (OECD)",
+                  "description": "DAC1 is the OECD Development Assistance Committee's table of total flows by provider. It reports each donor's ODA, other official flows, export credits and private flows by aid type, with no recipient or sector breakdown. It is the official source for headline ODA, the bilateral and multilateral split, in-donor costs such as refugees in donor countries, and the ODA/GNI ratio.",
+                  "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC1/Table1_Data.zip",
+                  "attribution": "OECD (2026), OECD DAC1, OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC1/Table1_Data.zip (accessed on 2026-10-12)",
+                  "update_cadence": "Quarterly",
+                  "last_update": "2026-10-12",
+                  "years_covered": "1960-2025",
+                  "granularity": "Annual, by provider and recipient",
+                  "currencies": [
+                    "USD"
+                  ],
+                  "transformation_log": [
+                    {
+                      "transformation": "Download the source data",
+                      "description": "The OECD publishes DAC1 in April, June, September and December. The complete table is downloaded from the OECD each time it is republished, and replaces the previous copy, so the data reflects the OECD's latest release."
+                    },
+                    {
+                      "transformation": "Standardise providers",
+                      "description": "Provider codes are standardised to Data Commons IDs used across the platform, so data can be compared across datasets. The totals DAC1 reports for groups of providers, such as all DAC countries, the G7 and the EU members of the DAC, are kept as providers of their own."
+                    },
+                    {
+                      "transformation": "Select figures",
+                      "description": "Only figures in current US dollars are included, not constant US dollars or providers' own currencies. Amounts received are left out, though net disbursements, which subtract them, are kept. Where DAC1 reports a grant equivalent under two types of aid, the fuller of the two is used, and total flows as a share of GNI in grant equivalents are left out, since they repeat ODA as a share of GNI."
+                    },
+                    {
+                      "transformation": "Convert to whole units",
+                      "description": "DAC1 reports amounts, GNI and population in millions, which are converted to whole units."
+                    },
+                    {
+                      "transformation": "Select dimensions",
+                      "description": "Every figure is reported against the year and the provider. Flows are broken down by type of aid as DAC1 reports it, and by gross or net disbursements, commitments or grant equivalents, split into grants and non-grants where DAC1 splits them. Shares record that they are a share of the provider's GNI. GNI and population are reported about the provider."
+                    }
+                  ],
+                  "version_history": [
+                    {
+                      "date": "2026-10-14",
+                      "title": "First release",
+                      "changes": [
+                        {
+                          "kind": "added",
+                          "note": "Total flows by provider and aid type, including ODA, other official flows and private flows, and ODA as a share of GNI."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "trace": {
+            "facets": [
+              {
+                "ref": "provenance/OECDDAC1",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "8223167158242641624",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": null,
+                "axis": "measurementMethod",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "8223167158242641624",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "8223167158242641624",
+                "default_policy_version": "1"
+              }
+            ],
+            "applied_window": {
+              "kind": "range",
+              "origin": "query",
+              "end_year": 2022,
+              "start_year": 2015
+            },
+            "graph_revision": "dfo-dev-dc-datacommons-service-00259-rpx",
+            "normalisations": [],
+            "code_index_stamp": {
+              "exported_at": "2026-10-20T13:18:18Z",
+              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
+              "graph_endpoint": "graph_release"
+            },
+            "source_revisions": [
+              {
+                "source": "provenance/OECDDAC1",
+                "revision": "2026-10-12"
+              }
+            ],
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
+            "resolved_stat_vars": [
+              {
+                "ref": "dcid:PrimaryIncome_EconomicUnit_GrossOfFixedCapitalConsumption_Nominal",
+                "roles": [
+                  "observationAbout"
+                ],
+                "observation_count": 8
+              }
+            ],
+            "family_member_count": 1,
+            "family_member_digest": "e118bc2c1c5ac817a6d4a269c5276b7d2c74f3033dde9cad5925de58239c55b4",
+            "frame_grammar_version": "1.1.0",
+            "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
+            "served_from": "head",
+            "confirmed_at": "2026-10-20T15:55:38.402563+00:00"
+          },
+          "warnings": [],
+          "diagnostics": [
+            {
+              "code": "processing_level_undeclared",
+              "severity": "info",
+              "message": "A source StatVar lacks a processing-level declaration; the citation credits the source and omits the processing qualifier."
+            }
+          ],
+          "artifacts": [
+            {
+              "artifact_digest": "sha256:9086e741fcbfa1fe56a9d8af57c54ae3784744b50a03086d9e715623d9c71766",
+              "rendering": {
+                "bundle": false,
+                "format": "parquet",
+                "layout": 3
+              },
+              "bytes": 4800,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-20T15:55:38.338535+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_c0f61f3ca3558aac184973441a67601e/cv_3cae36487750f272df16f77858171e89/files/sha256:9086e741fcbfa1fe56a9d8af57c54ae3784744b50a03086d9e715623d9c71766"
+            },
+            {
+              "artifact_digest": "sha256:d822d05c709d2d1ca448023a433f936b28403893dede278e2b2696eca3587d1c",
+              "rendering": {
+                "statistics": "series"
+              },
+              "bytes": 5294,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-20T15:55:38.338535+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_c0f61f3ca3558aac184973441a67601e/cv_3cae36487750f272df16f77858171e89/files/sha256:d822d05c709d2d1ca448023a433f936b28403893dede278e2b2696eca3587d1c"
+            }
+          ],
+          "series_count": 1,
+          "output_options": {
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "columns": [
+              {
+                "name": "stat_var",
+                "kind": "grain",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "observationAbout",
+                "kind": "role",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "time_period",
+                "kind": "grain",
+                "droppable": false,
+                "distinct": 8
+              },
+              {
+                "name": "value",
+                "kind": "value",
+                "droppable": true
+              },
+              {
+                "name": "unit",
+                "kind": "unit",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "measurementMethod",
+                "kind": "facet",
+                "droppable": true,
+                "distinct": 1
+              },
+              {
+                "name": "provenance",
+                "kind": "facet",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "status",
+                "kind": "status",
+                "droppable": true
+              }
+            ],
+            "formats": [
+              {
+                "name": "csv",
+                "state": "available"
+              },
+              {
+                "name": "xlsx",
+                "state": "available"
+              },
+              {
+                "name": "parquet",
+                "state": "available"
+              }
+            ],
+            "bundle": {
+              "state": "available"
+            },
+            "enrichments": [
+              {
+                "column": "observationAbout",
+                "field": "iso3",
+                "token": "observationAbout_iso3",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "observationAbout",
+                "field": "iso2",
+                "token": "observationAbout_iso2",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "observationAbout",
+                "field": "label",
+                "token": "observationAbout_label",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "observationAbout",
+                "field": "type",
+                "token": "observationAbout_type",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              }
+            ],
+            "long_layout_defaults": [
+              "observationAbout_label"
+            ],
+            "long_layout_totals": [],
+            "pivots": [],
+            "groupby": {
+              "state": "available",
+              "axes": [
+                {
+                  "name": "crsCooperationModality"
+                },
+                {
+                  "name": "crsPurpose"
+                },
+                {
+                  "name": "crsTypeOfFinance"
+                },
+                {
+                  "name": "crsTypeOfFlow"
+                }
+              ]
+            }
+          },
+          "series_coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "origin_path": "/api/datasets/spec_c0f61f3ca3558aac184973441a67601e/cv_3cae36487750f272df16f77858171e89/files/sha256:9086e741fcbfa1fe56a9d8af57c54ae3784744b50a03086d9e715623d9c71766"
+      },
+      "response": {
+        "status": 302,
+        "headers": {
+          "content-type": "text/html",
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A9086e741fcbfa1fe56a9d8af57c54ae3784744b50a03086d9e715623d9c71766?X-Goog-Signature=redacted"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A9086e741fcbfa1fe56a9d8af57c54ae3784744b50a03086d9e715623d9c71766?X-Goog-Signature=redacted"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/vnd.apache.parquet"
+        },
+        "body_file": "answer-candidates-choose-fetch.parquet"
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "resolution",
+        "status": "candidates",
+        "sentence": "3 readings. Germany's primary income for gross of fixed capital consumption. OECD DAC1 · 2015 to 2022 · Current US dollars. Germany's gross national income based on purchasing power parity in international dollars. World Development Indicators · 2015 to 2022. Germany's gross national income based on purchasing power parity per capita in international dollars. World Development Indicators · 2015 to 2022.",
+        "complete": false,
+        "specs": [],
+        "gaps": [
+          {
+            "part": 0,
+            "kind": "choice",
+            "options": 3
+          }
+        ]
+      }
+    },
+    {
+      "answer": {
+        "kind": "resolution",
+        "status": "definite",
+        "sentence": "Germany's primary income for gross of fixed capital consumption, 2015 to 2022. Current US dollars · OECD DAC1.",
+        "complete": true,
+        "specs": [
+          "spec_c0f61f3ca3558aac184973441a67601e"
+        ],
+        "gaps": []
+      }
+    },
+    {
+      "dataset": {
+        "rows": 8,
+        "columns": [
+          "stat_var",
+          "stat_var_label",
+          "observationAbout",
+          "observationAbout_label",
+          "time_period",
+          "value",
+          "unit",
+          "unit_label",
+          "currency",
+          "price_basis",
+          "base_year",
+          "measurementMethod",
+          "measurementMethod_label",
+          "provenance",
+          "provenance_label"
+        ],
+        "complete": true,
+        "members": [
+          {
+            "parts": [
+              "GNI"
+            ],
+            "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+            "content_version": "cv_3cae36487750f272df16f77858171e89",
+            "sentence": "Germany's primary income for gross of fixed capital consumption, 2015 to 2022. Current US dollars · OECD DAC1."
+          }
+        ],
+        "missing": []
+      }
+    }
+  ]
+}
