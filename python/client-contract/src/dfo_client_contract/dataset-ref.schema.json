@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/dataset-ref.schema.json",
+  "title": "DatasetRef",
+  "description": "The frozen reference to the exact versions a dataset holds. Every DFO client writes and reads this format, so a ref saved by one language loads in another.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "members"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/member"
+      }
+    }
+  },
+  "$defs": {
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parts",
+        "sentence",
+        "spec",
+        "content_version",
+        "artifact"
+      ],
+      "properties": {
+        "parts": {
+          "description": "The variable text of each answer part this member answers, in query order. Empty for a spec fetched outside an answer.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sentence": {
+          "description": "Search's rendered sentence for the built identity.",
+          "type": "string",
+          "minLength": 1
+        },
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "spec_id",
+            "definition"
+          ],
+          "properties": {
+            "spec_id": {
+              "$ref": "#/$defs/spec_id"
+            },
+            "definition": {
+              "description": "The server's definition for spec_id, unmodified.",
+              "type": "object",
+              "required": [
+                "spec_id"
+              ],
+              "properties": {
+                "spec_id": {
+                  "$ref": "#/$defs/spec_id"
+                }
+              }
+            }
+          }
+        },
+        "content_version": {
+          "type": "string",
+          "pattern": "^cv_[0-9a-f]{32}$"
+        },
+        "artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "digest",
+            "rendering"
+          ],
+          "properties": {
+            "digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "rendering": {
+              "description": "The selector a client matches an artifact's rendering on. Never the server's rendering object.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "format",
+                "bundle"
+              ],
+              "properties": {
+                "format": {
+                  "enum": [
+                    "csv",
+                    "xlsx",
+                    "parquet"
+                  ]
+                },
+                "bundle": {
+                  "type": "boolean"
+                },
+                "layout": {
+                  "const": "frame"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "spec_id": {
+      "type": "string",
+      "pattern": "^spec_[0-9a-f]{32}$"
+    }
+  }
+}

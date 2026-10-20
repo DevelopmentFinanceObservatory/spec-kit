@@ -1,0 +1,782 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/scenario.schema.json",
+  "title": "Client scenario",
+  "description": "One client-level call, the HTTP exchanges it makes in order, and the outcome each step reaches. Every DFO client replays every scenario.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "name",
+    "description",
+    "origin",
+    "call",
+    "exchanges",
+    "expect"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "name": {
+      "$ref": "#/$defs/name"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "origin": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/recorded"
+        },
+        {
+          "$ref": "#/$defs/synthetic"
+        }
+      ]
+    },
+    "call": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "exchanges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/exchange"
+      }
+    },
+    "expect": {
+      "description": "One outcome per step of call, in the same order.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/outcome"
+      }
+    }
+  },
+  "$defs": {
+    "one_line": {
+      "description": "Text without a newline. Python's `re.search` lets an anchored pattern's `$` match before a final newline, so every pattern here anchored with `$` refers to this as well.",
+      "not": {
+        "pattern": "\\n"
+      }
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "$ref": "#/$defs/one_line"
+    },
+    "spec_id": {
+      "type": "string",
+      "pattern": "^spec_[0-9a-f]{32}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "content_version": {
+      "type": "string",
+      "pattern": "^cv_[0-9a-f]{32}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "recorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "base_url",
+        "dfo_commit",
+        "recorded_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "recorded"
+        },
+        "base_url": {
+          "description": "The base URL the client was given. A request path resolves against it, and an origin path against its origin.",
+          "type": "string",
+          "pattern": "^https?://[^/?#]+(/[^?#]*)?$",
+          "$ref": "#/$defs/one_line"
+        },
+        "dfo_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "synthetic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "derived_from",
+        "edit"
+      ],
+      "properties": {
+        "kind": {
+          "const": "synthetic"
+        },
+        "derived_from": {
+          "$ref": "#/$defs/name"
+        },
+        "edit": {
+          "type": "string",
+          "minLength": 1,
+          "$ref": "#/$defs/one_line"
+        }
+      }
+    },
+    "spec": {
+      "description": "A Spec as a client holds it: the server's spec_id and unmodified definition, and the sentence when the client knows it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "definition"
+      ],
+      "properties": {
+        "spec_id": {
+          "$ref": "#/$defs/spec_id"
+        },
+        "definition": {
+          "type": "object"
+        },
+        "sentence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "window": {
+      "oneOf": [
+        {
+          "enum": [
+            "all",
+            "latest"
+          ]
+        },
+        {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "narrowing": {
+      "type": "object",
+      "properties": {
+        "window": {
+          "$ref": "#/$defs/window"
+        },
+        "entities": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "facets": {
+          "type": "object"
+        }
+      }
+    },
+    "layout": {
+      "enum": [
+        "long",
+        "frame"
+      ]
+    },
+    "step": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/search_step"
+        },
+        {
+          "$ref": "#/$defs/choose_step"
+        },
+        {
+          "$ref": "#/$defs/fetch_answer_step"
+        },
+        {
+          "$ref": "#/$defs/fetch_spec_step"
+        },
+        {
+          "$ref": "#/$defs/fetch_ref_step"
+        },
+        {
+          "$ref": "#/$defs/mint_step"
+        },
+        {
+          "$ref": "#/$defs/result_step"
+        }
+      ]
+    },
+    "search_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "question"
+      ],
+      "properties": {
+        "op": {
+          "const": "search"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "choose_step": {
+      "description": "A choice on the answer the previous step produced. part names the part by index or variable text, and may be left out when one part awaits a choice. option names the option by index or label.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "option"
+      ],
+      "properties": {
+        "op": {
+          "const": "choose"
+        },
+        "part": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "option": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    },
+    "fetch_answer_step": {
+      "description": "A fetch of the answer the previous step produced.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "const": "fetch"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "partial": {
+          "type": "boolean"
+        },
+        "strict": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "fetch_spec_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "spec"
+      ],
+      "$ref": "#/$defs/narrowing",
+      "properties": {
+        "op": {
+          "const": "fetch"
+        },
+        "spec": {
+          "$ref": "#/$defs/spec"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "strict": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "window": true,
+        "entities": true,
+        "facets": true
+      }
+    },
+    "fetch_ref_step": {
+      "description": "A fetch of the exact versions a ref names. A ref takes no narrowing.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "ref"
+      ],
+      "properties": {
+        "op": {
+          "const": "fetch"
+        },
+        "ref": {
+          "$ref": "dataset-ref.schema.json"
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "mint_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "spec"
+      ],
+      "$ref": "#/$defs/narrowing",
+      "properties": {
+        "op": {
+          "const": "mint"
+        },
+        "spec": {
+          "$ref": "#/$defs/spec"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "window": true,
+        "entities": true,
+        "facets": true
+      }
+    },
+    "result_step": {
+      "description": "Waiting for the operation the previous mint step started, and taking its dataset.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "const": "result"
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "exchange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request",
+        "response"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "response": {
+          "$ref": "#/$defs/response"
+        }
+      }
+    },
+    "request": {
+      "description": "Exactly one of path, a path the client composes under the base URL; origin_path, a root-relative URL the server returned, resolved against the base URL's origin; or url, an absolute URL outside the API, such as a signed storage URL.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "origin_path"
+          ]
+        },
+        {
+          "required": [
+            "url"
+          ]
+        }
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/[^?#]*(\\?[^#]*)?$",
+          "$ref": "#/$defs/one_line"
+        },
+        "origin_path": {
+          "type": "string",
+          "pattern": "^/[^?#]*(\\?[^#]*)?$",
+          "$ref": "#/$defs/one_line"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://[^/?#]+",
+          "$ref": "#/$defs/one_line"
+        },
+        "json": {
+          "description": "The members of the JSON request body that must match, compared as parsed JSON values. A recorded scenario lists every member the client sent.",
+          "type": "object"
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "not": {
+        "required": [
+          "json",
+          "body_file"
+        ]
+      },
+      "properties": {
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "headers": {
+          "description": "The response headers a client reads, by lower-case name.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z0-9-]+$",
+            "$ref": "#/$defs/one_line"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "json": {
+          "description": "The JSON response body."
+        },
+        "body_file": {
+          "description": "A binary response body, in a file beside the record whose name starts with the scenario's name.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+$",
+          "$ref": "#/$defs/one_line"
+        }
+      }
+    },
+    "gap_kind": {
+      "enum": [
+        "choice",
+        "no_data",
+        "not_understood",
+        "unsupported",
+        "timed_out",
+        "unknown"
+      ]
+    },
+    "outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "answer"
+          ],
+          "properties": {
+            "answer": {
+              "$ref": "#/$defs/answer"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataset"
+          ],
+          "properties": {
+            "dataset": {
+              "$ref": "#/$defs/dataset"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "$ref": "#/$defs/operation"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/error"
+            }
+          }
+        }
+      ]
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "complete",
+        "gaps"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "resolution",
+            "catalogue",
+            "declined"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sentence": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "specs": {
+          "description": "The distinct spec_ids of the answer's definite parts, in part order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/spec_id"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "part",
+              "kind",
+              "options"
+            ],
+            "properties": {
+              "part": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "kind": {
+                "$ref": "#/$defs/gap_kind"
+              },
+              "options": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rows",
+        "columns",
+        "complete",
+        "members",
+        "missing"
+      ],
+      "properties": {
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "parts",
+              "spec_id",
+              "content_version",
+              "sentence"
+            ],
+            "properties": {
+              "parts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "spec_id": {
+                "$ref": "#/$defs/spec_id"
+              },
+              "content_version": {
+                "$ref": "#/$defs/content_version"
+              },
+              "sentence": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "part",
+              "kind"
+            ],
+            "properties": {
+              "part": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "kind": {
+                "$ref": "#/$defs/gap_kind"
+              }
+            }
+          }
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "pattern": "^op_[0-9a-f]{64}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "done",
+            "failed"
+          ]
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "code"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "InvalidRequestError",
+            "NotFoundError",
+            "IncompleteAnswerError",
+            "DeclinedError",
+            "VersionUnavailableError",
+            "AuthenticationError",
+            "PermissionDeniedError",
+            "RateLimitError",
+            "QuotaExceededError",
+            "ServerError",
+            "ContractError",
+            "NetworkError",
+            "DfoTimeoutError"
+          ]
+        },
+        "code": {
+          "description": "The problem document's code, or null for an error no problem document carries.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

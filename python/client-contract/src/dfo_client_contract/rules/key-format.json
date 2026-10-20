@@ -1,0 +1,62 @@
+{
+  "format_version": 1,
+  "rule": "key-format",
+  "vectors": [
+    {
+      "name": "secret-key-passes",
+      "key": "dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe",
+      "verdict": "pass"
+    },
+    {
+      "name": "publishable-key-passes",
+      "key": "dfo_p_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc",
+      "verdict": "pass"
+    },
+    {
+      "name": "checksum-with-leading-zero-passes",
+      "key": "dfo_k_padTest00000000000000000000000020xpmWN",
+      "verdict": "pass"
+    },
+    {
+      "name": "longer-body-passes",
+      "key": "dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0UeXY2EMnsV",
+      "verdict": "pass"
+    },
+    {
+      "name": "unknown-prefix-warns",
+      "key": "dfo_x_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe",
+      "verdict": "warn",
+      "reason": "unknown_prefix"
+    },
+    {
+      "name": "other-vendor-key-warns",
+      "key": "sk-4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue",
+      "verdict": "warn",
+      "reason": "unknown_prefix"
+    },
+    {
+      "name": "non-base62-character-warns",
+      "key": "dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0U-2wanxe",
+      "verdict": "warn",
+      "reason": "not_base62"
+    },
+    {
+      "name": "checksum-mismatch-warns",
+      "key": "dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue448bfc",
+      "verdict": "warn",
+      "reason": "checksum_mismatch"
+    },
+    {
+      "name": "swapped-body-characters-warn",
+      "key": "dfo_k_f48Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe",
+      "verdict": "warn",
+      "reason": "checksum_mismatch"
+    },
+    {
+      "name": "too-short-for-a-checksum-warns",
+      "key": "dfo_k_abc123",
+      "verdict": "warn",
+      "reason": "checksum_mismatch"
+    }
+  ]
+}

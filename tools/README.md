@@ -38,6 +38,12 @@ uv run tools/validate_provenance_docs_vectors.py
 uv run tools/validate_descriptions_vectors.py
 ```
 
+`validate_client_contract.py` validates the client contract under `python/client-contract/src/dfo_client_contract/` against its schemas, then checks what they cannot express: every `strict-fields.json` pointer resolves in `served/openapi.json` and stays required and non-nullable, or keeps its enum values; `actions.json` holds one row, in code order, for each active refusal code in `registries/codes.json` that reaches a problem document or a no_data reason, with a gap kind exactly for the no_data reasons; each recorded scenario's requests match a served route and its JSON bodies validate against that route's schemas, a required member that admits null allowed to be absent; and each `DatasetRef` example gets the verdict it states. It does not import `dfo_client_contract`, whose `tests/test_rules.py` replays the rule vectors. Also a PEP 723 script:
+
+```bash
+uv run tools/validate_client_contract.py
+```
+
 `validate_unit_vectors.py` validates every file under `vectors/units/` against `schemas/vectors/unit-vector.schema.json`, and checks what the schema cannot express: file names match names, names are unique, the suite meets its floor, and every classification, compare outcome and typed-unit kind has a vector. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 
 ```bash

@@ -1,0 +1,110 @@
+{
+  "format_version": 1,
+  "rule": "key-lookup",
+  "vectors": [
+    {
+      "name": "argument-wins",
+      "api_key": "dfo_k_argument",
+      "env": {
+        "DFO_API_KEY": "dfo_k_environment"
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "argument",
+      "key": "dfo_k_argument"
+    },
+    {
+      "name": "false-forces-anonymous",
+      "api_key": false,
+      "env": {
+        "DFO_API_KEY": "dfo_k_environment"
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "anonymous",
+      "key": null
+    },
+    {
+      "name": "environment-beats-file",
+      "env": {
+        "DFO_API_KEY": "dfo_k_environment"
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "environment",
+      "key": "dfo_k_environment"
+    },
+    {
+      "name": "default-profile",
+      "env": {},
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "credentials_file",
+      "key": "dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe"
+    },
+    {
+      "name": "named-profile",
+      "env": {
+        "DFO_PROFILE": "ci"
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "credentials_file",
+      "key": "dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc"
+    },
+    {
+      "name": "empty-environment-counts-as-unset",
+      "env": {
+        "DFO_API_KEY": "",
+        "DFO_PROFILE": ""
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "credentials_file",
+      "key": "dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe"
+    },
+    {
+      "name": "no-file-is-anonymous",
+      "env": {},
+      "file": null,
+      "source": "anonymous",
+      "key": null
+    },
+    {
+      "name": "default-profile-absent-is-anonymous",
+      "env": {},
+      "file": "[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "source": "anonymous",
+      "key": null
+    },
+    {
+      "name": "named-profile-absent-raises",
+      "env": {
+        "DFO_PROFILE": "prod"
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n\n[ci]\nkey = \"dfo_k_Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2Rr1Qq0Pp448bfc\"\n",
+      "error": {
+        "reason": "profile_not_found"
+      }
+    },
+    {
+      "name": "profile-without-key-raises",
+      "env": {},
+      "file": "[default]\nlabel = \"laptop\"\n",
+      "error": {
+        "reason": "profile_without_key"
+      }
+    },
+    {
+      "name": "invalid-file-raises",
+      "env": {},
+      "file": "key = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n",
+      "error": {
+        "reason": "credentials_file_invalid"
+      }
+    },
+    {
+      "name": "invalid-file-is-not-read-when-the-environment-wins",
+      "env": {
+        "DFO_API_KEY": "dfo_k_environment"
+      },
+      "file": "key = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n",
+      "source": "environment",
+      "key": "dfo_k_environment"
+    }
+  ]
+}

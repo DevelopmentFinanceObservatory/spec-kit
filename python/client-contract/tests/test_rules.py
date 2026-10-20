@@ -1,0 +1,213 @@
+"""Replay every rule vector through a reference implementation of its rule.
+
+The rules are stated in `dfo_client_contract/rules/README.md`; each function
+here is the shortest faithful reading of one of them, so a vector that
+disagrees with its rule fails here before a client replays it.
+"""
+
+from __future__ import annotations
+
+import ntpath
+import posixpath
+import re
+import tomllib
+import zlib
+from typing import Any
+
+import pytest
+
+from dfo_client_contract import RULES, rule
+
+_BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+_KEY_PREFIXES = ("dfo_k_", "dfo_p_")
+_TABLE = re.compile(r"\[([A-Za-z0-9_-]+)\]")
+_ENTRY = re.compile(r'([A-Za-z0-9_-]+)[ \t]*=[ \t]*"([^"\\\x00-\x1f\x7f]*)"')
+
+
+class RuleError(Exception):
+    def __init__(self, reason: str, line: int | None = None) -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.line = line
+
+
+def _vectors(name: str) -> list[dict[str, Any]]:
+    return rule(name)["vectors"]
+
+
+def _ids(name: str) -> list[str]:
+    return [vector["name"] for vector in _vectors(name)]
+
+
+def _set(env: dict[str, str], name: str) -> str | None:
+    return env.get(name) or None
+
+
+def _base62(number: int) -> str:
+    digits = ""
+    while number:
+        number, remainder = divmod(number, 62)
+        digits = _BASE62[remainder] + digits
+    return digits.rjust(6, "0")
+
+
+def check_key(key: str) -> str | None:
+    if not key.startswith(_KEY_PREFIXES):
+        return "unknown_prefix"
+    rest = key[len(_KEY_PREFIXES[0]) :]
+    if any(char not in _BASE62 for char in rest):
+        return "not_base62"
+    body, checksum = rest[:-6], rest[-6:]
+    if not body or _base62(zlib.crc32(body.encode("ascii"))) != checksum:
+        return "checksum_mismatch"
+    return None
+
+
+def credentials_path(platform: str, home: str, env: dict[str, str]) -> str:
+    if explicit := _set(env, "DFO_CREDENTIALS_FILE"):
+        return explicit
+    if platform == "windows":
+        appdata = _set(env, "APPDATA") or ntpath.join(home, "AppData", "Roaming")
+        return ntpath.join(appdata, "dfo", "credentials.toml")
+    config = _set(env, "XDG_CONFIG_HOME") or posixpath.join(home, ".config")
+    return posixpath.join(config, "dfo", "credentials.toml")
+
+
+def parse_credentials(text: str) -> dict[str, dict[str, str]]:
+    profiles: dict[str, dict[str, str]] = {}
+    table: dict[str, str] | None = None
+    for number, raw in enumerate(text.split("\n"), start=1):
+        line = raw.removesuffix("\r").strip(" \t")
+        if not line or line.startswith("#"):
+            continue
+        if match := _TABLE.fullmatch(line):
+            if match[1] in profiles:
+                raise RuleError("duplicate_table", number)
+            table = profiles[match[1]] = {}
+        elif match := _ENTRY.fullmatch(line):
+            if table is None:
+                raise RuleError("outside_table", number)
+            if match[1] in table:
+                raise RuleError("duplicate_key", number)
+            table[match[1]] = match[2]
+        else:
+            raise RuleError("invalid_line", number)
+    return profiles
+
+
+def look_up_key(vector: dict[str, Any]) -> tuple[str, str | None]:
+    env = vector["env"]
+    api_key = vector.get("api_key")
+    if api_key is False:
+        return "anonymous", None
+    if api_key is not None:
+        return "argument", api_key
+    if from_env := _set(env, "DFO_API_KEY"):
+        return "environment", from_env
+    if vector["file"] is None:
+        return "anonymous", None
+    try:
+        profiles = parse_credentials(vector["file"])
+    except RuleError as error:
+        raise RuleError("credentials_file_invalid") from error
+    named = _set(env, "DFO_PROFILE")
+    profile = profiles.get(named or "default")
+    if profile is None:
+        if named:
+            raise RuleError("profile_not_found")
+        return "anonymous", None
+    if "key" not in profile:
+        raise RuleError("profile_without_key")
+    return "credentials_file", profile["key"]
+
+
+def cache_root(vector: dict[str, Any]) -> str:
+    platform, home, env = vector["platform"], vector["home"], vector["env"]
+    path = ntpath if platform == "windows" else posixpath
+    chosen = (
+        vector.get("cache_dir")
+        or _set(env, "DFO_CACHE_DIR")
+        or _set(env, "BBLOCKS_CACHE_DIR")
+    )
+    if chosen:
+        if chosen == "~" or chosen.startswith(("~/", "~\\")):
+            chosen = home + chosen[1:]
+        return path.normpath(chosen)
+    if platform == "windows":
+        local = _set(env, "LOCALAPPDATA") or ntpath.join(home, "AppData", "Local")
+        return ntpath.join(local, "readerkit", "Cache")
+    if platform == "macos":
+        return posixpath.join(home, "Library", "Caches", "readerkit")
+    xdg = (env.get("XDG_CACHE_HOME") or "").strip() or posixpath.join(home, ".cache")
+    return posixpath.join(xdg, "readerkit")
+
+
+def cache_entry(vector: dict[str, Any]) -> str:
+    if vector["entry"] == "file":
+        return "files/sha256/" + vector["digest"].removeprefix("sha256:")
+    rendering = vector["rendering"]
+    key = rendering["format"]
+    if rendering["bundle"]:
+        key += "-bundle"
+    if rendering.get("layout") == "frame":
+        key += "-frame"
+    return f"manifests/{vector['spec_id']}/{vector['content_version']}/{key}.json"
+
+
+@pytest.mark.parametrize("name", RULES)
+def test_every_rule_has_vectors(name: str) -> None:
+    assert rule(name)["rule"] == name
+    assert _vectors(name)
+
+
+@pytest.mark.parametrize("vector", _vectors("key-format"), ids=_ids("key-format"))
+def test_key_format(vector: dict[str, Any]) -> None:
+    assert check_key(vector["key"]) == vector.get("reason")
+
+
+@pytest.mark.parametrize(
+    "vector", _vectors("credentials-path"), ids=_ids("credentials-path")
+)
+def test_credentials_path(vector: dict[str, Any]) -> None:
+    path = credentials_path(vector["platform"], vector["home"], vector["env"])
+    assert path == vector["path"]
+
+
+@pytest.mark.parametrize(
+    "vector", _vectors("credentials-file"), ids=_ids("credentials-file")
+)
+def test_credentials_file(vector: dict[str, Any]) -> None:
+    if "error" in vector:
+        with pytest.raises(RuleError) as excinfo:
+            parse_credentials(vector["text"])
+        assert (excinfo.value.reason, excinfo.value.line) == (
+            vector["error"]["reason"],
+            vector["error"]["line"],
+        )
+        return
+    assert parse_credentials(vector["text"]) == vector["profiles"]
+    # The format is a subset of TOML: any TOML reader reads the same profiles.
+    assert tomllib.loads(vector["text"]) == vector["profiles"]
+
+
+@pytest.mark.parametrize("vector", _vectors("key-lookup"), ids=_ids("key-lookup"))
+def test_key_lookup(vector: dict[str, Any]) -> None:
+    if "error" in vector:
+        with pytest.raises(RuleError) as excinfo:
+            look_up_key(vector)
+        assert excinfo.value.reason == vector["error"]["reason"]
+        return
+    assert look_up_key(vector) == (vector["source"], vector["key"])
+
+
+@pytest.mark.parametrize("vector", _vectors("cache-dir"), ids=_ids("cache-dir"))
+def test_cache_dir(vector: dict[str, Any]) -> None:
+    path = ntpath if vector["platform"] == "windows" else posixpath
+    root = cache_root(vector)
+    assert root == vector["root"]
+    assert path.join(root, "v1", "dfo", "cache1") == vector["directory"]
+
+
+@pytest.mark.parametrize("vector", _vectors("cache-layout"), ids=_ids("cache-layout"))
+def test_cache_layout(vector: dict[str, Any]) -> None:
+    assert cache_entry(vector) == vector["path"]
