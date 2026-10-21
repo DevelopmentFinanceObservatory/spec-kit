@@ -407,6 +407,19 @@ def _header_trace(index: int, trace: str | None) -> Callable[[Any], None]:
     return change
 
 
+def _diagnostics_trace(doc: Any) -> None:
+    """Step 1's error carries the answer's diagnostics.trace_id, which no
+    client reads, in place of its response's header."""
+    diagnostics = doc["exchanges"][0]["response"]["json"]["diagnostics"]
+    doc["expect"][1]["error"]["trace_id"] = diagnostics["trace_id"]
+
+
+def _poll_waits(change: Callable[[list[float]], None]) -> Callable[[Any], None]:
+    return _set_outcome(
+        0, lambda o: change(o["dataset"]["long_builds"][0]["poll_waits"])
+    )
+
+
 def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
     """The record keeps its first `keep` exchanges and expects `error`."""
 
@@ -1369,8 +1382,10 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             "scenarios/answer-nested-specs-unchecked.json",
-            _first_part(lambda part: part["spec"].pop("resolved")),
-            "the step follows no answer",
+            lambda doc: doc["exchanges"][1]["response"]["json"]["parts"][0]["spec"].pop(
+                "resolved"
+            ),
+            "step 1 expects",
         ),
         (_SEARCH, _set_body(0, lambda body: body.update(parts=[])), "step 0 expects"),
         (
@@ -1432,6 +1447,43 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "scenarios/choose-option-two-part-query.json",
             _first_part(_one_part_query),
             "the record lacks",
+        ),
+        ("scenarios/answer-timed-out.json", _diagnostics_trace, "step 1 expects"),
+        ("scenarios/answer-empty-parts.json", _trace(None), "step 0 expects"),
+        (
+            "scenarios/operation-failed-without-error.json",
+            _trace(None, 1),
+            "step 1 expects",
+        ),
+        (
+            "scenarios/choose-option-two-part-query.json",
+            _trace(None, 1),
+            "step 1 expects",
+        ),
+        (
+            "scenarios/fetch-spec-poll-refused-backoff.json",
+            _poll_waits(lambda waits: waits.__setitem__(2, waits[1])),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/fetch-spec-poll-refused-retry-after.json",
+            _poll_waits(lambda waits: waits.__setitem__(1, waits[0])),
+            "step 0 expects",
+        ),
+        (
+            _FETCH,
+            lambda doc: doc["exchanges"][2]["response"].update(status=206),
+            "the record lacks",
+        ),
+        (
+            _FETCH,
+            lambda doc: doc["exchanges"][1]["response"].update(status=204),
+            "the steps never make exchanges 2 to 2",
+        ),
+        (
+            _FETCH,
+            lambda doc: doc["exchanges"][1]["response"].update(status=201, json={}),
+            "the steps never make exchanges 2 to 2",
         ),
     ],
     ids=[
@@ -1643,6 +1695,15 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "variable-text-refusal-on-a-named-part",
         "shared-label-refusal-on-distinct-labels",
         "two-part-query-refusal-on-a-one-part-query",
+        "trace-id-read-from-diagnostics",
+        "body-contract-violation-without-its-trace-id",
+        "failed-operation-without-its-header-trace-id",
+        "option-contract-violation-without-its-answer-trace-id",
+        "refused-poll-repeats-its-backoff-wait",
+        "refused-poll-retry-after-ignored",
+        "signed-fetch-206-read-as-the-file",
+        "files-route-204-read-as-a-redirect",
+        "files-route-201-read-as-a-redirect",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -1654,6 +1715,23 @@ def test_a_broken_contract_is_reported(
     _edit(package_dir / target, change)
     problems = validator.validate()
     assert any(expected in problem for problem in problems), problems
+
+
+def test_a_record_that_holds_only_under_its_recorded_host_is_reported(
+    package_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The second replay moves the recorded origin a response names to the
+    replay's own; without the move, the manifest of
+    fetch-spec-same-origin-artifact-url names a host the replay is not on."""
+    monkeypatch.setattr(
+        validator, "relocated", lambda exchanges, *_: [dict(e) for e in exchanges]
+    )
+    problems = validator.validate()
+    name = "scenarios/fetch-spec-same-origin-artifact-url.json: replayed under"
+    assert [p for p in problems if "replayed under" in p] == [
+        p for p in problems if p.startswith(name)
+    ]
+    assert any(p.startswith(name) for p in problems), problems
 
 
 def test_a_retired_code_with_a_row_is_reported(package_dir: Path) -> None:

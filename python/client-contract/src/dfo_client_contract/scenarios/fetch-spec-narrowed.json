@@ -6,7 +6,7 @@
     "kind": "recorded",
     "base_url": "http://127.0.0.1:19493/api",
     "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T08:57:46Z"
+    "recorded_at": "2026-10-21T13:05:30Z"
   },
   "call": [
     {
@@ -182,7 +182,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "a72e52f677934a84bf84cdaee5c6c696"
         },
         "json": {
           "schema_version": 1,
@@ -256,7 +257,7 @@
             }
           },
           "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
-          "prepared_at": "2026-10-21T08:57:50Z",
+          "prepared_at": "2026-10-21T13:05:35Z",
           "coverage": {
             "rows": 4,
             "dimensions": [
@@ -589,7 +590,7 @@
             "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
             "capability_version": "dset_88fecfec3c5b89d1",
             "served_from": "materialise",
-            "confirmed_at": "2026-10-21T08:57:50.475926+00:00"
+            "confirmed_at": "2026-10-21T13:05:35.077517+00:00"
           },
           "warnings": [
             {
@@ -615,7 +616,7 @@
               },
               "bytes": 9541,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T08:57:50.451120+00:00",
+              "created_at": "2026-10-21T13:05:35.038218+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:e9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70"
             },
@@ -626,7 +627,7 @@
               },
               "bytes": 5741,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T08:57:50.451120+00:00",
+              "created_at": "2026-10-21T13:05:35.038218+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:d3a506bc9b95188583b5764592d2f1897c0665add660106b7f77c3e501000bb4"
             }
@@ -856,7 +857,7 @@
           "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-20T08:57:50.451687Z"
+            "held_until": "2026-11-20T13:05:35.038284Z"
           }
         }
       }
@@ -946,7 +947,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "e7b9afd7f94f41eb85716597d0432612"
         },
         "json": {
           "schema_version": 1,
@@ -956,10 +958,10 @@
           },
           "diagnostics": {
             "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "63d251bca9014713ba8769cd3719b880",
+            "trace_id": "e7b9afd7f94f41eb85716597d0432612",
             "warnings": [],
             "timing_ms": {
-              "total": 104,
+              "total": 145,
               "by_step": {
                 "coverage": 0
               }
@@ -972,18 +974,18 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 83,
+                "total": 110,
                 "by_step": {
-                  "validate": 2,
-                  "walk": 65,
-                  "reread_arcs": 0,
+                  "validate": 3,
+                  "walk": 81,
+                  "reread_arcs": 2,
                   "detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 1,
-                  "bind": 1,
+                  "shape": 3,
+                  "bind": 0,
                   "where_places": 0,
-                  "materialise": 4,
-                  "answer": 9,
+                  "materialise": 5,
+                  "answer": 15,
                   "options": 1
                 }
               },
@@ -4586,7 +4588,8 @@
       "response": {
         "status": 302,
         "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3Ae9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70?X-Goog-Signature=redacted"
+          "location": "https://storage.googleapis.com/e2e-working/sha256%3Ae9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "bcb796babc2947ada1b42afa03a19f2a"
         }
       }
     },
@@ -4598,7 +4601,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/vnd.apache.parquet"
+          "content-type": "application/vnd.apache.parquet",
+          "x-dfo-trace-id": "a340dab2e965428fa1b99507c6d6dbd4"
         },
         "body_file": "fetch-spec-narrowed.parquet"
       }

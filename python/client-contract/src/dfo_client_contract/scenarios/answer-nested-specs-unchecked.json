@@ -1,19 +1,20 @@
 {
   "format_version": 1,
   "name": "answer-nested-specs-unchecked",
-  "description": "A client checks strict members only where a rule reads them, so a spec nested in resolved.alternative_measures may lack them, and the fetch reaches the same dataset.",
+  "description": "A client checks strict members only where a rule reads them, so a Spec in no_data.flagged_match, no_data.alternate_match or resolved.equivalent_readings may lack resolved and identity, and the search and the choice reach the same answers.",
   "origin": {
     "kind": "synthetic",
-    "derived_from": "answer-definite-fetch",
-    "edit": "Each alternative measure of part 0's spec loses its definition's identity and its resolved."
+    "derived_from": "choose-place-one-part",
+    "edit": "The no_data part's flagged_match and alternate_match, and the chosen spec's resolved.equivalent_readings, hold the chosen spec without resolved and without its definition's identity."
   },
   "call": [
     {
       "op": "search",
-      "question": "ODA disbursements from Germany to Nigeria for basic health care"
+      "question": "ODA disbursements from Germany to Congo"
     },
     {
-      "op": "fetch"
+      "op": "choose",
+      "option": "Congo [DRC]"
     }
   ],
   "exchanges": [
@@ -25,37 +26,288 @@
           "schema_version": 1,
           "input": {
             "kind": "raw_text",
-            "query": "ODA disbursements from Germany to Nigeria for basic health care"
+            "query": "ODA disbursements from Germany to Congo"
           }
         }
       },
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "1ad25aff9f6a4ad7ac21922af623e5e9"
         },
         "json": {
           "schema_version": 1,
           "query_echo": {
             "entry_path": "raw_text",
-            "raw_query": "ODA disbursements from Germany to Nigeria for basic health care",
-            "normalized_query": "ODA disbursements from Germany to Nigeria for basic health care",
+            "raw_query": "ODA disbursements from Germany to Congo",
+            "normalized_query": "ODA disbursements from Germany to Congo",
             "extract_skipped": false
           },
           "diagnostics": {
             "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "aa5fbbb0593047b59a36bed2b62cd908",
+            "trace_id": "1ad25aff9f6a4ad7ac21922af623e5e9",
             "warnings": [],
             "timing_ms": {
-              "total": 4556,
+              "total": 1084,
               "by_step": {
                 "coverage": 0,
-                "extract": 889
+                "extract": 1082
               }
             },
             "llm_usage": {
-              "input_tokens": 6116,
-              "output_tokens": 408,
+              "input_tokens": 2249,
+              "output_tokens": 154,
+              "cached_tokens": 859
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [
+            {
+              "variable_text": "ODA disbursements",
+              "warnings": [],
+              "timing_ms": {
+                "total": 1,
+                "by_step": {
+                  "recall": 1
+                }
+              },
+              "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "sentence_plan": [
+                {
+                  "kind": "text",
+                  "text": "\"",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "slot",
+                  "text": "Congo",
+                  "axis": "where",
+                  "segment": "heading",
+                  "role": "destination",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                }
+              ],
+              "restatement": {
+                "variable_text": "ODA disbursements",
+                "entities": [
+                  {
+                    "text": "Germany",
+                    "role_text": "from"
+                  },
+                  {
+                    "text": "Congo",
+                    "role_text": "to"
+                  }
+                ],
+                "sources": [],
+                "operations": []
+              },
+              "operations": [],
+              "departures": [],
+              "assumptions": [],
+              "status": "no_data",
+              "no_data": {
+                "reason": "entity_ambiguous",
+                "category": "unresolved",
+                "message": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                "entity_terms": [
+                  "Congo"
+                ],
+                "ambiguous_entities": [
+                  {
+                    "text": "Congo",
+                    "candidates": [
+                      {
+                        "ref": "country/COD",
+                        "label": "Congo [DRC]",
+                        "kind": "country"
+                      },
+                      {
+                        "ref": "country/COG",
+                        "label": "Congo [Republic]",
+                        "kind": "country"
+                      }
+                    ]
+                  }
+                ],
+                "source_terms": [],
+                "ambiguous_sources": [],
+                "unbound_qualifiers": [],
+                "options": [
+                  {
+                    "mentions": [
+                      "Congo"
+                    ],
+                    "label": "Congo [DRC]",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA disbursements",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "from",
+                              "dcid": "country/DEU"
+                            },
+                            {
+                              "text": "Congo",
+                              "role_text": "to",
+                              "dcid": "country/COD"
+                            }
+                          ],
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "Congo"
+                    ],
+                    "label": "Congo [Republic]",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA disbursements",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "from",
+                              "dcid": "country/DEU"
+                            },
+                            {
+                              "text": "Congo",
+                              "role_text": "to",
+                              "dcid": "country/COG"
+                            }
+                          ],
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "flagged_match": {
+                  "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
+                  "definition": {
+                    "schema_version": 1,
+                    "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3"
+                  }
+                },
+                "alternate_match": {
+                  "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
+                  "definition": {
+                    "schema_version": 1,
+                    "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3"
+                  }
+                }
+              }
+            }
+          ],
+          "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "\"",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "Congo",
+              "axis": "where",
+              "segment": "heading",
+              "role": "destination",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            }
+          ],
+          "status": "no_data"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "parsed",
+            "parts": [
+              {
+                "variable_text": "ODA disbursements",
+                "entities": [
+                  {
+                    "text": "Germany",
+                    "role_text": "from",
+                    "dcid": "country/DEU"
+                  },
+                  {
+                    "text": "Congo",
+                    "role_text": "to",
+                    "dcid": "country/COD"
+                  }
+                ],
+                "sources": [],
+                "operations": []
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "11f83a7e47c0452492b5c433c0829ff3"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "parsed",
+            "extract_skipped": true
+          },
+          "diagnostics": {
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "11f83a7e47c0452492b5c433c0829ff3",
+            "warnings": [],
+            "timing_ms": {
+              "total": 2651,
+              "by_step": {
+                "coverage": 0
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 4231,
+              "output_tokens": 200,
               "cached_tokens": 0
             },
             "timed_out": false
@@ -63,35 +315,48 @@
           "kind": "resolution",
           "parts": [
             {
-              "variable_text": "basic health care ODA disbursements",
-              "warnings": [],
+              "variable_text": "ODA disbursements",
+              "warnings": [
+                {
+                  "code": "retrieval_score_weak",
+                  "severity": "info",
+                  "message": "the chosen reading's match to the query is weak; treat it with less confidence than a strong match."
+                },
+                {
+                  "code": "time_window_defaulted",
+                  "severity": "warn",
+                  "message": "no time_text was given; the answer was resolved across every period with data."
+                }
+              ],
               "timing_ms": {
-                "total": 3505,
+                "total": 2337,
                 "by_step": {
-                  "recall": 628,
+                  "recall": 0,
                   "shape_arcs": 1,
-                  "shape_probe_coverage": 5,
-                  "shape_probe": 477,
-                  "shape_groups": 22,
-                  "shape_labels": 1,
-                  "shape_admission": 1,
-                  "shape": 1283,
-                  "bind": 1188,
-                  "materialise": 11,
-                  "answer": 381,
-                  "options": 14
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 205,
+                  "shape_groups": 20,
+                  "shape_labels": 2,
+                  "shape_admission": 0,
+                  "shape": 1074,
+                  "bind": 1250,
+                  "materialise": 6,
+                  "answer": 5,
+                  "options": 2
                 }
               },
               "restatement": {
-                "variable_text": "basic health care ODA disbursements",
+                "variable_text": "ODA disbursements",
                 "entities": [
                   {
                     "text": "Germany",
-                    "role_text": "from"
+                    "role_text": "from",
+                    "dcid": "country/DEU"
                   },
                   {
-                    "text": "Nigeria",
-                    "role_text": "to"
+                    "text": "Congo",
+                    "role_text": "to",
+                    "dcid": "country/COD"
                   }
                 ],
                 "sources": [],
@@ -102,10 +367,10 @@
               "assumptions": [],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                  "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -117,29 +382,16 @@
                     },
                     "slots": [
                       {
-                        "property": "crsCooperationModality",
-                        "binding": {
-                          "state": "unbound"
-                        }
-                      },
-                      {
-                        "property": "crsPurpose",
+                        "property": "dac2aAidType",
                         "binding": {
                           "state": "value",
-                          "ref": "CRSPurposeCode12220"
+                          "ref": "DAC2aAidType206"
                         }
                       },
                       {
-                        "property": "crsTypeOfFinance",
+                        "property": "dacTypeOfFinance",
                         "binding": {
                           "state": "unbound"
-                        }
-                      },
-                      {
-                        "property": "crsTypeOfFlow",
-                        "binding": {
-                          "state": "value",
-                          "ref": "CRSTypeOfFlow10"
                         }
                       },
                       {
@@ -159,7 +411,7 @@
                     ],
                     "entities": {
                       "destination": [
-                        "country/NGA"
+                        "country/COD"
                       ],
                       "origin": [
                         "country/DEU"
@@ -172,8 +424,8 @@
                 },
                 "resolved": {
                   "shape": {
-                    "shape_id": "financialflow_amount_measuredvalue_nominal",
-                    "label": "gross disbursements (basic health care, official development assistance, standard grant)",
+                    "shape_id": "financialflow_amount_measuredvalue_nominal_family_f096b1ba",
+                    "label": "gross disbursements (official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -195,26 +447,18 @@
                       {
                         "axis": "how",
                         "property": {
-                          "ref": "crsPurpose",
-                          "label": "CRS purpose"
+                          "ref": "dac2aAidType",
+                          "label": "DAC 2a aid type"
                         },
-                        "label": "sector"
+                        "label": "aid type"
                       },
                       {
                         "axis": "how",
                         "property": {
-                          "ref": "crsTypeOfFinance",
-                          "label": "CRS type of finance"
+                          "ref": "dacTypeOfFinance",
+                          "label": "DAC type of finance"
                         },
-                        "label": "instrument"
-                      },
-                      {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFlow",
-                          "label": "CRS type of flow"
-                        },
-                        "label": "flow"
+                        "label": "DAC type of finance"
                       },
                       {
                         "axis": "how",
@@ -233,14 +477,6 @@
                         "label": "netting basis"
                       },
                       {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      {
                         "axis": "where",
                         "label": "place"
                       },
@@ -253,8 +489,8 @@
                         "label": "data source"
                       }
                     ],
-                    "member_count": 21,
-                    "member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
+                    "member_count": 1,
+                    "member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -268,57 +504,36 @@
                       "key": {
                         "axis": "how",
                         "property": {
-                          "ref": "crsPurpose",
-                          "label": "CRS purpose"
+                          "ref": "dac2aAidType",
+                          "label": "DAC 2a aid type"
                         },
-                        "label": "sector"
+                        "label": "aid type"
                       },
                       "binding": {
                         "kind": "value",
                         "value": {
                           "ref": {
-                            "ref": "CRSPurposeCode12220",
-                            "label": "basic health care"
-                          },
-                          "value_kind": "enum_value"
-                        }
-                      },
-                      "summable": true
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFinance",
-                          "label": "CRS type of finance"
-                        },
-                        "label": "instrument"
-                      },
-                      "binding": {
-                        "kind": "unbound"
-                      },
-                      "summable": true
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFlow",
-                          "label": "CRS type of flow"
-                        },
-                        "label": "flow"
-                      },
-                      "binding": {
-                        "kind": "value",
-                        "value": {
-                          "ref": {
-                            "ref": "CRSTypeOfFlow10",
+                            "ref": "DAC2aAidType206",
                             "label": "official development assistance"
                           },
                           "value_kind": "enum_value"
                         }
                       },
-                      "summable": true
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "dacTypeOfFinance",
+                          "label": "DAC type of finance"
+                        },
+                        "label": "DAC type of finance"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
                     },
                     {
                       "key": {
@@ -364,20 +579,6 @@
                     },
                     {
                       "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "binding": {
-                        "kind": "unbound"
-                      },
-                      "summable": true
-                    },
-                    {
-                      "key": {
                         "axis": "where",
                         "label": "place"
                       },
@@ -385,8 +586,8 @@
                         "kind": "value",
                         "value": {
                           "ref": {
-                            "ref": "country/NGA",
-                            "label": "Nigeria"
+                            "ref": "country/COD",
+                            "label": "Democratic Republic of the Congo"
                           },
                           "value_kind": "entity"
                         }
@@ -415,22 +616,23 @@
                     }
                   ],
                   "inapplicable_slots": [
+                    "dacTypeOfFinance",
                     "financialObligationType"
                   ],
                   "unresolved_slots": [],
                   "stat_vars": {
-                    "member_count": 5,
+                    "member_count": 1,
                     "member_count_exact": true,
-                    "served_count": 21,
+                    "served_count": 1,
                     "data_date_range": {
-                      "start": "1995",
+                      "start": "1960",
                       "end": "2024"
                     }
                   },
                   "entities": [
                     {
-                      "ref": "country/NGA",
-                      "label": "Nigeria",
+                      "ref": "country/COD",
+                      "label": "Democratic Republic of the Congo",
                       "entity_type": "Country",
                       "role": "destination"
                     },
@@ -444,7 +646,7 @@
                   "coverage": {
                     "kind": "exact",
                     "has_data": true,
-                    "observation_count": 30,
+                    "observation_count": 65,
                     "evidence": "facet_metadata",
                     "dimensions": [
                       {
@@ -453,19 +655,19 @@
                       },
                       {
                         "label": "observations",
-                        "count": 15
+                        "count": 65
                       },
                       {
                         "label": "variables",
-                        "count": 5
+                        "count": 1
                       }
                     ]
                   },
                   "headline": {
                     "year": 2024,
                     "year_named": false,
-                    "observations": 3,
-                    "series": 3,
+                    "observations": 1,
+                    "series": 1,
                     "role_counts": {
                       "financingProvider": 1,
                       "financingRecipient": 1
@@ -473,8 +675,8 @@
                     "recent_years": [
                       {
                         "year": 2024,
-                        "observations": 3,
-                        "series": 3,
+                        "observations": 1,
+                        "series": 1,
                         "role_counts": {
                           "financingProvider": 1,
                           "financingRecipient": 1
@@ -501,11 +703,11 @@
                     ]
                   },
                   "download": {
-                    "rows": 30,
+                    "rows": 65,
                     "rows_exact": true,
-                    "series": 5,
+                    "series": 1,
                     "window": {
-                      "start_year": 1995,
+                      "start_year": 1960,
                       "end_year": 2024
                     },
                     "licence": {
@@ -516,8 +718,8 @@
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
-                      "ref": "provenance/OECDCreditorReportingSystem",
-                      "label": "OECD Creditor Reporting System (CRS)",
+                      "ref": "provenance/OECDDAC2A",
+                      "label": "OECD DAC2A",
                       "source": {
                         "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
                         "label": "Organisation for Economic Co-operation and Development (OECD)"
@@ -526,7 +728,7 @@
                         "id": "dfo",
                         "label": "Development Finance Observatory"
                       },
-                      "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem",
+                      "documentation": "/api/graph/documentation/provenance/OECDDAC2A",
                       "account": "provider"
                     },
                     "unit": {
@@ -541,201 +743,77 @@
                       "key": {
                         "axis": "how",
                         "property": {
-                          "ref": "crsPurpose",
-                          "label": "CRS purpose"
+                          "ref": "dac2aAidType",
+                          "label": "DAC 2a aid type"
                         },
-                        "label": "sector"
+                        "label": "aid type"
                       },
                       "options": [
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode122",
-                              "label": "basic health"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "parent",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 4,
-                          "served_rows": 88,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFinance",
-                          "label": "CRS type of finance"
-                        },
-                        "label": "instrument"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSTypeOfFinance100",
-                              "label": "grant"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 30,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSTypeOfFinance110",
-                              "label": "standard grant"
+                              "ref": "DAC2aAidType218",
+                              "label": "ODA loans and other long-term capital"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
-                          "parent": "CRSTypeOfFinance100",
-                          "member_count": 12672,
-                          "served_rows": 30,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFlow",
-                          "label": "CRS type of flow"
-                        },
-                        "label": "flow"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSTypeOfFlow10",
-                              "label": "official development assistance"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 14098,
-                          "served_rows": 30,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB",
-                              "label": "core contribution and pooled programme and fund"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 7,
+                          "parent": "DAC2aAidType206",
+                          "member_count": 2,
+                          "served_rows": 45,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSCooperationModalityB03",
-                              "label": "contribution to specific-purpose programme and fund managed by an international organisation"
+                              "ref": "DAC2aAidType201",
+                              "label": "ODA grant"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
-                          "parent": "CRSCooperationModalityB",
-                          "member_count": 1606,
-                          "served_rows": 1,
+                          "parent": "DAC2aAidType206",
+                          "member_count": 1,
+                          "served_rows": 65,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSCooperationModalityB01",
-                              "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityB",
-                          "member_count": 1331,
-                          "served_rows": 6,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityC",
-                              "label": "project-type intervention (group)"
+                              "ref": "DAC2aAidType207",
+                              "label": "free-standing technical co-operation"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 7,
+                          "member_count": 1,
+                          "served_rows": 59,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSCooperationModalityC01",
-                              "label": "project-type intervention"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityC",
-                          "member_count": 7005,
-                          "served_rows": 7,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD",
-                              "label": "expert and other technical assistance"
+                              "ref": "DAC2aAidType213",
+                              "label": "developmental food aid"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 1,
+                          "member_count": 1,
+                          "served_rows": 27,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSCooperationModalityD02",
-                              "label": "other technical assistance"
+                              "ref": "DAC2aAidType216",
+                              "label": "humanitarian aid"
                             },
                             "value_kind": "enum_value"
                           },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityD",
-                          "member_count": 1600,
-                          "served_rows": 1,
+                          "relation": "root",
+                          "member_count": 1,
+                          "served_rows": 29,
                           "served_rows_exact": true
                         }
                       ],
@@ -751,8 +829,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "provenance/OECDCreditorReportingSystem",
-                              "label": "OECD Creditor Reporting System (CRS)"
+                              "ref": "provenance/OECDDAC2A",
+                              "label": "OECD DAC2A"
                             },
                             "value_kind": "source"
                           }
@@ -778,7 +856,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+                  "rendered_sentence": "Germany's gross disbursements to Democratic Republic of the Congo for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -809,13 +887,11 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "gross ODA disbursements",
+                      "text": "gross disbursements",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
                       "states": [
-                        "how:crsTypeOfFinance",
-                        "how:crsTypeOfFlow",
                         "how:financialFlowType",
                         "how:nettingBasis",
                         "axis:populationType",
@@ -831,13 +907,13 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "Nigeria",
+                      "text": "Democratic Republic of the Congo",
                       "axis": "where",
                       "segment": "heading",
                       "role": "destination",
                       "binding_ref": "where:",
                       "entity_refs": [
-                        "country/NGA"
+                        "country/COD"
                       ],
                       "states": [
                         "where:"
@@ -852,14 +928,14 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "basic health care",
+                      "text": "official development assistance",
                       "axis": "how",
                       "segment": "heading",
-                      "property_dcid": "crsPurpose",
-                      "binding_ref": "how:crsPurpose",
+                      "property_dcid": "dac2aAidType",
+                      "binding_ref": "how:dac2aAidType",
                       "entity_refs": [],
                       "states": [
-                        "how:crsPurpose"
+                        "how:dac2aAidType"
                       ]
                     },
                     {
@@ -867,28 +943,8 @@
                       "text": "",
                       "axis": "how",
                       "segment": "heading",
-                      "property_dcid": "crsCooperationModality",
-                      "binding_ref": "how:crsCooperationModality",
-                      "entity_refs": [],
-                      "states": []
-                    },
-                    {
-                      "kind": "slot",
-                      "text": "",
-                      "axis": "how",
-                      "segment": "heading",
-                      "property_dcid": "crsTypeOfFinance",
-                      "binding_ref": "how:crsTypeOfFinance",
-                      "entity_refs": [],
-                      "states": []
-                    },
-                    {
-                      "kind": "slot",
-                      "text": "",
-                      "axis": "how",
-                      "segment": "heading",
-                      "property_dcid": "crsTypeOfFlow",
-                      "binding_ref": "how:crsTypeOfFlow",
+                      "property_dcid": "dacTypeOfFinance",
+                      "binding_ref": "how:dacTypeOfFinance",
                       "entity_refs": [],
                       "states": []
                     },
@@ -921,7 +977,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "1995 to 2024",
+                      "text": "1960 to 2024",
                       "axis": "when",
                       "segment": "heading",
                       "binding_ref": "when:",
@@ -965,7 +1021,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "OECD Creditor Reporting System (CRS)",
+                      "text": "OECD DAC2a",
                       "axis": "source",
                       "segment": "byline",
                       "entity_refs": [],
@@ -984,8 +1040,8 @@
                   "trace": {
                     "resolved_entities": [
                       {
-                        "ref": "country/NGA",
-                        "label": "Nigeria"
+                        "ref": "country/COD",
+                        "label": "Democratic Republic of the Congo"
                       },
                       {
                         "ref": "country/DEU",
@@ -994,8 +1050,8 @@
                     ],
                     "resolved_sources": [
                       {
-                        "ref": "provenance/OECDCreditorReportingSystem",
-                        "label": "OECD Creditor Reporting System (CRS)",
+                        "ref": "provenance/OECDDAC2A",
+                        "label": "OECD DAC2a",
                         "source": {
                           "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
                           "label": "Organisation for Economic Co-operation and Development (OECD)"
@@ -1004,7 +1060,7 @@
                           "id": "dfo",
                           "label": "Development Finance Observatory"
                         },
-                        "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem"
+                        "documentation": "/api/graph/documentation/provenance/OECDDAC2A"
                       }
                     ],
                     "slot_filters": [
@@ -1012,50 +1068,32 @@
                         "key": {
                           "axis": "how",
                           "property": {
-                            "ref": "crsPurpose",
-                            "label": "CRS purpose"
+                            "ref": "dac2aAidType",
+                            "label": "DAC 2a aid type"
                           },
-                          "label": "sector"
+                          "label": "aid type"
                         },
                         "binding_kind": "value",
                         "refs": [
                           {
-                            "ref": "CRSPurposeCode12220",
-                            "label": "basic health care"
-                          }
-                        ],
-                        "provenance": "text_recognized"
-                      },
-                      {
-                        "key": {
-                          "axis": "how",
-                          "property": {
-                            "ref": "crsTypeOfFinance",
-                            "label": "CRS type of finance"
-                          },
-                          "label": "instrument"
-                        },
-                        "binding_kind": "unbound",
-                        "refs": [],
-                        "provenance": "binder"
-                      },
-                      {
-                        "key": {
-                          "axis": "how",
-                          "property": {
-                            "ref": "crsTypeOfFlow",
-                            "label": "CRS type of flow"
-                          },
-                          "label": "flow"
-                        },
-                        "binding_kind": "value",
-                        "refs": [
-                          {
-                            "ref": "CRSTypeOfFlow10",
+                            "ref": "DAC2aAidType206",
                             "label": "official development assistance"
                           }
                         ],
                         "provenance": "text_recognized"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "dacTypeOfFinance",
+                            "label": "DAC type of finance"
+                          },
+                          "label": "DAC type of finance"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
                       },
                       {
                         "key": {
@@ -1095,27 +1133,14 @@
                       },
                       {
                         "key": {
-                          "axis": "how",
-                          "property": {
-                            "ref": "crsCooperationModality",
-                            "label": "CRS cooperation modality"
-                          },
-                          "label": "modality"
-                        },
-                        "binding_kind": "unbound",
-                        "refs": [],
-                        "provenance": "binder"
-                      },
-                      {
-                        "key": {
                           "axis": "where",
                           "label": "place"
                         },
                         "binding_kind": "value",
                         "refs": [
                           {
-                            "ref": "country/NGA",
-                            "label": "Nigeria"
+                            "ref": "country/COD",
+                            "label": "Democratic Republic of the Congo"
                           }
                         ],
                         "provenance": "binder"
@@ -1141,26 +1166,14 @@
                     ],
                     "query_qualifiers": [
                       {
-                        "text": "basic health care",
-                        "named": [
-                          {
-                            "ref": "CRSPurposeCode12220",
-                            "label": "basic health care"
-                          }
-                        ],
-                        "slot": "crsPurpose",
-                        "disposition": "bound",
-                        "selected": []
-                      },
-                      {
                         "text": "ODA",
                         "named": [
                           {
-                            "ref": "CRSTypeOfFlow10",
+                            "ref": "DAC2aAidType206",
                             "label": "official development assistance"
                           }
                         ],
-                        "slot": "crsTypeOfFlow",
+                        "slot": "dac2aAidType",
                         "disposition": "bound",
                         "selected": []
                       }
@@ -1177,7 +1190,57 @@
                     {
                       "definition": {
                         "schema_version": 1,
-                        "spec_id": "spec_80b92ca1ba1114b426eb5e79b84361d4"
+                        "spec_id": "spec_2e1f188265cd4f5123438ee26a59cc9e",
+                        "identity": {
+                          "identity_version": "spec1",
+                          "shape": {
+                            "kind": "statvar_schema",
+                            "population_type": "FinancialFlow",
+                            "measured_property": "amount",
+                            "stat_type": "measuredValue",
+                            "measurement_qualifier": "Nominal"
+                          },
+                          "slots": [
+                            {
+                              "property": "dac2aAidType",
+                              "binding": {
+                                "state": "value",
+                                "ref": "DAC2aAidType206"
+                              }
+                            },
+                            {
+                              "property": "dacTypeOfFinance",
+                              "binding": {
+                                "state": "unbound"
+                              }
+                            },
+                            {
+                              "property": "financialFlowType",
+                              "binding": {
+                                "state": "value",
+                                "ref": "Disbursement"
+                              }
+                            },
+                            {
+                              "property": "nettingBasis",
+                              "binding": {
+                                "state": "value",
+                                "ref": "Net"
+                              }
+                            }
+                          ],
+                          "entities": {
+                            "destination": [
+                              "country/COD"
+                            ],
+                            "origin": [
+                              "country/DEU"
+                            ]
+                          },
+                          "requested_window": {
+                            "kind": "all"
+                          }
+                        }
                       },
                       "label": "net disbursements",
                       "axis": "what",
@@ -1218,47 +1281,7 @@
                           }
                         }
                       ],
-                      "served_rows": 30,
-                      "served_rows_exact": true
-                    },
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_c394f9108db2100f1c8e4532d8d1c804"
-                      },
-                      "label": "commitments",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialObligation",
-                            "label": "financial obligation"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialObligationType",
-                          "value": {
-                            "ref": "Commitment",
-                            "label": "commitment"
-                          }
-                        }
-                      ],
-                      "served_rows": 24,
+                      "served_rows": 65,
                       "served_rows_exact": true
                     }
                   ],
@@ -1307,63 +1330,6 @@
                       }
                     }
                   ],
-                  "open_axis_facts": [
-                    {
-                      "property": "crsTypeOfFinance",
-                      "varies": false,
-                      "value": {
-                        "ref": "CRSTypeOfFinance110",
-                        "label": "standard grant"
-                      },
-                      "distinct_count": 1,
-                      "undeclared_count": 0,
-                      "values": [
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance110",
-                            "label": "standard grant"
-                          },
-                          "count": 5
-                        }
-                      ]
-                    },
-                    {
-                      "property": "crsCooperationModality",
-                      "varies": true,
-                      "distinct_count": 4,
-                      "undeclared_count": 1,
-                      "values": [
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB03",
-                            "label": "contribution to specific-purpose programme and fund managed by an international organisation"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB01",
-                            "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityD02",
-                            "label": "other technical assistance"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityC01",
-                            "label": "project-type intervention"
-                          },
-                          "count": 1
-                        }
-                      ]
-                    }
-                  ],
                   "unit_conversion": {
                     "currencies": [
                       {
@@ -1374,7 +1340,7 @@
                           "end_year": 2021
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2023,
@@ -1388,7 +1354,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2002,
@@ -1398,11 +1364,11 @@
                         "code": "ALL",
                         "noun": "Albanian leks",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1412,11 +1378,11 @@
                         "code": "AMD",
                         "noun": "Armenian drams",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -1426,11 +1392,11 @@
                         "code": "AOA",
                         "noun": "Angolan kwanzas",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1991,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1991,
@@ -1440,11 +1406,11 @@
                         "code": "ARS",
                         "noun": "Argentine pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1454,11 +1420,11 @@
                         "code": "AUD",
                         "noun": "Australian dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -1472,7 +1438,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1995,
@@ -1486,7 +1452,7 @@
                           "end_year": 2019
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2023,
@@ -1500,7 +1466,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1996,
@@ -1510,11 +1476,11 @@
                         "code": "BBD",
                         "noun": "Barbadian dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1524,11 +1490,11 @@
                         "code": "BDT",
                         "noun": "Bangladeshi taka",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1538,11 +1504,11 @@
                         "code": "BHD",
                         "noun": "Bahraini dinars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1552,11 +1518,11 @@
                         "code": "BIF",
                         "noun": "Burundian francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1566,11 +1532,11 @@
                         "code": "BND",
                         "noun": "Brunei dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1985,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1985,
@@ -1580,11 +1546,11 @@
                         "code": "BOB",
                         "noun": "Bolivian bolivianos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1594,11 +1560,11 @@
                         "code": "BRL",
                         "noun": "Brazilian reais",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1986,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1986,
@@ -1608,11 +1574,11 @@
                         "code": "BSD",
                         "noun": "Bahamian dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1622,11 +1588,11 @@
                         "code": "BTN",
                         "noun": "Bhutanese ngultrums",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1636,11 +1602,11 @@
                         "code": "BWP",
                         "noun": "Botswana pula",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1650,11 +1616,11 @@
                         "code": "BYN",
                         "noun": "Belarusian rubles",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -1664,11 +1630,11 @@
                         "code": "BZD",
                         "noun": "Belize dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1678,11 +1644,11 @@
                         "code": "CAD",
                         "noun": "Canadian dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -1692,11 +1658,11 @@
                         "code": "CDF",
                         "noun": "Congolese francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1991,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1991,
@@ -1706,11 +1672,11 @@
                         "code": "CHF",
                         "noun": "Swiss francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -1720,11 +1686,11 @@
                         "code": "CLP",
                         "noun": "Chilean pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1734,11 +1700,11 @@
                         "code": "CNY",
                         "noun": "Chinese yuan",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1748,11 +1714,11 @@
                         "code": "COP",
                         "noun": "Colombian pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1762,11 +1728,11 @@
                         "code": "CRC",
                         "noun": "Costa Rican colones",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1776,11 +1742,11 @@
                         "code": "CVE",
                         "noun": "Cape Verdean escudos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1794,7 +1760,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1998,
@@ -1804,11 +1770,11 @@
                         "code": "DJF",
                         "noun": "Djiboutian francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1990,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1990,
@@ -1818,11 +1784,11 @@
                         "code": "DKK",
                         "noun": "Danish kroner",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -1832,11 +1798,11 @@
                         "code": "DOP",
                         "noun": "Dominican pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1846,11 +1812,11 @@
                         "code": "DZD",
                         "noun": "Algerian dinars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1860,11 +1826,11 @@
                         "code": "EGP",
                         "noun": "Egyptian pounds",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1874,11 +1840,11 @@
                         "code": "ERN",
                         "noun": "Eritrean nakfas",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2019
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -1888,11 +1854,11 @@
                         "code": "ETB",
                         "noun": "Ethiopian birr",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1902,11 +1868,11 @@
                         "code": "EUR",
                         "noun": "euros",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1973,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1973,
@@ -1916,11 +1882,11 @@
                         "code": "FJD",
                         "noun": "Fijian dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1930,11 +1896,11 @@
                         "code": "GBP",
                         "noun": "British pounds",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -1944,11 +1910,11 @@
                         "code": "GEL",
                         "noun": "Georgian lari",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1994,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1994,
@@ -1958,11 +1924,11 @@
                         "code": "GHS",
                         "noun": "Ghanaian cedis",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1972,11 +1938,11 @@
                         "code": "GMD",
                         "noun": "Gambian dalasis",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -1986,11 +1952,11 @@
                         "code": "GNF",
                         "noun": "Guinean francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2000,11 +1966,11 @@
                         "code": "GTQ",
                         "noun": "Guatemalan quetzales",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2014,11 +1980,11 @@
                         "code": "GYD",
                         "noun": "Guyanese dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2028,11 +1994,11 @@
                         "code": "HKD",
                         "noun": "Hong Kong dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2042,11 +2008,11 @@
                         "code": "HNL",
                         "noun": "Honduran lempiras",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2056,11 +2022,11 @@
                         "code": "HTG",
                         "noun": "Haitian gourdes",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2074,7 +2040,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2003,
@@ -2084,11 +2050,11 @@
                         "code": "IDR",
                         "noun": "Indonesian rupiahs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2102,7 +2068,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1997,
@@ -2112,11 +2078,11 @@
                         "code": "INR",
                         "noun": "Indian rupees",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2130,7 +2096,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2000,
@@ -2140,11 +2106,11 @@
                         "code": "IRR",
                         "noun": "Iranian rials",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2158,7 +2124,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1997,
@@ -2168,11 +2134,11 @@
                         "code": "JMD",
                         "noun": "Jamaican dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2182,11 +2148,11 @@
                         "code": "JOD",
                         "noun": "Jordanian dinars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2196,11 +2162,11 @@
                         "code": "JPY",
                         "noun": "Japanese yen",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -2210,11 +2176,11 @@
                         "code": "KES",
                         "noun": "Kenyan shillings",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2224,11 +2190,11 @@
                         "code": "KGS",
                         "noun": "Kyrgyz soms",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -2238,11 +2204,11 @@
                         "code": "KHR",
                         "noun": "Cambodian riels",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1986,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1986,
@@ -2252,11 +2218,11 @@
                         "code": "KMF",
                         "noun": "Comorian francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2266,11 +2232,11 @@
                         "code": "KRW",
                         "noun": "South Korean won",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1987,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1987,
@@ -2284,7 +2250,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1995,
@@ -2298,7 +2264,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2013,
@@ -2308,11 +2274,11 @@
                         "code": "LAK",
                         "noun": "Lao kip",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2322,11 +2288,11 @@
                         "code": "LBP",
                         "noun": "Lebanese pounds",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2336,11 +2302,11 @@
                         "code": "LKR",
                         "noun": "Sri Lankan rupees",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2350,11 +2316,11 @@
                         "code": "LSL",
                         "noun": "Lesotho maloti",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2364,11 +2330,11 @@
                         "code": "LYD",
                         "noun": "Libyan dinars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2378,11 +2344,11 @@
                         "code": "MAD",
                         "noun": "Moroccan dirhams",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2392,11 +2358,11 @@
                         "code": "MDL",
                         "noun": "Moldovan lei",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -2406,11 +2372,11 @@
                         "code": "MGA",
                         "noun": "Malagasy ariary",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2420,11 +2386,11 @@
                         "code": "MKD",
                         "noun": "Macedonian denars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -2438,7 +2404,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1998,
@@ -2448,11 +2414,11 @@
                         "code": "MNT",
                         "noun": "Mongolian tugriks",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2466,7 +2432,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2001,
@@ -2476,11 +2442,11 @@
                         "code": "MRU",
                         "noun": "Mauritanian ouguiyas",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1990,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1990,
@@ -2490,11 +2456,11 @@
                         "code": "MUR",
                         "noun": "Mauritian rupees",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2504,11 +2470,11 @@
                         "code": "MVR",
                         "noun": "Maldivian rufiyaa",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2518,11 +2484,11 @@
                         "code": "MWK",
                         "noun": "Malawian kwachas",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2532,11 +2498,11 @@
                         "code": "MXN",
                         "noun": "Mexican pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2546,11 +2512,11 @@
                         "code": "MYR",
                         "noun": "Malaysian ringgits",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2560,11 +2526,11 @@
                         "code": "MZN",
                         "noun": "Mozambican meticais",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2574,11 +2540,11 @@
                         "code": "NAD",
                         "noun": "Namibian dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1989,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1989,
@@ -2588,11 +2554,11 @@
                         "code": "NGN",
                         "noun": "Nigerian naira",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1990,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1990,
@@ -2602,11 +2568,11 @@
                         "code": "NIO",
                         "noun": "Nicaraguan córdobas",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1987,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1987,
@@ -2616,11 +2582,11 @@
                         "code": "NOK",
                         "noun": "Norwegian kroner",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -2630,11 +2596,11 @@
                         "code": "NPR",
                         "noun": "Nepalese rupees",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2644,11 +2610,11 @@
                         "code": "NZD",
                         "noun": "New Zealand dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1961,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1961,
@@ -2658,11 +2624,11 @@
                         "code": "OMR",
                         "noun": "Omani rials",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2672,11 +2638,11 @@
                         "code": "PEN",
                         "noun": "Peruvian soles",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2686,11 +2652,11 @@
                         "code": "PGK",
                         "noun": "Papua New Guinean kina",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2700,11 +2666,11 @@
                         "code": "PHP",
                         "noun": "Philippine pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2714,11 +2680,11 @@
                         "code": "PKR",
                         "noun": "Pakistani rupees",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2732,7 +2698,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1998,
@@ -2742,11 +2708,11 @@
                         "code": "PYG",
                         "noun": "Paraguayan guaranís",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2756,11 +2722,11 @@
                         "code": "QAR",
                         "noun": "Qatari riyals",
                         "current_years": {
-                          "start_year": 2023,
-                          "end_year": 2023
+                          "start_year": 1985,
+                          "end_year": 1990
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2023,
@@ -2774,7 +2740,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2013,
@@ -2788,7 +2754,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1997,
@@ -2802,7 +2768,7 @@
                           "end_year": 2020
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2010,
@@ -2812,11 +2778,11 @@
                         "code": "RWF",
                         "noun": "Rwandan francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2830,7 +2796,7 @@
                           "end_year": 2023
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2000,
@@ -2840,11 +2806,11 @@
                         "code": "SBD",
                         "noun": "Solomon Islands dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2854,11 +2820,11 @@
                         "code": "SCR",
                         "noun": "Seychellois rupees",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2868,11 +2834,11 @@
                         "code": "SDG",
                         "noun": "Sudanese pounds",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2882,11 +2848,11 @@
                         "code": "SEK",
                         "noun": "Swedish kronor",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -2896,11 +2862,11 @@
                         "code": "SGD",
                         "noun": "Singapore dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2910,11 +2876,11 @@
                         "code": "SLE",
                         "noun": "Sierra Leonean leones",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2924,11 +2890,11 @@
                         "code": "SRD",
                         "noun": "Surinamese dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2942,7 +2908,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2011,
@@ -2952,11 +2918,11 @@
                         "code": "STN",
                         "noun": "São Tomé and Príncipe dobras",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2966,11 +2932,11 @@
                         "code": "SYP",
                         "noun": "Syrian pounds",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2010
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2980,11 +2946,11 @@
                         "code": "SZL",
                         "noun": "Swazi emalangeni",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -2998,7 +2964,7 @@
                           "end_year": 2016
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2018,
@@ -3008,11 +2974,11 @@
                         "code": "TJS",
                         "noun": "Tajikistani somonis",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -3022,11 +2988,11 @@
                         "code": "TMT",
                         "noun": "Turkmenistani manat",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -3036,11 +3002,11 @@
                         "code": "TND",
                         "noun": "Tunisian dinars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3050,11 +3016,11 @@
                         "code": "TOP",
                         "noun": "Tongan paʻanga",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3064,11 +3030,11 @@
                         "code": "TRY",
                         "noun": "Turkish lira",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1990,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1990,
@@ -3078,11 +3044,11 @@
                         "code": "TTD",
                         "noun": "Trinidad and Tobago dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3096,7 +3062,7 @@
                           "end_year": 2016
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2023,
@@ -3106,11 +3072,11 @@
                         "code": "TZS",
                         "noun": "Tanzanian shillings",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3120,11 +3086,11 @@
                         "code": "UAH",
                         "noun": "Ukrainian hryvnias",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1991,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1991,
@@ -3134,11 +3100,11 @@
                         "code": "UGX",
                         "noun": "Ugandan shillings",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3148,11 +3114,11 @@
                         "code": "USD",
                         "noun": "US dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1960,
@@ -3162,11 +3128,11 @@
                         "code": "UYU",
                         "noun": "Uruguayan pesos",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3176,11 +3142,11 @@
                         "code": "UZS",
                         "noun": "Uzbekistani soms",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1992,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1992,
@@ -3194,7 +3160,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2017,
@@ -3204,11 +3170,11 @@
                         "code": "VND",
                         "noun": "Vietnamese dong",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3218,11 +3184,11 @@
                         "code": "VUV",
                         "noun": "Vanuatu vatu",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3232,11 +3198,11 @@
                         "code": "WST",
                         "noun": "Samoan tala",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3246,11 +3212,11 @@
                         "code": "XAF",
                         "noun": "Central African CFA francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3260,11 +3226,11 @@
                         "code": "XCD",
                         "noun": "East Caribbean dollars",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3274,11 +3240,11 @@
                         "code": "XOF",
                         "noun": "West African CFA francs",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3292,7 +3258,7 @@
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 2014,
@@ -3302,11 +3268,11 @@
                         "code": "ZAR",
                         "noun": "South African rand",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3316,11 +3282,11 @@
                         "code": "ZMW",
                         "noun": "Zambian kwachas",
                         "current_years": {
-                          "start_year": 1995,
+                          "start_year": 1980,
                           "end_year": 2024
                         },
                         "constant_years": {
-                          "start_year": 1995,
+                          "start_year": 1960,
                           "end_year": 2024
                         },
                         "base_year_min": 1980,
@@ -3329,15 +3295,24 @@
                     ],
                     "default_base_year": 2024,
                     "role_currencies": {
-                      "destination": "NGN",
+                      "destination": "CDF",
                       "origin": "EUR"
                     }
-                  }
+                  },
+                  "equivalent_readings": [
+                    {
+                      "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
+                      "definition": {
+                        "schema_version": 1,
+                        "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3"
+                      }
+                    }
+                  ]
                 }
               }
             }
           ],
-          "rendered_sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+          "rendered_sentence": "Germany's gross disbursements to Democratic Republic of the Congo for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -3371,13 +3346,11 @@
             },
             {
               "kind": "slot",
-              "text": "gross ODA disbursements",
+              "text": "gross disbursements",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
               "states": [
-                "how:crsTypeOfFinance",
-                "how:crsTypeOfFlow",
                 "how:financialFlowType",
                 "how:nettingBasis",
                 "axis:populationType",
@@ -3395,13 +3368,13 @@
             },
             {
               "kind": "slot",
-              "text": "Nigeria",
+              "text": "Democratic Republic of the Congo",
               "axis": "where",
               "segment": "heading",
               "role": "destination",
               "binding_ref": "where:",
               "entity_refs": [
-                "country/NGA"
+                "country/COD"
               ],
               "states": [
                 "where:"
@@ -3418,14 +3391,14 @@
             },
             {
               "kind": "slot",
-              "text": "basic health care",
+              "text": "official development assistance",
               "axis": "how",
               "segment": "heading",
-              "property_dcid": "crsPurpose",
-              "binding_ref": "how:crsPurpose",
+              "property_dcid": "dac2aAidType",
+              "binding_ref": "how:dac2aAidType",
               "entity_refs": [],
               "states": [
-                "how:crsPurpose"
+                "how:dac2aAidType"
               ],
               "part_index": 0
             },
@@ -3434,30 +3407,8 @@
               "text": "",
               "axis": "how",
               "segment": "heading",
-              "property_dcid": "crsCooperationModality",
-              "binding_ref": "how:crsCooperationModality",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "slot",
-              "text": "",
-              "axis": "how",
-              "segment": "heading",
-              "property_dcid": "crsTypeOfFinance",
-              "binding_ref": "how:crsTypeOfFinance",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "slot",
-              "text": "",
-              "axis": "how",
-              "segment": "heading",
-              "property_dcid": "crsTypeOfFlow",
-              "binding_ref": "how:crsTypeOfFlow",
+              "property_dcid": "dacTypeOfFinance",
+              "binding_ref": "how:dacTypeOfFinance",
               "entity_refs": [],
               "states": [],
               "part_index": 0
@@ -3493,7 +3444,7 @@
             },
             {
               "kind": "slot",
-              "text": "1995 to 2024",
+              "text": "1960 to 2024",
               "axis": "when",
               "segment": "heading",
               "binding_ref": "when:",
@@ -3537,7 +3488,7 @@
             },
             {
               "kind": "slot",
-              "text": "OECD Creditor Reporting System (CRS)",
+              "text": "OECD DAC2a",
               "axis": "source",
               "segment": "byline",
               "entity_refs": [],
@@ -3556,862 +3507,35 @@
           "status": "definite"
         }
       }
-    },
-    {
-      "request": {
-        "method": "POST",
-        "path": "/datasets",
-        "json": {
-          "schema_version": 1,
-          "input": {
-            "kind": "spec_id",
-            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
-            "definition": {
-              "schema_version": 1,
-              "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
-              "identity": {
-                "identity_version": "spec1",
-                "shape": {
-                  "kind": "statvar_schema",
-                  "population_type": "FinancialFlow",
-                  "measured_property": "amount",
-                  "stat_type": "measuredValue",
-                  "measurement_qualifier": "Nominal"
-                },
-                "slots": [
-                  {
-                    "property": "crsCooperationModality",
-                    "binding": {
-                      "state": "unbound"
-                    }
-                  },
-                  {
-                    "property": "crsPurpose",
-                    "binding": {
-                      "state": "value",
-                      "ref": "CRSPurposeCode12220"
-                    }
-                  },
-                  {
-                    "property": "crsTypeOfFinance",
-                    "binding": {
-                      "state": "unbound"
-                    }
-                  },
-                  {
-                    "property": "crsTypeOfFlow",
-                    "binding": {
-                      "state": "value",
-                      "ref": "CRSTypeOfFlow10"
-                    }
-                  },
-                  {
-                    "property": "financialFlowType",
-                    "binding": {
-                      "state": "value",
-                      "ref": "Disbursement"
-                    }
-                  },
-                  {
-                    "property": "nettingBasis",
-                    "binding": {
-                      "state": "value",
-                      "ref": "Gross"
-                    }
-                  }
-                ],
-                "entities": {
-                  "destination": [
-                    "country/NGA"
-                  ],
-                  "origin": [
-                    "country/DEU"
-                  ]
-                },
-                "requested_window": {
-                  "kind": "all"
-                }
-              }
-            }
-          },
-          "options": {
-            "format": "parquet",
-            "bundle": false
-          }
-        }
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "content-type": "application/json"
-        },
-        "json": {
-          "schema_version": 1,
-          "definition": {
-            "schema_version": 1,
-            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
-            "identity": {
-              "shape": {
-                "kind": "statvar_schema",
-                "stat_type": "measuredValue",
-                "population_type": "FinancialFlow",
-                "measured_property": "amount",
-                "measurement_qualifier": "Nominal"
-              },
-              "slots": [
-                {
-                  "binding": {
-                    "state": "unbound"
-                  },
-                  "property": "crsCooperationModality"
-                },
-                {
-                  "binding": {
-                    "ref": "CRSPurposeCode12220",
-                    "state": "value"
-                  },
-                  "property": "crsPurpose"
-                },
-                {
-                  "binding": {
-                    "state": "unbound"
-                  },
-                  "property": "crsTypeOfFinance"
-                },
-                {
-                  "binding": {
-                    "ref": "CRSTypeOfFlow10",
-                    "state": "value"
-                  },
-                  "property": "crsTypeOfFlow"
-                },
-                {
-                  "binding": {
-                    "ref": "Disbursement",
-                    "state": "value"
-                  },
-                  "property": "financialFlowType"
-                },
-                {
-                  "binding": {
-                    "ref": "Gross",
-                    "state": "value"
-                  },
-                  "property": "nettingBasis"
-                }
-              ],
-              "entities": {
-                "origin": [
-                  "country/DEU"
-                ],
-                "destination": [
-                  "country/NGA"
-                ]
-              },
-              "identity_version": "spec1",
-              "requested_window": {
-                "kind": "all"
-              }
-            }
-          },
-          "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
-          "prepared_at": "2026-10-21T08:57:19Z",
-          "coverage": {
-            "rows": 30,
-            "dimensions": [
-              {
-                "label": "financingProvider",
-                "count": 1,
-                "axis": "origin",
-                "noun": {
-                  "singular": "provider",
-                  "plural": "providers"
-                }
-              },
-              {
-                "label": "financingRecipient",
-                "count": 1,
-                "axis": "destination",
-                "noun": {
-                  "singular": "recipient",
-                  "plural": "recipients"
-                }
-              },
-              {
-                "label": "years",
-                "count": 27
-              }
-            ],
-            "window": {
-              "kind": "all",
-              "start_year": 1995,
-              "end_year": 2024,
-              "origin": "default"
-            }
-          },
-          "citation": {
-            "text": "OECD Creditor Reporting System (CRS) (2026), via the Development Finance Observatory",
-            "sources": [
-              {
-                "ref": "provenance/OECDCreditorReportingSystem",
-                "label": "OECD Creditor Reporting System (CRS)",
-                "license": "OECD Terms and Conditions",
-                "license_type": "OECDTermsAndConditions",
-                "license_url": "https://www.oecd.org/en/about/terms-conditions.html",
-                "url": "https://data-explorer.oecd.org/vis?tm=crs&pg=0&snb=30&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_CRS%40DF_CRS&df[ag]=OECD.DCD.FSD&df[vs]=1.6&isAvailabilityDisabled=false&page=0",
-                "source": {
-                  "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
-                  "label": "Organisation for Economic Co-operation and Development (OECD)"
-                },
-                "data_commons": {
-                  "id": "dfo",
-                  "label": "Development Finance Observatory"
-                },
-                "documentation": {
-                  "publisher": "Organisation for Economic Co-operation and Development (OECD)",
-                  "description": "The Creditor Reporting System (CRS) is the OECD Development Assistance Committee's activity-level database of development finance. Each record is a project, programme or contribution reported by a bilateral provider, a multilateral organisation or a private foundation, with its recipient, sector and purpose, channel of delivery, aid type, and commitment and disbursement amounts. It covers ODA, other official flows, private sector instruments and private philanthropy, and is the source for any breakdown by sector, channel or project.",
-                  "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet",
-                  "attribution": "OECD (2026), Creditor Reporting System (CRS), OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet (accessed on 2026-10-15)",
-                  "update_cadence": "Quarterly",
-                  "last_update": "2026-10-15",
-                  "years_covered": "1973-2024",
-                  "granularity": "Annual, by provider and recipient",
-                  "currencies": [
-                    "USD"
-                  ],
-                  "transformation_log": [
-                    {
-                      "transformation": "Download the source data",
-                      "description": "The complete CRS file is downloaded from the OECD each time the pipeline runs, and replaces the previous copy, so the data reflects the OECD's latest release."
-                    },
-                    {
-                      "transformation": "Exclude the partial preliminary year",
-                      "description": "Before each full release, the OECD publishes preliminary data for the year that release covers, as reporters submit it. Until then, that year is partial, so the pipeline excludes it. Support for partial years is in development. Partial years will be marked incomplete, so they don't lead to incorrect or confusing analyses."
-                    },
-                    {
-                      "transformation": "Exclude donor core contributions to multilaterals",
-                      "description": "The OECD instructs that donor core contributions to multilateral organisations, reported as ordinary CRS rows flagged `bi_multi = 2`, are excluded to compute bilateral flows. These contributions are already reported in Members' Total Use of the Multilateral System, so keeping them would double count."
-                    },
-                    {
-                      "transformation": "Standardise providers and recipients",
-                      "description": "Provider and recipient codes are standardised to Data Commons IDs used across the platform, so data can be compared across datasets."
-                    },
-                    {
-                      "transformation": "Select dimensions",
-                      "description": "Every figure is reported against the year, the provider and the recipient, and four dimensions from the CRS: type of flow, co-operation modality, type of finance and purpose code. The CRS describes each activity in far more detail than this, including project titles, descriptions, channels and policy markers, none of which is carried through."
-                    },
-                    {
-                      "transformation": "Aggregate totals",
-                      "description": "Activities sharing the same year, provider, recipient and dimensions are summed. Commitments, disbursements, net disbursements and grant equivalents are each aggregated as separate measures. Every figure is reported in US dollars at current prices."
-                    }
-                  ],
-                  "version_history": [
-                    {
-                      "date": "2026-10-15",
-                      "title": "Partial preliminary year excluded",
-                      "changes": [
-                        {
-                          "kind": "changed",
-                          "note": "The partial preliminary year published ahead of the next full release is excluded."
-                        }
-                      ]
-                    },
-                    {
-                      "date": "2026-10-14",
-                      "title": "First release",
-                      "changes": [
-                        {
-                          "kind": "added",
-                          "note": "Commitments, gross and net disbursements, and grant equivalents by donor, recipient, flow type, finance type, modality and purpose, at current US dollar prices. Covers ODA, other official flows, private development finance and private sector instruments."
-                        }
-                      ]
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          "trace": {
-            "applied_window": {
-              "kind": "all",
-              "start_year": 1995,
-              "end_year": 2024,
-              "origin": "default"
-            },
-            "graph_revision": null,
-            "code_index_stamp": {
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
-              "exported_at": "2026-10-20T19:50:14Z",
-              "graph_endpoint": "graph_release"
-            },
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
-            "source_revisions": [
-              {
-                "source": "provenance/OECDCreditorReportingSystem",
-                "revision": "2026-10-15"
-              }
-            ],
-            "resolved_stat_vars": [
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 6
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB031_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB032_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB033_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB03_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 1
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB04_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 7
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityD01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityD02_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 1
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityE01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityE02_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityG01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 15
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance210_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSCooperationModalityA01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance510_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              },
-              {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance520_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
-                "roles": [
-                  "financingProvider",
-                  "financingRecipient"
-                ],
-                "observation_count": 0
-              }
-            ],
-            "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
-            "family_member_count": 21,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/OECDCreditorReportingSystem",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868"
-              }
-            ],
-            "normalisations": [],
-            "frame_grammar_version": "1.1.0",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "served_from": "materialise",
-            "confirmed_at": "2026-10-21T08:57:19.628756+00:00"
-          },
-          "warnings": [],
-          "diagnostics": [
-            {
-              "code": "processing_level_undeclared",
-              "severity": "info",
-              "message": "A source StatVar lacks a processing-level declaration; the citation credits the source and omits the processing qualifier."
-            }
-          ],
-          "artifacts": [
-            {
-              "artifact_digest": "sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde",
-              "rendering": {
-                "bundle": false,
-                "format": "parquet",
-                "layout": 3
-              },
-              "bytes": 9785,
-              "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T08:57:19.589654+00:00",
-              "tier": "working",
-              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde"
-            },
-            {
-              "artifact_digest": "sha256:07984a96eaf8ee637fe15bf13f2b0d9160a6378d3fa1efae2e71cf0e20115dff",
-              "rendering": {
-                "statistics": "series"
-              },
-              "bytes": 5981,
-              "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T08:57:19.589654+00:00",
-              "tier": "working",
-              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:07984a96eaf8ee637fe15bf13f2b0d9160a6378d3fa1efae2e71cf0e20115dff"
-            }
-          ],
-          "series_count": 5,
-          "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "columns": [
-              {
-                "name": "stat_var",
-                "kind": "grain",
-                "droppable": false,
-                "distinct": 5
-              },
-              {
-                "name": "financingProvider",
-                "kind": "role",
-                "droppable": false,
-                "distinct": 1
-              },
-              {
-                "name": "financingRecipient",
-                "kind": "role",
-                "droppable": false,
-                "distinct": 1
-              },
-              {
-                "name": "time_period",
-                "kind": "grain",
-                "droppable": false,
-                "distinct": 27
-              },
-              {
-                "name": "value",
-                "kind": "value",
-                "droppable": true
-              },
-              {
-                "name": "unit",
-                "kind": "unit",
-                "droppable": false,
-                "distinct": 1
-              },
-              {
-                "name": "measurementMethod",
-                "kind": "facet",
-                "droppable": true,
-                "distinct": 1
-              },
-              {
-                "name": "provenance",
-                "kind": "facet",
-                "droppable": false,
-                "distinct": 1
-              },
-              {
-                "name": "status",
-                "kind": "status",
-                "droppable": true
-              }
-            ],
-            "formats": [
-              {
-                "name": "csv",
-                "state": "available"
-              },
-              {
-                "name": "xlsx",
-                "state": "available"
-              },
-              {
-                "name": "parquet",
-                "state": "available"
-              }
-            ],
-            "bundle": {
-              "state": "available"
-            },
-            "enrichments": [
-              {
-                "column": "financingProvider",
-                "field": "iso3",
-                "token": "financingProvider_iso3",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingProvider",
-                "field": "iso2",
-                "token": "financingProvider_iso2",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingProvider",
-                "field": "label",
-                "token": "financingProvider_label",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingProvider",
-                "field": "type",
-                "token": "financingProvider_type",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingProvider",
-                "field": "party_kind",
-                "token": "financingProvider_party_kind",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingRecipient",
-                "field": "iso3",
-                "token": "financingRecipient_iso3",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingRecipient",
-                "field": "iso2",
-                "token": "financingRecipient_iso2",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingRecipient",
-                "field": "label",
-                "token": "financingRecipient_label",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingRecipient",
-                "field": "type",
-                "token": "financingRecipient_type",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              },
-              {
-                "column": "financingRecipient",
-                "field": "party_kind",
-                "token": "financingRecipient_party_kind",
-                "state": "available",
-                "coverage": {
-                  "entities": 1,
-                  "covered": 1
-                },
-                "missing": [],
-                "truncated": false
-              }
-            ],
-            "long_layout_defaults": [
-              "financingProvider_label",
-              "financingProvider_party_kind",
-              "financingRecipient_label",
-              "financingRecipient_party_kind"
-            ],
-            "long_layout_totals": [],
-            "pivots": [
-              {
-                "index": "stat_var",
-                "columns": "time_period",
-                "state": "available",
-                "width": 28,
-                "cells": 140
-              },
-              {
-                "index": "time_period",
-                "columns": "stat_var",
-                "state": "available",
-                "width": 6,
-                "cells": 162
-              }
-            ],
-            "groupby": {
-              "state": "available",
-              "axes": [
-                {
-                  "name": "crsCooperationModality"
-                },
-                {
-                  "name": "crsPurpose"
-                },
-                {
-                  "name": "crsTypeOfFinance"
-                },
-                {
-                  "name": "crsTypeOfFlow"
-                }
-              ]
-            }
-          },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
-          "retention": {
-            "pinned": false,
-            "held_until": "2026-11-20T08:57:19.589587Z"
-          }
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "origin_path": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde"
-      },
-      "response": {
-        "status": 302,
-        "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3A598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde?X-Goog-Signature=redacted"
-        }
-      }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "url": "https://storage.googleapis.com/e2e-working/sha256%3A598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde?X-Goog-Signature=redacted"
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "content-type": "application/vnd.apache.parquet"
-        },
-        "body_file": "answer-definite-fetch.parquet"
-      }
     }
   ],
   "expect": [
     {
       "answer": {
         "kind": "resolution",
-        "status": "definite",
-        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
-        "complete": true,
-        "specs": [
-          "spec_774d6c001a6250aa67ca676ab067895e"
-        ],
-        "gaps": []
+        "status": "no_data",
+        "sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+        "complete": false,
+        "specs": [],
+        "gaps": [
+          {
+            "part": 0,
+            "kind": "choice",
+            "options": 2
+          }
+        ]
       }
     },
     {
-      "dataset": {
-        "rows": 30,
-        "columns": [
-          "stat_var",
-          "financingProvider",
-          "financingProvider_label",
-          "financingProvider_party_kind",
-          "financingRecipient",
-          "financingRecipient_label",
-          "financingRecipient_party_kind",
-          "crsCooperationModality",
-          "crsCooperationModality_label",
-          "crsPurpose",
-          "crsPurpose_label",
-          "crsTypeOfFinance",
-          "crsTypeOfFinance_label",
-          "crsTypeOfFlow",
-          "crsTypeOfFlow_label",
-          "time_period",
-          "value",
-          "unit",
-          "unit_label",
-          "currency",
-          "price_basis",
-          "base_year",
-          "measurementMethod",
-          "measurementMethod_label",
-          "provenance",
-          "provenance_label"
-        ],
+      "answer": {
+        "kind": "resolution",
+        "status": "definite",
+        "sentence": "Germany's gross disbursements to Democratic Republic of the Congo for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
         "complete": true,
-        "members": [
-          {
-            "parts": [
-              "basic health care ODA disbursements"
-            ],
-            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
-            "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
-            "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS)."
-          }
+        "specs": [
+          "spec_53b1ed52ebddd28ce274d419b53037c3"
         ],
-        "missing": [],
-        "search_warning": false
+        "gaps": []
       }
     }
   ]

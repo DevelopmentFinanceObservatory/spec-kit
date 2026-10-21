@@ -55,7 +55,8 @@ document validates against its schema, then what the schemas cannot express:
   exchanges, with refusals' error classes and gap kinds from `actions.json`
   and the class of each error the client raises itself from
   `client-codes.json`, as `expected_outcomes` derives them, the waits
-  before each poll included; a dataset's rows, columns and per-part row
+  before each poll included, under the record's base URL and again under
+  REPLAY_ORIGIN with the recorded origin a response names moved there; a dataset's rows, columns and per-part row
   counts are left to the Parquet bodies, and each download hashes to its
   artifact's digest or the outcome says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
@@ -93,6 +94,7 @@ import re
 import sys
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
+from functools import partial
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -857,11 +859,12 @@ POLL_BACKOFF_CAP = 8.0
 
 @dataclass
 class PollPacing:
-    """The wait before each poll of one long build: the `Retry-After` of a 429
-    that refused the last poll, else the last operation resource's
-    `retry_after_ms`, else the `Retry-After` of the response that carried that
-    resource, else a backoff that doubles from 1 to 8 seconds and advances
-    only when it is used."""
+    """The wait before each poll of one long build: the `Retry-After` of the
+    refusal that answered the last poll, whatever its status, else the last
+    operation resource's `retry_after_ms`, else the `Retry-After` of the
+    response that carried that resource, else a backoff that doubles from 1
+    to 8 seconds and advances one step each time it is used, a poll after a
+    refusal included."""
 
     paced: float | None = None
     header: float | None = None
@@ -875,8 +878,8 @@ class PollPacing:
         self.paced = ms / 1000 if number and ms >= 0 else None
         self.header = retry_after(headers)
 
-    def rate_limited(self, headers: Mapping[str, str]) -> None:
-        """A 429 refused the last poll; it spends no retry."""
+    def refused_poll(self, headers: Mapping[str, str]) -> None:
+        """A refusal the client polls past answered the last poll."""
         self.refused = retry_after(headers)
 
     def next_wait(self) -> float:
@@ -908,14 +911,22 @@ WARNING_CLASSES = ("SearchWarning", "DataWarning")
 VERSION_UNAVAILABLE = "VersionUnavailableError"
 
 
+class _Unset:
+    """The type of UNSET."""
+
+
+# The trace id of an error raised without one, which `read_from` settles.
+UNSET = _Unset()
+
+
 class ClientError(Exception):
     """A step ends in an error a client raises. A refusal names its class,
     the server's code and its trace id, a SearchWarning or DataWarning names
     the server's warning, departure or operation code, and any other error
     names a code from `client-codes.json`, whose row gives its class. A
     VersionUnavailableError also names the newest version, or None, and the
-    trace id of the refusal that gave its code. `traced` says the trace id is
-    settled; an error raised without one takes it as `read_from` gives."""
+    trace id of the refusal that gave its code. An error raised with no
+    `trace_id` holds UNSET and takes its id as `read_from` gives."""
 
     def __init__(
         self,
@@ -923,15 +934,13 @@ class ClientError(Exception):
         *,
         error: str | None = None,
         newest_version: str | None = None,
-        trace_id: str | None = None,
-        traced: bool = False,
+        trace_id: str | None | _Unset = UNSET,
     ) -> None:
         super().__init__(f"{error or 'client'} {code}")
         self.code = code
         self.error = error
         self.newest_version = newest_version
         self.trace_id = trace_id
-        self.traced = traced or trace_id is not None
 
     def error_class(self, client_codes: Mapping[str, Mapping[str, Any]]) -> str:
         """The error class: the one it names, else its client code's.
@@ -956,22 +965,25 @@ class ClientError(Exception):
             ValueError: The code is not a client code of one class.
         """
         error = self.error_class(client_codes)
+        trace = None if isinstance(self.trace_id, _Unset) else self.trace_id
         if error == VERSION_UNAVAILABLE:
             return error_outcome(
                 error,
                 self.code,
-                trace_id=self.trace_id,
+                trace_id=trace,
                 newest_version=self.newest_version,
             )
-        return error_outcome(error, self.code, trace_id=self.trace_id)
+        return error_outcome(error, self.code, trace_id=trace)
 
 
 TRACE_HEADER = "x-dfo-trace-id"
 
 
 def trace_id(body: Any, headers: Mapping[str, str] | None) -> str | None:
-    """A refusal's trace id: its body's `trace_id`, else its TRACE_HEADER
-    header, else None."""
+    """A response's trace id: the top-level `trace_id` of `body` when it is
+    an object holding one, a problem document or any other body, else its
+    TRACE_HEADER header, else None. A Search answer's `diagnostics.trace_id`
+    is not read."""
     found = body.get("trace_id") if isinstance(body, dict) else None
     if isinstance(found, str) and found:
         return found
@@ -994,7 +1006,6 @@ def refusal_error(
         code or REFUSAL_WITHOUT_CODE,
         error=error_class(status, code, actions),
         trace_id=trace_id(body, headers),
-        traced=True,
     )
 
 
@@ -1014,12 +1025,11 @@ RESPONSE_ERRORS = frozenset(
 def read_from(error: ClientError, trace: str | None) -> ClientError:
     """`error`, raised on the API response whose trace id is `trace`: an
     error that describes a response, a RESPONSE_ERRORS code, SearchWarning
-    or DataWarning, takes `trace` unless it is traced already; an error that
+    or DataWarning, takes `trace` unless its trace id is settled; an error that
     describes the caller's input, or a storage-host fetch, keeps null."""
-    reads = error.code in RESPONSE_ERRORS or error.error in WARNING_CLASSES
-    if not error.traced and reads:
-        error.trace_id = trace
-    error.traced = True
+    if isinstance(error.trace_id, _Unset):
+        reads = error.code in RESPONSE_ERRORS or error.error in WARNING_CLASSES
+        error.trace_id = trace if reads else None
     return error
 
 
@@ -1273,6 +1283,13 @@ def _identity(spec: dict[str, Any], assumptions: Any = None) -> dict[str, Any]:
     return item
 
 
+def listed(holder: Mapping[str, Any], name: str) -> list[Any]:
+    """A member a client reads as a list, and that no strict pointer names:
+    a member of another type reads as absent, as an empty list."""
+    value = holder.get(name)
+    return value if isinstance(value, list) else []
+
+
 def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
     """An entry with the members every entry but a parsed one echoes from its
     part: variable_text, separate when true, and operations when any."""
@@ -1281,8 +1298,8 @@ def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
     entry: dict[str, Any] = {**members, "variable_text": part["variable_text"]}
     if part.get("separate") is True:
         entry["separate"] = True
-    if part.get("operations"):
-        entry["operations"] = part["operations"]
+    if operations := listed(part, "operations"):
+        entry["operations"] = operations
     return entry
 
 
@@ -1294,21 +1311,21 @@ def reading_hints(answer: Answer) -> dict[str, str]:
     warnings follow. An `info` warning gives nothing."""
     hints: dict[str, str] = {}
 
-    def notices(warnings: Any) -> None:
-        for warning in warnings or []:
+    def notices(warnings: list[Any]) -> None:
+        for warning in warnings:
             if warning.get("severity") in SHOWN_SEVERITIES and warning.get("message"):
                 hints.setdefault(f"Note: {warning['message']}", warning["code"])
 
     for part in answer.parts:
         if part.get("status") != "definite":
             continue
-        for operation in part.get("operations") or []:
+        for operation in listed(part, "operations"):
             line = f"Not done: {operation['verb']} ({json.dumps(operation['phrase'])})"
             hints.setdefault(line, operation["verb"])
-        for departure in part.get("departures") or []:
+        for departure in listed(part, "departures"):
             hints.setdefault(departure["text"], departure["code"])
-        notices(part.get("warnings"))
-    notices(answer.body.get("diagnostics", {}).get("warnings"))
+        notices(listed(part, "warnings"))
+    notices(listed(answer.body.get("diagnostics", {}), "warnings"))
     return hints
 
 
@@ -1440,6 +1457,42 @@ def _strict_members(strict: dict[str, Any]) -> dict[str, list[str]]:
     return members
 
 
+def json_type(value: Any) -> str:
+    """The JSON type of a parsed value, an integer's as `integer`."""
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, int):
+        return "integer"
+    for kind, name in ((dict, "object"), (list, "array"), (str, "string")):
+        if isinstance(value, kind):
+            return name
+    return "number" if isinstance(value, float) else "null"
+
+
+def schema_types(openapi: dict[str, Any], schema: Any) -> set[str] | None:
+    """The JSON types `schema` admits, through `$ref`, `anyOf`, `oneOf` and
+    `allOf`, with `number` admitting an integer; None when it names none."""
+    if not isinstance(schema, dict):
+        return None
+    ref = schema.get("$ref")
+    if isinstance(ref, str) and ref.startswith("#/"):
+        return schema_types(openapi, _resolve(openapi, ref[1:]))
+    if "type" in schema:
+        named = schema["type"]
+        types = set(named) if isinstance(named, list) else {named}
+        return types | {"integer"} if "number" in types else types
+    for keyword in ("anyOf", "oneOf"):
+        if keyword in schema:
+            branches = [schema_types(openapi, b) for b in schema[keyword]]
+            if any(b is None for b in branches):
+                return None
+            return set().union(*(b for b in branches if b is not None))
+    for branch in schema.get("allOf", []):
+        if (types := schema_types(openapi, branch)) is not None:
+            return types
+    return {"object"} if "properties" in schema else None
+
+
 def strict_gaps(
     openapi: dict[str, Any],
     members: Mapping[str, Sequence[str]],
@@ -1448,8 +1501,9 @@ def strict_gaps(
     where: str = "",
     component: str | None = None,
 ) -> list[str]:
-    """The strict members `body` lacks or holds as null, read through
-    `schema`: each component schema it reaches names its own, and a
+    """The strict members `body` lacks, holds as null, or holds as a JSON
+    type their schema does not admit, read through `schema`: each component
+    schema it reaches names its own, and a
     discriminated union whose discriminator `body` lacks is a gap. The walk
     goes down only through strict members, the ones a client reads, so a
     member no client reads, such as a spec's `resolved.equivalent_readings`,
@@ -1492,10 +1546,15 @@ def strict_gaps(
     if isinstance(body, dict):
         read = members.get(component, ()) if component is not None else ()
         for name, member in schema.get("properties", {}).items():
-            if name in body and name in read:
-                gaps.extend(
-                    strict_gaps(openapi, members, member, body[name], f"{where}/{name}")
-                )
+            if name not in body or name not in read or body[name] is None:
+                continue
+            types = schema_types(openapi, member)
+            if types is not None and json_type(body[name]) not in types:
+                gaps.append(f"{where}/{name}")
+                continue
+            gaps.extend(
+                strict_gaps(openapi, members, member, body[name], f"{where}/{name}")
+            )
     if isinstance(body, list) and "items" in schema:
         for index, item in enumerate(body):
             gaps.extend(
@@ -1647,6 +1706,17 @@ def selector_path(
 # client fetches from, and the query every signed URL in a record carries.
 STORAGE_ORIGIN = "https://storage.googleapis.com"
 REDACTED_QUERY = "X-Goog-Signature=redacted"
+# The successes a files route answers with the file's `location`; any other
+# 2xx raises ContractError `unexpected_response`. A signed fetch that answers
+# other than SIGNED_FETCH_STATUS is a failed fetch.
+FILES_ROUTE_STATUSES = frozenset({200, 302})
+SIGNED_FETCH_STATUS = 200
+
+
+def files_route_unexpected(status: int) -> bool:
+    """Whether a files route's answer is a 2xx other than those of
+    FILES_ROUTE_STATUSES, which raises ContractError `unexpected_response`."""
+    return 200 <= status < 300 and status not in FILES_ROUTE_STATUSES
 
 
 def download_target(base_url: str, route_url: str, location: str) -> tuple[str, str]:
@@ -1754,7 +1824,6 @@ def failed_operation(
             OPERATION_FAILED,
             error=error_class(500, OPERATION_FAILED, actions),
             trace_id=trace_id(None, headers),
-            traced=True,
         )
         return error, retryable(500, None)
     status = problem.get("status")
@@ -1767,7 +1836,7 @@ class LongBuild:
     """A build the server runs on, followed the way a client polls it. Each
     wait before a poll is `PollPacing`'s. A 429 poll spends no retry, any
     other retryable refused poll one of MAX_RETRIES, and any other refused
-    poll raises. A poll answering a failed operation, retryable by its
+    poll raises; the poll after a refusal waits as `PollPacing` gives. A poll answering a failed operation, retryable by its
     error, posts the build again once when the client holds its request;
     otherwise, and for an operation that failed before the client polled
     it, the operation's error raises. `entry` is the build's `long_builds`
@@ -1826,12 +1895,11 @@ class LongBuild:
             error = refusal_error(status, body, self.actions, headers)
             again = retryable(status, body)
             if error.code != OPERATION_FAILED:
-                if status == 429:
-                    self.pacing.rate_limited(headers)
-                elif again and self.retries < MAX_RETRIES:
+                if status != 429:
+                    if not again or self.retries >= MAX_RETRIES:
+                        raise error
                     self.retries += 1
-                else:
-                    raise error
+                self.pacing.refused_poll(headers)
                 return False
         if not again or self.request is None or self.entry["resubmissions"]:
             raise error
@@ -1999,10 +2067,12 @@ class _Replay:
     def download(self, target: str, digest: str, *, origin: bool) -> None:
         """A file through the route that redirects to its signed URL: an
         `origin_path`, as `artifact_route` places an artifact's `url`, when
-        `origin`, else a path under the base URL. The client fetches once the URL the route's `location`
-        names, as `download_target` places it. A refused fetch, or bytes that
-        do not hash to `digest`, ask the route once more, and a second
-        failure raises."""
+        `origin`, else a path under the base URL. A route answering a 2xx
+        other than 200 or 302 raises ContractError `unexpected_response`.
+        The client fetches once the URL the route's `location` names, as
+        `download_target` places it. A fetch answering other than 200, or
+        bytes that do not hash to `digest`, ask the route once more, and a
+        second failure raises."""
         failure = ClientError("download_failed")
         base = urlsplit(self.base_url)
         route_url = (
@@ -2014,12 +2084,14 @@ class _Replay:
             kind = "origin_path" if origin else "path"
             exchange = self.call("GET", target, kind=kind)
             self.acted_on(exchange)
+            if files_route_unexpected(exchange["response"]["status"]):
+                raise ClientError("unexpected_response")
             location = exchange["response"].get("headers", {}).get("location")
             if not isinstance(location, str):
                 raise _UnfitError(f"the redirect from {target} names no location")
             fetched, at = download_target(self.base_url, route_url, location)
             signed = self.call("GET", at, kind=fetched, retries=False)["response"]
-            if signed["status"] >= 400:
+            if signed["status"] != SIGNED_FETCH_STATUS:
                 failure = ClientError("download_failed")
                 continue
             if digest_of(self.body(signed)) == digest:
@@ -2207,7 +2279,6 @@ class _Replay:
             error=VERSION_UNAVAILABLE,
             newest_version=newest,
             trace_id=refusal.trace_id if refusal is not None else None,
-            traced=True,
         )
 
     def stored_file(
@@ -2454,6 +2525,39 @@ def expected_outcomes(
     return outcomes
 
 
+# The origin of the second base URL the validator replays each scenario
+# under, on a host no record names.
+REPLAY_ORIGIN = "https://replay.example.org"
+
+
+def origin_of(url: str) -> str:
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}"
+
+
+def relocated(
+    exchanges: Sequence[Mapping[str, Any]], recorded: str, origin: str
+) -> list[dict[str, Any]]:
+    """`exchanges` as a replay under a base URL on `origin` serves them: the
+    `recorded` origin, the one the record's `origin.base_url` names, becomes
+    `origin` wherever a response names it, in its JSON body and its
+    headers."""
+
+    def moved(value: Any) -> Any:
+        if isinstance(value, str):
+            return value.replace(recorded, origin)
+        if isinstance(value, list):
+            return [moved(item) for item in value]
+        if isinstance(value, dict):
+            return {key: moved(item) for key, item in value.items()}
+        return value
+
+    return [
+        {"request": exchange["request"], "response": moved(exchange["response"])}
+        for exchange in exchanges
+    ]
+
+
 def owns_body_file(name: str, body_file: str) -> bool:
     """Whether `body_file` is one the scenario `name` writes: `<name>.<ext>`,
     or `<name>-<n>.<ext>` for its n-th body."""
@@ -2694,20 +2798,33 @@ def _check_scenarios(
                     proxy_codes,
                 )
             )
+        replay = partial(
+            expected_outcomes,
+            routes=routes,
+            strict=strict,
+            actions=actions,
+            client_codes=client_codes,
+            body_dir=directory,
+        )
         try:
-            derived = expected_outcomes(
-                record,
-                routes=routes,
-                base_url=base_url,
-                strict=strict,
-                actions=actions,
-                client_codes=client_codes,
-                body_dir=directory,
-            )
+            derived = replay(record, base_url=base_url)
         except ValueError as exc:
             problems.append(f"scenarios/{file_name}: {exc}")
             continue
         problems.extend(_check_expect(file_name, record, derived))
+        elsewhere = REPLAY_ORIGIN + urlsplit(base_url).path
+        exchanges = relocated(record["exchanges"], origin_of(base_url), REPLAY_ORIGIN)
+        try:
+            moved = replay({**record, "exchanges": exchanges}, base_url=elsewhere)
+        except ValueError as exc:
+            moved = [{"unfit": str(exc)}]
+        if moved != derived:
+            problems.append(
+                f"scenarios/{file_name}: replayed under {elsewhere}, with the "
+                f"recorded origin replaced by its own, it gives "
+                f"{json.dumps(moved)[:300]}, not the outcomes it gives under "
+                f"{base_url}"
+            )
 
     problems.extend(
         f"scenarios/{p.name}: no scenario names this body file"

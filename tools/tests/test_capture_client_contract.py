@@ -88,7 +88,14 @@ def test_a_recorder_keeps_bodies_redacts_signed_urls_and_names_the_commit() -> N
     signed = "https://storage.example/bucket/sha256%3Aab?X-Goog-Algorithm=GOOG4&X-Goog-Signature=f00"
     replies = [
         capture.Response(
-            302, {"location": signed, "x-dfo-commit": "a" * 40, "server": "x"}, b""
+            302,
+            {
+                "location": signed,
+                "x-dfo-commit": "a" * 40,
+                "x-dfo-trace-id": "t" * 32,
+                "server": "x",
+            },
+            b"",
         ),
         capture.Response(
             200, {"content-type": "application/vnd.apache.parquet"}, b"PAR1"
@@ -110,7 +117,7 @@ def test_a_recorder_keeps_bodies_redacts_signed_urls_and_names_the_commit() -> N
     redacted = "https://storage.example/bucket/sha256%3Aab?X-Goog-Signature=redacted"
     assert recorder.exchanges[0]["response"] == {
         "status": 302,
-        "headers": {"location": redacted},
+        "headers": {"location": redacted, "x-dfo-trace-id": "t" * 32},
     }
     assert recorder.exchanges[1]["request"] == {"method": "GET", "url": redacted}
     assert [e["response"]["body_file"] for e in recorder.exchanges[1:]] == [
@@ -123,6 +130,35 @@ def test_a_recorder_keeps_bodies_redacts_signed_urls_and_names_the_commit() -> N
     }
     assert recorder.commits == {"a" * 40}
     assert sent[1:] == [{}, {}]
+
+
+@pytest.mark.parametrize(
+    ("headers", "refused"),
+    [
+        ({}, True),
+        ({"cache-control": "no-store"}, True),
+        ({"cache-control": "public, max-age=60"}, False),
+        ({"x-dfo-trace-id": "t" * 32}, False),
+    ],
+    ids=["untraced", "untraced-private", "shared-cacheable", "traced"],
+)
+def test_a_recorder_refuses_an_api_response_without_a_trace_id(
+    headers: dict[str, str], refused: bool
+) -> None:
+    """The server sends x-dfo-trace-id on every API response but a
+    shared-cacheable one, so a recording that lacks it would hold an
+    exchange the server did not make."""
+    reply = capture.Response(
+        200, {"content-type": "application/json", **headers}, b"{}"
+    )
+    recorder = capture.Recorder(
+        "some-name", "http://127.0.0.1:8000/api", lambda *_, **__: reply
+    )
+    if refused:
+        with pytest.raises(SystemExit, match="x-dfo-trace-id"):
+            recorder.api("GET", "/search/healthz")
+    else:
+        assert recorder.api("GET", "/search/healthz").status == 200
 
 
 @pytest.mark.parametrize(
@@ -278,14 +314,15 @@ def test_a_synthetic_derivation_makes_no_request(tmp_path: Path) -> None:
 
 def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:
     record = _load("fetch-renamed-strict-field")
-    manifest = record["exchanges"][-1]["response"]["json"]
+    response = record["exchanges"][-1]["response"]
+    manifest = response["json"]
     assert "content_version" not in manifest
     assert "contentVersion" in manifest
     assert record["expect"][-1] == {
         "error": {
             "class": "ContractError",
             "code": "contract_violation",
-            "trace_id": None,
+            "trace_id": response["headers"]["x-dfo-trace-id"],
         }
     }
 

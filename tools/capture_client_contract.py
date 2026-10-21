@@ -75,9 +75,13 @@ from validate_client_contract import (
     FILE_EXPIRED,
     FILE_GONE,
     NO_VERSIONS,
+    POLL_BACKOFF_CAP,
+    POLL_BACKOFF_FIRST,
     POLL_PATH,
     REBUILD_REFUSED,
+    SIGNED_FETCH_STATUS,
     STORAGE_ORIGIN,
+    TRACE_HEADER,
     VERSION_UNAVAILABLE,
     Answer,
     ClientError,
@@ -96,6 +100,7 @@ from validate_client_contract import (
     digest_of,
     download_target,
     failed_operation,
+    files_route_unexpected,
     gap_kinds,
     header_warnings,
     held_spec,
@@ -359,6 +364,14 @@ def _origin(base_url: str) -> str:
     return f"{parts.scheme}://{parts.netloc}"
 
 
+def untraced(headers: Mapping[str, str]) -> bool:
+    """Whether an API response lacks the TRACE_HEADER header the server sends
+    on every response but one marked `Cache-Control: public`, which a shared
+    cache replays and so carries no per-request id."""
+    directives = headers.get("cache-control", "").lower().replace(" ", "").split(",")
+    return TRACE_HEADER not in headers and "public" not in directives
+
+
 def _is_json(content_type: str) -> bool:
     media = content_type.split(";", maxsplit=1)[0].strip()
     return media == "application/json" or media.endswith("+json")
@@ -437,6 +450,12 @@ class Recorder:
         )
         if not bare and "x-dfo-commit" in response.headers:
             self.commits.add(response.headers["x-dfo-commit"])
+        if not bare and untraced(response.headers):
+            raise SystemExit(
+                f"{self.name}: {method} {url} answered {response.status} with no "
+                f"{TRACE_HEADER} header, which the server sends on every response "
+                "but a shared-cacheable one"
+            )
         kept = self._keep(response)
         self.exchanges.append({"request": request, "response": kept})
         self._traced(kept, bare=bare)
@@ -951,8 +970,9 @@ class Session:
         base URL. The redirect's
         location is fetched once, where `download_target` places it; a local
         app's blob URL on the API's origin stands for the storage URL a
-        deployment signs. A refused fetch or bytes of another digest ask the
-        route once more."""
+        deployment signs. A files route answering a 2xx other than 200 or 302
+        raises ContractError `unexpected_response`; a fetch answering other
+        than 200, or bytes of another digest, ask the route once more."""
         base_url = self.recorder.base_url
         if origin:
             route_url = _origin(base_url) + target
@@ -971,7 +991,8 @@ class Session:
                 ),
             )
             self._raise_problem(files)
-            require(files.status == 302, f"the files route answered {files.status}")
+            if files_route_unexpected(files.status):
+                raise ClientError("unexpected_response")
             location = files.headers["location"]
             kind, at = download_target(base_url, route_url, location)
             if kind == "origin_path" and at.startswith(LOCAL_BLOB_PREFIX):
@@ -981,7 +1002,7 @@ class Session:
                 if kind == "url"
                 else self.recorder.origin("GET", at)
             )
-            if data.status >= 400:
+            if data.status != SIGNED_FETCH_STATUS:
                 failure = ClientError("download_failed")
                 continue
             if digest_of(data.body) == digest:
@@ -1061,7 +1082,6 @@ class Session:
             error=VERSION_UNAVAILABLE,
             newest_version=newest,
             trace_id=refusal.trace_id if refusal is not None else None,
-            traced=True,
         )
 
     def _stored_file(
@@ -2344,6 +2364,48 @@ def _poll_busy(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
     build["poll_waits"] = [waits[0], waits[0], waits[1], *[waits[2]] * 3, *waits[3:]]
 
 
+def _unpaced(exchanges: list[dict[str, Any]]) -> None:
+    """Every response loses its Retry-After and every operation resource its
+    retry_after_ms, so the client paces its polls by its own backoff."""
+    for exchange in exchanges:
+        response = exchange["response"]
+        response.get("headers", {}).pop("retry-after", None)
+        body = response.get("json")
+        if isinstance(body, dict) and isinstance(body.get("operation"), dict):
+            body["operation"].pop("retry_after_ms", None)
+
+
+def _poll_busy_unpaced(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
+    """No response paces the polls, and a 503 with no Retry-After answers the
+    second poll: every poll waits the next step of the backoff, the one after
+    the 503 included."""
+    _unpaced(exchanges)
+    first = _poll_index(exchanges)
+    poll = exchanges[first]["request"]
+    exchanges.insert(first + 1, _refusal(poll, 503, _BUSY))
+    polls = sum(1 for e in exchanges if e["request"] == poll)
+    build["poll_waits"] = [
+        min(POLL_BACKOFF_FIRST * 2**step, POLL_BACKOFF_CAP) for step in range(polls)
+    ]
+
+
+# The Retry-After of the 503 that answers the first poll in
+# `fetch-spec-poll-refused-retry-after`.
+BUSY_POLL_RETRY_AFTER = 5
+
+
+def _poll_busy_retry_after(
+    exchanges: list[dict[str, Any]], build: dict[str, Any]
+) -> None:
+    """A 503 with Retry-After BUSY_POLL_RETRY_AFTER answers the first poll:
+    the poll after it waits that long, and the polls after keep the server's
+    pacing."""
+    index = _poll_index(exchanges)
+    headers = {"retry-after": str(BUSY_POLL_RETRY_AFTER)}
+    exchanges.insert(index, _refusal(exchanges[index]["request"], 503, _BUSY, headers))
+    build["poll_waits"].insert(1, float(BUSY_POLL_RETRY_AFTER))
+
+
 _OPERATION_NOT_FOUND = _problem(
     "operation_not_found",
     404,
@@ -2381,6 +2443,78 @@ def _signed_url_refused(parent: dict[str, Any], ctx: Context) -> Derived:
         "response": {"status": 403, "headers": {"content-type": "application/xml"}},
     }
     exchanges[index:index] = [refused, copy.deepcopy(files)]
+    return _same(parent, exchanges)
+
+
+def _signed_index(exchanges: Sequence[dict[str, Any]]) -> int:
+    return next(i for i, e in enumerate(exchanges) if "url" in e["request"])
+
+
+def _signed_fetch_partial(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The first signed fetch answers 206 with the file's bytes, and the files
+    route is asked again."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    index = _signed_index(exchanges)
+    files, signed = exchanges[index - 1], exchanges[index]
+    partial = copy.deepcopy(signed)
+    partial["response"]["status"] = 206
+    exchanges[index:index] = [partial, copy.deepcopy(files)]
+    return _same(parent, exchanges)
+
+
+def _files_route_no_content(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The files route answers 204 with no location, and the exchanges after
+    it go."""
+    index = _signed_index(parent["exchanges"]) - 1
+    exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
+    response = exchanges[index]["response"]
+    response["status"] = 204
+    response["headers"] = {
+        name: value
+        for name, value in response.get("headers", {}).items()
+        if name not in {"location", "content-type"}
+    }
+    error = ctx.raised("unexpected_response", response)
+    return Derived(
+        copy.deepcopy(parent["call"]),
+        exchanges,
+        [*copy.deepcopy(parent["expect"][:-1]), error],
+    )
+
+
+def _specs_an_object(response: dict[str, Any]) -> None:
+    """Part 0's candidate specs become an object keyed by index."""
+    candidates = response["json"]["parts"][0]["candidates"]
+    candidates["specs"] = {str(i): s for i, s in enumerate(candidates["specs"])}
+
+
+def _operations_an_object(parent: dict[str, Any], ctx: Context) -> Derived:
+    """Part 0's operations become the one operation GROWTH, as an object."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    part = exchanges[0]["response"]["json"]["parts"][0]
+    require(part.get("operations") == [], "part 0 has no operation")
+    part["operations"] = dict(GROWTH)
+    return _same(parent, exchanges)
+
+
+def _artifact_unlisted(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The snapshot manifest lists no artifact of the ref's digest, and the
+    file selector, in the ref member's rendering, redirects to the parent's
+    signed download."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    (member,) = parent["call"][0]["ref"]["members"]
+    manifest = exchanges[0]["response"]["json"]
+    digest = member["artifact"]["digest"]
+    manifest["artifacts"] = [
+        a for a in manifest["artifacts"] if a["artifact_digest"] != digest
+    ]
+    index = next(i for i, e in enumerate(exchanges) if "origin_path" in e["request"])
+    path = selector_path(
+        member["spec"]["spec_id"],
+        member["content_version"],
+        member["artifact"]["rendering"],
+    )
+    exchanges[index]["request"] = {"method": "GET", "path": path}
     return _same(parent, exchanges)
 
 
@@ -2458,6 +2592,14 @@ def _without_options(body: Any, ctx: Context) -> Any:
     return body
 
 
+def _raises(outcome: Mapping[str, Any], code: str, ctx: Context) -> bool:
+    """Whether `outcome` is the error a client raises itself with `code`,
+    whatever trace id it carries."""
+    error = outcome.get("error", {})
+    wanted = ctx.raised(code)["error"]["class"]
+    return (error.get("class"), error.get("code")) == (wanted, code)
+
+
 def _choice_refused(
     option: int | str, part: int | str | None = None, *, edit: BodyEdit | None = None
 ) -> Callable[[dict[str, Any], Context], Derived]:
@@ -2531,10 +2673,14 @@ def _unknown_kind(parent: dict[str, Any], ctx: Context) -> Derived:
 
 def _partial_nothing_answered(parent: dict[str, Any], ctx: Context) -> Derived:
     require(parent["expect"][0]["answer"]["specs"] == [], "no part has a reading")
+    (search,) = parent["exchanges"]
     return Derived(
         [*copy.deepcopy(parent["call"]), {"op": "fetch", "partial": True}],
         copy.deepcopy(parent["exchanges"]),
-        [*copy.deepcopy(parent["expect"]), ctx.raised("answer_incomplete")],
+        [
+            *copy.deepcopy(parent["expect"]),
+            ctx.raised("answer_incomplete", search["response"]),
+        ],
     )
 
 
@@ -2660,7 +2806,9 @@ def _failed_without_error(parent: dict[str, Any], ctx: Context) -> Derived:
     operation["status"] = "failed"
     operation.pop("progress", None)
     poll["response"]["json"] = {"operation": operation}
-    error, _ = failed_operation(poll["response"]["json"], ctx.actions)
+    error, _ = failed_operation(
+        poll["response"]["json"], ctx.actions, poll["response"].get("headers")
+    )
     (build,) = parent["expect"][1]["dataset"]["long_builds"]
     entry = {**build, "poll_waits": build["poll_waits"][:1], "resubmissions": 0}
     outcome = with_step_notes(
@@ -2832,7 +2980,7 @@ def _choice_without_data_query(parent: dict[str, Any], ctx: Context) -> Derived:
         parent, ctx
     )
     require(
-        derived.expect[-1] == ctx.raised("contract_violation"),
+        _raises(derived.expect[-1], "contract_violation", ctx),
         "the choice raises ContractError",
     )
     return derived
@@ -2933,7 +3081,7 @@ def _choice_raises(
         derived = _choice(
             choose["option"], choose.get("part"), edit=edit, headers=headers
         )(parent, ctx)
-        require(derived.expect[-1] == ctx.raised(code), f"the choice raises {code}")
+        require(_raises(derived.expect[-1], code, ctx), f"the choice raises {code}")
         return derived
 
     return derive
@@ -2971,15 +3119,19 @@ def _manifest_without_identity(parent: dict[str, Any], ctx: Context) -> Derived:
 
 
 def _nested_specs_unchecked(parent: dict[str, Any], ctx: Context) -> Derived:
-    """Each alternative measure of part 0's spec loses its definition's
-    identity and its resolved, members no client reads."""
+    """Each position that holds a Spec no client reads gets the chosen
+    answer's spec without resolved and without its definition's identity:
+    the first answer's no_data flagged_match and alternate_match, and the
+    chosen spec's resolved.equivalent_readings."""
     exchanges = copy.deepcopy(parent["exchanges"])
-    resolved = exchanges[0]["response"]["json"]["parts"][0]["spec"]["resolved"]
-    measures = resolved["alternative_measures"]
-    require(bool(measures), "part 0's spec has alternative measures")
-    for measure in measures:
-        measure["definition"].pop("identity")
-        measure.pop("resolved", None)
+    asked, chosen = (e["response"]["json"] for e in exchanges[:2])
+    no_data = next(p["no_data"] for p in asked["parts"] if p["status"] == "no_data")
+    spec = chosen["parts"][0]["spec"]
+    bare = copy.deepcopy(spec)
+    del bare["resolved"], bare["definition"]["identity"]
+    no_data["flagged_match"] = copy.deepcopy(bare)
+    no_data["alternate_match"] = copy.deepcopy(bare)
+    spec["resolved"]["equivalent_readings"] = [bare]
     return _same(parent, exchanges)
 
 
@@ -3189,6 +3341,16 @@ SYNTHETIC = (
         _expired_file_selector,
     ),
     Synthetic(
+        "fetch-ref-artifact-unlisted",
+        "fetch-ref",
+        "The snapshot manifest's artifacts no longer list the ref's digest, and the file "
+        "selector redirects to the parent's signed download.",
+        "A ref member whose digest the snapshot manifest does not list asks the file "
+        "selector in the ref member's own rendering, and bytes that hash to the stored "
+        "digest give the dataset.",
+        _artifact_unlisted,
+    ),
+    Synthetic(
         "fetch-spec-async-build",
         "mint-async-build",
         "The mint and result steps become one fetch of the spec, which makes the same exchanges.",
@@ -3217,6 +3379,26 @@ SYNTHETIC = (
         _async_fetch(_poll_busy),
     ),
     Synthetic(
+        "fetch-spec-poll-refused-backoff",
+        "mint-async-build",
+        "As fetch-spec-async-build, with no Retry-After and no retry_after_ms on any "
+        "response, and a 503 service_unavailable with no Retry-After answering the second "
+        "poll.",
+        "With no pacing from the server, each poll waits the next step of the 1, 2, 4, 8 "
+        "second backoff, and a refused poll uses a step too: the poll after the 503 waits "
+        "4 seconds.",
+        _async_fetch(_poll_busy_unpaced),
+    ),
+    Synthetic(
+        "fetch-spec-poll-refused-retry-after",
+        "mint-async-build",
+        "As fetch-spec-async-build, with a 503 service_unavailable and Retry-After "
+        f"{BUSY_POLL_RETRY_AFTER} answering the first poll.",
+        "The poll after a refused poll waits the refusal's Retry-After whatever its status, "
+        "as a 429's, and the polls after it keep the server's pacing.",
+        _async_fetch(_poll_busy_retry_after),
+    ),
+    Synthetic(
         "fetch-spec-poll-not-found",
         "mint-async-build",
         "As fetch-spec-async-build, with a 404 operation_not_found answering the first poll, "
@@ -3232,6 +3414,25 @@ SYNTHETIC = (
         "A poll that answers a failed operation whose error is retryable posts the same build "
         "once more and polls the operation it starts; long_builds counts one resubmission.",
         _async_fetch(_operation_failed),
+    ),
+    Synthetic(
+        "fetch-spec-signed-fetch-partial",
+        "fetch-spec-known-sentence",
+        "The first signed fetch answers 206 with the file's bytes, and the files route is "
+        "asked again.",
+        "A signed fetch that answers anything but 200 is a failed fetch: the client asks "
+        "the files route once more and fetches again, and the second fetch's 200 gives "
+        "the dataset.",
+        _signed_fetch_partial,
+    ),
+    Synthetic(
+        "fetch-spec-files-route-no-content",
+        "fetch-spec-known-sentence",
+        "The files route answers 204 with no location, and the exchanges after it go.",
+        "A files route that answers a 2xx other than 200 or 302 raises ContractError "
+        "unexpected_response, with that response's trace id, and the client fetches "
+        "nothing.",
+        _files_route_no_content,
     ),
     Synthetic(
         "fetch-ref-signed-url-refused",
@@ -3369,13 +3570,33 @@ SYNTHETIC = (
     ),
     Synthetic(
         "answer-nested-specs-unchecked",
-        "answer-definite-fetch",
-        "Each alternative measure of part 0's spec loses its definition's identity and its "
-        "resolved.",
-        "A client checks strict members only where a rule reads them, so a spec nested in "
-        "resolved.alternative_measures may lack them, and the fetch reaches the same "
-        "dataset.",
+        "choose-place-one-part",
+        "The no_data part's flagged_match and alternate_match, and the chosen spec's "
+        "resolved.equivalent_readings, hold the chosen spec without resolved and without "
+        "its definition's identity.",
+        "A client checks strict members only where a rule reads them, so a Spec in "
+        "no_data.flagged_match, no_data.alternate_match or resolved.equivalent_readings may "
+        "lack resolved and identity, and the search and the choice reach the same answers.",
         _nested_specs_unchecked,
+    ),
+    Synthetic(
+        "answer-candidate-specs-not-a-list",
+        "answer-candidates-choose-fetch",
+        "Part 0's candidates.specs becomes an object keyed by index, and the choice and "
+        "fetch go.",
+        "A strict member of a JSON type its schema does not admit raises ContractError "
+        "contract_violation at its pointer, /parts/0/candidates/specs, as a missing one "
+        "does.",
+        _search_ends(_specs_an_object, "contract_violation"),
+    ),
+    Synthetic(
+        "answer-operations-not-a-list",
+        "answer-definite-fetch",
+        "Part 0's operations becomes one operation object in place of a list.",
+        "A member a client reads that no strict pointer names, and that holds a JSON type "
+        "other than its schema's, reads as absent: the part has no operation, and the "
+        "fetch issues no SearchWarning and reaches the same dataset.",
+        _operations_an_object,
     ),
     Synthetic(
         "answer-empty-parts",

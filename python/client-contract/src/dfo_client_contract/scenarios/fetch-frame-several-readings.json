@@ -33,7 +33,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "3ceef86d0eac49fa96380d3340878cf1"
         },
         "json": {
           "schema_version": 1,
@@ -45,18 +46,18 @@
           },
           "diagnostics": {
             "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "c354423648a442189d804c35586bd78a",
+            "trace_id": "3ceef86d0eac49fa96380d3340878cf1",
             "warnings": [],
             "timing_ms": {
-              "total": 5956,
+              "total": 5613,
               "by_step": {
                 "coverage": 0,
-                "extract": 919
+                "extract": 1020
               }
             },
             "llm_usage": {
               "input_tokens": 15731,
-              "output_tokens": 1037,
+              "output_tokens": 1021,
               "cached_tokens": 861
             },
             "timed_out": false
@@ -67,20 +68,20 @@
               "variable_text": "ODA disbursements for health",
               "warnings": [],
               "timing_ms": {
-                "total": 3227,
+                "total": 3674,
                 "by_step": {
-                  "recall": 535,
+                  "recall": 773,
                   "shape_arcs": 0,
-                  "shape_probe_coverage": 1,
-                  "shape_probe": 197,
-                  "shape_groups": 16,
-                  "shape_labels": 4,
+                  "shape_probe_coverage": 11,
+                  "shape_probe": 224,
+                  "shape_groups": 26,
+                  "shape_labels": 8,
                   "shape_admission": 0,
-                  "shape": 1071,
-                  "bind": 1345,
-                  "materialise": 157,
-                  "answer": 20,
-                  "options": 99
+                  "shape": 1251,
+                  "bind": 1411,
+                  "materialise": 115,
+                  "answer": 15,
+                  "options": 109
                 }
               },
               "restatement": {
@@ -3738,20 +3739,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 3024,
+                "total": 3542,
                 "by_step": {
-                  "recall": 456,
+                  "recall": 791,
                   "shape_arcs": 0,
-                  "shape_probe_coverage": 1,
-                  "shape_probe": 183,
-                  "shape_groups": 17,
-                  "shape_labels": 4,
-                  "shape_admission": 0,
-                  "shape": 1070,
-                  "bind": 1243,
-                  "materialise": 82,
-                  "answer": 19,
-                  "options": 154
+                  "shape_probe_coverage": 2,
+                  "shape_probe": 240,
+                  "shape_groups": 39,
+                  "shape_labels": 5,
+                  "shape_admission": 1,
+                  "shape": 1008,
+                  "bind": 1505,
+                  "materialise": 146,
+                  "answer": 13,
+                  "options": 79
                 }
               },
               "restatement": {
@@ -7414,20 +7415,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 3386,
+                "total": 3536,
                 "by_step": {
-                  "recall": 579,
+                  "recall": 778,
                   "shape_arcs": 2,
-                  "shape_probe_coverage": 1,
-                  "shape_probe": 263,
-                  "shape_groups": 19,
-                  "shape_labels": 4,
-                  "shape_admission": 0,
-                  "shape": 1015,
-                  "bind": 1274,
+                  "shape_probe_coverage": 2,
+                  "shape_probe": 277,
+                  "shape_groups": 24,
+                  "shape_labels": 5,
+                  "shape_admission": 1,
+                  "shape": 973,
+                  "bind": 1109,
                   "materialise": 1,
-                  "answer": 159,
-                  "options": 358
+                  "answer": 210,
+                  "options": 465
                 }
               },
               "restatement": {
@@ -9427,7 +9428,50 @@
                     }
                   ],
                   "measure_label_axes": [],
-                  "measure_axis_values": []
+                  "measure_axis_values": [],
+                  "related_group": {
+                    "ref": "dc/g/EconomicActivity_ActivitySource-GrossDomesticProduction",
+                    "label": "Economic Activity With Activity Source = Gross Domestic Production"
+                  },
+                  "related_measures": [
+                    {
+                      "stat_var": {
+                        "ref": "GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                        "label": "Gross domestic product growth rate"
+                      },
+                      "definition": {
+                        "schema_version": 1,
+                        "spec_id": "spec_4535d09baf2bdffef7c19c7796e96687",
+                        "identity": {
+                          "identity_version": "spec1",
+                          "shape": {
+                            "kind": "statvar_schema",
+                            "population_type": "EconomicActivity",
+                            "measured_property": "amount",
+                            "stat_type": "growthRate"
+                          },
+                          "slots": [
+                            {
+                              "property": "activitySource",
+                              "binding": {
+                                "state": "value",
+                                "ref": "GrossDomesticProduction"
+                              }
+                            }
+                          ],
+                          "entities": {
+                            "observationAbout": [
+                              "country/DEU",
+                              "country/KEN"
+                            ]
+                          },
+                          "requested_window": {
+                            "kind": "all"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
