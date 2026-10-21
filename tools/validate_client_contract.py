@@ -92,7 +92,7 @@ import json
 import re
 import sys
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -909,11 +909,13 @@ VERSION_UNAVAILABLE = "VersionUnavailableError"
 
 
 class ClientError(Exception):
-    """A step ends in an error a client raises. A refusal names its class and
-    the server's code, a SearchWarning or DataWarning names the server's
-    warning, departure or operation code, and any other error names a code
-    from `client-codes.json`, whose row gives its class. A
-    VersionUnavailableError also names the newest version, or None."""
+    """A step ends in an error a client raises. A refusal names its class,
+    the server's code and its trace id, a SearchWarning or DataWarning names
+    the server's warning, departure or operation code, and any other error
+    names a code from `client-codes.json`, whose row gives its class. A
+    VersionUnavailableError also names the newest version, or None, and the
+    trace id of the refusal that gave its code. `traced` says the trace id is
+    settled; an error raised without one takes it as `read_from` gives."""
 
     def __init__(
         self,
@@ -921,11 +923,15 @@ class ClientError(Exception):
         *,
         error: str | None = None,
         newest_version: str | None = None,
+        trace_id: str | None = None,
+        traced: bool = False,
     ) -> None:
         super().__init__(f"{error or 'client'} {code}")
         self.code = code
         self.error = error
         self.newest_version = newest_version
+        self.trace_id = trace_id
+        self.traced = traced or trace_id is not None
 
     def error_class(self, client_codes: Mapping[str, Mapping[str, Any]]) -> str:
         """The error class: the one it names, else its client code's.
@@ -951,20 +957,70 @@ class ClientError(Exception):
         """
         error = self.error_class(client_codes)
         if error == VERSION_UNAVAILABLE:
-            return error_outcome(error, self.code, newest_version=self.newest_version)
-        return error_outcome(error, self.code)
+            return error_outcome(
+                error,
+                self.code,
+                trace_id=self.trace_id,
+                newest_version=self.newest_version,
+            )
+        return error_outcome(error, self.code, trace_id=self.trace_id)
+
+
+TRACE_HEADER = "x-dfo-trace-id"
+
+
+def trace_id(body: Any, headers: Mapping[str, str] | None) -> str | None:
+    """A refusal's trace id: its body's `trace_id`, else its TRACE_HEADER
+    header, else None."""
+    found = body.get("trace_id") if isinstance(body, dict) else None
+    if isinstance(found, str) and found:
+        return found
+    header = (headers or {}).get(TRACE_HEADER)
+    return header or None
 
 
 def refusal_error(
-    status: int, body: Any, actions: Mapping[str, Mapping[str, Any]]
+    status: int,
+    body: Any,
+    actions: Mapping[str, Mapping[str, Any]],
+    headers: Mapping[str, str] | None = None,
 ) -> ClientError:
     """The error a refusal raises: its code's class and the server's code, or
     for a body with no code the class its status maps to and
-    `refusal_without_code`."""
+    `refusal_without_code`, with the trace id `trace_id` gives for its body
+    and `headers`."""
     code = refusal_code(body)
     return ClientError(
-        code or REFUSAL_WITHOUT_CODE, error=error_class(status, code, actions)
+        code or REFUSAL_WITHOUT_CODE,
+        error=error_class(status, code, actions),
+        trace_id=trace_id(body, headers),
+        traced=True,
     )
+
+
+# The codes of the errors a client raises itself that describe a response,
+# beside the warnings it raises under strict; every other client code
+# describes the caller's input or a storage-host fetch.
+RESPONSE_ERRORS = frozenset(
+    {
+        "unexpected_response",
+        "contract_violation",
+        "answer_declined",
+        "answer_incomplete",
+    }
+)
+
+
+def read_from(error: ClientError, trace: str | None) -> ClientError:
+    """`error`, raised on the API response whose trace id is `trace`: an
+    error that describes a response, a RESPONSE_ERRORS code, SearchWarning
+    or DataWarning, takes `trace` unless it is traced already; an error that
+    describes the caller's input, or a storage-host fetch, keeps null."""
+    reads = error.code in RESPONSE_ERRORS or error.error in WARNING_CLASSES
+    if not error.traced and reads:
+        error.trace_id = trace
+    error.traced = True
+    return error
 
 
 # The answer kinds a client reads. Any other kind raises ContractError.
@@ -985,6 +1041,7 @@ class Answer:
     parts: list[dict[str, Any]]
     sentence: str | None
     status: str | None
+    trace_id: str | None = None
 
 
 def answer_from_body(body: Any) -> Answer:
@@ -1682,20 +1739,28 @@ def sentence_entry(
 
 
 def failed_operation(
-    resource: Mapping[str, Any], actions: Mapping[str, Mapping[str, Any]]
+    resource: Mapping[str, Any],
+    actions: Mapping[str, Mapping[str, Any]],
+    headers: Mapping[str, str] | None = None,
 ) -> tuple[ClientError, bool]:
     """A failed operation's error, the refusal its problem document states at
     that document's status or else 500, and whether it is retryable. A
-    failed operation with no document raises `operation_failed`."""
+    failed operation with no document raises `operation_failed`. Its trace id
+    is the document's, else the `headers` of the response that carried the
+    resource."""
     problem = resource.get("error")
     if not isinstance(problem, dict):
         error = ClientError(
-            OPERATION_FAILED, error=error_class(500, OPERATION_FAILED, actions)
+            OPERATION_FAILED,
+            error=error_class(500, OPERATION_FAILED, actions),
+            trace_id=trace_id(None, headers),
+            traced=True,
         )
         return error, retryable(500, None)
     status = problem.get("status")
     status = status if isinstance(status, int) else 500
-    return refusal_error(status, problem, actions), retryable(status, problem)
+    error = refusal_error(status, problem, actions, headers)
+    return error, retryable(status, problem)
 
 
 class LongBuild:
@@ -1729,6 +1794,7 @@ class LongBuild:
 
     def _take(self, resource: Mapping[str, Any], headers: Mapping[str, str]) -> None:
         self.resource = resource
+        self.headers = headers
         self.pacing.took(resource["operation"], headers)
         if resource["operation"]["status"] == "done":
             manifest = resource.get("manifest")
@@ -1739,7 +1805,7 @@ class LongBuild:
     def next_wait(self) -> float:
         """The wait before the next poll, kept in `entry`."""
         if self.resource["operation"]["status"] == "failed":
-            raise failed_operation(self.resource, self.actions)[0]
+            raise failed_operation(self.resource, self.actions, self.headers)[0]
         wait = self.pacing.next_wait()
         self.entry["poll_waits"].append(wait)
         return wait
@@ -1755,9 +1821,9 @@ class LongBuild:
             self._take(body, headers)
             if body["operation"]["status"] != "failed":
                 return False
-            error, again = failed_operation(body, self.actions)
+            error, again = failed_operation(body, self.actions, headers)
         else:
-            error = refusal_error(status, body, self.actions)
+            error = refusal_error(status, body, self.actions, headers)
             again = retryable(status, body)
             if error.code != OPERATION_FAILED:
                 if status == 429:
@@ -1776,7 +1842,7 @@ class LongBuild:
         """Takes the answer to the build posted again: a refusal raises, a
         202 starts the operation the client polls next, and a 200 is done."""
         if status >= 400:
-            raise refusal_error(status, body, self.actions)
+            raise refusal_error(status, body, self.actions, headers)
         if status != 202:
             self.result = body
             return
@@ -1817,6 +1883,7 @@ class _Replay:
     retry_waits: list[float] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     warned: set[tuple[str, ...]] = field(default_factory=set)
+    read_trace: str | None = None
 
     @property
     def kinds(self) -> dict[str, str]:
@@ -1871,10 +1938,13 @@ class _Replay:
         return exchange
 
     def took(self, exchange: dict[str, Any]) -> None:
-        """Notes the warnings an API response's headers issue."""
+        """Notes the warnings an API response's headers issue, and its trace
+        id as the one an error raised on reading it carries."""
         if "url" not in exchange["request"]:
-            headers = exchange["response"].get("headers", {})
+            response = exchange["response"]
+            headers = response.get("headers", {})
             self.warnings.extend(header_warnings(headers, self.warned))
+            self.read_trace = trace_id(response.get("json"), headers)
 
     def acted_on(self, exchange: dict[str, Any], schema: Any = None) -> Any:
         """The JSON body a client acts on, read through `schema` or else its
@@ -1886,7 +1956,10 @@ class _Replay:
         body = response.get("json")
         if response["status"] >= 400:
             raise refusal_error(
-                response["status"], problem_body(response), self.actions
+                response["status"],
+                problem_body(response),
+                self.actions,
+                response.get("headers"),
             )
         if schema is None:
             schema = self.routes.response_schema(
@@ -1958,7 +2031,8 @@ class _Replay:
         """A Search request whose recorded body is the one `search_body` gives
         for the input `posts`."""
         exchange = self.posted(_SEARCH, search_body(posts))
-        return answer_from_body(self.acted_on(exchange))
+        answer = answer_from_body(self.acted_on(exchange))
+        return replace(answer, trace_id=self.read_trace)
 
     def posted(self, route: tuple[str, str], posts: dict[str, Any]) -> dict[str, Any]:
         """A request to `route` whose recorded body is `posts`, whole."""
@@ -2132,6 +2206,8 @@ class _Replay:
             refusal.code if refusal is not None else "version_unavailable",
             error=VERSION_UNAVAILABLE,
             newest_version=newest,
+            trace_id=refusal.trace_id if refusal is not None else None,
+            traced=True,
         )
 
     def stored_file(
@@ -2192,6 +2268,7 @@ class _Replay:
         `retry_waits`, and a step whose responses issued warnings gives their
         codes in `warnings`."""
         self.long_builds, self.retry_waits, self.warnings = [], [], []
+        self.read_trace = None
         op = step["op"]
         if op == "fetch":
             op = (
@@ -2202,7 +2279,7 @@ class _Replay:
         except ClientError as ended:
             if op in {"search", "choose"}:
                 self.answer = None
-            outcome = ended.outcome(self.client_codes)
+            outcome = read_from(ended, self.read_trace).outcome(self.client_codes)
         return with_step_notes(
             outcome,
             long_builds=self.long_builds,
@@ -2221,8 +2298,12 @@ class _Replay:
 
     def _choose(self, step: dict[str, Any]) -> dict[str, Any]:
         answer = self._answered()
-        choice = choice_for(answer, self.kinds, step.get("part"), step["option"])
-        chosen = self.resolve(choice_input(answer, choice))
+        try:
+            choice = choice_for(answer, self.kinds, step.get("part"), step["option"])
+            posts = choice_input(answer, choice)
+        except ClientError as error:
+            raise read_from(error, answer.trace_id) from None
+        chosen = self.resolve(posts)
         self.answer = chosen
         return answer_outcome(chosen, self.kinds)
 
@@ -2234,15 +2315,18 @@ class _Replay:
         several members raises InvalidRequestError; all before any request."""
         answer = self._answered()
         if answer.body.get("kind") != "resolution":
-            raise ClientError("answer_declined")
+            raise read_from(ClientError("answer_declined"), answer.trace_id)
         gaps = answer_gaps(answer, self.kinds)
         readings = answer_members(answer)
         if gaps and (not step.get("partial", False) or not readings):
-            raise ClientError("answer_incomplete")
+            raise read_from(ClientError("answer_incomplete"), answer.trace_id)
         warns = search_warns(answer)
         strict = step.get("strict", False)
         if warns and strict:
-            raise ClientError(search_warning_code(answer), error="SearchWarning")
+            raise read_from(
+                ClientError(search_warning_code(answer), error="SearchWarning"),
+                answer.trace_id,
+            )
         rendering = rendering_for(step.get("layout"))
         if "layout" in rendering and len(readings) > 1:
             raise ClientError("invalid_argument")

@@ -882,7 +882,8 @@
       "additionalProperties": false,
       "required": [
         "class",
-        "code"
+        "code",
+        "trace_id"
       ],
       "properties": {
         "class": {
@@ -910,6 +911,14 @@
             "string",
             "null"
           ]
+        },
+        "trace_id": {
+          "description": "A refusal's trace id: its body's trace_id, else its x-dfo-trace-id header, else null. A failed operation's is its error document's, else the header of the response that carried the failed resource; a VersionUnavailableError's is its first refusal's. An error the client raises itself that describes a response, an unexpected_response, a contract_violation, an answer_declined, an answer_incomplete, a SearchWarning or a DataWarning, carries that response's trace id, the held answer's Search response for those that describe the answer, as the body's trace_id, else the x-dfo-trace-id header, else null. An error that describes the caller's input, or a storage-host fetch, carries null.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
         },
         "newest_version": {
           "description": "For a VersionUnavailableError only: the newest version the lookup found, or null.",

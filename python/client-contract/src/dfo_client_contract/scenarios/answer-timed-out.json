@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "answer-timed-out",
-  "description": "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, whatever its reason, and fetching the answer raises IncompleteAnswerError.",
+  "description": "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, whatever its reason, and fetching the answer raises IncompleteAnswerError, which describes the answer and carries its response's trace id.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "answer-mixed-fetch-raises",
-    "edit": "The answer's diagnostics.timed_out becomes true."
+    "edit": "The answer's diagnostics.timed_out becomes true, and its response carries x-dfo-trace-id 55555555555555555555555555555555."
   },
   "call": [
     {
@@ -32,7 +32,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "55555555555555555555555555555555"
         },
         "json": {
           "schema_version": 1,
@@ -3623,7 +3624,8 @@
     {
       "error": {
         "class": "IncompleteAnswerError",
-        "code": "answer_incomplete"
+        "code": "answer_incomplete",
+        "trace_id": "55555555555555555555555555555555"
       }
     }
   ]

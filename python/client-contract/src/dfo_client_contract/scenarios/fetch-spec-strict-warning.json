@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "fetch-spec-strict-warning",
-  "description": "A strict fetch raises the manifest's first warning above info severity, coverage_below_scope at warn here, as DataWarning before the download.",
+  "description": "A strict fetch raises the manifest's first warning above info severity, coverage_below_scope at warn here, as DataWarning before the download, with the trace id of the build response it read.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "fetch-spec-known-sentence",
-    "edit": "The fetch is strict, and the exchanges after the build go."
+    "edit": "The fetch is strict, the build's response carries x-dfo-trace-id 33333333333333333333333333333333, and the exchanges after the build go."
   },
   "call": [
     {
@@ -175,7 +175,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "33333333333333333333333333333333"
         },
         "json": {
           "schema_version": 1,
@@ -859,7 +860,8 @@
     {
       "error": {
         "class": "DataWarning",
-        "code": "coverage_below_scope"
+        "code": "coverage_below_scope",
+        "trace_id": "33333333333333333333333333333333"
       }
     }
   ]

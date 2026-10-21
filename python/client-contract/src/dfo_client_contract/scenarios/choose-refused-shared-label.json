@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "choose-refused-shared-label",
-  "description": "A label two options share matches several, so choosing by it raises InvalidRequestError with no request.",
+  "description": "A label two options share matches several, so choosing by it raises InvalidRequestError with no request. The error describes the caller's choice, so it carries no trace id although the answer's response has one.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "choose-place-one-part",
-    "edit": "The no_data part's second option takes the first one's label."
+    "edit": "The no_data part's second option takes the first one's label, and the search's response carries x-dfo-trace-id 55555555555555555555555555555555."
   },
   "call": [
     {
@@ -33,7 +33,8 @@
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/json"
+          "content-type": "application/json",
+          "x-dfo-trace-id": "55555555555555555555555555555555"
         },
         "json": {
           "schema_version": 1,
@@ -259,7 +260,8 @@
     {
       "error": {
         "class": "InvalidRequestError",
-        "code": "choice_invalid"
+        "code": "choice_invalid",
+        "trace_id": null
       }
     }
   ]

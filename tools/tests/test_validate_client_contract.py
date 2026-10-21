@@ -164,7 +164,11 @@ def _refused_without_code(status: int) -> Callable[[Any], None]:
         response["status"] = response["json"]["status"] = status
         del response["json"]["code"]
         doc["expect"][0] = {
-            "error": {"class": "InvalidRequestError", "code": "refusal_without_code"}
+            "error": {
+                "class": "InvalidRequestError",
+                "code": "refusal_without_code",
+                "trace_id": response["json"]["trace_id"],
+            }
         }
 
     return change
@@ -274,7 +278,16 @@ def _keep_exchanges(count: int) -> Callable[[Any], None]:
 def _never_retried(doc: Any) -> None:
     """The 503 ends the record, and the search raises it unretried."""
     doc["exchanges"] = doc["exchanges"][:1]
-    doc["expect"] = [{"error": {"class": "ServerError", "code": "service_unavailable"}}]
+    trace = doc["exchanges"][0]["response"]["json"]["trace_id"]
+    doc["expect"] = [
+        {
+            "error": {
+                "class": "ServerError",
+                "code": "service_unavailable",
+                "trace_id": trace,
+            }
+        }
+    ]
 
 
 def _proxy_code(code: str) -> Callable[[Any], None]:
@@ -376,6 +389,22 @@ def _second_option(**fields: Any) -> Callable[[Any], None]:
 def _one_part_query(part: Any) -> None:
     query = part["no_data"]["options"][0]["data_query"]
     query["parts"] = query["parts"][:1]
+
+
+def _trace(trace_id: str | None, index: int = 0) -> Callable[[Any], None]:
+    return _set_outcome(index, lambda o: o["error"].update(trace_id=trace_id))
+
+
+def _header_trace(index: int, trace: str | None) -> Callable[[Any], None]:
+    """Exchange `index` carries an x-dfo-trace-id header, and step 1 expects
+    `trace` as its error's trace id."""
+
+    def change(doc: Any) -> None:
+        response = doc["exchanges"][index]["response"]
+        response.setdefault("headers", {})["x-dfo-trace-id"] = "4" * 32
+        doc["expect"][1]["error"]["trace_id"] = trace
+
+    return change
 
 
 def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
@@ -832,17 +861,17 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (
             _NO_CHOICE,
             _error_code(1, "invalid_argument"),
-            '"code": "choice_invalid"}}',
+            '"code": "choice_invalid"',
         ),
         (
             _REQUEST_INVALID,
             _set_body(0, lambda body: body.pop("code")),
-            '"code": "refusal_without_code"}}',
+            '"code": "refusal_without_code"',
         ),
         (
             _TOP5,
             _set_body(0, _one_hint),
-            '"code": "slot_defaulted"}}',
+            '"code": "slot_defaulted"',
         ),
         (
             "served/SOURCE.json",
@@ -871,7 +900,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             _set_outcome(0, lambda o: o["error"].pop("newest_version")),
             (
                 "expect/0: {'error': {'class': 'VersionUnavailableError', 'code': "
-                "'artifact_expired'}} is not valid"
+                "'artifact_expired', 'trace_id': '00000000000000000000000000000000'}} "
+                "is not valid"
             ),
         ),
         (
@@ -1240,7 +1270,9 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (_CUT_OFF_THEN_BUSY, _repeat(1, 1), "the steps never make exchanges 2 to 2"),
         (
             _BUSY_THEN_CUT_OFF,
-            _ends_in({"class": "ServerError", "code": "timeout"}, 2),
+            _ends_in(
+                {"class": "ServerError", "code": "timeout", "trace_id": "0" * 32}, 2
+            ),
             "is a retryable refusal with retries left",
         ),
         (
@@ -1275,6 +1307,38 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "client-codes.json",
             _set_action("key_empty", **{"class": "ContractError"}),
             "takes 'ContractError', not 'AuthenticationError'",
+        ),
+        ("scenarios/search-no-json-body.json", _trace(None), "step 0 expects"),
+        ("scenarios/fetch-spec-strict-warning.json", _trace(None), "step 0 expects"),
+        (_TOP5, _header_trace(0, None), "step 1 expects"),
+        (_NO_CHOICE, _trace("f" * 32, 1), "step 1 expects"),
+        (_NO_CHOICE, _header_trace(0, "4" * 32), "step 1 expects"),
+        (
+            "scenarios/fetch-spec-digest-mismatch.json",
+            _trace("f" * 32),
+            "step 0 expects",
+        ),
+        ("scenarios/answer-timed-out.json", _trace(None, 1), "step 1 expects"),
+        (
+            "scenarios/choose-refused-shared-label.json",
+            _trace("5" * 32, 1),
+            "step 1 expects",
+        ),
+        (_DECLINED, _header_trace(0, None), "step 1 expects"),
+        (_CODELESS, _trace("2" * 32), "step 0 expects"),
+        (
+            _CODELESS,
+            _set_body(0, lambda body: body.pop("trace_id")),
+            "step 0 expects",
+        ),
+        ("scenarios/search-unauthorized.json", _trace(None), "step 0 expects"),
+        ("scenarios/search-proxy-unavailable.json", _trace("f" * 32), "step 0 expects"),
+        ("scenarios/answer-empty-parts.json", _trace("f" * 32), "step 0 expects"),
+        (_NEWER, _trace(None), "step 0 expects"),
+        (
+            _CODELESS,
+            _set_outcome(0, lambda o: o["error"].pop("trace_id")),
+            "'code': 'refusal_without_code'}} is not valid",
         ),
         (
             "scenarios/search-proxy-unavailable.json",
@@ -1544,6 +1608,22 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "key-lookup-reason-profile-without-key-missing",
         "key-lookup-reason-credentials-file-invalid-missing",
         "key-lookup-reason-of-another-class",
+        "unexpected-response-without-its-response-trace-id",
+        "data-warning-without-its-response-trace-id",
+        "search-warning-without-its-answer-trace-id",
+        "choice-invalid-with-a-trace-id",
+        "choice-invalid-takes-the-answer-trace-id",
+        "storage-failure-with-a-trace-id",
+        "answer-incomplete-without-its-answer-trace-id",
+        "choice-invalid-takes-the-answer-response-trace-id",
+        "answer-declined-without-its-answer-trace-id",
+        "trace-id-of-the-header-over-the-body",
+        "trace-id-header-fallback-ignored",
+        "trace-id-header-fallback-dropped",
+        "trace-id-on-a-refusal-with-neither",
+        "trace-id-on-a-client-error",
+        "version-unavailable-without-its-refusal-trace-id",
+        "error-outcome-without-trace-id",
         "proxy-code-not-a-string",
         "artifact-url-on-storage-fetched",
         "manifest-without-identity-read",

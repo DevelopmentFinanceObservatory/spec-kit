@@ -282,7 +282,11 @@ def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:
     assert "content_version" not in manifest
     assert "contentVersion" in manifest
     assert record["expect"][-1] == {
-        "error": {"class": "ContractError", "code": "contract_violation"}
+        "error": {
+            "class": "ContractError",
+            "code": "contract_violation",
+            "trace_id": None,
+        }
     }
 
 

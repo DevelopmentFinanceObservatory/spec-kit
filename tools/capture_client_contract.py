@@ -106,6 +106,7 @@ from validate_client_contract import (
     pick_artifact,
     posted_scope,
     problem_body,
+    read_from,
     refusal_error,
     rendering_for,
     resubmitted_sentence,
@@ -116,6 +117,7 @@ from validate_client_contract import (
     selector_path,
     sentence_entry,
     surface_problems,
+    trace_id,
     versions_path,
     with_step_notes,
 )
@@ -137,6 +139,7 @@ KEPT_HEADERS = (
     "deprecation",
     "sunset",
     "x-dfo-warning",
+    "x-dfo-trace-id",
 )
 
 
@@ -381,6 +384,7 @@ class Recorder:
     canned_served: int = 0
     warned: set[tuple[str, ...]] = field(default_factory=set)
     warnings: list[str] = field(default_factory=list)
+    read_trace: str | None = None
 
     def api(self, method: str, path: str, json_body: Any = None) -> Response:
         """A request to `path` under the base URL."""
@@ -420,6 +424,7 @@ class Recorder:
             exchange = self.canned.pop(0)
             self.exchanges.append(exchange)
             self.canned_served += 1
+            self._traced(exchange["response"], bare=bare)
             return self._warned(_canned_response(exchange["response"]), bare=bare)
 
         headers = {} if bare else {"user-agent": "dfo-client-contract-recorder/1"}
@@ -432,8 +437,16 @@ class Recorder:
         )
         if not bare and "x-dfo-commit" in response.headers:
             self.commits.add(response.headers["x-dfo-commit"])
-        self.exchanges.append({"request": request, "response": self._keep(response)})
+        kept = self._keep(response)
+        self.exchanges.append({"request": request, "response": kept})
+        self._traced(kept, bare=bare)
         return self._warned(response, bare=bare)
+
+    def _traced(self, kept: Mapping[str, Any], *, bare: bool) -> None:
+        """Notes an API response's trace id, as the record keeps it, as the
+        one an error raised on reading it carries."""
+        if not bare:
+            self.read_trace = trace_id(kept.get("json"), kept.get("headers", {}))
 
     def _warned(self, response: Response, *, bare: bool) -> Response:
         """Notes the warnings an API response's headers issue."""
@@ -641,10 +654,12 @@ class Session:
         self.call.append(step)
         self.long_builds, self.retry_waits = [], []
         self.recorder.warnings = []
+        self.recorder.read_trace = None
         try:
             outcome = run()
         except ClientError as error:
-            outcome = error.outcome(self.client_codes)
+            trace = self.recorder.read_trace
+            outcome = read_from(error, trace).outcome(self.client_codes)
         self.expect.append(
             with_step_notes(
                 outcome,
@@ -683,7 +698,8 @@ class Session:
 
     def _resolve(self, input_: dict[str, Any]) -> Answer:
         response = self._api("POST", "/search/resolve", search_body(input_))
-        return answer_from_body(self._acted(response))
+        answer = answer_from_body(self._acted(response))
+        return replace(answer, trace_id=self.recorder.read_trace)
 
     def search(self, question: str) -> Answer:
         answers: list[Answer] = []
@@ -708,8 +724,12 @@ class Session:
         answers: list[Answer] = []
 
         def run() -> dict[str, Any]:
-            choice = choice_for(answer, self.gap_kinds, part, option)
-            answers.append(self._resolve(choice_input(answer, choice)))
+            try:
+                choice = choice_for(answer, self.gap_kinds, part, option)
+                posts = choice_input(answer, choice)
+            except ClientError as error:
+                raise read_from(error, answer.trace_id) from None
+            answers.append(self._resolve(posts))
             return self._answered(answers[0])
 
         self._step(step, run)
@@ -733,14 +753,17 @@ class Session:
 
         def run() -> dict[str, Any]:
             if answer.body["kind"] != "resolution":
-                raise ClientError("answer_declined")
+                raise read_from(ClientError("answer_declined"), answer.trace_id)
             gaps = answer_gaps(answer, self.gap_kinds)
             readings = _members(answer)
             if gaps and (not partial or not readings):
-                raise ClientError("answer_incomplete")
+                raise read_from(ClientError("answer_incomplete"), answer.trace_id)
             warns = search_warns(answer)
             if warns and strict:
-                raise ClientError(search_warning_code(answer), error="SearchWarning")
+                raise read_from(
+                    ClientError(search_warning_code(answer), error="SearchWarning"),
+                    answer.trace_id,
+                )
             rendering = rendering_for(layout)
             if "layout" in rendering and len(readings) > 1:
                 raise ClientError("invalid_argument")
@@ -1037,6 +1060,8 @@ class Session:
             refusal.code if refusal is not None else "version_unavailable",
             error=VERSION_UNAVAILABLE,
             newest_version=newest,
+            trace_id=refusal.trace_id if refusal is not None else None,
+            traced=True,
         )
 
     def _stored_file(
@@ -1089,7 +1114,10 @@ class Session:
         if response.status < 400:
             return
         raise refusal_error(
-            response.status, problem_body(_read(response)), self.actions
+            response.status,
+            problem_body(_read(response)),
+            self.actions,
+            response.headers,
         )
 
 
@@ -1178,9 +1206,17 @@ class Context:
             read_shape=self.read_shape,
         )
 
-    def raised(self, code: str) -> dict[str, Any]:
-        """The outcome of an error the client raises with `code`."""
-        return ClientError(code).outcome(self.client_codes)
+    def raised(
+        self, code: str, response: Mapping[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """The outcome of an error the client raises with `code`, on reading
+        the API response `response` when one is given, or else before any
+        response."""
+        error = ClientError(code)
+        if response is not None:
+            body, headers = response.get("json"), response.get("headers", {})
+            read_from(error, trace_id(body, headers))
+        return error.outcome(self.client_codes)
 
     def definite_answer(self, question: str) -> Answer:
         if question not in self._cache:
@@ -2031,16 +2067,26 @@ def _capability_unavailable(
     return [_refusal(build["request"], 501, problem)], error
 
 
+# The x-dfo-trace-id header of the responses `search-no-json-body` and
+# `fetch-spec-strict-warning` raise on, which the errors carry.
+READ_TRACE_ID = "3" * 32
+
+
 def _strict_warning(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The fetch is strict, and its build's manifest, whose response carries
+    READ_TRACE_ID, raises its first warning above info."""
     index = _build_index(parent)
-    manifest = parent["exchanges"][index]["response"]["json"]
-    warning = data_warning(manifest)
+    exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
+    response = exchanges[index]["response"]
+    response.setdefault("headers", {})["x-dfo-trace-id"] = READ_TRACE_ID
+    warning = data_warning(response["json"])
     require(warning is not None, "the manifest carries a warning above info")
+    read_from(warning, trace_id(response["json"], response["headers"]))
     call = copy.deepcopy(parent["call"])
     call[-1]["strict"] = True
     return Derived(
         call,
-        copy.deepcopy(parent["exchanges"][: index + 1]),
+        exchanges,
         [*copy.deepcopy(parent["expect"][:-1]), warning.outcome(ctx.client_codes)],
     )
 
@@ -2079,10 +2125,11 @@ def _resubmit_other_spec(parent: dict[str, Any], ctx: Context) -> Derived:
     posted = parent["call"][-1]["spec"]["spec_id"]
     require(spec["spec_id"] != posted, "the build answered another spec_id")
     spec["spec_id"] = spec["definition"]["spec_id"] = posted
+    error = ctx.raised("contract_violation", exchanges[index]["response"])
     return Derived(
         copy.deepcopy(parent["call"]),
         exchanges,
-        [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("contract_violation")],
+        [*copy.deepcopy(parent["expect"][:-1]), error],
     )
 
 
@@ -2149,7 +2196,10 @@ def _expired_newer(parent: dict[str, Any], ctx: Context) -> Derived:
     build = copy.deepcopy(parent["exchanges"][_build_index(parent)])
     build["response"]["json"]["content_version"] = NEWER_VERSION
     error = ClientError(
-        FILE_EXPIRED, error=VERSION_UNAVAILABLE, newest_version=NEWER_VERSION
+        FILE_EXPIRED,
+        error=VERSION_UNAVAILABLE,
+        newest_version=NEWER_VERSION,
+        trace_id=_EXPIRED["trace_id"],
     )
     return Derived(
         [{"op": "fetch", "ref": ref}],
@@ -2365,7 +2415,7 @@ def _renamed_strict_field(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
     manifest = exchanges[index]["response"]["json"]
     manifest["contentVersion"] = manifest.pop("content_version")
-    error = ctx.raised("contract_violation")
+    error = ctx.raised("contract_violation", exchanges[index]["response"])
     return Derived(
         copy.deepcopy(parent["call"]), exchanges, [parent["expect"][0], error]
     )
@@ -2379,14 +2429,18 @@ def _choice(
     part: int | str | None = None,
     *,
     edit: BodyEdit | None = None,
+    headers: Mapping[str, str] | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
-    """The parent's search, its answer body changed by `edit`, then a choice
-    that refuses and makes no request."""
+    """The parent's search, its answer body changed by `edit` and its
+    response carrying `headers` too, then a choice that refuses and makes no
+    request."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         canned = copy.deepcopy(parent["exchanges"][:1])
+        response = canned[0]["response"]
+        if headers is not None:
+            response.setdefault("headers", {}).update(headers)
         if edit is not None:
-            response = canned[0]["response"]
             response["json"] = edit(response["json"], ctx)
         session = ctx.session("synthetic", canned=canned)
         answer = session.search(parent["call"][0]["question"])
@@ -2422,19 +2476,35 @@ def _choice_refused(
 
 def _answer_edit(
     change: Callable[[dict[str, Any]], None],
+    headers: Mapping[str, str] | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
     """The parent with its first answer body changed, and that answer's
-    outcome derived again."""
+    outcome derived again. With `headers`, the answer's response carries
+    them too, and the parent's steps run again over the changed exchanges,
+    so every outcome that reads the answer follows from them."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         exchanges = copy.deepcopy(parent["exchanges"])
         body = exchanges[0]["response"]["json"]
         change(body)
+        if headers is not None:
+            exchanges[0]["response"].setdefault("headers", {}).update(headers)
+            session = ctx.session("synthetic", canned=exchanges)
+            drive(session, parent["call"])
+            require(not session.recorder.canned, "the steps make every exchange")
+            return Derived(session.call, session.recorder.exchanges, session.expect)
         expect = copy.deepcopy(parent["expect"])
         expect[0] = answer_outcome(answer_from_body(body), gap_kinds(ctx.actions))
         return Derived(copy.deepcopy(parent["call"]), exchanges, expect)
 
     return derive
+
+
+# The x-dfo-trace-id header the Search responses of `answer-timed-out` and
+# `choose-refused-shared-label` carry: the first's answer_incomplete carries
+# it, and the second's choice_invalid, which describes the caller's choice,
+# does not.
+ANSWER_TRACE_ID = "5" * 32
 
 
 def _timed_out(body: dict[str, Any]) -> None:
@@ -2455,9 +2525,8 @@ def _unsupported(body: dict[str, Any]) -> None:
 def _unknown_kind(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"])
     exchanges[0]["response"]["json"]["kind"] = "verdict"
-    return Derived(
-        copy.deepcopy(parent["call"]), exchanges, [ctx.raised("contract_violation")]
-    )
+    error = ctx.raised("contract_violation", exchanges[0]["response"])
+    return Derived(copy.deepcopy(parent["call"]), exchanges, [error])
 
 
 def _partial_nothing_answered(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2611,9 +2680,8 @@ def _versions_renamed(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"])
     body = exchanges[0]["response"]["json"]
     body["items"] = body.pop("versions")
-    return Derived(
-        copy.deepcopy(parent["call"]), exchanges, [ctx.raised("contract_violation")]
-    )
+    error = ctx.raised("contract_violation", exchanges[0]["response"])
+    return Derived(copy.deepcopy(parent["call"]), exchanges, [error])
 
 
 # The Sunset header `search-sunset-warning`'s responses carry, with no
@@ -2662,10 +2730,11 @@ def _artifact_urls_on(
             artifact["url"] = at + artifact["url"]
         if at == _origin(parent["origin"]["base_url"]):
             return _same(parent, exchanges)
+        error = ctx.raised("contract_violation", exchanges[index]["response"])
         return Derived(
             copy.deepcopy(parent["call"]),
             exchanges[: index + 1],
-            [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("contract_violation")],
+            [*copy.deepcopy(parent["expect"][:-1]), error],
         )
 
     return derive
@@ -2724,9 +2793,8 @@ def _search_ends(
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         exchange = copy.deepcopy(parent["exchanges"][0])
         change(exchange["response"])
-        return Derived(
-            copy.deepcopy(parent["call"][:1]), [exchange], [ctx.raised(code)]
-        )
+        error = ctx.raised(code, exchange["response"])
+        return Derived(copy.deepcopy(parent["call"][:1]), [exchange], [error])
 
     return derive
 
@@ -2746,7 +2814,10 @@ UNKNOWN_SPEC_ID = "spec_" + "0" * 32
 
 def _without_json(response: dict[str, Any]) -> None:
     del response["json"]
-    response["headers"] = {"content-type": "text/html; charset=utf-8"}
+    response["headers"] = {
+        "content-type": "text/html; charset=utf-8",
+        "x-dfo-trace-id": READ_TRACE_ID,
+    }
 
 
 def _without_data_query(body: Any, ctx: Context) -> Any:
@@ -2851,14 +2922,17 @@ def _two_part_query(body: Any, ctx: Context) -> Any:
 
 
 def _choice_raises(
-    code: str, edit: BodyEdit
+    code: str, edit: BodyEdit, headers: Mapping[str, str] | None = None
 ) -> Callable[[dict[str, Any], Context], Derived]:
-    """The parent's choice over its answer changed by `edit`, which raises
-    the client code `code` with no request."""
+    """The parent's choice over its answer changed by `edit`, its Search
+    response carrying `headers` too, which raises the client code `code`
+    with no request."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         choose = parent["call"][1]
-        derived = _choice(choose["option"], choose.get("part"), edit=edit)(parent, ctx)
+        derived = _choice(
+            choose["option"], choose.get("part"), edit=edit, headers=headers
+        )(parent, ctx)
         require(derived.expect[-1] == ctx.raised(code), f"the choice raises {code}")
         return derived
 
@@ -2888,10 +2962,11 @@ def _manifest_without_identity(parent: dict[str, Any], ctx: Context) -> Derived:
     index = _build_index(parent)
     exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
     del exchanges[index]["response"]["json"]["definition"]["identity"]
+    error = ctx.raised("contract_violation", exchanges[index]["response"])
     return Derived(
         copy.deepcopy(parent["call"]),
         exchanges,
-        [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("contract_violation")],
+        [*copy.deepcopy(parent["expect"][:-1]), error],
     )
 
 
@@ -2909,8 +2984,9 @@ def _nested_specs_unchecked(parent: dict[str, Any], ctx: Context) -> Derived:
 
 
 # The trace id the codeless problem document of `search-refused-without-code`
-# carries.
+# carries, and the x-dfo-trace-id header it and `search-unauthorized` carry.
 BODY_TRACE_ID = "1" * 32
+HEADER_TRACE_ID = "2" * 32
 
 
 def _refused_without_code(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2925,20 +3001,24 @@ def _refused_without_code(parent: dict[str, Any], ctx: Context) -> Derived:
         "retryable": False,
     }
     refused = _refusal(first["request"], 503, body)
-    refused["response"]["headers"]["x-dfo-trace-id"] = "2" * 32
-    error = refusal_error(503, body, ctx.actions).outcome(ctx.client_codes)
+    refused["response"]["headers"]["x-dfo-trace-id"] = HEADER_TRACE_ID
+    error = refusal_error(
+        503, body, ctx.actions, refused["response"]["headers"]
+    ).outcome(ctx.client_codes)
     return Derived(copy.deepcopy(parent["call"]), [refused], [error])
 
 
 def _unauthorized(parent: dict[str, Any], ctx: Context) -> Derived:
-    """A bodiless 401 answers the search. The replay's key does not change
-    when the client resolves it again, so the client sends nothing more."""
+    """A bodiless 401 with a trace id header answers the search. The
+    replay's key does not change when the client resolves it again, so the
+    client sends nothing more, and the error's trace id is the header's."""
     first = parent["exchanges"][0]
+    headers = {"www-authenticate": "Bearer", "x-dfo-trace-id": HEADER_TRACE_ID}
     refused = {
         "request": copy.deepcopy(first["request"]),
-        "response": {"status": 401, "headers": {"www-authenticate": "Bearer"}},
+        "response": {"status": 401, "headers": headers},
     }
-    error = refusal_error(401, None, ctx.actions).outcome(ctx.client_codes)
+    error = refusal_error(401, None, ctx.actions, headers).outcome(ctx.client_codes)
     return Derived(copy.deepcopy(parent["call"]), [refused], [error])
 
 
@@ -3038,9 +3118,11 @@ SYNTHETIC = (
     Synthetic(
         "fetch-spec-strict-warning",
         "fetch-spec-known-sentence",
-        "The fetch is strict, and the exchanges after the build go.",
+        f"The fetch is strict, the build's response carries x-dfo-trace-id {READ_TRACE_ID}, "
+        "and the exchanges after the build go.",
         "A strict fetch raises the manifest's first warning above info severity, "
-        "coverage_below_scope at warn here, as DataWarning before the download.",
+        "coverage_below_scope at warn here, as DataWarning before the download, with the "
+        "trace id of the build response it read.",
         _strict_warning,
     ),
     Synthetic(
@@ -3314,19 +3396,20 @@ SYNTHETIC = (
     Synthetic(
         "search-refused-without-code",
         "search-place-ambiguous",
-        "A 503 problem document with no code, retryable false and a trace_id answers the "
-        "search.",
+        f"A 503 problem document with no code, retryable false and trace_id {BODY_TRACE_ID} "
+        f"answers the search, with x-dfo-trace-id {HEADER_TRACE_ID}.",
         "A problem document with no code raises refusal_without_code with the class its "
-        "status maps to, and keeps its body's retryable, so a retryable false 503 is not "
-        "retried.",
+        "status maps to, and keeps its body's retryable and trace_id, so a retryable false "
+        "503 is not retried and its trace id is the body's, not the header's.",
         _refused_without_code,
     ),
     Synthetic(
         "search-unauthorized",
         "search-place-ambiguous",
-        "A bodiless 401 answers the search.",
+        f"A bodiless 401 with x-dfo-trace-id {HEADER_TRACE_ID} answers the search.",
         "A 401 resolves the key again; the key is unchanged, so the client sends nothing "
-        "more and raises AuthenticationError refusal_without_code.",
+        "more and raises AuthenticationError refusal_without_code, whose trace id is the "
+        "header's, since the refusal has no body.",
         _unauthorized,
     ),
     Synthetic(
@@ -3364,10 +3447,14 @@ SYNTHETIC = (
     Synthetic(
         "choose-refused-shared-label",
         "choose-place-one-part",
-        "The no_data part's second option takes the first one's label.",
+        "The no_data part's second option takes the first one's label, and the search's "
+        f"response carries x-dfo-trace-id {ANSWER_TRACE_ID}.",
         "A label two options share matches several, so choosing by it raises "
-        "InvalidRequestError with no request.",
-        _choice_raises("choice_invalid", _labels_shared),
+        "InvalidRequestError with no request. The error describes the caller's choice, so "
+        "it carries no trace id although the answer's response has one.",
+        _choice_raises(
+            "choice_invalid", _labels_shared, {"x-dfo-trace-id": ANSWER_TRACE_ID}
+        ),
     ),
     Synthetic(
         "choose-option-two-part-query",
@@ -3381,8 +3468,10 @@ SYNTHETIC = (
     Synthetic(
         "search-no-json-body",
         "search-place-ambiguous",
-        "The search answers 200 with an empty text/html body.",
-        "A 2xx Search response with no JSON body raises ContractError unexpected_response.",
+        f"The search answers 200 with an empty text/html body and x-dfo-trace-id "
+        f"{READ_TRACE_ID}.",
+        "A 2xx Search response with no JSON body raises ContractError unexpected_response, "
+        "with that response's trace id.",
         _search_ends(_without_json, "unexpected_response"),
     ),
     Synthetic(
@@ -3439,10 +3528,12 @@ SYNTHETIC = (
     Synthetic(
         "answer-timed-out",
         "answer-mixed-fetch-raises",
-        "The answer's diagnostics.timed_out becomes true.",
+        "The answer's diagnostics.timed_out becomes true, and its response carries "
+        f"x-dfo-trace-id {ANSWER_TRACE_ID}.",
         "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, "
-        "whatever its reason, and fetching the answer raises IncompleteAnswerError.",
-        _answer_edit(_timed_out),
+        "whatever its reason, and fetching the answer raises IncompleteAnswerError, which "
+        "describes the answer and carries its response's trace id.",
+        _answer_edit(_timed_out, {"x-dfo-trace-id": ANSWER_TRACE_ID}),
     ),
     Synthetic(
         "answer-unsupported-part",

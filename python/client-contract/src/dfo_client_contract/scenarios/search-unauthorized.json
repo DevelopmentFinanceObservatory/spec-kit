@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "search-unauthorized",
-  "description": "A 401 resolves the key again; the key is unchanged, so the client sends nothing more and raises AuthenticationError refusal_without_code.",
+  "description": "A 401 resolves the key again; the key is unchanged, so the client sends nothing more and raises AuthenticationError refusal_without_code, whose trace id is the header's, since the refusal has no body.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "search-place-ambiguous",
-    "edit": "A bodiless 401 answers the search."
+    "edit": "A bodiless 401 with x-dfo-trace-id 22222222222222222222222222222222 answers the search."
   },
   "call": [
     {
@@ -29,7 +29,8 @@
       "response": {
         "status": 401,
         "headers": {
-          "www-authenticate": "Bearer"
+          "www-authenticate": "Bearer",
+          "x-dfo-trace-id": "22222222222222222222222222222222"
         }
       }
     }
@@ -38,7 +39,8 @@
     {
       "error": {
         "class": "AuthenticationError",
-        "code": "refusal_without_code"
+        "code": "refusal_without_code",
+        "trace_id": "22222222222222222222222222222222"
       }
     }
   ]
