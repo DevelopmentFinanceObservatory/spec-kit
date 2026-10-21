@@ -414,6 +414,24 @@ def _diagnostics_trace(doc: Any) -> None:
     doc["expect"][1]["error"]["trace_id"] = diagnostics["trace_id"]
 
 
+def _no_data_options(change: Callable[[Any], Any]) -> Callable[[Any], None]:
+    """Part 0's no_data options become what `change` makes of them."""
+
+    def edit(doc: Any) -> None:
+        no_data = doc["exchanges"][0]["response"]["json"]["parts"][0]["no_data"]
+        no_data["options"] = change(no_data["options"])
+
+    return edit
+
+
+def _mentions_a_string(doc: Any) -> None:
+    """Each no_data option of the first answer mentions one string, its
+    words joined, in place of a list of words."""
+    for part in doc["exchanges"][0]["response"]["json"]["parts"]:
+        for option in part.get("no_data", {}).get("options", []):
+            option["mentions"] = " and ".join(option.get("mentions", []))
+
+
 def _poll_waits(change: Callable[[list[float]], None]) -> Callable[[Any], None]:
     return _set_outcome(
         0, lambda o: change(o["dataset"]["long_builds"][0]["poll_waits"])
@@ -1485,6 +1503,32 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             lambda doc: doc["exchanges"][1]["response"].update(status=201, json={}),
             "the steps never make exchanges 2 to 2",
         ),
+        (
+            _SEARCH,
+            _no_data_options(lambda options: dict(enumerate(options))),
+            "expects",
+        ),
+        (_SEARCH, _no_data_options(lambda options: None), "step 0 expects"),
+        (
+            "scenarios/choose-part-by-mention.json",
+            _mentions_a_string,
+            "the steps never make exchanges 1 to 1",
+        ),
+        (
+            "scenarios/answer-timed-out.json",
+            _set_body(0, lambda body: body.update(diagnostics="timed out")),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/answer-candidates-choose-fetch.json",
+            _set_body(
+                0,
+                lambda body: body["parts"][0]["candidates"]["specs"].__setitem__(
+                    0, "x"
+                ),
+            ),
+            "the step follows no answer",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -1704,6 +1748,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "signed-fetch-206-read-as-the-file",
         "files-route-204-read-as-a-redirect",
         "files-route-201-read-as-a-redirect",
+        "no-data-options-as-an-object-counted",
+        "no-data-options-null-counted",
+        "mentions-as-a-string-matched",
+        "diagnostics-not-an-object-read",
+        "candidate-spec-not-an-object-read",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -1732,6 +1781,33 @@ def test_a_record_that_holds_only_under_its_recorded_host_is_reported(
         p for p in problems if p.startswith(name)
     ]
     assert any(p.startswith(name) for p in problems), problems
+
+
+@pytest.mark.parametrize(
+    ("headers", "reported"),
+    [
+        ({}, True),
+        ({"cache-control": "no-store"}, True),
+        ({"cache-control": "public, max-age=60"}, False),
+    ],
+    ids=["untraced", "untraced-private", "shared-cacheable"],
+)
+def test_a_recorded_response_without_a_trace_id_is_reported(
+    package_dir: Path, headers: dict[str, str], reported: bool
+) -> None:
+    """The server sends x-dfo-trace-id on every API response but one marked
+    Cache-Control: public, so a recorded response without it is one the
+    server did not send."""
+
+    def change(doc: Any) -> None:
+        kept = doc["exchanges"][0]["response"]["headers"]
+        del kept["x-dfo-trace-id"]
+        kept.update(headers)
+
+    _edit(package_dir / _FETCH, change)
+    problems = validator.validate()
+    found = [p for p in problems if "carries no x-dfo-trace-id" in p]
+    assert bool(found) is reported, problems
 
 
 def test_a_retired_code_with_a_row_is_reported(package_dir: Path) -> None:

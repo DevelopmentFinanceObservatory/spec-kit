@@ -74,6 +74,8 @@ from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 from validate_client_contract import (
     FILE_EXPIRED,
     FILE_GONE,
+    FILES_ROUTE_FILE,
+    FILES_ROUTE_REDIRECT,
     NO_VERSIONS,
     POLL_BACKOFF_CAP,
     POLL_BACKOFF_FIRST,
@@ -100,7 +102,6 @@ from validate_client_contract import (
     digest_of,
     download_target,
     failed_operation,
-    files_route_unexpected,
     gap_kinds,
     header_warnings,
     held_spec,
@@ -121,8 +122,10 @@ from validate_client_contract import (
     search_warns,
     selector_path,
     sentence_entry,
+    shared_cacheable,
     surface_problems,
     trace_id,
+    untraced,
     versions_path,
     with_step_notes,
 )
@@ -136,7 +139,9 @@ BINARY_BUDGET = 5_000_000
 
 # The rendering both clients ask for: bare long Parquet.
 RENDERING = {"format": "parquet", "bundle": False}
-# The response headers a client reads, and so the ones a record keeps.
+# The response headers a client reads, and so the ones a record keeps, beside
+# a `cache-control` that marks the response shared-cacheable, which excuses it
+# from carrying `x-dfo-trace-id`.
 KEPT_HEADERS = (
     "content-type",
     "location",
@@ -364,14 +369,6 @@ def _origin(base_url: str) -> str:
     return f"{parts.scheme}://{parts.netloc}"
 
 
-def untraced(headers: Mapping[str, str]) -> bool:
-    """Whether an API response lacks the TRACE_HEADER header the server sends
-    on every response but one marked `Cache-Control: public`, which a shared
-    cache replays and so carries no per-request id."""
-    directives = headers.get("cache-control", "").lower().replace(" ", "").split(",")
-    return TRACE_HEADER not in headers and "public" not in directives
-
-
 def _is_json(content_type: str) -> bool:
     media = content_type.split(";", maxsplit=1)[0].strip()
     return media == "application/json" or media.endswith("+json")
@@ -482,6 +479,8 @@ class Recorder:
             for name in KEPT_HEADERS
             if name in response.headers
         }
+        if shared_cacheable(response.headers):
+            headers["cache-control"] = response.headers["cache-control"]
         if headers:
             kept["headers"] = headers
         content_type = response.headers.get("content-type", "")
@@ -965,14 +964,14 @@ class Session:
         return resubmitted_sentence(answer, definition["spec_id"])
 
     def _download(self, target: str, digest: str, *, origin: bool = True) -> bytes:
-        """A file through the route that redirects to it: an `origin_path`,
-        as `artifact_route` places an artifact's url, or a path under the
-        base URL. The redirect's
-        location is fetched once, where `download_target` places it; a local
-        app's blob URL on the API's origin stands for the storage URL a
-        deployment signs. A files route answering a 2xx other than 200 or 302
-        raises ContractError `unexpected_response`; a fetch answering other
-        than 200, or bytes of another digest, ask the route once more."""
+        """A file through its files route: an `origin_path`, as
+        `artifact_route` places an artifact's url, or a path under the base
+        URL. A 302's location is fetched once, where `download_target` places
+        it, a local app's blob URL on the API's origin standing for the
+        storage URL a deployment signs; a 200 holds the file; any other
+        success raises ContractError `unexpected_response`. A fetch answering
+        other than 200, or bytes of another digest, ask the route once
+        more."""
         base_url = self.recorder.base_url
         if origin:
             route_url = _origin(base_url) + target
@@ -991,20 +990,23 @@ class Session:
                 ),
             )
             self._raise_problem(files)
-            if files_route_unexpected(files.status):
+            if files.status == FILES_ROUTE_FILE:
+                data = files
+            elif files.status == FILES_ROUTE_REDIRECT:
+                location = files.headers["location"]
+                kind, at = download_target(base_url, route_url, location)
+                if kind == "origin_path" and at.startswith(LOCAL_BLOB_PREFIX):
+                    kind = "url"
+                data = (
+                    self.recorder.external(urljoin(route_url, location))
+                    if kind == "url"
+                    else self.recorder.origin("GET", at)
+                )
+                if data.status != SIGNED_FETCH_STATUS:
+                    failure = ClientError("download_failed")
+                    continue
+            else:
                 raise ClientError("unexpected_response")
-            location = files.headers["location"]
-            kind, at = download_target(base_url, route_url, location)
-            if kind == "origin_path" and at.startswith(LOCAL_BLOB_PREFIX):
-                kind = "url"
-            data = (
-                self.recorder.external(urljoin(route_url, location))
-                if kind == "url"
-                else self.recorder.origin("GET", at)
-            )
-            if data.status != SIGNED_FETCH_STATUS:
-                failure = ClientError("download_failed")
-                continue
             if digest_of(data.body) == digest:
                 return data.body
             failure = ClientError("digest_mismatch")
@@ -2415,23 +2417,38 @@ _OPERATION_NOT_FOUND = _problem(
 )
 
 
-def _poll_not_found(parent: dict[str, Any], ctx: Context) -> Derived:
-    """A 404 operation_not_found, which is not retryable, answers the first
-    poll, and the exchanges after it go."""
-    derived = _async_fetch()(parent, ctx)
-    index = _poll_index(derived.exchanges)
-    refused = _refusal(derived.exchanges[index]["request"], 404, _OPERATION_NOT_FOUND)
-    (outcome,) = derived.expect
-    (build,) = outcome["dataset"]["long_builds"]
-    error = refusal_error(404, _OPERATION_NOT_FOUND, ctx.actions).outcome(
-        ctx.client_codes
-    )
-    entry = {**build, "poll_waits": build["poll_waits"][:1]}
-    return Derived(
-        derived.call,
-        [*derived.exchanges[:index], refused],
-        [with_step_notes(error, long_builds=[entry], retry_waits=(), warnings=())],
-    )
+# The codeless problem document of a 429 that says it is not retryable, which
+# answers the first poll of `fetch-spec-poll-rate-limited-not-retryable`.
+_RATE_LIMITED_FOR_GOOD = {
+    "title": "Too Many Requests",
+    "status": 429,
+    "detail": "This key has used its requests for the day.",
+    "trace_id": "0" * 32,
+    "retryable": False,
+}
+
+
+def _poll_refused_at_once(
+    status: int, body: dict[str, Any]
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """A refusal of `status` with the not-retryable `body` answers the first
+    poll, which raises it, and the exchanges after it go."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        derived = _async_fetch()(parent, ctx)
+        index = _poll_index(derived.exchanges)
+        refused = _refusal(derived.exchanges[index]["request"], status, body)
+        (outcome,) = derived.expect
+        (build,) = outcome["dataset"]["long_builds"]
+        error = refusal_error(status, body, ctx.actions).outcome(ctx.client_codes)
+        entry = {**build, "poll_waits": build["poll_waits"][:1]}
+        return Derived(
+            derived.call,
+            [*derived.exchanges[:index], refused],
+            [with_step_notes(error, long_builds=[entry], retry_waits=(), warnings=())],
+        )
+
+    return derive
 
 
 def _signed_url_refused(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2462,24 +2479,66 @@ def _signed_fetch_partial(parent: dict[str, Any], ctx: Context) -> Derived:
     return _same(parent, exchanges)
 
 
-def _files_route_no_content(parent: dict[str, Any], ctx: Context) -> Derived:
-    """The files route answers 204 with no location, and the exchanges after
-    it go."""
-    index = _signed_index(parent["exchanges"]) - 1
-    exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
-    response = exchanges[index]["response"]
-    response["status"] = 204
-    response["headers"] = {
+def _files_route_answers(
+    status: int, *, keep_location: bool
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """The files route answers `status`, with its location when
+    `keep_location`, and raises ContractError unexpected_response; the
+    exchanges after it go."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        index = _signed_index(parent["exchanges"]) - 1
+        exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
+        response = exchanges[index]["response"]
+        response["status"] = status
+        dropped = {"content-type"} if keep_location else {"location", "content-type"}
+        response["headers"] = {
+            name: value
+            for name, value in response.get("headers", {}).items()
+            if name not in dropped
+        }
+        error = ctx.raised("unexpected_response", response)
+        return Derived(
+            copy.deepcopy(parent["call"]),
+            exchanges,
+            [*copy.deepcopy(parent["expect"][:-1]), error],
+        )
+
+    return derive
+
+
+def _files_route_serves_file(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The files route answers 200 with the file the parent's signed URL
+    served, and no signed fetch follows."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    index = _signed_index(exchanges)
+    files, signed = exchanges[index - 1], exchanges[index]
+    headers = {
         name: value
-        for name, value in response.get("headers", {}).items()
-        if name not in {"location", "content-type"}
+        for name, value in files["response"].get("headers", {}).items()
+        if name != "location"
     }
-    error = ctx.raised("unexpected_response", response)
-    return Derived(
-        copy.deepcopy(parent["call"]),
-        exchanges,
-        [*copy.deepcopy(parent["expect"][:-1]), error],
-    )
+    headers["content-type"] = signed["response"]["headers"]["content-type"]
+    files["response"] = {**signed["response"], "headers": headers}
+    del exchanges[index]
+    return _same(parent, exchanges)
+
+
+def _folded_parts_unnamed(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The two folded parts of the first member lose their variable_text,
+    the first its member and the second to an empty string, so that member
+    names no part and its part value is its sentence."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    parts = exchanges[0]["response"]["json"]["parts"]
+    require(parts[0]["spec"]["spec_id"] == parts[1]["spec"]["spec_id"], "folded parts")
+    del parts[0]["variable_text"]
+    parts[1]["variable_text"] = ""
+    derived = _same(parent, exchanges)
+    dataset = derived.expect[-1]["dataset"]
+    member = dataset["members"][0]
+    member["parts"] = []
+    dataset["part_rows"][0]["part"] = part_label(member)
+    return derived
 
 
 def _specs_an_object(response: dict[str, Any]) -> None:
@@ -3399,13 +3458,23 @@ SYNTHETIC = (
         _async_fetch(_poll_busy_retry_after),
     ),
     Synthetic(
+        "fetch-spec-poll-rate-limited-not-retryable",
+        "mint-async-build",
+        "As fetch-spec-async-build, with a 429 problem document with no code and "
+        "retryable false answering the first poll, and the exchanges after it go.",
+        "A refusal's retryable outranks its status on a poll too: a 429 that says it is "
+        "not retryable raises RateLimitError at once, where a retryable 429 is polled "
+        "again without spending a retry.",
+        _poll_refused_at_once(429, _RATE_LIMITED_FOR_GOOD),
+    ),
+    Synthetic(
         "fetch-spec-poll-not-found",
         "mint-async-build",
         "As fetch-spec-async-build, with a 404 operation_not_found answering the first poll, "
         "and the exchanges after it go.",
         "A refused poll that is not retryable raises its error at once, with the one poll "
         "made in long_builds.",
-        _poll_not_found,
+        _poll_refused_at_once(404, _OPERATION_NOT_FOUND),
     ),
     Synthetic(
         "fetch-spec-operation-failed-resubmitted",
@@ -3429,10 +3498,28 @@ SYNTHETIC = (
         "fetch-spec-files-route-no-content",
         "fetch-spec-known-sentence",
         "The files route answers 204 with no location, and the exchanges after it go.",
-        "A files route that answers a 2xx other than 200 or 302 raises ContractError "
-        "unexpected_response, with that response's trace id, and the client fetches "
-        "nothing.",
-        _files_route_no_content,
+        "A files route that answers a status other than 302, 200 or a refusal raises "
+        "ContractError unexpected_response, with that response's trace id, and the "
+        "client fetches nothing.",
+        _files_route_answers(204, keep_location=False),
+    ),
+    Synthetic(
+        "fetch-spec-files-route-temporary-redirect",
+        "fetch-spec-known-sentence",
+        "The files route answers 307 with the parent's location, and the exchanges after "
+        "it go.",
+        "A files route redirects with 302 only: a 307, as any 3xx other than 302, raises "
+        "ContractError unexpected_response, and the client does not follow its location.",
+        _files_route_answers(307, keep_location=True),
+    ),
+    Synthetic(
+        "fetch-spec-files-route-serves-file",
+        "fetch-spec-known-sentence",
+        "The files route answers 200 with the file the signed URL served, and the signed "
+        "fetch goes.",
+        "A files route that answers 200 holds the file as its body, which the client "
+        "hashes against the artifact's digest with no further request.",
+        _files_route_serves_file,
     ),
     Synthetic(
         "fetch-ref-signed-url-refused",
@@ -3578,6 +3665,16 @@ SYNTHETIC = (
         "no_data.flagged_match, no_data.alternate_match or resolved.equivalent_readings may "
         "lack resolved and identity, and the search and the choice reach the same answers.",
         _nested_specs_unchecked,
+    ),
+    Synthetic(
+        "answer-folded-parts-unnamed",
+        "answer-several-readings-folded",
+        "The first folded part loses its variable_text and the second's becomes an empty "
+        "string.",
+        "A definite part whose variable_text is absent or empty adds nothing to its "
+        "member's parts, so the member that answers both names no part and its rows' part "
+        "value is its sentence.",
+        _folded_parts_unnamed,
     ),
     Synthetic(
         "answer-candidate-specs-not-a-list",

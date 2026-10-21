@@ -56,9 +56,10 @@ document validates against its schema, then what the schemas cannot express:
   and the class of each error the client raises itself from
   `client-codes.json`, as `expected_outcomes` derives them, the waits
   before each poll included, under the record's base URL and again under
-  REPLAY_ORIGIN with the recorded origin a response names moved there; a dataset's rows, columns and per-part row
-  counts are left to the Parquet bodies, and each download hashes to its
-  artifact's digest or the outcome says it does not. Each Search request a
+  REPLAY_ORIGIN with the recorded origin a response names moved there; a
+  dataset's rows, columns and per-part row counts are left to the Parquet
+  bodies, and each download hashes to its artifact's digest or the outcome
+  says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity with the
   entity groups of the roles its build left bound as they were, and each
@@ -991,6 +992,19 @@ def trace_id(body: Any, headers: Mapping[str, str] | None) -> str | None:
     return header or None
 
 
+def shared_cacheable(headers: Mapping[str, str]) -> bool:
+    """Whether a response is marked `Cache-Control: public`: a shared cache
+    replays it, so it carries no per-request trace id."""
+    directives = headers.get("cache-control", "").lower().replace(" ", "").split(",")
+    return "public" in directives
+
+
+def untraced(headers: Mapping[str, str]) -> bool:
+    """Whether an API response lacks the TRACE_HEADER header the server sends
+    on every response but a shared-cacheable one."""
+    return TRACE_HEADER not in headers and not shared_cacheable(headers)
+
+
 def refusal_error(
     status: int,
     body: Any,
@@ -1033,6 +1047,39 @@ def read_from(error: ClientError, trace: str | None) -> ClientError:
     return error
 
 
+# --- reading members no strict pointer names ---------------------------------
+#
+# A member a client reads that no strict pointer names, and that holds a JSON
+# type other than the one its rule reads, reads as absent; so does every
+# member of a holder that is not an object. Each read of such a member goes
+# through one of these.
+
+
+def read_object(holder: Any, name: str) -> dict[str, Any] | None:
+    """`holder`'s member `name` when it is an object, else None."""
+    value = holder.get(name) if isinstance(holder, dict) else None
+    return value if isinstance(value, dict) else None
+
+
+def read_list(holder: Any, name: str) -> list[Any] | None:
+    """`holder`'s member `name` when it is a list, else None."""
+    value = holder.get(name) if isinstance(holder, dict) else None
+    return value if isinstance(value, list) else None
+
+
+def read_objects(holder: Any, name: str) -> list[dict[str, Any]]:
+    """The object items of `holder`'s list member `name`: an absent list, or
+    one of another type, holds none, and an item of another type reads as
+    absent."""
+    return [item for item in read_list(holder, name) or [] if isinstance(item, dict)]
+
+
+def read_string(holder: Any, name: str) -> str | None:
+    """`holder`'s member `name` when it is a string, else None."""
+    value = holder.get(name) if isinstance(holder, dict) else None
+    return value if isinstance(value, str) else None
+
+
 # The answer kinds a client reads. Any other kind raises ContractError.
 ANSWER_KINDS = ("resolution", "catalogue", "declined")
 RESOLUTION = "resolution"
@@ -1066,7 +1113,9 @@ def answer_from_body(body: Any) -> Answer:
         raise ClientError("contract_violation")
     if body["kind"] == RESOLUTION and not parts:
         raise ClientError("contract_violation")
-    return Answer(body, parts, body.get("rendered_sentence"), body.get("status"))
+    return Answer(
+        body, parts, read_string(body, "rendered_sentence"), read_string(body, "status")
+    )
 
 
 def _readable(part: Any) -> bool:
@@ -1076,7 +1125,7 @@ def _readable(part: Any) -> bool:
         return False
     specs = [part.get("spec")] if part["status"] == "definite" else []
     if part["status"] == "candidates":
-        specs = (part.get("candidates") or {}).get("specs") or []
+        specs = read_list(read_object(part, "candidates"), "specs") or []
     return all(
         not isinstance(spec, dict)
         or not isinstance(spec.get("definition"), dict)
@@ -1125,14 +1174,16 @@ def choice_for(
         index = part
     else:
         named = [
-            i for i, p in enumerate(answer.parts) if p.get("variable_text") == part
+            i
+            for i, p in enumerate(answer.parts)
+            if read_string(p, "variable_text") == part
         ]
         if not named:
             mention = part
             named = [
                 i
                 for i in sorted(gap_parts)
-                if any(part in o.get("mentions", []) for o in _options(answer, i))
+                if any(part in mentions(o) for o in _options(answer, i))
             ]
         if len(named) != 1:
             raise _refuse()
@@ -1155,8 +1206,8 @@ def choice_for(
         found = [
             o
             for o in options
-            if o.get("label") == option
-            and (mention is None or mention in o.get("mentions", []))
+            if read_string(o, "label") == option
+            and (mention is None or mention in mentions(o))
         ]
     if len(found) != 1:
         raise _refuse()
@@ -1164,7 +1215,13 @@ def choice_for(
 
 
 def _options(answer: Answer, index: int) -> list[dict[str, Any]]:
-    return answer.parts[index].get("no_data", {}).get("options", [])
+    """A part's no_data options, as `read_objects` reads them."""
+    return read_objects(read_object(answer.parts[index], "no_data"), "options")
+
+
+def mentions(option: Mapping[str, Any]) -> list[str]:
+    """The words a no_data option mentions, its string items."""
+    return [w for w in read_list(option, "mentions") or [] if isinstance(w, str)]
 
 
 def choice_input(answer: Answer, choice: Choice) -> dict[str, Any]:
@@ -1211,7 +1268,7 @@ def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any
             return _echo(
                 part,
                 entry_kind="candidates",
-                ordering=candidates.get("ordering"),
+                ordering=read_string(candidates, "ordering"),
                 truncated=candidates.get("truncated") is True,
                 candidates=[
                     _identity(spec, reading_echo(part, spec))
@@ -1247,8 +1304,8 @@ def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
     no `assumptions`, and Search reads the reading as a fresh request does;
     `[]` states none."""
     if part.get("status") == "candidates":
-        return (part.get("reading_assumptions") or {}).get(spec["spec_id"])
-    return part.get("assumptions")
+        return read_list(read_object(part, "reading_assumptions"), spec["spec_id"])
+    return read_list(part, "assumptions")
 
 
 def _restated_entry(part: dict[str, Any]) -> dict[str, Any]:
@@ -1275,7 +1332,7 @@ def _identity(spec: dict[str, Any], assumptions: Any = None) -> dict[str, Any]:
     """A spec's identity, its entity groups when it has any, and the
     reading's `assumptions` echo unless it is None."""
     item: dict[str, Any] = {"identity": spec["definition"]["identity"]}
-    groups = spec.get("resolved", {}).get("entity_groups")
+    groups = read_object(spec.get("resolved"), "entity_groups")
     if groups:
         item["entity_groups"] = groups
     if assumptions is not None:
@@ -1283,27 +1340,21 @@ def _identity(spec: dict[str, Any], assumptions: Any = None) -> dict[str, Any]:
     return item
 
 
-def listed(holder: Mapping[str, Any], name: str) -> list[Any]:
-    """A member a client reads as a list, and that no strict pointer names:
-    a member of another type reads as absent, as an empty list."""
-    value = holder.get(name)
-    return value if isinstance(value, list) else []
-
-
 def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
     """An entry with the members every entry but a parsed one echoes from its
     part: variable_text, separate when true, and operations when any."""
-    if not part.get("variable_text"):
+    variable_text = read_string(part, "variable_text")
+    if not variable_text:
         raise _refuse()
-    entry: dict[str, Any] = {**members, "variable_text": part["variable_text"]}
+    entry: dict[str, Any] = {**members, "variable_text": variable_text}
     if part.get("separate") is True:
         entry["separate"] = True
-    if operations := listed(part, "operations"):
+    if operations := read_list(part, "operations"):
         entry["operations"] = operations
     return entry
 
 
-def reading_hints(answer: Answer) -> dict[str, str]:
+def reading_hints(answer: Answer) -> dict[str, str | None]:
     """How `answer`'s readings differ from the question, each line a client
     shows once, with its code. In part order, each definite part gives each
     operation Search did not run, coded by its verb, each departure, and each
@@ -1311,21 +1362,24 @@ def reading_hints(answer: Answer) -> dict[str, str]:
     warnings follow. An `info` warning gives nothing."""
     hints: dict[str, str] = {}
 
-    def notices(warnings: list[Any]) -> None:
-        for warning in warnings:
-            if warning.get("severity") in SHOWN_SEVERITIES and warning.get("message"):
-                hints.setdefault(f"Note: {warning['message']}", warning["code"])
+    def notices(holder: Any) -> None:
+        for warning in read_objects(holder, "warnings"):
+            message = read_string(warning, "message")
+            if read_string(warning, "severity") in SHOWN_SEVERITIES and message:
+                hints.setdefault(f"Note: {message}", read_string(warning, "code"))
 
     for part in answer.parts:
         if part.get("status") != "definite":
             continue
-        for operation in listed(part, "operations"):
-            line = f"Not done: {operation['verb']} ({json.dumps(operation['phrase'])})"
-            hints.setdefault(line, operation["verb"])
-        for departure in listed(part, "departures"):
-            hints.setdefault(departure["text"], departure["code"])
-        notices(listed(part, "warnings"))
-    notices(listed(answer.body.get("diagnostics", {}), "warnings"))
+        for operation in read_objects(part, "operations"):
+            if verb := read_string(operation, "verb"):
+                phrase = json.dumps(operation.get("phrase"))
+                hints.setdefault(f"Not done: {verb} ({phrase})", verb)
+        for departure in read_objects(part, "departures"):
+            if text := read_string(departure, "text"):
+                hints.setdefault(text, read_string(departure, "code"))
+        notices(part)
+    notices(read_object(answer.body, "diagnostics"))
     return hints
 
 
@@ -1346,7 +1400,8 @@ def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]
     """Each part without a reading: a candidates part is a choice among its
     specs; a no_data part takes its reason's gap kind, or `timed_out` when the
     answer timed out; a part of unknown status is an `unknown` gap."""
-    timed_out = answer.body.get("diagnostics", {}).get("timed_out") is True
+    diagnostics = read_object(answer.body, "diagnostics")
+    timed_out = diagnostics is not None and diagnostics.get("timed_out") is True
     gaps = []
     for index, part in enumerate(answer.parts):
         match part.get("status"):
@@ -1361,7 +1416,7 @@ def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]
                     if timed_out
                     else kinds.get(no_data["reason"], "no_data")
                 )
-                options = len(no_data.get("options", []))
+                options = len(read_objects(no_data, "options"))
             case "unsupported":
                 kind, options = "unsupported", 0
             case _:
@@ -1380,8 +1435,8 @@ def answer_members(answer: Answer) -> list[tuple[list[str], dict[str, Any]]]:
             continue
         spec = part["spec"]
         named = members.setdefault(spec["spec_id"], ([], spec))[0]
-        if part.get("variable_text"):
-            named.append(part["variable_text"])
+        if variable_text := read_string(part, "variable_text"):
+            named.append(variable_text)
     return list(members.values())
 
 
@@ -1393,9 +1448,9 @@ def held_spec(spec: Mapping[str, Any]) -> dict[str, Any]:
     held = {
         "spec_id": spec["spec_id"],
         "definition": spec["definition"],
-        "sentence": resolved["rendered_sentence"],
+        "sentence": read_string(resolved, "rendered_sentence"),
     }
-    if groups := resolved.get("entity_groups"):
+    if groups := read_object(resolved, "entity_groups"):
         held["entity_groups"] = groups
     return held
 
@@ -1502,7 +1557,8 @@ def strict_gaps(
     component: str | None = None,
 ) -> list[str]:
     """The strict members `body` lacks, holds as null, or holds as a JSON
-    type their schema does not admit, read through `schema`: each component
+    type their schema does not admit, and each item of a strict list of a
+    type its item schema does not admit, read through `schema`: each component
     schema it reaches names its own, and a
     discriminated union whose discriminator `body` lacks is a gap. The walk
     goes down only through strict members, the ones a client reads, so a
@@ -1556,7 +1612,11 @@ def strict_gaps(
                 strict_gaps(openapi, members, member, body[name], f"{where}/{name}")
             )
     if isinstance(body, list) and "items" in schema:
+        types = schema_types(openapi, schema["items"])
         for index, item in enumerate(body):
+            if types is not None and json_type(item) not in types:
+                gaps.append(f"{where}/{index}")
+                continue
             gaps.extend(
                 strict_gaps(openapi, members, schema["items"], item, f"{where}/{index}")
             )
@@ -1706,17 +1766,14 @@ def selector_path(
 # client fetches from, and the query every signed URL in a record carries.
 STORAGE_ORIGIN = "https://storage.googleapis.com"
 REDACTED_QUERY = "X-Goog-Signature=redacted"
-# The successes a files route answers with the file's `location`; any other
-# 2xx raises ContractError `unexpected_response`. A signed fetch that answers
+# A files route answers FILES_ROUTE_REDIRECT with the `location` the client
+# fetches, or FILES_ROUTE_FILE with the file as its body; a refusal reads by
+# the refusal rules, and any other status, another 2xx or 3xx included,
+# raises ContractError `unexpected_response`. A signed fetch that answers
 # other than SIGNED_FETCH_STATUS is a failed fetch.
-FILES_ROUTE_STATUSES = frozenset({200, 302})
+FILES_ROUTE_REDIRECT = 302
+FILES_ROUTE_FILE = 200
 SIGNED_FETCH_STATUS = 200
-
-
-def files_route_unexpected(status: int) -> bool:
-    """Whether a files route's answer is a 2xx other than those of
-    FILES_ROUTE_STATUSES, which raises ContractError `unexpected_response`."""
-    return 200 <= status < 300 and status not in FILES_ROUTE_STATUSES
 
 
 def download_target(base_url: str, route_url: str, location: str) -> tuple[str, str]:
@@ -1751,9 +1808,9 @@ def artifact_route(base_url: str, url: str) -> str:
 def data_warning(manifest: Mapping[str, Any]) -> ClientError | None:
     """The DataWarning a strict fetch raises for a manifest: its first warning
     above `info` severity, with that warning's code; None when it has none."""
-    for warning in manifest.get("warnings") or []:
-        if isinstance(warning, dict) and warning.get("severity") != "info":
-            return ClientError(warning.get("code"), error="DataWarning")
+    for warning in read_objects(manifest, "warnings"):
+        if read_string(warning, "severity") != "info":
+            return ClientError(read_string(warning, "code"), error="DataWarning")
     return None
 
 
@@ -1782,11 +1839,12 @@ def kept_entity_groups(
     if held is None or not (groups := held.get("entity_groups")):
         return {}
     before = held["definition"]["identity"].get("entities", {})
-    after = built["identity"].get("entities", {})
+    after = read_object(built["identity"], "entities") or {}
     return {
         role: group
         for role, group in groups.items()
-        if role in after and set(after[role]) == set(before.get(role, ()))
+        if isinstance(after.get(role), list)
+        and set(after[role]) == set(before.get(role, ()))
     }
 
 
@@ -1834,13 +1892,15 @@ def failed_operation(
 
 class LongBuild:
     """A build the server runs on, followed the way a client polls it. Each
-    wait before a poll is `PollPacing`'s. A 429 poll spends no retry, any
-    other retryable refused poll one of MAX_RETRIES, and any other refused
-    poll raises; the poll after a refusal waits as `PollPacing` gives. A poll answering a failed operation, retryable by its
-    error, posts the build again once when the client holds its request;
-    otherwise, and for an operation that failed before the client polled
-    it, the operation's error raises. `entry` is the build's `long_builds`
-    entry, and `result` its manifest once it is done."""
+    wait before a poll is `PollPacing`'s. A retryable 429 poll spends no
+    retry, any other retryable refused poll one of MAX_RETRIES, and a refused
+    poll that is not retryable raises, a 429 included; the poll after a
+    refusal waits as `PollPacing` gives. A poll answering a failed
+    operation, retryable by its error, posts the build again once when the
+    client holds its request; otherwise, and for an operation that failed
+    before the client polled it, the operation's error raises. `entry` is
+    the build's `long_builds` entry, and `result` its manifest once it is
+    done."""
 
     def __init__(
         self,
@@ -1895,8 +1955,10 @@ class LongBuild:
             error = refusal_error(status, body, self.actions, headers)
             again = retryable(status, body)
             if error.code != OPERATION_FAILED:
+                if not again:
+                    raise error
                 if status != 429:
-                    if not again or self.retries >= MAX_RETRIES:
+                    if self.retries >= MAX_RETRIES:
                         raise error
                     self.retries += 1
                 self.pacing.refused_poll(headers)
@@ -2065,14 +2127,14 @@ class _Replay:
         return b""
 
     def download(self, target: str, digest: str, *, origin: bool) -> None:
-        """A file through the route that redirects to its signed URL: an
-        `origin_path`, as `artifact_route` places an artifact's `url`, when
-        `origin`, else a path under the base URL. A route answering a 2xx
-        other than 200 or 302 raises ContractError `unexpected_response`.
-        The client fetches once the URL the route's `location` names, as
-        `download_target` places it. A fetch answering other than 200, or
-        bytes that do not hash to `digest`, ask the route once more, and a
-        second failure raises."""
+        """A file through its files route: an `origin_path`, as
+        `artifact_route` places an artifact's `url`, when `origin`, else a
+        path under the base URL. A 302 names the signed URL in its
+        `location`, which the client fetches once where `download_target`
+        places it; a 200 holds the file; a refusal raises; any other status
+        raises ContractError `unexpected_response`. A fetch answering other
+        than 200, or bytes that do not hash to `digest`, ask the route once
+        more, and a second failure raises."""
         failure = ClientError("download_failed")
         base = urlsplit(self.base_url)
         route_url = (
@@ -2082,19 +2144,26 @@ class _Replay:
         )
         for _ in range(2):
             kind = "origin_path" if origin else "path"
-            exchange = self.call("GET", target, kind=kind)
-            self.acted_on(exchange)
-            if files_route_unexpected(exchange["response"]["status"]):
+            files = self.call("GET", target, kind=kind)["response"]
+            status = files["status"]
+            if status >= 400:
+                raise refusal_error(
+                    status, problem_body(files), self.actions, files.get("headers")
+                )
+            if status == FILES_ROUTE_FILE:
+                file = files
+            elif status == FILES_ROUTE_REDIRECT:
+                location = files.get("headers", {}).get("location")
+                if not isinstance(location, str):
+                    raise _UnfitError(f"the redirect from {target} names no location")
+                fetched, at = download_target(self.base_url, route_url, location)
+                file = self.call("GET", at, kind=fetched, retries=False)["response"]
+                if file["status"] != SIGNED_FETCH_STATUS:
+                    failure = ClientError("download_failed")
+                    continue
+            else:
                 raise ClientError("unexpected_response")
-            location = exchange["response"].get("headers", {}).get("location")
-            if not isinstance(location, str):
-                raise _UnfitError(f"the redirect from {target} names no location")
-            fetched, at = download_target(self.base_url, route_url, location)
-            signed = self.call("GET", at, kind=fetched, retries=False)["response"]
-            if signed["status"] != SIGNED_FETCH_STATUS:
-                failure = ClientError("download_failed")
-                continue
-            if digest_of(self.body(signed)) == digest:
+            if digest_of(self.body(file)) == digest:
                 return
             failure = ClientError("digest_mismatch")
         raise failure
@@ -2778,6 +2847,12 @@ def _check_scenarios(
                         label, exchange, base_path, routes, registry, proxy_codes
                     )
                 )
+                headers = exchange["response"].get("headers", {})
+                if "url" not in exchange["request"] and untraced(headers):
+                    problems.append(
+                        f"{label}: the API response carries no {TRACE_HEADER} "
+                        "header and is not marked Cache-Control: public"
+                    )
             else:
                 problems.extend(
                     _check_problem_code(
