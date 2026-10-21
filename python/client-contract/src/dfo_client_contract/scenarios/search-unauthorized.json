@@ -1,0 +1,45 @@
+{
+  "format_version": 1,
+  "name": "search-unauthorized",
+  "description": "A 401 resolves the key again; the key is unchanged, so the client sends nothing more and raises AuthenticationError refusal_without_code.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "A bodiless 401 answers the search."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo"
+          }
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "www-authenticate": "Bearer"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "AuthenticationError",
+        "code": "refusal_without_code"
+      }
+    }
+  ]
+}

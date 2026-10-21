@@ -1,0 +1,4529 @@
+{
+  "format_version": 1,
+  "name": "choose-refused-part-without-variable-text",
+  "description": "An identity entry carries its part's variable_text, so a part without one cannot be posted back and the choice raises InvalidRequestError with no request.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "choose-option-beside-definite",
+    "edit": "Part 0, the definite part, loses its variable_text."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "GDP of sub-Saharan Africa, and debt of Kenya"
+    },
+    {
+      "op": "choose",
+      "part": 1,
+      "option": 0
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "GDP of sub-Saharan Africa, and debt of Kenya"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "GDP of sub-Saharan Africa, and debt of Kenya",
+            "normalized_query": "GDP of sub-Saharan Africa, and debt of Kenya",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "36b57c8d82ea4b938e42ca11105ac21c",
+            "warnings": [],
+            "timing_ms": {
+              "total": 4230,
+              "by_step": {
+                "coverage": 0,
+                "extract": 875
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 12972,
+              "output_tokens": 920,
+              "cached_tokens": 5719
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [
+            {
+              "warnings": [],
+              "timing_ms": {
+                "total": 2775,
+                "by_step": {
+                  "recall": 0,
+                  "shape_arcs": 3,
+                  "shape_probe_coverage": 4,
+                  "shape_probe": 298,
+                  "shape_groups": 17,
+                  "shape_labels": 4,
+                  "shape_admission": 1,
+                  "shape": 1305,
+                  "bind": 1041,
+                  "materialise": 182,
+                  "answer": 5,
+                  "options": 242
+                }
+              },
+              "restatement": {
+                "variable_text": "GDP",
+                "entities": [
+                  {
+                    "text": "Sub-Saharan Africa"
+                  },
+                  {
+                    "text": "Kenya"
+                  }
+                ],
+                "sources": [],
+                "operations": []
+              },
+              "operations": [],
+              "departures": [
+                {
+                  "code": "group_read_as_members",
+                  "binding_ref": "where:",
+                  "asked": "sub-Saharan Africa",
+                  "text": "You asked for sub-Saharan Africa. This shows the countries in it, each on its own."
+                }
+              ],
+              "assumptions": [],
+              "status": "definite",
+              "spec": {
+                "spec_id": "spec_3c3d4e571162850b30db0321638f955b",
+                "definition": {
+                  "schema_version": 1,
+                  "spec_id": "spec_3c3d4e571162850b30db0321638f955b",
+                  "identity": {
+                    "identity_version": "spec1",
+                    "shape": {
+                      "kind": "statvar_schema",
+                      "population_type": "EconomicActivity",
+                      "measured_property": "amount",
+                      "stat_type": "measuredValue",
+                      "measurement_qualifier": "Nominal"
+                    },
+                    "slots": [
+                      {
+                        "property": "activitySource",
+                        "binding": {
+                          "state": "value",
+                          "ref": "GrossDomesticProduction"
+                        }
+                      },
+                      {
+                        "property": "economicSector",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      },
+                      {
+                        "property": "naics",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      },
+                      {
+                        "property": "schoolGradeLevel",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      }
+                    ],
+                    "entities": {
+                      "observationAbout": [
+                        "country/AGO",
+                        "country/BDI",
+                        "country/BEN",
+                        "country/BFA",
+                        "country/BWA",
+                        "country/CAF",
+                        "country/CIV",
+                        "country/CMR",
+                        "country/COD",
+                        "country/COG",
+                        "country/COM",
+                        "country/CPV",
+                        "country/DJI",
+                        "country/ERI",
+                        "country/ETH",
+                        "country/GAB",
+                        "country/GHA",
+                        "country/GIN",
+                        "country/GMB",
+                        "country/GNB",
+                        "country/GNQ",
+                        "country/KEN",
+                        "country/LBR",
+                        "country/LSO",
+                        "country/MDG",
+                        "country/MLI",
+                        "country/MOZ",
+                        "country/MRT",
+                        "country/MUS",
+                        "country/MWI",
+                        "country/NAM",
+                        "country/NER",
+                        "country/NGA",
+                        "country/RWA",
+                        "country/SEN",
+                        "country/SLE",
+                        "country/SOM",
+                        "country/SSD",
+                        "country/STP",
+                        "country/SWZ",
+                        "country/SYC",
+                        "country/TCD",
+                        "country/TGO",
+                        "country/TZA",
+                        "country/UGA",
+                        "country/ZAF",
+                        "country/ZMB",
+                        "country/ZWE"
+                      ]
+                    },
+                    "requested_window": {
+                      "kind": "all"
+                    },
+                    "facets": {
+                      "unit": {
+                        "state": "value",
+                        "ref": "USDollar"
+                      }
+                    }
+                  }
+                },
+                "resolved": {
+                  "shape": {
+                    "shape_id": "economicactivity_amount_measuredvalue_nominal",
+                    "label": "Nominal gross domestic product",
+                    "population_type": {
+                      "ref": "EconomicActivity",
+                      "label": "EconomicActivity"
+                    },
+                    "measured_property": {
+                      "ref": "amount",
+                      "label": "amount"
+                    },
+                    "stat_type": {
+                      "ref": "measuredValue",
+                      "label": "measuredValue"
+                    },
+                    "measurement_qualifier": {
+                      "ref": "Nominal",
+                      "label": "Nominal"
+                    },
+                    "measurement_denominator_unresolved": false,
+                    "slot_keys": [
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "activitySource",
+                          "label": "activitySource"
+                        },
+                        "label": "activity source"
+                      },
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "economicSector",
+                          "label": "economicSector"
+                        },
+                        "label": "economic sector"
+                      },
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "naics",
+                          "label": "naics"
+                        },
+                        "label": "naics"
+                      },
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "schoolGradeLevel",
+                          "label": "schoolGradeLevel"
+                        },
+                        "label": "school grade level"
+                      },
+                      {
+                        "axis": "where",
+                        "label": "place"
+                      },
+                      {
+                        "axis": "when",
+                        "label": "time window"
+                      },
+                      {
+                        "axis": "source",
+                        "label": "data source"
+                      }
+                    ],
+                    "member_count": 65,
+                    "member_digest": "73519eeb75639bdae33042fc844830cd46becc08e4f9122dfcd0886e9875f657",
+                    "refine_supported": true,
+                    "data_commons": [
+                      {
+                        "id": "base",
+                        "label": "Data Commons by Google"
+                      }
+                    ]
+                  },
+                  "slots": [
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "activitySource",
+                          "label": "activitySource"
+                        },
+                        "label": "activity source"
+                      },
+                      "binding": {
+                        "kind": "value",
+                        "value": {
+                          "ref": {
+                            "ref": "GrossDomesticProduction",
+                            "label": "GrossDomesticProduction"
+                          },
+                          "value_kind": "enum_value"
+                        }
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "economicSector",
+                          "label": "economicSector"
+                        },
+                        "label": "economic sector"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "naics",
+                          "label": "naics"
+                        },
+                        "label": "naics"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "schoolGradeLevel",
+                          "label": "schoolGradeLevel"
+                        },
+                        "label": "school grade level"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "where",
+                        "label": "place"
+                      },
+                      "binding": {
+                        "kind": "set",
+                        "values": [
+                          {
+                            "ref": {
+                              "ref": "country/AGO",
+                              "label": "Angola"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/BDI",
+                              "label": "Burundi"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/BEN",
+                              "label": "Benin"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/BFA",
+                              "label": "Burkina Faso"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/BWA",
+                              "label": "Botswana"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/CAF",
+                              "label": "Central African Republic"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/CIV",
+                              "label": "Ivory Coast"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/CMR",
+                              "label": "Cameroon"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/COD",
+                              "label": "Democratic Republic of the Congo"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/COG",
+                              "label": "Republic of the Congo"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/COM",
+                              "label": "Comoros"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/CPV",
+                              "label": "Cape Verde"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/DJI",
+                              "label": "Djibouti"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ERI",
+                              "label": "Eritrea"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ETH",
+                              "label": "Ethiopia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GAB",
+                              "label": "Gabon"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GHA",
+                              "label": "Ghana"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GIN",
+                              "label": "Guinea"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GMB",
+                              "label": "The Gambia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GNB",
+                              "label": "Guinea-Bissau"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GNQ",
+                              "label": "Equatorial Guinea"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/KEN",
+                              "label": "Kenya"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/LBR",
+                              "label": "Liberia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/LSO",
+                              "label": "Lesotho"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MDG",
+                              "label": "Madagascar"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MLI",
+                              "label": "Mali"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MOZ",
+                              "label": "Mozambique"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MRT",
+                              "label": "Mauritania"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MUS",
+                              "label": "Mauritius"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MWI",
+                              "label": "Malawi"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/NAM",
+                              "label": "Namibia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/NER",
+                              "label": "Niger"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/NGA",
+                              "label": "Nigeria"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/RWA",
+                              "label": "Rwanda"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SEN",
+                              "label": "Senegal"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SLE",
+                              "label": "Sierra Leone"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SOM",
+                              "label": "Somalia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SSD",
+                              "label": "South Sudan"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/STP",
+                              "label": "São Tomé and Príncipe"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SWZ",
+                              "label": "Swaziland"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SYC",
+                              "label": "Seychelles"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/TCD",
+                              "label": "Chad"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/TGO",
+                              "label": "Togo"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/TZA",
+                              "label": "Tanzania"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/UGA",
+                              "label": "Uganda"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ZAF",
+                              "label": "South Africa"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ZMB",
+                              "label": "Zambia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ZWE",
+                              "label": "Zimbabwe"
+                            },
+                            "value_kind": "entity"
+                          }
+                        ]
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "when",
+                        "label": "time window"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "source",
+                        "label": "data source"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    }
+                  ],
+                  "inapplicable_slots": [
+                    "economicSector",
+                    "naics",
+                    "schoolGradeLevel"
+                  ],
+                  "unresolved_slots": [],
+                  "stat_vars": {
+                    "member_count": 41,
+                    "member_count_exact": false,
+                    "served_count": 1,
+                    "data_date_range": {
+                      "start": "1960",
+                      "end": "2025"
+                    }
+                  },
+                  "entities": [
+                    {
+                      "ref": "country/AGO",
+                      "label": "Angola",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/BDI",
+                      "label": "Burundi",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/BEN",
+                      "label": "Benin",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/BFA",
+                      "label": "Burkina Faso",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/BWA",
+                      "label": "Botswana",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/CAF",
+                      "label": "Central African Republic",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/CIV",
+                      "label": "Ivory Coast",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/CMR",
+                      "label": "Cameroon",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/COD",
+                      "label": "Democratic Republic of the Congo",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/COG",
+                      "label": "Republic of the Congo",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/COM",
+                      "label": "Comoros",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/CPV",
+                      "label": "Cape Verde",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/DJI",
+                      "label": "Djibouti",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ERI",
+                      "label": "Eritrea",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ETH",
+                      "label": "Ethiopia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GAB",
+                      "label": "Gabon",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GHA",
+                      "label": "Ghana",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GIN",
+                      "label": "Guinea",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GMB",
+                      "label": "The Gambia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GNB",
+                      "label": "Guinea-Bissau",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GNQ",
+                      "label": "Equatorial Guinea",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/KEN",
+                      "label": "Kenya",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/LBR",
+                      "label": "Liberia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/LSO",
+                      "label": "Lesotho",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MDG",
+                      "label": "Madagascar",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MLI",
+                      "label": "Mali",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MOZ",
+                      "label": "Mozambique",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MRT",
+                      "label": "Mauritania",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MUS",
+                      "label": "Mauritius",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MWI",
+                      "label": "Malawi",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/NAM",
+                      "label": "Namibia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/NER",
+                      "label": "Niger",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/NGA",
+                      "label": "Nigeria",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/RWA",
+                      "label": "Rwanda",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SEN",
+                      "label": "Senegal",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SLE",
+                      "label": "Sierra Leone",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SOM",
+                      "label": "Somalia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SSD",
+                      "label": "South Sudan",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/STP",
+                      "label": "São Tomé and Príncipe",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SWZ",
+                      "label": "Swaziland",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SYC",
+                      "label": "Seychelles",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/TCD",
+                      "label": "Chad",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/TGO",
+                      "label": "Togo",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/TZA",
+                      "label": "Tanzania",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/UGA",
+                      "label": "Uganda",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ZAF",
+                      "label": "South Africa",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ZMB",
+                      "label": "Zambia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ZWE",
+                      "label": "Zimbabwe",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    }
+                  ],
+                  "entity_groups": {
+                    "observationAbout": {
+                      "ref": "SubSaharanAfrica",
+                      "label": "Sub-Saharan Africa",
+                      "entity_type": "UNGeoRegion"
+                    }
+                  },
+                  "coverage": {
+                    "kind": "exact",
+                    "has_data": true,
+                    "observation_count": 2859,
+                    "evidence": "facet_metadata",
+                    "dimensions": [
+                      {
+                        "label": "countries",
+                        "count": 48
+                      },
+                      {
+                        "label": "observations",
+                        "count": 66
+                      },
+                      {
+                        "label": "variables",
+                        "count": 1
+                      }
+                    ]
+                  },
+                  "download": {
+                    "rows": 2859,
+                    "rows_exact": true,
+                    "series": 48,
+                    "window": {
+                      "start_year": 1960,
+                      "end_year": 2025
+                    },
+                    "licence": {
+                      "label": "Creative Commons Attribution License"
+                    }
+                  },
+                  "facets": {
+                    "provenance": {
+                      "basis": "fallback",
+                      "ref": "dc/base/WorldDevelopmentIndicators",
+                      "label": "World Development Indicators",
+                      "source": {
+                        "ref": "dc/s/WorldBank",
+                        "label": "World Bank"
+                      },
+                      "data_commons": {
+                        "id": "base",
+                        "label": "Data Commons by Google"
+                      },
+                      "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                    },
+                    "unit": {
+                      "basis": "bound",
+                      "ref": "USDollar",
+                      "label": "USDollar",
+                      "currency": "USD"
+                    }
+                  },
+                  "slot_options": [
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "activitySource",
+                          "label": "activitySource"
+                        },
+                        "label": "activity source"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "GrossValueAdded",
+                              "label": "GrossValueAdded"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "GrossDomesticProduction",
+                              "label": "GrossDomesticProduction"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NetDomesticProduction",
+                              "label": "Net Domestic Production"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NetValueAdded",
+                              "label": "Net Value Added"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "economicSector",
+                          "label": "economicSector"
+                        },
+                        "label": "economic sector"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AgricultureForestryFishingSector",
+                              "label": "Agriculture,Forestry and Fishing Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ConstructionSector",
+                              "label": "Construction Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ElectricityGasSteamAirConditionSupply",
+                              "label": "Electric Gas Steam Air Condition Supply"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinanceService",
+                              "label": "Finance Service"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "MOSPI_OtherService",
+                              "label": "MOSPI Other Service"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ManufacturingSector",
+                              "label": "Manufacturing Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "MiningQuarrying",
+                              "label": "Mining quarrying"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "TradeSector",
+                              "label": "Trade Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AccommodationAndFoodSector",
+                              "label": "Accommodation and food sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AdministrativeAndSupportServices",
+                              "label": "Administrative and support services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AgriculturalSupportActivities",
+                              "label": "Agricultural support activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Agriculture",
+                              "label": "Agriculture"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AirTransportAndSupportServices",
+                              "label": "Air transport and support services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AllEconomicActivities",
+                              "label": "All economic activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AnimalProduction",
+                              "label": "Animal production"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ArtsEntertainmentRecreation",
+                              "label": "Arts entertainment recreation"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Education",
+                              "label": "Education"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ElectricitySupply",
+                              "label": "Electricity supply"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "EmployerHouseholdActivities",
+                              "label": "Employer household activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialActivities",
+                              "label": "FinancialActivities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialAndInsuranceActivities",
+                              "label": "Financial and insurance activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialIntermediationServicesIndirectlyMeasured",
+                              "label": "Financial intermediation services indirectly measured"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FishingAquaculture",
+                              "label": "Fishing aquaculture"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FoodBeveragesTobaccoManufacture",
+                              "label": "Food beverages tobacco manufacture"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ForestryLogging",
+                              "label": "Forestry logging"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "HumanHealthAndSocialWork",
+                              "label": "Human health and social work"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "InformationAndCommunication",
+                              "label": "Information and communication"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "InsuranceActivities",
+                              "label": "Insurance activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "LandTransport",
+                              "label": "Land transport"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "OtherManufacturingAndRepair",
+                              "label": "Other manufacturing and repair"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "OtherServiceSector",
+                              "label": "Other service sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "OtherTransportPostalCourierActivities",
+                              "label": "Other transport postal courier activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ProductTaxes",
+                              "label": "Product taxes"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ProfessionalScientificTechnicalActivities",
+                              "label": "Professional scientific technical activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PublicAdministrationAndDefence",
+                              "label": "Public administration and defence"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PublishingBroadcastingInformationActivities",
+                              "label": "Publishing Broadcasting Information Activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "RealEstate",
+                              "label": "Real estate"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Telecommunications",
+                              "label": "Telecommunications"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "TransportStorageSector",
+                              "label": "Transport and Storage"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "WaterSupplySewerageWasteManagement",
+                              "label": "Water supply sewerage waste management"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "WholesaleRetailTradeAndRepair",
+                              "label": "Wholesale retail trade and repair"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "BankingAndInsuranceSector",
+                              "label": "Banking And Insurance Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Construction",
+                              "label": "Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialServices",
+                              "label": "Financial Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Industry",
+                              "label": "Industry"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Services",
+                              "label": "Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "naics",
+                          "label": "naics"
+                        },
+                        "label": "naics"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/23",
+                              "label": "Construction"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/44-45",
+                              "label": "Retail trade"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/53",
+                              "label": "Real estate and rental and leasing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/22",
+                              "label": "Utilities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/55",
+                              "label": "Management of companies and enterprises"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/48-49",
+                              "label": "Transportation and warehousing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/61",
+                              "label": "Educational services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/51",
+                              "label": "Information"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/42",
+                              "label": "Wholesale trade"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/21",
+                              "label": "Mining, quarrying, and oil and gas extraction"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/11",
+                              "label": "Agriculture, forestry, fishing and hunting"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/72",
+                              "label": "Accommodation and food services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/52",
+                              "label": "Finance and insurance"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/54",
+                              "label": "Professional, Scientific, and Technical Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/71",
+                              "label": "Arts, entertainment, and recreation"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/311-316_322-326",
+                              "label": "Durable Goods Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/31-33",
+                              "label": "Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/321_327-339",
+                              "label": "Durable Goods Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/56",
+                              "label": "Administrative and Support and Waste Management Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/62",
+                              "label": "Health care and social assistance"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/81",
+                              "label": "Other services, except public administration"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/92",
+                              "label": "Public administration"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "schoolGradeLevel",
+                          "label": "schoolGradeLevel"
+                        },
+                        "label": "school grade level"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "HigherSecondaryEducation",
+                              "label": "Higher Secondary Education"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PrePrimaryAndPrimaryEducation",
+                              "label": "PrePrimary and Primary"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "SecondaryEducation",
+                              "label": "SecondaryEducation"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    }
+                  ],
+                  "entity_options": [],
+                  "facet_options": [
+                    {
+                      "axis": "provenance",
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "dc/base/WorldDevelopmentIndicators",
+                              "label": "World Development Indicators"
+                            },
+                            "value_kind": "source"
+                          }
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
+                    {
+                      "axis": "unit",
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "USDollar",
+                              "label": "USDollar"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "XAF",
+                              "label": "XAF"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    }
+                  ],
+                  "rendered_sentence": "GDP in the 48 countries in Sub-Saharan Africa, 1960 to 2025. Current US dollars · World Development Indicators.",
+                  "sentence_plan": [
+                    {
+                      "kind": "slot",
+                      "text": "GDP",
+                      "axis": "what",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": [
+                        "how:activitySource",
+                        "axis:populationType",
+                        "axis:measuredProperty",
+                        "axis:statType"
+                      ]
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "economicSector",
+                      "binding_ref": "how:economicSector",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "naics",
+                      "binding_ref": "how:naics",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "schoolGradeLevel",
+                      "binding_ref": "how:schoolGradeLevel",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "activitySource",
+                      "binding_ref": "how:activitySource",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "text",
+                      "text": " in ",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "the 48 countries in Sub-Saharan Africa",
+                      "axis": "where",
+                      "segment": "heading",
+                      "binding_ref": "where:",
+                      "entity_refs": [],
+                      "states": [
+                        "where:"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": ", ",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "1960 to 2025",
+                      "axis": "when",
+                      "segment": "heading",
+                      "binding_ref": "when:",
+                      "entity_refs": [],
+                      "states": [
+                        "when:"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": ".",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "text",
+                      "text": " ",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "Current US dollars",
+                      "axis": "unit",
+                      "segment": "byline",
+                      "binding_ref": "unit:",
+                      "entity_refs": [],
+                      "states": [
+                        "unit:",
+                        "axis:measurementQualifier"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": " · ",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "World Development Indicators",
+                      "axis": "source",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": [
+                        "source:"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": ".",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": []
+                    }
+                  ],
+                  "trace": {
+                    "resolved_entities": [
+                      {
+                        "ref": "country/AGO",
+                        "label": "Angola"
+                      },
+                      {
+                        "ref": "country/BDI",
+                        "label": "Burundi"
+                      },
+                      {
+                        "ref": "country/BEN",
+                        "label": "Benin"
+                      },
+                      {
+                        "ref": "country/BFA",
+                        "label": "Burkina Faso"
+                      },
+                      {
+                        "ref": "country/BWA",
+                        "label": "Botswana"
+                      },
+                      {
+                        "ref": "country/CAF",
+                        "label": "Central African Republic"
+                      },
+                      {
+                        "ref": "country/CIV",
+                        "label": "Ivory Coast"
+                      },
+                      {
+                        "ref": "country/CMR",
+                        "label": "Cameroon"
+                      },
+                      {
+                        "ref": "country/COD",
+                        "label": "Democratic Republic of the Congo"
+                      },
+                      {
+                        "ref": "country/COG",
+                        "label": "Republic of the Congo"
+                      },
+                      {
+                        "ref": "country/COM",
+                        "label": "Comoros"
+                      },
+                      {
+                        "ref": "country/CPV",
+                        "label": "Cape Verde"
+                      },
+                      {
+                        "ref": "country/DJI",
+                        "label": "Djibouti"
+                      },
+                      {
+                        "ref": "country/ERI",
+                        "label": "Eritrea"
+                      },
+                      {
+                        "ref": "country/ETH",
+                        "label": "Ethiopia"
+                      },
+                      {
+                        "ref": "country/GAB",
+                        "label": "Gabon"
+                      },
+                      {
+                        "ref": "country/GHA",
+                        "label": "Ghana"
+                      },
+                      {
+                        "ref": "country/GIN",
+                        "label": "Guinea"
+                      },
+                      {
+                        "ref": "country/GMB",
+                        "label": "The Gambia"
+                      },
+                      {
+                        "ref": "country/GNB",
+                        "label": "Guinea-Bissau"
+                      },
+                      {
+                        "ref": "country/GNQ",
+                        "label": "Equatorial Guinea"
+                      },
+                      {
+                        "ref": "country/KEN",
+                        "label": "Kenya"
+                      },
+                      {
+                        "ref": "country/LBR",
+                        "label": "Liberia"
+                      },
+                      {
+                        "ref": "country/LSO",
+                        "label": "Lesotho"
+                      },
+                      {
+                        "ref": "country/MDG",
+                        "label": "Madagascar"
+                      },
+                      {
+                        "ref": "country/MLI",
+                        "label": "Mali"
+                      },
+                      {
+                        "ref": "country/MOZ",
+                        "label": "Mozambique"
+                      },
+                      {
+                        "ref": "country/MRT",
+                        "label": "Mauritania"
+                      },
+                      {
+                        "ref": "country/MUS",
+                        "label": "Mauritius"
+                      },
+                      {
+                        "ref": "country/MWI",
+                        "label": "Malawi"
+                      },
+                      {
+                        "ref": "country/NAM",
+                        "label": "Namibia"
+                      },
+                      {
+                        "ref": "country/NER",
+                        "label": "Niger"
+                      },
+                      {
+                        "ref": "country/NGA",
+                        "label": "Nigeria"
+                      },
+                      {
+                        "ref": "country/RWA",
+                        "label": "Rwanda"
+                      },
+                      {
+                        "ref": "country/SEN",
+                        "label": "Senegal"
+                      },
+                      {
+                        "ref": "country/SLE",
+                        "label": "Sierra Leone"
+                      },
+                      {
+                        "ref": "country/SOM",
+                        "label": "Somalia"
+                      },
+                      {
+                        "ref": "country/SSD",
+                        "label": "South Sudan"
+                      },
+                      {
+                        "ref": "country/STP",
+                        "label": "São Tomé and Príncipe"
+                      },
+                      {
+                        "ref": "country/SWZ",
+                        "label": "Swaziland"
+                      },
+                      {
+                        "ref": "country/SYC",
+                        "label": "Seychelles"
+                      },
+                      {
+                        "ref": "country/TCD",
+                        "label": "Chad"
+                      },
+                      {
+                        "ref": "country/TGO",
+                        "label": "Togo"
+                      },
+                      {
+                        "ref": "country/TZA",
+                        "label": "Tanzania"
+                      },
+                      {
+                        "ref": "country/UGA",
+                        "label": "Uganda"
+                      },
+                      {
+                        "ref": "country/ZAF",
+                        "label": "South Africa"
+                      },
+                      {
+                        "ref": "country/ZMB",
+                        "label": "Zambia"
+                      },
+                      {
+                        "ref": "country/ZWE",
+                        "label": "Zimbabwe"
+                      }
+                    ],
+                    "resolved_sources": [
+                      {
+                        "ref": "dc/base/WorldDevelopmentIndicators",
+                        "label": "World Development Indicators",
+                        "source": {
+                          "ref": "dc/s/WorldBank",
+                          "label": "World Bank"
+                        },
+                        "data_commons": {
+                          "id": "base",
+                          "label": "Data Commons by Google"
+                        },
+                        "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                      }
+                    ],
+                    "slot_filters": [
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "activitySource",
+                            "label": "activitySource"
+                          },
+                          "label": "activity source"
+                        },
+                        "binding_kind": "value",
+                        "refs": [
+                          {
+                            "ref": "GrossDomesticProduction",
+                            "label": "GrossDomesticProduction"
+                          }
+                        ],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "economicSector",
+                            "label": "economicSector"
+                          },
+                          "label": "economic sector"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "naics",
+                            "label": "naics"
+                          },
+                          "label": "naics"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "schoolGradeLevel",
+                            "label": "schoolGradeLevel"
+                          },
+                          "label": "school grade level"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "where",
+                          "label": "place"
+                        },
+                        "binding_kind": "set",
+                        "refs": [
+                          {
+                            "ref": "country/AGO",
+                            "label": "Angola"
+                          },
+                          {
+                            "ref": "country/BDI",
+                            "label": "Burundi"
+                          },
+                          {
+                            "ref": "country/BEN",
+                            "label": "Benin"
+                          },
+                          {
+                            "ref": "country/BFA",
+                            "label": "Burkina Faso"
+                          },
+                          {
+                            "ref": "country/BWA",
+                            "label": "Botswana"
+                          },
+                          {
+                            "ref": "country/CAF",
+                            "label": "Central African Republic"
+                          },
+                          {
+                            "ref": "country/CIV",
+                            "label": "Ivory Coast"
+                          },
+                          {
+                            "ref": "country/CMR",
+                            "label": "Cameroon"
+                          },
+                          {
+                            "ref": "country/COD",
+                            "label": "Democratic Republic of the Congo"
+                          },
+                          {
+                            "ref": "country/COG",
+                            "label": "Republic of the Congo"
+                          },
+                          {
+                            "ref": "country/COM",
+                            "label": "Comoros"
+                          },
+                          {
+                            "ref": "country/CPV",
+                            "label": "Cape Verde"
+                          },
+                          {
+                            "ref": "country/DJI",
+                            "label": "Djibouti"
+                          },
+                          {
+                            "ref": "country/ERI",
+                            "label": "Eritrea"
+                          },
+                          {
+                            "ref": "country/ETH",
+                            "label": "Ethiopia"
+                          },
+                          {
+                            "ref": "country/GAB",
+                            "label": "Gabon"
+                          },
+                          {
+                            "ref": "country/GHA",
+                            "label": "Ghana"
+                          },
+                          {
+                            "ref": "country/GIN",
+                            "label": "Guinea"
+                          },
+                          {
+                            "ref": "country/GMB",
+                            "label": "The Gambia"
+                          },
+                          {
+                            "ref": "country/GNB",
+                            "label": "Guinea-Bissau"
+                          },
+                          {
+                            "ref": "country/GNQ",
+                            "label": "Equatorial Guinea"
+                          },
+                          {
+                            "ref": "country/KEN",
+                            "label": "Kenya"
+                          },
+                          {
+                            "ref": "country/LBR",
+                            "label": "Liberia"
+                          },
+                          {
+                            "ref": "country/LSO",
+                            "label": "Lesotho"
+                          },
+                          {
+                            "ref": "country/MDG",
+                            "label": "Madagascar"
+                          },
+                          {
+                            "ref": "country/MLI",
+                            "label": "Mali"
+                          },
+                          {
+                            "ref": "country/MOZ",
+                            "label": "Mozambique"
+                          },
+                          {
+                            "ref": "country/MRT",
+                            "label": "Mauritania"
+                          },
+                          {
+                            "ref": "country/MUS",
+                            "label": "Mauritius"
+                          },
+                          {
+                            "ref": "country/MWI",
+                            "label": "Malawi"
+                          },
+                          {
+                            "ref": "country/NAM",
+                            "label": "Namibia"
+                          },
+                          {
+                            "ref": "country/NER",
+                            "label": "Niger"
+                          },
+                          {
+                            "ref": "country/NGA",
+                            "label": "Nigeria"
+                          },
+                          {
+                            "ref": "country/RWA",
+                            "label": "Rwanda"
+                          },
+                          {
+                            "ref": "country/SEN",
+                            "label": "Senegal"
+                          },
+                          {
+                            "ref": "country/SLE",
+                            "label": "Sierra Leone"
+                          },
+                          {
+                            "ref": "country/SOM",
+                            "label": "Somalia"
+                          },
+                          {
+                            "ref": "country/SSD",
+                            "label": "South Sudan"
+                          },
+                          {
+                            "ref": "country/STP",
+                            "label": "São Tomé and Príncipe"
+                          },
+                          {
+                            "ref": "country/SWZ",
+                            "label": "Swaziland"
+                          },
+                          {
+                            "ref": "country/SYC",
+                            "label": "Seychelles"
+                          },
+                          {
+                            "ref": "country/TCD",
+                            "label": "Chad"
+                          },
+                          {
+                            "ref": "country/TGO",
+                            "label": "Togo"
+                          },
+                          {
+                            "ref": "country/TZA",
+                            "label": "Tanzania"
+                          },
+                          {
+                            "ref": "country/UGA",
+                            "label": "Uganda"
+                          },
+                          {
+                            "ref": "country/ZAF",
+                            "label": "South Africa"
+                          },
+                          {
+                            "ref": "country/ZMB",
+                            "label": "Zambia"
+                          },
+                          {
+                            "ref": "country/ZWE",
+                            "label": "Zimbabwe"
+                          }
+                        ],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "when",
+                          "label": "time window"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "source",
+                          "label": "data source"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      }
+                    ],
+                    "query_qualifiers": [],
+                    "capability_version": "cap_347a470e04c97eec",
+                    "default_reading": {
+                      "applied": true,
+                      "removed_stat_vars": [
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSAccommodationFoodServices_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSFinanceInsurance_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSMiningQuarryingOilGasExtraction_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSProfessionalScientificTechnicalServices_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSWholesaleTrade_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
+                        "InflationAdjustedGDP",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                        "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                        "dc/qt7ewllmt3826",
+                        "dc/zz6gwv838v9w"
+                      ]
+                    }
+                  },
+                  "confidence": "high",
+                  "available_at_place": true,
+                  "equivalent_readings": [
+                    {
+                      "spec_id": "spec_22cfb22f6e4a1cff1584eaf03285ce73",
+                      "definition": {
+                        "schema_version": 1,
+                        "spec_id": "spec_22cfb22f6e4a1cff1584eaf03285ce73",
+                        "identity": {
+                          "identity_version": "spec1",
+                          "shape": {
+                            "kind": "statvar_schema",
+                            "population_type": "EconomicProduction",
+                            "measured_property": "valueAdded",
+                            "stat_type": "measuredValue",
+                            "measurement_qualifier": "Nominal"
+                          },
+                          "slots": [
+                            {
+                              "property": "currencyConversionBasis",
+                              "binding": {
+                                "state": "unbound"
+                              }
+                            },
+                            {
+                              "property": "fixedCapitalConsumptionBasis",
+                              "binding": {
+                                "state": "value",
+                                "ref": "GrossOfFixedCapitalConsumption"
+                              }
+                            },
+                            {
+                              "property": "productTaxBasis",
+                              "binding": {
+                                "state": "value",
+                                "ref": "IncludingProductTaxes"
+                              }
+                            }
+                          ],
+                          "entities": {
+                            "observationAbout": [
+                              "country/AGO",
+                              "country/BDI",
+                              "country/BEN",
+                              "country/BFA",
+                              "country/BWA",
+                              "country/CAF",
+                              "country/CIV",
+                              "country/CMR",
+                              "country/COD",
+                              "country/COG",
+                              "country/COM",
+                              "country/CPV",
+                              "country/DJI",
+                              "country/ERI",
+                              "country/ETH",
+                              "country/GAB",
+                              "country/GHA",
+                              "country/GIN",
+                              "country/GMB",
+                              "country/GNB",
+                              "country/GNQ",
+                              "country/KEN",
+                              "country/LBR",
+                              "country/LSO",
+                              "country/MDG",
+                              "country/MLI",
+                              "country/MOZ",
+                              "country/MRT",
+                              "country/MUS",
+                              "country/MWI",
+                              "country/NAM",
+                              "country/NER",
+                              "country/NGA",
+                              "country/RWA",
+                              "country/SEN",
+                              "country/SLE",
+                              "country/SOM",
+                              "country/SSD",
+                              "country/STP",
+                              "country/SWZ",
+                              "country/SYC",
+                              "country/TCD",
+                              "country/TGO",
+                              "country/TZA",
+                              "country/UGA",
+                              "country/ZAF",
+                              "country/ZMB",
+                              "country/ZWE"
+                            ]
+                          },
+                          "requested_window": {
+                            "kind": "all"
+                          },
+                          "facets": {
+                            "unit": {
+                              "state": "value",
+                              "ref": "CurrencyUSD"
+                            }
+                          }
+                        }
+                      },
+                      "resolved": {
+                        "shape": {
+                          "shape_id": "economicproduction_valueadded_measuredvalue_nominal",
+                          "label": "Gross domestic product (GDP)",
+                          "population_type": {
+                            "ref": "EconomicProduction",
+                            "label": "economic production"
+                          },
+                          "measured_property": {
+                            "ref": "valueAdded",
+                            "label": "value added"
+                          },
+                          "stat_type": {
+                            "ref": "measuredValue",
+                            "label": "measuredValue"
+                          },
+                          "measurement_qualifier": {
+                            "ref": "Nominal",
+                            "label": "Nominal"
+                          },
+                          "measurement_denominator_unresolved": false,
+                          "slot_keys": [
+                            {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            {
+                              "axis": "how",
+                              "property": {
+                                "ref": "productTaxBasis",
+                                "label": "product tax basis"
+                              },
+                              "label": "product tax basis"
+                            },
+                            {
+                              "axis": "how",
+                              "property": {
+                                "ref": "currencyConversionBasis",
+                                "label": "currency conversion basis"
+                              },
+                              "label": "currency conversion basis"
+                            },
+                            {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            {
+                              "axis": "source",
+                              "label": "data source"
+                            }
+                          ],
+                          "member_count": 2,
+                          "member_digest": "ef9c4356618ed98aab762248e68799d78c74ad249a6041dad0e8a345c85ee02f",
+                          "refine_supported": true,
+                          "data_commons": [
+                            {
+                              "id": "dfo",
+                              "label": "Development Finance Observatory"
+                            }
+                          ]
+                        },
+                        "slots": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            "binding": {
+                              "kind": "value",
+                              "value": {
+                                "ref": {
+                                  "ref": "GrossOfFixedCapitalConsumption",
+                                  "label": "gross of fixed capital consumption"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "productTaxBasis",
+                                "label": "product tax basis"
+                              },
+                              "label": "product tax basis"
+                            },
+                            "binding": {
+                              "kind": "value",
+                              "value": {
+                                "ref": {
+                                  "ref": "IncludingProductTaxes",
+                                  "label": "including taxes on products"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "currencyConversionBasis",
+                                "label": "currency conversion basis"
+                              },
+                              "label": "currency conversion basis"
+                            },
+                            "binding": {
+                              "kind": "unbound"
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            "binding": {
+                              "kind": "set",
+                              "values": [
+                                {
+                                  "ref": {
+                                    "ref": "country/AGO",
+                                    "label": "Angola"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/BDI",
+                                    "label": "Burundi"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/BEN",
+                                    "label": "Benin"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/BFA",
+                                    "label": "Burkina Faso"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/BWA",
+                                    "label": "Botswana"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/CAF",
+                                    "label": "Central African Republic"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/CIV",
+                                    "label": "Ivory Coast"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/CMR",
+                                    "label": "Cameroon"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/COD",
+                                    "label": "Democratic Republic of the Congo"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/COG",
+                                    "label": "Republic of the Congo"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/COM",
+                                    "label": "Comoros"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/CPV",
+                                    "label": "Cape Verde"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/DJI",
+                                    "label": "Djibouti"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ERI",
+                                    "label": "Eritrea"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ETH",
+                                    "label": "Ethiopia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GAB",
+                                    "label": "Gabon"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GHA",
+                                    "label": "Ghana"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GIN",
+                                    "label": "Guinea"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GMB",
+                                    "label": "The Gambia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GNB",
+                                    "label": "Guinea-Bissau"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GNQ",
+                                    "label": "Equatorial Guinea"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/KEN",
+                                    "label": "Kenya"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/LBR",
+                                    "label": "Liberia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/LSO",
+                                    "label": "Lesotho"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MDG",
+                                    "label": "Madagascar"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MLI",
+                                    "label": "Mali"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MOZ",
+                                    "label": "Mozambique"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MRT",
+                                    "label": "Mauritania"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MUS",
+                                    "label": "Mauritius"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MWI",
+                                    "label": "Malawi"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/NAM",
+                                    "label": "Namibia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/NER",
+                                    "label": "Niger"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/NGA",
+                                    "label": "Nigeria"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/RWA",
+                                    "label": "Rwanda"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SEN",
+                                    "label": "Senegal"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SLE",
+                                    "label": "Sierra Leone"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SOM",
+                                    "label": "Somalia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SSD",
+                                    "label": "South Sudan"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/STP",
+                                    "label": "São Tomé and Príncipe"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SWZ",
+                                    "label": "Swaziland"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SYC",
+                                    "label": "Seychelles"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/TCD",
+                                    "label": "Chad"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/TGO",
+                                    "label": "Togo"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/TZA",
+                                    "label": "Tanzania"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/UGA",
+                                    "label": "Uganda"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ZAF",
+                                    "label": "South Africa"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ZMB",
+                                    "label": "Zambia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ZWE",
+                                    "label": "Zimbabwe"
+                                  },
+                                  "value_kind": "entity"
+                                }
+                              ]
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            "binding": {
+                              "kind": "unbound"
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "source",
+                              "label": "data source"
+                            },
+                            "binding": {
+                              "kind": "unbound"
+                            },
+                            "summable": false
+                          }
+                        ],
+                        "inapplicable_slots": [
+                          "currencyConversionBasis"
+                        ],
+                        "unresolved_slots": [],
+                        "stat_vars": {
+                          "member_count": 2,
+                          "member_count_exact": false,
+                          "served_count": 1,
+                          "data_date_range": {
+                            "start": "1980",
+                            "end": "2025"
+                          }
+                        },
+                        "entities": [
+                          {
+                            "ref": "country/AGO",
+                            "label": "Angola",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/BDI",
+                            "label": "Burundi",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/BEN",
+                            "label": "Benin",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/BFA",
+                            "label": "Burkina Faso",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/BWA",
+                            "label": "Botswana",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/CAF",
+                            "label": "Central African Republic",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/CIV",
+                            "label": "Ivory Coast",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/CMR",
+                            "label": "Cameroon",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/COD",
+                            "label": "Democratic Republic of the Congo",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/COG",
+                            "label": "Republic of the Congo",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/COM",
+                            "label": "Comoros",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/CPV",
+                            "label": "Cape Verde",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/DJI",
+                            "label": "Djibouti",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ERI",
+                            "label": "Eritrea",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ETH",
+                            "label": "Ethiopia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GAB",
+                            "label": "Gabon",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GHA",
+                            "label": "Ghana",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GIN",
+                            "label": "Guinea",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GMB",
+                            "label": "The Gambia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GNB",
+                            "label": "Guinea-Bissau",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GNQ",
+                            "label": "Equatorial Guinea",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/KEN",
+                            "label": "Kenya",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/LBR",
+                            "label": "Liberia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/LSO",
+                            "label": "Lesotho",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MDG",
+                            "label": "Madagascar",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MLI",
+                            "label": "Mali",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MOZ",
+                            "label": "Mozambique",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MRT",
+                            "label": "Mauritania",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MUS",
+                            "label": "Mauritius",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MWI",
+                            "label": "Malawi",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/NAM",
+                            "label": "Namibia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/NER",
+                            "label": "Niger",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/NGA",
+                            "label": "Nigeria",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/RWA",
+                            "label": "Rwanda",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SEN",
+                            "label": "Senegal",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SLE",
+                            "label": "Sierra Leone",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SOM",
+                            "label": "Somalia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SSD",
+                            "label": "South Sudan",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/STP",
+                            "label": "São Tomé and Príncipe",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SWZ",
+                            "label": "Swaziland",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SYC",
+                            "label": "Seychelles",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/TCD",
+                            "label": "Chad",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/TGO",
+                            "label": "Togo",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/TZA",
+                            "label": "Tanzania",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/UGA",
+                            "label": "Uganda",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ZAF",
+                            "label": "South Africa",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ZMB",
+                            "label": "Zambia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ZWE",
+                            "label": "Zimbabwe",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          }
+                        ],
+                        "entity_groups": {
+                          "observationAbout": {
+                            "ref": "SubSaharanAfrica",
+                            "label": "Sub-Saharan Africa",
+                            "entity_type": "UNGeoRegion"
+                          }
+                        },
+                        "coverage": {
+                          "kind": "exact",
+                          "has_data": true,
+                          "observation_count": 2031,
+                          "evidence": "facet_metadata",
+                          "dimensions": [
+                            {
+                              "label": "countries",
+                              "count": 48
+                            },
+                            {
+                              "label": "observations",
+                              "count": 46
+                            },
+                            {
+                              "label": "variables",
+                              "count": 1
+                            }
+                          ]
+                        },
+                        "download": {
+                          "rows": 2031,
+                          "rows_exact": true,
+                          "series": 48,
+                          "window": {
+                            "start_year": 1980,
+                            "end_year": 2025
+                          },
+                          "licence": {
+                            "label": "IMF Copyright and Usage"
+                          }
+                        },
+                        "facets": {
+                          "provenance": {
+                            "basis": "fallback",
+                            "ref": "provenance/IMFWorldEconomicOutlook",
+                            "label": "IMF World Economic Outlook (WEO)",
+                            "source": {
+                              "ref": "source/InternationalMonetaryFund",
+                              "label": "International Monetary Fund (IMF)"
+                            },
+                            "data_commons": {
+                              "id": "dfo",
+                              "label": "Development Finance Observatory"
+                            },
+                            "documentation": "/api/graph/documentation/provenance/IMFWorldEconomicOutlook"
+                          },
+                          "unit": {
+                            "basis": "bound",
+                            "ref": "CurrencyUSD",
+                            "label": "US Dollar",
+                            "currency": "USD"
+                          }
+                        },
+                        "slot_options": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            "options": [
+                              {
+                                "value": {
+                                  "ref": {
+                                    "ref": "GrossOfFixedCapitalConsumption",
+                                    "label": "gross of fixed capital consumption"
+                                  },
+                                  "value_kind": "enum_value"
+                                }
+                              }
+                            ],
+                            "truncated": true,
+                            "source": "observed"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "productTaxBasis",
+                                "label": "product tax basis"
+                              },
+                              "label": "product tax basis"
+                            },
+                            "options": [
+                              {
+                                "value": {
+                                  "ref": {
+                                    "ref": "IncludingProductTaxes",
+                                    "label": "including taxes on products"
+                                  },
+                                  "value_kind": "enum_value"
+                                }
+                              }
+                            ],
+                            "truncated": true,
+                            "source": "observed"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "currencyConversionBasis",
+                                "label": "currency conversion basis"
+                              },
+                              "label": "currency conversion basis"
+                            },
+                            "options": [
+                              {
+                                "value": {
+                                  "ref": {
+                                    "ref": "PurchasingPowerParityRate",
+                                    "label": "purchasing power parity rate"
+                                  },
+                                  "value_kind": "enum_value"
+                                }
+                              }
+                            ],
+                            "truncated": true,
+                            "source": "observed"
+                          }
+                        ],
+                        "entity_options": [],
+                        "facet_options": [],
+                        "trace": {
+                          "resolved_entities": [
+                            {
+                              "ref": "country/AGO",
+                              "label": "Angola"
+                            },
+                            {
+                              "ref": "country/BDI",
+                              "label": "Burundi"
+                            },
+                            {
+                              "ref": "country/BEN",
+                              "label": "Benin"
+                            },
+                            {
+                              "ref": "country/BFA",
+                              "label": "Burkina Faso"
+                            },
+                            {
+                              "ref": "country/BWA",
+                              "label": "Botswana"
+                            },
+                            {
+                              "ref": "country/CAF",
+                              "label": "Central African Republic"
+                            },
+                            {
+                              "ref": "country/CIV",
+                              "label": "Ivory Coast"
+                            },
+                            {
+                              "ref": "country/CMR",
+                              "label": "Cameroon"
+                            },
+                            {
+                              "ref": "country/COD",
+                              "label": "Democratic Republic of the Congo"
+                            },
+                            {
+                              "ref": "country/COG",
+                              "label": "Republic of the Congo"
+                            },
+                            {
+                              "ref": "country/COM",
+                              "label": "Comoros"
+                            },
+                            {
+                              "ref": "country/CPV",
+                              "label": "Cape Verde"
+                            },
+                            {
+                              "ref": "country/DJI",
+                              "label": "Djibouti"
+                            },
+                            {
+                              "ref": "country/ERI",
+                              "label": "Eritrea"
+                            },
+                            {
+                              "ref": "country/ETH",
+                              "label": "Ethiopia"
+                            },
+                            {
+                              "ref": "country/GAB",
+                              "label": "Gabon"
+                            },
+                            {
+                              "ref": "country/GHA",
+                              "label": "Ghana"
+                            },
+                            {
+                              "ref": "country/GIN",
+                              "label": "Guinea"
+                            },
+                            {
+                              "ref": "country/GMB",
+                              "label": "The Gambia"
+                            },
+                            {
+                              "ref": "country/GNB",
+                              "label": "Guinea-Bissau"
+                            },
+                            {
+                              "ref": "country/GNQ",
+                              "label": "Equatorial Guinea"
+                            },
+                            {
+                              "ref": "country/KEN",
+                              "label": "Kenya"
+                            },
+                            {
+                              "ref": "country/LBR",
+                              "label": "Liberia"
+                            },
+                            {
+                              "ref": "country/LSO",
+                              "label": "Lesotho"
+                            },
+                            {
+                              "ref": "country/MDG",
+                              "label": "Madagascar"
+                            },
+                            {
+                              "ref": "country/MLI",
+                              "label": "Mali"
+                            },
+                            {
+                              "ref": "country/MOZ",
+                              "label": "Mozambique"
+                            },
+                            {
+                              "ref": "country/MRT",
+                              "label": "Mauritania"
+                            },
+                            {
+                              "ref": "country/MUS",
+                              "label": "Mauritius"
+                            },
+                            {
+                              "ref": "country/MWI",
+                              "label": "Malawi"
+                            },
+                            {
+                              "ref": "country/NAM",
+                              "label": "Namibia"
+                            },
+                            {
+                              "ref": "country/NER",
+                              "label": "Niger"
+                            },
+                            {
+                              "ref": "country/NGA",
+                              "label": "Nigeria"
+                            },
+                            {
+                              "ref": "country/RWA",
+                              "label": "Rwanda"
+                            },
+                            {
+                              "ref": "country/SEN",
+                              "label": "Senegal"
+                            },
+                            {
+                              "ref": "country/SLE",
+                              "label": "Sierra Leone"
+                            },
+                            {
+                              "ref": "country/SOM",
+                              "label": "Somalia"
+                            },
+                            {
+                              "ref": "country/SSD",
+                              "label": "South Sudan"
+                            },
+                            {
+                              "ref": "country/STP",
+                              "label": "São Tomé and Príncipe"
+                            },
+                            {
+                              "ref": "country/SWZ",
+                              "label": "Swaziland"
+                            },
+                            {
+                              "ref": "country/SYC",
+                              "label": "Seychelles"
+                            },
+                            {
+                              "ref": "country/TCD",
+                              "label": "Chad"
+                            },
+                            {
+                              "ref": "country/TGO",
+                              "label": "Togo"
+                            },
+                            {
+                              "ref": "country/TZA",
+                              "label": "Tanzania"
+                            },
+                            {
+                              "ref": "country/UGA",
+                              "label": "Uganda"
+                            },
+                            {
+                              "ref": "country/ZAF",
+                              "label": "South Africa"
+                            },
+                            {
+                              "ref": "country/ZMB",
+                              "label": "Zambia"
+                            },
+                            {
+                              "ref": "country/ZWE",
+                              "label": "Zimbabwe"
+                            }
+                          ],
+                          "resolved_sources": [
+                            {
+                              "ref": "provenance/IMFWorldEconomicOutlook",
+                              "label": "IMF World Economic Outlook (WEO)",
+                              "source": {
+                                "ref": "source/InternationalMonetaryFund",
+                                "label": "International Monetary Fund (IMF)"
+                              },
+                              "data_commons": {
+                                "id": "dfo",
+                                "label": "Development Finance Observatory"
+                              },
+                              "documentation": "/api/graph/documentation/provenance/IMFWorldEconomicOutlook"
+                            }
+                          ],
+                          "slot_filters": [
+                            {
+                              "key": {
+                                "axis": "how",
+                                "property": {
+                                  "ref": "fixedCapitalConsumptionBasis",
+                                  "label": "fixed capital consumption basis"
+                                },
+                                "label": "fixed capital consumption basis"
+                              },
+                              "binding_kind": "value",
+                              "refs": [
+                                {
+                                  "ref": "GrossOfFixedCapitalConsumption",
+                                  "label": "gross of fixed capital consumption"
+                                }
+                              ],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "how",
+                                "property": {
+                                  "ref": "productTaxBasis",
+                                  "label": "product tax basis"
+                                },
+                                "label": "product tax basis"
+                              },
+                              "binding_kind": "value",
+                              "refs": [
+                                {
+                                  "ref": "IncludingProductTaxes",
+                                  "label": "including taxes on products"
+                                }
+                              ],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "how",
+                                "property": {
+                                  "ref": "currencyConversionBasis",
+                                  "label": "currency conversion basis"
+                                },
+                                "label": "currency conversion basis"
+                              },
+                              "binding_kind": "unbound",
+                              "refs": [],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "where",
+                                "label": "place"
+                              },
+                              "binding_kind": "set",
+                              "refs": [
+                                {
+                                  "ref": "country/AGO",
+                                  "label": "Angola"
+                                },
+                                {
+                                  "ref": "country/BDI",
+                                  "label": "Burundi"
+                                },
+                                {
+                                  "ref": "country/BEN",
+                                  "label": "Benin"
+                                },
+                                {
+                                  "ref": "country/BFA",
+                                  "label": "Burkina Faso"
+                                },
+                                {
+                                  "ref": "country/BWA",
+                                  "label": "Botswana"
+                                },
+                                {
+                                  "ref": "country/CAF",
+                                  "label": "Central African Republic"
+                                },
+                                {
+                                  "ref": "country/CIV",
+                                  "label": "Ivory Coast"
+                                },
+                                {
+                                  "ref": "country/CMR",
+                                  "label": "Cameroon"
+                                },
+                                {
+                                  "ref": "country/COD",
+                                  "label": "Democratic Republic of the Congo"
+                                },
+                                {
+                                  "ref": "country/COG",
+                                  "label": "Republic of the Congo"
+                                },
+                                {
+                                  "ref": "country/COM",
+                                  "label": "Comoros"
+                                },
+                                {
+                                  "ref": "country/CPV",
+                                  "label": "Cape Verde"
+                                },
+                                {
+                                  "ref": "country/DJI",
+                                  "label": "Djibouti"
+                                },
+                                {
+                                  "ref": "country/ERI",
+                                  "label": "Eritrea"
+                                },
+                                {
+                                  "ref": "country/ETH",
+                                  "label": "Ethiopia"
+                                },
+                                {
+                                  "ref": "country/GAB",
+                                  "label": "Gabon"
+                                },
+                                {
+                                  "ref": "country/GHA",
+                                  "label": "Ghana"
+                                },
+                                {
+                                  "ref": "country/GIN",
+                                  "label": "Guinea"
+                                },
+                                {
+                                  "ref": "country/GMB",
+                                  "label": "The Gambia"
+                                },
+                                {
+                                  "ref": "country/GNB",
+                                  "label": "Guinea-Bissau"
+                                },
+                                {
+                                  "ref": "country/GNQ",
+                                  "label": "Equatorial Guinea"
+                                },
+                                {
+                                  "ref": "country/KEN",
+                                  "label": "Kenya"
+                                },
+                                {
+                                  "ref": "country/LBR",
+                                  "label": "Liberia"
+                                },
+                                {
+                                  "ref": "country/LSO",
+                                  "label": "Lesotho"
+                                },
+                                {
+                                  "ref": "country/MDG",
+                                  "label": "Madagascar"
+                                },
+                                {
+                                  "ref": "country/MLI",
+                                  "label": "Mali"
+                                },
+                                {
+                                  "ref": "country/MOZ",
+                                  "label": "Mozambique"
+                                },
+                                {
+                                  "ref": "country/MRT",
+                                  "label": "Mauritania"
+                                },
+                                {
+                                  "ref": "country/MUS",
+                                  "label": "Mauritius"
+                                },
+                                {
+                                  "ref": "country/MWI",
+                                  "label": "Malawi"
+                                },
+                                {
+                                  "ref": "country/NAM",
+                                  "label": "Namibia"
+                                },
+                                {
+                                  "ref": "country/NER",
+                                  "label": "Niger"
+                                },
+                                {
+                                  "ref": "country/NGA",
+                                  "label": "Nigeria"
+                                },
+                                {
+                                  "ref": "country/RWA",
+                                  "label": "Rwanda"
+                                },
+                                {
+                                  "ref": "country/SEN",
+                                  "label": "Senegal"
+                                },
+                                {
+                                  "ref": "country/SLE",
+                                  "label": "Sierra Leone"
+                                },
+                                {
+                                  "ref": "country/SOM",
+                                  "label": "Somalia"
+                                },
+                                {
+                                  "ref": "country/SSD",
+                                  "label": "South Sudan"
+                                },
+                                {
+                                  "ref": "country/STP",
+                                  "label": "São Tomé and Príncipe"
+                                },
+                                {
+                                  "ref": "country/SWZ",
+                                  "label": "Swaziland"
+                                },
+                                {
+                                  "ref": "country/SYC",
+                                  "label": "Seychelles"
+                                },
+                                {
+                                  "ref": "country/TCD",
+                                  "label": "Chad"
+                                },
+                                {
+                                  "ref": "country/TGO",
+                                  "label": "Togo"
+                                },
+                                {
+                                  "ref": "country/TZA",
+                                  "label": "Tanzania"
+                                },
+                                {
+                                  "ref": "country/UGA",
+                                  "label": "Uganda"
+                                },
+                                {
+                                  "ref": "country/ZAF",
+                                  "label": "South Africa"
+                                },
+                                {
+                                  "ref": "country/ZMB",
+                                  "label": "Zambia"
+                                },
+                                {
+                                  "ref": "country/ZWE",
+                                  "label": "Zimbabwe"
+                                }
+                              ],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "when",
+                                "label": "time window"
+                              },
+                              "binding_kind": "unbound",
+                              "refs": [],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "source",
+                                "label": "data source"
+                              },
+                              "binding_kind": "unbound",
+                              "refs": [],
+                              "provenance": "binder"
+                            }
+                          ],
+                          "query_qualifiers": [],
+                          "capability_version": "cap_347a470e04c97eec",
+                          "default_reading": {
+                            "applied": true,
+                            "removed_stat_vars": [
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSAccommodationFoodServices_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSFinanceInsurance_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSMiningQuarryingOilGasExtraction_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSProfessionalScientificTechnicalServices_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSWholesaleTrade_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
+                              "InflationAdjustedGDP",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                              "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                              "dc/qt7ewllmt3826",
+                              "dc/zz6gwv838v9w"
+                            ]
+                          }
+                        },
+                        "confidence": "high",
+                        "available_at_place": true,
+                        "measure_label_axes": [],
+                        "measure_axis_values": []
+                      }
+                    }
+                  ],
+                  "measure_label_axes": [],
+                  "measure_axis_values": [],
+                  "related_group": {
+                    "ref": "dc/g/EconomicActivity_ActivitySource-GrossDomesticProduction",
+                    "label": "Economic Activity With Activity Source = Gross Domestic Production"
+                  },
+                  "related_measures": [
+                    {
+                      "stat_var": {
+                        "ref": "GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                        "label": "Gross domestic product growth rate"
+                      },
+                      "definition": {
+                        "schema_version": 1,
+                        "spec_id": "spec_df3e3c939162b3cfe113d2d78d4b4986",
+                        "identity": {
+                          "identity_version": "spec1",
+                          "shape": {
+                            "kind": "statvar_schema",
+                            "population_type": "EconomicActivity",
+                            "measured_property": "amount",
+                            "stat_type": "growthRate"
+                          },
+                          "slots": [
+                            {
+                              "property": "activitySource",
+                              "binding": {
+                                "state": "value",
+                                "ref": "GrossDomesticProduction"
+                              }
+                            }
+                          ],
+                          "entities": {
+                            "observationAbout": [
+                              "country/AGO",
+                              "country/BDI",
+                              "country/BEN",
+                              "country/BFA",
+                              "country/BWA",
+                              "country/CAF",
+                              "country/CIV",
+                              "country/CMR",
+                              "country/COD",
+                              "country/COG",
+                              "country/COM",
+                              "country/CPV",
+                              "country/DJI",
+                              "country/ERI",
+                              "country/ETH",
+                              "country/GAB",
+                              "country/GHA",
+                              "country/GIN",
+                              "country/GMB",
+                              "country/GNB",
+                              "country/GNQ",
+                              "country/KEN",
+                              "country/LBR",
+                              "country/LSO",
+                              "country/MDG",
+                              "country/MLI",
+                              "country/MOZ",
+                              "country/MRT",
+                              "country/MUS",
+                              "country/MWI",
+                              "country/NAM",
+                              "country/NER",
+                              "country/NGA",
+                              "country/RWA",
+                              "country/SEN",
+                              "country/SLE",
+                              "country/SOM",
+                              "country/SSD",
+                              "country/STP",
+                              "country/SWZ",
+                              "country/SYC",
+                              "country/TCD",
+                              "country/TGO",
+                              "country/TZA",
+                              "country/UGA",
+                              "country/ZAF",
+                              "country/ZMB",
+                              "country/ZWE"
+                            ]
+                          },
+                          "requested_window": {
+                            "kind": "all"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "variable_text": "debt",
+              "warnings": [
+                {
+                  "code": "retrieval_score_weak",
+                  "severity": "info",
+                  "message": "the chosen reading's match to the query is weak; treat it with less confidence than a strong match."
+                }
+              ],
+              "timing_ms": {
+                "total": 2694,
+                "by_step": {
+                  "recall": 1,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 4,
+                  "shape_probe": 287,
+                  "shape_groups": 2,
+                  "shape_labels": 0,
+                  "shape_admission": 0,
+                  "shape": 1117,
+                  "bind": 1576
+                }
+              },
+              "rendered_sentence": "Could not tell who is giving and who is receiving among \"sub-Saharan Africa\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
+              "sentence_plan": [
+                {
+                  "kind": "text",
+                  "text": "Could not tell who is giving and who is receiving among \"sub-Saharan Africa\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                }
+              ],
+              "operations": [],
+              "departures": [],
+              "assumptions": [],
+              "status": "no_data",
+              "no_data": {
+                "reason": "role_not_resolved",
+                "category": "unresolved",
+                "message": "Could not tell who is giving and who is receiving among \"sub-Saharan Africa\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
+                "entity_terms": [
+                  "sub-Saharan Africa",
+                  "Kenya"
+                ],
+                "ambiguous_entities": [],
+                "source_terms": [],
+                "ambiguous_sources": [],
+                "unbound_qualifiers": [],
+                "options": [
+                  {
+                    "mentions": [
+                      "sub-Saharan Africa",
+                      "Kenya"
+                    ],
+                    "label": "sub-Saharan Africa to Kenya",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "debt",
+                          "entities": [
+                            {
+                              "text": "Sub-Saharan Africa",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "Kenya",
+                              "role_text": "to"
+                            }
+                          ],
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "sub-Saharan Africa",
+                      "Kenya"
+                    ],
+                    "label": "Kenya to sub-Saharan Africa",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "debt",
+                          "entities": [
+                            {
+                              "text": "Sub-Saharan Africa",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "Kenya",
+                              "role_text": "from"
+                            }
+                          ],
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rendered_sentence": "Answered 1 of 2 parts. GDP in the 48 countries in Sub-Saharan Africa, 1960 to 2025. Current US dollars · World Development Indicators. You asked for sub-Saharan Africa. This shows the countries in it, each on its own. Could not tell who is giving and who is receiving among \"sub-Saharan Africa\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "Answered 1 of 2 parts.",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "slot",
+              "text": "GDP",
+              "axis": "what",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [
+                "how:activitySource",
+                "axis:populationType",
+                "axis:measuredProperty",
+                "axis:statType"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "economicSector",
+              "binding_ref": "how:economicSector",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "naics",
+              "binding_ref": "how:naics",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "schoolGradeLevel",
+              "binding_ref": "how:schoolGradeLevel",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "activitySource",
+              "binding_ref": "how:activitySource",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " in ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "the 48 countries in Sub-Saharan Africa",
+              "axis": "where",
+              "segment": "heading",
+              "binding_ref": "where:",
+              "entity_refs": [],
+              "states": [
+                "where:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ", ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "1960 to 2025",
+              "axis": "when",
+              "segment": "heading",
+              "binding_ref": "when:",
+              "entity_refs": [],
+              "states": [
+                "when:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "Current US dollars",
+              "axis": "unit",
+              "segment": "byline",
+              "binding_ref": "unit:",
+              "entity_refs": [],
+              "states": [
+                "unit:",
+                "axis:measurementQualifier"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "World Development Indicators",
+              "axis": "source",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [
+                "source:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "You asked for sub-Saharan Africa. This shows the countries in it, each on its own.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": "Could not tell who is giving and who is receiving among \"sub-Saharan Africa\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 1
+            }
+          ],
+          "status": "mixed"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "resolution",
+        "status": "mixed",
+        "sentence": "Answered 1 of 2 parts. GDP in the 48 countries in Sub-Saharan Africa, 1960 to 2025. Current US dollars · World Development Indicators. You asked for sub-Saharan Africa. This shows the countries in it, each on its own. Could not tell who is giving and who is receiving among \"sub-Saharan Africa\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
+        "complete": false,
+        "specs": [
+          "spec_3c3d4e571162850b30db0321638f955b"
+        ],
+        "gaps": [
+          {
+            "part": 1,
+            "kind": "choice",
+            "options": 2
+          }
+        ]
+      }
+    },
+    {
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "choice_invalid"
+      }
+    }
+  ]
+}

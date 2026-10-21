@@ -87,6 +87,7 @@ from validate_client_contract import (
     answer_gaps,
     answer_members,
     answer_outcome,
+    artifact_route,
     build_body,
     choice_for,
     choice_input,
@@ -662,13 +663,13 @@ class Session:
         """Sends `request` through `send`, and again after each refusal
         `may_retry` allows, waiting `retry_wait` before each retry."""
         response = send()
-        used = 0
-        while may_retry(request, _read(response), used):
-            wait = retry_wait(response.headers, used)
+        answers = [_read(response)]
+        while may_retry(request, answers):
+            wait = retry_wait(response.headers, len(answers) - 1)
             self.retry_waits.append(wait)
             self.sleep(wait)
             response = send()
-            used += 1
+            answers.append(_read(response))
         return response
 
     def _api(self, method: str, path: str, json_body: Any = None) -> Response:
@@ -892,13 +893,14 @@ class Session:
         artifact = pick_artifact(manifest, rendering)
         if artifact is None:
             raise ClientError("contract_violation")
+        route = artifact_route(self.recorder.base_url, artifact["url"])
         definition = manifest["definition"]
         sentence = None if spec is None else spec.sentence
         if spec is None or definition["spec_id"] != spec.spec_id or sentence is None:
             held = None if spec is None else spec.step()
             sentence = self._identity_sentence(parts, definition, held)
         digest = artifact["artifact_digest"]
-        rows, columns = self.read_shape(self._download(artifact["url"], digest))
+        rows, columns = self.read_shape(self._download(route, digest))
         return Member(
             parts,
             definition,
@@ -921,8 +923,9 @@ class Session:
         return resubmitted_sentence(answer, definition["spec_id"])
 
     def _download(self, target: str, digest: str, *, origin: bool = True) -> bytes:
-        """A file through the route that redirects to it: an artifact's
-        root-relative url, or a path under the base URL. The redirect's
+        """A file through the route that redirects to it: an `origin_path`,
+        as `artifact_route` places an artifact's url, or a path under the
+        base URL. The redirect's
         location is fetched once, where `download_target` places it; a local
         app's blob URL on the API's origin stands for the storage URL a
         deployment signs. A refused fetch or bytes of another digest ask the
@@ -1046,7 +1049,8 @@ class Session:
         )
         if artifact is not None:
             try:
-                return self._download(artifact["url"], digest), None
+                route = artifact_route(self.recorder.base_url, artifact["url"])
+                return self._download(route, digest), None
             except ClientError as error:
                 if error.code not in FILE_GONE:
                     raise
@@ -1864,16 +1868,18 @@ def _refused_first(
     return Derived(copy.deepcopy(parent["call"]), exchanges, expect)
 
 
+_BUSY = _problem(
+    "service_unavailable",
+    503,
+    "Service Unavailable",
+    "The service is busy.",
+    retryable=True,
+)
+
+
 def _retry_after_503(parent: dict[str, Any], ctx: Context) -> Derived:
     first = parent["exchanges"][0]
-    problem = _problem(
-        "service_unavailable",
-        503,
-        "Service Unavailable",
-        "The service is busy.",
-        retryable=True,
-    )
-    refused = _refusal(first["request"], 503, problem, {"retry-after": "1"})
+    refused = _refusal(first["request"], 503, _BUSY, {"retry-after": "1"})
     return _refused_first(parent, 0, refused)
 
 
@@ -1985,6 +1991,29 @@ def _cut_off_twice(
     refused = _refusal(build["request"], 504, _TIMEOUT)
     error = refusal_error(504, _TIMEOUT, ctx.actions).outcome(ctx.client_codes)
     return [refused, copy.deepcopy(refused)], _waited(error, refused)
+
+
+def _cut_off_then_busy(
+    build: dict[str, Any], ctx: Context
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """A 504 cut-off, then a 503 on the one post after it, which raises."""
+    cut_off = _refusal(build["request"], 504, _TIMEOUT)
+    busy = _refusal(build["request"], 503, _BUSY)
+    error = refusal_error(503, _BUSY, ctx.actions).outcome(ctx.client_codes)
+    return [cut_off, busy], _waited(error, cut_off)
+
+
+def _busy_then_cut_off(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A 503, then a 504 cut-off, answer the build before the recorded
+    answer, and the retries' waits go in the outcome."""
+    index = _build_index(parent)
+    build = parent["exchanges"][index]["request"]
+    refused = [_refusal(build, 503, _BUSY), _refusal(build, 504, _TIMEOUT)]
+    exchanges = copy.deepcopy(parent["exchanges"])
+    exchanges[index:index] = refused
+    expect = copy.deepcopy(parent["expect"])
+    expect[-1] = _waited(expect[-1], *refused)
+    return Derived(copy.deepcopy(parent["call"]), exchanges, expect)
 
 
 def _not_resolvable(
@@ -2250,6 +2279,47 @@ def _operation_failed(exchanges: list[dict[str, Any]], build: dict[str, Any]) ->
     exchanges[index:index] = [failed, copy.deepcopy(exchanges[0])]
     build["poll_waits"].insert(0, build["poll_waits"][0])
     build["resubmissions"] = 1
+
+
+def _poll_busy(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
+    """A 503 answers the first poll, and two more answer the third, after
+    the second answered: each spends a retry, the answer between restores
+    both, and each poll after a 503 waits the wait the 503's poll waited."""
+    first = _poll_index(exchanges)
+    poll = exchanges[first]["request"]
+    exchanges.insert(first + 2, _refusal(poll, 503, _BUSY))
+    exchanges.insert(first + 2, _refusal(poll, 503, _BUSY))
+    exchanges.insert(first, _refusal(poll, 503, _BUSY))
+    waits = build["poll_waits"]
+    build["poll_waits"] = [waits[0], waits[0], waits[1], *[waits[2]] * 3, *waits[3:]]
+
+
+_OPERATION_NOT_FOUND = _problem(
+    "operation_not_found",
+    404,
+    "Not Found",
+    "No operation has this id.",
+    retryable=False,
+)
+
+
+def _poll_not_found(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A 404 operation_not_found, which is not retryable, answers the first
+    poll, and the exchanges after it go."""
+    derived = _async_fetch()(parent, ctx)
+    index = _poll_index(derived.exchanges)
+    refused = _refusal(derived.exchanges[index]["request"], 404, _OPERATION_NOT_FOUND)
+    (outcome,) = derived.expect
+    (build,) = outcome["dataset"]["long_builds"]
+    error = refusal_error(404, _OPERATION_NOT_FOUND, ctx.actions).outcome(
+        ctx.client_codes
+    )
+    entry = {**build, "poll_waits": build["poll_waits"][:1]}
+    return Derived(
+        derived.call,
+        [*derived.exchanges[:index], refused],
+        [with_step_notes(error, long_builds=[entry], retry_waits=(), warnings=())],
+    )
 
 
 def _signed_url_refused(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2571,6 +2641,80 @@ def _sunset_twice(parent: dict[str, Any], ctx: Context) -> Derived:
     )
 
 
+# The origin of `fetch-spec-foreign-artifact-url`'s artifact urls, neither the
+# API's nor the storage host's.
+FOREIGN_ORIGIN = "https://downloads.example.com"
+
+
+def _artifact_urls_on(
+    origin: Callable[[dict[str, Any]], str],
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """Every artifact `url` of the parent's build becomes absolute on the
+    origin `origin` gives for the parent: on the API's own origin the record
+    stands, and on any other the build raises ContractError and the
+    exchanges after it go."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        exchanges = copy.deepcopy(parent["exchanges"])
+        index = _build_index(parent)
+        at = origin(parent)
+        for artifact in exchanges[index]["response"]["json"]["artifacts"]:
+            artifact["url"] = at + artifact["url"]
+        if at == _origin(parent["origin"]["base_url"]):
+            return _same(parent, exchanges)
+        return Derived(
+            copy.deepcopy(parent["call"]),
+            exchanges[: index + 1],
+            [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("contract_violation")],
+        )
+
+    return derive
+
+
+# The x-dfo-warning messages and the Deprecation value
+# `search-server-warning`'s responses carry.
+SERVER_MESSAGE = "Search runs on a reduced index while it is rebuilt."
+OTHER_SERVER_MESSAGE = "Search answers from a cached release."
+DEPRECATION = "@1777593600"
+
+
+def _server_warnings(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's search made three times. The first response carries
+    SERVER_MESSAGE; the second the same message and SUNSET; the third
+    OTHER_SERVER_MESSAGE, DEPRECATION and SUNSET. The warnings each step
+    issues are written out, so a change to the warning rules fails the
+    record."""
+    (step,) = parent["call"]
+    (outcome,) = parent["expect"]
+    exchange = parent["exchanges"][0]
+    carried = [
+        {"x-dfo-warning": SERVER_MESSAGE},
+        {"x-dfo-warning": SERVER_MESSAGE, "sunset": SUNSET},
+        {
+            "x-dfo-warning": OTHER_SERVER_MESSAGE,
+            "deprecation": DEPRECATION,
+            "sunset": SUNSET,
+        },
+    ]
+    issued = [
+        ["server_warning"],
+        ["route_deprecated"],
+        ["route_deprecated", "server_warning"],
+    ]
+    exchanges = []
+    for headers in carried:
+        made = copy.deepcopy(exchange)
+        made["response"]["headers"].update(headers)
+        exchanges.append(made)
+    expect = [
+        with_step_notes(
+            copy.deepcopy(outcome), long_builds=(), retry_waits=(), warnings=codes
+        )
+        for codes in issued
+    ]
+    return Derived([copy.deepcopy(step) for _ in carried], exchanges, expect)
+
+
 def _search_ends(
     change: Callable[[dict[str, Any]], None], code: str
 ) -> Callable[[dict[str, Any], Context], Derived]:
@@ -2621,6 +2765,181 @@ def _choice_without_data_query(parent: dict[str, Any], ctx: Context) -> Derived:
         "the choice raises ContractError",
     )
     return derived
+
+
+def _choice_posted(edit: BodyEdit) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent's search, its answer body changed by `edit`, then its
+    choice, which posts the input the rules give for the changed answer and
+    takes the parent's recorded response to it."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        search, choose = parent["call"]
+        canned = copy.deepcopy(parent["exchanges"][:2])
+        body = edit(canned[0]["response"]["json"], ctx)
+        canned[0]["response"]["json"] = body
+        answer = answer_from_body(body)
+        choice = choice_for(
+            answer, gap_kinds(ctx.actions), choose.get("part"), choose["option"]
+        )
+        canned[1]["request"]["json"] = search_body(choice_input(answer, choice))
+        session = ctx.session("synthetic", canned=canned)
+        answered = session.search(search["question"])
+        session.choose(answered, choose["option"], part=choose.get("part"))
+        return Derived(session.call, session.recorder.exchanges, session.expect)
+
+    return derive
+
+
+# The operation `choose-echoes-separate-and-operations`'s definite part asks for.
+GROWTH = {"verb": "growth", "phrase": "growth of GDP", "over": "year"}
+
+
+def _separate_with_operation(body: Any, ctx: Context) -> Any:
+    """Part 0, the definite one, is asked beside the others and asks for
+    GROWTH."""
+    body = copy.deepcopy(body)
+    body["parts"][0].update(separate=True, operations=[dict(GROWTH)])
+    return body
+
+
+def _definite_unsupported(body: Any, ctx: Context) -> Any:
+    """Part 0, the definite one, becomes an unsupported part with no
+    restatement."""
+    body = copy.deepcopy(body)
+    part = body["parts"][0]
+    for member in ("spec", "restatement", "assumptions"):
+        part.pop(member, None)
+    part["status"] = "unsupported"
+    part["unsupported"] = {
+        "code": "scope_too_broad",
+        "pointer": "/definition/identity",
+        "detail": "the family is too broad to settle; bind a what or how slot",
+    }
+    return body
+
+
+def _definite_deferred(body: Any, ctx: Context) -> Any:
+    """Part 0 takes the status "deferred", which no client knows, and loses
+    its restatement."""
+    body = copy.deepcopy(body)
+    body["parts"][0]["status"] = "deferred"
+    body["parts"][0].pop("restatement", None)
+    return body
+
+
+def _definite_unnamed(body: Any, ctx: Context) -> Any:
+    """Part 0, the definite one, loses its variable_text."""
+    body = copy.deepcopy(body)
+    del body["parts"][0]["variable_text"]
+    return body
+
+
+def _labels_shared(body: Any, ctx: Context) -> Any:
+    """The no_data part's second option takes the first one's label."""
+    body = copy.deepcopy(body)
+    options = body["parts"][0]["no_data"]["options"]
+    options[1]["label"] = options[0]["label"]
+    return body
+
+
+def _two_part_query(body: Any, ctx: Context) -> Any:
+    """The first option's data_query holds its one part twice."""
+    body = copy.deepcopy(body)
+    query = body["parts"][0]["no_data"]["options"][0]["data_query"]
+    query["parts"] = [query["parts"][0], copy.deepcopy(query["parts"][0])]
+    return body
+
+
+def _choice_raises(
+    code: str, edit: BodyEdit
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent's choice over its answer changed by `edit`, which raises
+    the client code `code` with no request."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        choose = parent["call"][1]
+        derived = _choice(choose["option"], choose.get("part"), edit=edit)(parent, ctx)
+        require(derived.expect[-1] == ctx.raised(code), f"the choice raises {code}")
+        return derived
+
+    return derive
+
+
+def _not_an_object(response: dict[str, Any]) -> None:
+    response["json"] = [response["json"]]
+
+
+def _no_parts(response: dict[str, Any]) -> None:
+    response["json"]["parts"] = []
+
+
+def _spec_without(member: str) -> Callable[[dict[str, Any]], None]:
+    """Part 0's spec loses `member`, or its definition loses it when the
+    member is `identity`."""
+
+    def change(response: dict[str, Any]) -> None:
+        spec = response["json"]["parts"][0]["spec"]
+        (spec["definition"] if member == "identity" else spec).pop(member)
+
+    return change
+
+
+def _manifest_without_identity(parent: dict[str, Any], ctx: Context) -> Derived:
+    index = _build_index(parent)
+    exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
+    del exchanges[index]["response"]["json"]["definition"]["identity"]
+    return Derived(
+        copy.deepcopy(parent["call"]),
+        exchanges,
+        [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("contract_violation")],
+    )
+
+
+def _nested_specs_unchecked(parent: dict[str, Any], ctx: Context) -> Derived:
+    """Each alternative measure of part 0's spec loses its definition's
+    identity and its resolved, members no client reads."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    resolved = exchanges[0]["response"]["json"]["parts"][0]["spec"]["resolved"]
+    measures = resolved["alternative_measures"]
+    require(bool(measures), "part 0's spec has alternative measures")
+    for measure in measures:
+        measure["definition"].pop("identity")
+        measure.pop("resolved", None)
+    return _same(parent, exchanges)
+
+
+# The trace id the codeless problem document of `search-refused-without-code`
+# carries.
+BODY_TRACE_ID = "1" * 32
+
+
+def _refused_without_code(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A 503 problem document with no code, retryable false and a trace id
+    answers the search, which raises it unretried."""
+    first = parent["exchanges"][0]
+    body = {
+        "title": "Service Unavailable",
+        "status": 503,
+        "detail": "The service is busy.",
+        "trace_id": BODY_TRACE_ID,
+        "retryable": False,
+    }
+    refused = _refusal(first["request"], 503, body)
+    refused["response"]["headers"]["x-dfo-trace-id"] = "2" * 32
+    error = refusal_error(503, body, ctx.actions).outcome(ctx.client_codes)
+    return Derived(copy.deepcopy(parent["call"]), [refused], [error])
+
+
+def _unauthorized(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A bodiless 401 answers the search. The replay's key does not change
+    when the client resolves it again, so the client sends nothing more."""
+    first = parent["exchanges"][0]
+    refused = {
+        "request": copy.deepcopy(first["request"]),
+        "response": {"status": 401, "headers": {"www-authenticate": "Bearer"}},
+    }
+    error = refusal_error(401, None, ctx.actions).outcome(ctx.client_codes)
+    return Derived(copy.deepcopy(parent["call"]), [refused], [error])
 
 
 def _empty_narrowing(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2681,6 +3000,23 @@ SYNTHETIC = (
         "A synchronous build cut off twice is retried once only: the second 504 raises the "
         "timeout code's ServerError.",
         _ends_at_build(_cut_off_twice),
+    ),
+    Synthetic(
+        "fetch-spec-504-then-503",
+        "fetch-spec-known-sentence",
+        "A 504 timeout answers the build, and a 503 service_unavailable its one retry.",
+        "After a 504 cut-off the build is posted once more only, so the 503 that answers "
+        "that post raises its ServerError although one retry of the two is left.",
+        _ends_at_build(_cut_off_then_busy),
+    ),
+    Synthetic(
+        "fetch-spec-503-then-504",
+        "fetch-spec-known-sentence",
+        "A 503 service_unavailable answers the build, and a 504 timeout its first retry.",
+        "A 504 that cuts off the first retry is the first cut-off, so the build is posted "
+        "once more, the second of its two retries, after waits of 0.5 and 1 seconds, and "
+        "reaches the same dataset.",
+        _busy_then_cut_off,
     ),
     Synthetic(
         "fetch-spec-member-not-resolvable",
@@ -2788,6 +3124,26 @@ SYNTHETIC = (
         _async_fetch(_poll_rate_limited),
     ),
     Synthetic(
+        "fetch-spec-poll-refused",
+        "mint-async-build",
+        "As fetch-spec-async-build, with a 503 service_unavailable answering the first poll, "
+        "and two answering the third.",
+        "A retryable refused poll other than a 429 spends one of the two retries, and a poll "
+        "that answers restores them, so two 503s in a row after an answered poll are polled "
+        "again too. A refused poll changes no pacing: the poll after it waits what the "
+        "refused one waited.",
+        _async_fetch(_poll_busy),
+    ),
+    Synthetic(
+        "fetch-spec-poll-not-found",
+        "mint-async-build",
+        "As fetch-spec-async-build, with a 404 operation_not_found answering the first poll, "
+        "and the exchanges after it go.",
+        "A refused poll that is not retryable raises its error at once, with the one poll "
+        "made in long_builds.",
+        _poll_not_found,
+    ),
+    Synthetic(
         "fetch-spec-operation-failed-resubmitted",
         "mint-async-build",
         "As fetch-spec-async-build, with the first poll answering failed with a retryable operation_failed, and the build posted again.",
@@ -2823,6 +3179,42 @@ SYNTHETIC = (
         _relative_location,
     ),
     Synthetic(
+        "fetch-spec-foreign-artifact-url",
+        "fetch-spec-known-sentence",
+        f"Every artifact url of the build's manifest becomes absolute on {FOREIGN_ORIGIN}, "
+        "and the exchanges after the build go.",
+        "An artifact url on an origin other than the API's raises ContractError "
+        "contract_violation before any request for the file.",
+        _artifact_urls_on(lambda parent: FOREIGN_ORIGIN),
+    ),
+    Synthetic(
+        "fetch-spec-same-origin-artifact-url",
+        "fetch-spec-known-sentence",
+        "Every artifact url of the build's manifest becomes absolute on the API's origin.",
+        "An absolute artifact url on the API's origin names the same files route as its "
+        "root-relative form, so the client asks it as that origin_path and reaches the same "
+        "dataset.",
+        _artifact_urls_on(lambda parent: _origin(parent["origin"]["base_url"])),
+    ),
+    Synthetic(
+        "fetch-spec-storage-artifact-url",
+        "fetch-spec-known-sentence",
+        f"Every artifact url of the build's manifest becomes absolute on {STORAGE_ORIGIN}, "
+        "and the exchanges after the build go.",
+        "An artifact url names a files route, which is on the API's origin; one on the "
+        "storage host raises ContractError contract_violation before any request for the "
+        "file, as on any other origin.",
+        _artifact_urls_on(lambda parent: STORAGE_ORIGIN),
+    ),
+    Synthetic(
+        "fetch-spec-manifest-without-identity",
+        "fetch-spec-known-sentence",
+        "The build's manifest definition loses identity, and the exchanges after it go.",
+        "A manifest whose definition has no identity, a strict member, raises ContractError "
+        "contract_violation on the build response, before any download.",
+        _manifest_without_identity,
+    ),
+    Synthetic(
         "operation-failed-without-error",
         "operation-resume",
         "The resumed operation's first poll answers it failed with no error member.",
@@ -2850,6 +3242,18 @@ SYNTHETIC = (
         _sunset_twice,
     ),
     Synthetic(
+        "search-server-warning",
+        "search-place-ambiguous",
+        "The search is made three times. Its responses carry x-dfo-warning "
+        f"{SERVER_MESSAGE!r}, then the same with Sunset {SUNSET!r}, then "
+        f"{OTHER_SERVER_MESSAGE!r} with Deprecation {DEPRECATION!r} and the same Sunset.",
+        "An x-dfo-warning header issues server_warning once per process per message, and "
+        "Deprecation and Sunset issue route_deprecated once per distinct pair of their "
+        "values: the second search warns route_deprecated alone, and the third, a new pair "
+        "and a new message, warns both.",
+        _server_warnings,
+    ),
+    Synthetic(
         "answer-part-status-not-a-string",
         "answer-mixed-fetch-raises",
         "Part 1's status becomes the number 7, and the fetch goes.",
@@ -2864,6 +3268,115 @@ SYNTHETIC = (
         "A Search spec whose definition.spec_id differs from its spec_id raises ContractError "
         "contract_violation, in a Search response as in a ref.",
         _search_ends(_definition_spec_id_differs, "contract_violation"),
+    ),
+    Synthetic(
+        "answer-spec-without-identity",
+        "answer-definite-fetch",
+        "Part 0's spec definition loses identity, and the fetch goes.",
+        "A Search spec whose definition has no identity, which a client posts back, raises "
+        "ContractError contract_violation.",
+        _search_ends(_spec_without("identity"), "contract_violation"),
+    ),
+    Synthetic(
+        "answer-spec-without-resolved",
+        "answer-definite-fetch",
+        "Part 0's spec loses resolved, and the fetch goes.",
+        "A Search spec with no resolved, whose entity_groups a client reads, raises "
+        "ContractError contract_violation.",
+        _search_ends(_spec_without("resolved"), "contract_violation"),
+    ),
+    Synthetic(
+        "answer-nested-specs-unchecked",
+        "answer-definite-fetch",
+        "Each alternative measure of part 0's spec loses its definition's identity and its "
+        "resolved.",
+        "A client checks strict members only where a rule reads them, so a spec nested in "
+        "resolved.alternative_measures may lack them, and the fetch reaches the same "
+        "dataset.",
+        _nested_specs_unchecked,
+    ),
+    Synthetic(
+        "answer-empty-parts",
+        "search-place-ambiguous",
+        "The answer's parts become [].",
+        "A resolution with no parts, which the served schema gives at least one, raises "
+        "ContractError contract_violation at /parts.",
+        _search_ends(_no_parts, "contract_violation"),
+    ),
+    Synthetic(
+        "search-body-not-an-object",
+        "search-place-ambiguous",
+        "The Search response body becomes a list holding the answer.",
+        "A Search response body that is not an object raises ContractError "
+        "contract_violation.",
+        _search_ends(_not_an_object, "contract_violation"),
+    ),
+    Synthetic(
+        "search-refused-without-code",
+        "search-place-ambiguous",
+        "A 503 problem document with no code, retryable false and a trace_id answers the "
+        "search.",
+        "A problem document with no code raises refusal_without_code with the class its "
+        "status maps to, and keeps its body's retryable, so a retryable false 503 is not "
+        "retried.",
+        _refused_without_code,
+    ),
+    Synthetic(
+        "search-unauthorized",
+        "search-place-ambiguous",
+        "A bodiless 401 answers the search.",
+        "A 401 resolves the key again; the key is unchanged, so the client sends nothing "
+        "more and raises AuthenticationError refusal_without_code.",
+        _unauthorized,
+    ),
+    Synthetic(
+        "choose-echoes-separate-and-operations",
+        "choose-option-beside-definite",
+        f"Part 0, the definite part, carries separate true and the operation {GROWTH}.",
+        "A definite part's identity entry echoes the part's separate flag when it is true "
+        "and its operations when it has any.",
+        _choice_posted(_separate_with_operation),
+    ),
+    Synthetic(
+        "choose-posts-unsupported-placeholder",
+        "choose-option-beside-definite",
+        "Part 0 becomes an unsupported part with code scope_too_broad and no restatement.",
+        "A part that is unsupported and has no restatement posts a placeholder entry with "
+        "its unsupported code and variable_text.",
+        _choice_posted(_definite_unsupported),
+    ),
+    Synthetic(
+        "choose-refused-unknown-status",
+        "choose-option-beside-definite",
+        'Part 0 takes the status "deferred" and loses its restatement.',
+        "A part of a status the client does not know, with no restatement, cannot be posted "
+        "back, so the choice raises InvalidRequestError with no request.",
+        _choice_raises("choice_invalid", _definite_deferred),
+    ),
+    Synthetic(
+        "choose-refused-part-without-variable-text",
+        "choose-option-beside-definite",
+        "Part 0, the definite part, loses its variable_text.",
+        "An identity entry carries its part's variable_text, so a part without one cannot "
+        "be posted back and the choice raises InvalidRequestError with no request.",
+        _choice_raises("choice_invalid", _definite_unnamed),
+    ),
+    Synthetic(
+        "choose-refused-shared-label",
+        "choose-place-one-part",
+        "The no_data part's second option takes the first one's label.",
+        "A label two options share matches several, so choosing by it raises "
+        "InvalidRequestError with no request.",
+        _choice_raises("choice_invalid", _labels_shared),
+    ),
+    Synthetic(
+        "choose-option-two-part-query",
+        "choose-place-one-part",
+        "The chosen option's data_query holds its one part twice.",
+        "A chosen option whose data_query holds other than one part raises ContractError "
+        "contract_violation before any request, in a one-part answer as in a several-part "
+        "one.",
+        _choice_raises("contract_violation", _two_part_query),
     ),
     Synthetic(
         "search-no-json-body",

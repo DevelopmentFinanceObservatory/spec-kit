@@ -1,0 +1,402 @@
+{
+  "format_version": 1,
+  "name": "answer-spec-without-resolved",
+  "description": "A Search spec with no resolved, whose entity_groups a client reads, raises ContractError contract_violation.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "answer-definite-fetch",
+    "edit": "Part 0's spec loses resolved, and the fetch goes."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Nigeria for basic health care"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Nigeria for basic health care"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "ODA disbursements from Germany to Nigeria for basic health care",
+            "normalized_query": "ODA disbursements from Germany to Nigeria for basic health care",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "aa5fbbb0593047b59a36bed2b62cd908",
+            "warnings": [],
+            "timing_ms": {
+              "total": 4556,
+              "by_step": {
+                "coverage": 0,
+                "extract": 889
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 6116,
+              "output_tokens": 408,
+              "cached_tokens": 0
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [
+            {
+              "variable_text": "basic health care ODA disbursements",
+              "warnings": [],
+              "timing_ms": {
+                "total": 3505,
+                "by_step": {
+                  "recall": 628,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 5,
+                  "shape_probe": 477,
+                  "shape_groups": 22,
+                  "shape_labels": 1,
+                  "shape_admission": 1,
+                  "shape": 1283,
+                  "bind": 1188,
+                  "materialise": 11,
+                  "answer": 381,
+                  "options": 14
+                }
+              },
+              "restatement": {
+                "variable_text": "basic health care ODA disbursements",
+                "entities": [
+                  {
+                    "text": "Germany",
+                    "role_text": "from"
+                  },
+                  {
+                    "text": "Nigeria",
+                    "role_text": "to"
+                  }
+                ],
+                "sources": [],
+                "operations": []
+              },
+              "operations": [],
+              "departures": [],
+              "assumptions": [],
+              "status": "definite",
+              "spec": {
+                "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                "definition": {
+                  "schema_version": 1,
+                  "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                  "identity": {
+                    "identity_version": "spec1",
+                    "shape": {
+                      "kind": "statvar_schema",
+                      "population_type": "FinancialFlow",
+                      "measured_property": "amount",
+                      "stat_type": "measuredValue",
+                      "measurement_qualifier": "Nominal"
+                    },
+                    "slots": [
+                      {
+                        "property": "crsCooperationModality",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      },
+                      {
+                        "property": "crsPurpose",
+                        "binding": {
+                          "state": "value",
+                          "ref": "CRSPurposeCode12220"
+                        }
+                      },
+                      {
+                        "property": "crsTypeOfFinance",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      },
+                      {
+                        "property": "crsTypeOfFlow",
+                        "binding": {
+                          "state": "value",
+                          "ref": "CRSTypeOfFlow10"
+                        }
+                      },
+                      {
+                        "property": "financialFlowType",
+                        "binding": {
+                          "state": "value",
+                          "ref": "Disbursement"
+                        }
+                      },
+                      {
+                        "property": "nettingBasis",
+                        "binding": {
+                          "state": "value",
+                          "ref": "Gross"
+                        }
+                      }
+                    ],
+                    "entities": {
+                      "destination": [
+                        "country/NGA"
+                      ],
+                      "origin": [
+                        "country/DEU"
+                      ]
+                    },
+                    "requested_window": {
+                      "kind": "all"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "rendered_sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+          "sentence_plan": [
+            {
+              "kind": "slot",
+              "text": "Germany",
+              "segment": "heading",
+              "role": "origin",
+              "binding_ref": "origin:",
+              "entity_refs": [
+                "country/DEU"
+              ],
+              "states": [
+                "origin:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "'s",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "gross ODA disbursements",
+              "axis": "what",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [
+                "how:crsTypeOfFinance",
+                "how:crsTypeOfFlow",
+                "how:financialFlowType",
+                "how:nettingBasis",
+                "axis:populationType",
+                "axis:measuredProperty"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " to ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "Nigeria",
+              "axis": "where",
+              "segment": "heading",
+              "role": "destination",
+              "binding_ref": "where:",
+              "entity_refs": [
+                "country/NGA"
+              ],
+              "states": [
+                "where:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " for ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "basic health care",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "crsPurpose",
+              "binding_ref": "how:crsPurpose",
+              "entity_refs": [],
+              "states": [
+                "how:crsPurpose"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "crsCooperationModality",
+              "binding_ref": "how:crsCooperationModality",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "crsTypeOfFinance",
+              "binding_ref": "how:crsTypeOfFinance",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "crsTypeOfFlow",
+              "binding_ref": "how:crsTypeOfFlow",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "financialFlowType",
+              "binding_ref": "how:financialFlowType",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "nettingBasis",
+              "binding_ref": "how:nettingBasis",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ", ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "slot",
+              "text": "1995 to 2024",
+              "axis": "when",
+              "segment": "heading",
+              "binding_ref": "when:",
+              "entity_refs": [],
+              "states": [
+                "when:"
+              ]
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "slot",
+              "text": "Current US dollars",
+              "axis": "unit",
+              "segment": "byline",
+              "binding_ref": "unit:",
+              "entity_refs": [],
+              "states": [
+                "unit:",
+                "axis:measurementQualifier"
+              ]
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "slot",
+              "text": "OECD Creditor Reporting System (CRS)",
+              "axis": "source",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [
+                "source:"
+              ]
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": []
+            }
+          ],
+          "status": "definite"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "contract_violation"
+      }
+    }
+  ]
+}

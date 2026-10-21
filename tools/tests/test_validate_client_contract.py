@@ -23,6 +23,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -323,6 +324,68 @@ def _second_fetch_served(doc: Any) -> None:
 
 _SUNSET = "scenarios/search-sunset-warning.json"
 _FOREIGN = "https://downloads.example.com/b/o?X-Goog-Signature=redacted"
+_SERVER_WARNING = "scenarios/search-server-warning.json"
+_FOREIGN_ARTIFACT = "scenarios/fetch-spec-foreign-artifact-url.json"
+_SAME_ORIGIN_ARTIFACT = "scenarios/fetch-spec-same-origin-artifact-url.json"
+_POLL_REFUSED = "scenarios/fetch-spec-poll-refused.json"
+_POLL_NOT_FOUND = "scenarios/fetch-spec-poll-not-found.json"
+_CUT_OFF_THEN_BUSY = "scenarios/fetch-spec-504-then-503.json"
+_BUSY_THEN_CUT_OFF = "scenarios/fetch-spec-503-then-504.json"
+
+
+def _artifact_urls(origin: str) -> Callable[[Any], None]:
+    """The build's artifact urls become absolute on `origin`."""
+
+    def change(doc: Any) -> None:
+        for artifact in doc["exchanges"][0]["response"]["json"]["artifacts"]:
+            artifact["url"] = origin + urlsplit(artifact["url"]).path
+
+    return change
+
+
+def _warned(index: int, codes: list[str]) -> Callable[[Any], None]:
+    def change(doc: Any) -> None:
+        answer = doc["expect"][index]["answer"]
+        if codes:
+            answer["warnings"] = codes
+        else:
+            answer.pop("warnings")
+
+    return change
+
+
+_ECHOES_SEPARATE = "scenarios/choose-echoes-separate-and-operations.json"
+_PLACEHOLDER = "scenarios/choose-posts-unsupported-placeholder.json"
+_CODELESS = "scenarios/search-refused-without-code.json"
+
+
+def _first_part(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return _set_body(0, lambda body: change(body["parts"][0]))
+
+
+def _first_entry(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return lambda doc: change(
+        doc["exchanges"][1]["request"]["json"]["input"]["entries"][0]
+    )
+
+
+def _second_option(**fields: Any) -> Callable[[Any], None]:
+    return _first_part(lambda part: part["no_data"]["options"][1].update(fields))
+
+
+def _one_part_query(part: Any) -> None:
+    query = part["no_data"]["options"][0]["data_query"]
+    query["parts"] = query["parts"][:1]
+
+
+def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
+    """The record keeps its first `keep` exchanges and expects `error`."""
+
+    def change(doc: Any) -> None:
+        doc["exchanges"] = doc["exchanges"][:keep]
+        doc["expect"] = [{"error": error}]
+
+    return change
 
 
 @pytest.mark.parametrize(
@@ -1136,6 +1199,176 @@ _FOREIGN = "https://downloads.example.com/b/o?X-Goog-Signature=redacted"
             ),
             "step 0 expects",
         ),
+        (
+            _SAME_ORIGIN_ARTIFACT,
+            _artifact_urls("https://downloads.example.com"),
+            "the steps never make exchanges 1 to 2",
+        ),
+        (
+            _FOREIGN_ARTIFACT,
+            _artifact_urls("http://127.0.0.1:19493"),
+            "the steps make a GET /api/datasets/",
+        ),
+        (
+            _SAME_ORIGIN_ARTIFACT,
+            _artifact_urls("http://127.0.0.1:8083"),
+            "the steps never make exchanges 1 to 2",
+        ),
+        (_SERVER_WARNING, _warned(0, []), "step 0 expects"),
+        (_SERVER_WARNING, _warned(1, []), "step 1 expects"),
+        (
+            _SERVER_WARNING,
+            _warned(1, ["route_deprecated", "server_warning"]),
+            "step 1 expects",
+        ),
+        (_SERVER_WARNING, _warned(2, ["route_deprecated"]), "step 2 expects"),
+        (_SERVER_WARNING, _warned(2, ["server_warning"]), "step 2 expects"),
+        (_POLL_REFUSED, _repeat(4, 1), "the steps never make exchanges 7 to 15"),
+        (
+            _POLL_REFUSED,
+            _set_outcome(
+                0, lambda o: o["dataset"]["long_builds"][0]["poll_waits"].pop(0)
+            ),
+            "step 0 expects",
+        ),
+        (_POLL_NOT_FOUND, _repeat(1, 1), "the steps never make exchanges 2 to 2"),
+        (
+            _POLL_NOT_FOUND,
+            _set_body(1, lambda body: body.update(retryable=True)),
+            "the record lacks",
+        ),
+        (_CUT_OFF_THEN_BUSY, _repeat(1, 1), "the steps never make exchanges 2 to 2"),
+        (
+            _BUSY_THEN_CUT_OFF,
+            _ends_in({"class": "ServerError", "code": "timeout"}, 2),
+            "is a retryable refusal with retries left",
+        ),
+        (
+            _BUSY_THEN_CUT_OFF,
+            _set_outcome(0, lambda o: o["dataset"].update(retry_waits=[0.5])),
+            "step 0 expects",
+        ),
+        (
+            "client-codes.json",
+            _drop_action("key_empty"),
+            "no row for 'key_empty', an error the key-lookup rule raises",
+        ),
+        (
+            "client-codes.json",
+            _drop_action("profile_not_found"),
+            "no row for 'profile_not_found', an error the key-lookup rule raises",
+        ),
+        (
+            "client-codes.json",
+            _drop_action("profile_without_key"),
+            "no row for 'profile_without_key', an error the key-lookup rule raises",
+        ),
+        (
+            "client-codes.json",
+            _drop_action("credentials_file_invalid"),
+            (
+                "no row for 'credentials_file_invalid', an error the key-lookup "
+                "rule raises"
+            ),
+        ),
+        (
+            "client-codes.json",
+            _set_action("key_empty", **{"class": "ContractError"}),
+            "takes 'ContractError', not 'AuthenticationError'",
+        ),
+        (
+            "scenarios/search-proxy-unavailable.json",
+            lambda doc: doc["exchanges"][0]["response"]["json"].update(
+                error=["transient_unavailable"]
+            ),
+            "proxy code ['transient_unavailable'] is not a code",
+        ),
+        (
+            _FETCH,
+            _artifact_urls("https://storage.googleapis.com"),
+            "the steps never make exchanges 1 to 2",
+        ),
+        (
+            _FETCH,
+            _set_body(0, lambda body: body["definition"].pop("identity")),
+            "the steps never make exchanges 1 to 2",
+        ),
+        (
+            "scenarios/answer-definite-fetch.json",
+            _first_part(lambda part: part["spec"]["definition"].pop("identity")),
+            "the step follows no answer",
+        ),
+        (
+            "scenarios/answer-definite-fetch.json",
+            _first_part(lambda part: part["spec"].pop("resolved")),
+            "the step follows no answer",
+        ),
+        (
+            "scenarios/answer-nested-specs-unchecked.json",
+            _first_part(lambda part: part["spec"].pop("resolved")),
+            "the step follows no answer",
+        ),
+        (_SEARCH, _set_body(0, lambda body: body.update(parts=[])), "step 0 expects"),
+        (
+            _SEARCH,
+            lambda doc: doc["exchanges"][0]["response"].update(json=[]),
+            "step 0 expects",
+        ),
+        (
+            _CODELESS,
+            _set_body(0, lambda body: body.update(retryable=True)),
+            "is a retryable refusal with retries left",
+        ),
+        (_CODELESS, _repeat(0, 1), "the steps never make exchanges 1 to 1"),
+        (
+            "scenarios/search-unauthorized.json",
+            _repeat(0, 1),
+            "the steps never make exchanges 1 to 1",
+        ),
+        (
+            _ECHOES_SEPARATE,
+            _first_entry(lambda entry: entry.pop("separate")),
+            "where the rules post",
+        ),
+        (
+            _ECHOES_SEPARATE,
+            _first_entry(lambda entry: entry.update(separate=False)),
+            "where the rules post",
+        ),
+        (
+            _ECHOES_SEPARATE,
+            _first_entry(lambda entry: entry.pop("operations")),
+            "where the rules post",
+        ),
+        (
+            _PLACEHOLDER,
+            _first_entry(lambda entry: entry.update(code="scope_unsupported")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/choose-refused-unknown-status.json",
+            _first_part(
+                lambda part: part.update(
+                    status="unsupported", unsupported={"code": "scope_too_broad"}
+                )
+            ),
+            "the record lacks",
+        ),
+        (
+            "scenarios/choose-refused-part-without-variable-text.json",
+            _first_part(lambda part: part.update(variable_text="GDP")),
+            "the record lacks",
+        ),
+        (
+            "scenarios/choose-refused-shared-label.json",
+            _second_option(label="Congo [Republic]"),
+            "the record lacks",
+        ),
+        (
+            "scenarios/choose-option-two-part-query.json",
+            _first_part(_one_part_query),
+            "the record lacks",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -1291,6 +1524,45 @@ _FOREIGN = "https://downloads.example.com/b/o?X-Goog-Signature=redacted"
         "definition-spec-id-mismatch",
         "one-part-option-without-data-query",
         "refusal-in-another-content-type",
+        "artifact-url-foreign-fetched",
+        "artifact-url-same-origin-refused",
+        "artifact-url-other-port-fetched",
+        "server-warning-missing",
+        "deprecation-pair-keyed-per-process",
+        "server-warning-repeated",
+        "server-warning-new-message-missing",
+        "deprecation-new-pair-missing",
+        "poll-retried-past-the-budget",
+        "poll-wait-after-refusal-missing",
+        "non-retryable-poll-polled-again",
+        "poll-refusal-made-retryable",
+        "build-posted-twice-after-cut-off",
+        "cut-off-after-a-503-not-posted-again",
+        "cut-off-retry-waits-short",
+        "key-lookup-reason-key-empty-missing",
+        "key-lookup-reason-profile-not-found-missing",
+        "key-lookup-reason-profile-without-key-missing",
+        "key-lookup-reason-credentials-file-invalid-missing",
+        "key-lookup-reason-of-another-class",
+        "proxy-code-not-a-string",
+        "artifact-url-on-storage-fetched",
+        "manifest-without-identity-read",
+        "search-spec-without-identity-read",
+        "search-spec-without-resolved-read",
+        "read-spec-without-resolved-beside-unread-ones",
+        "empty-parts-read-as-an-answer",
+        "search-body-not-an-object-read",
+        "codeless-refusal-retryable-by-body-unretried",
+        "codeless-refusal-not-retryable-retried",
+        "unchanged-key-sent-again-after-401",
+        "separate-not-echoed",
+        "separate-false-echoed",
+        "operations-not-echoed",
+        "placeholder-of-another-code",
+        "unknown-status-refusal-on-a-postable-part",
+        "variable-text-refusal-on-a-named-part",
+        "shared-label-refusal-on-distinct-labels",
+        "two-part-query-refusal-on-a-one-part-query",
     ],
 )
 def test_a_broken_contract_is_reported(

@@ -1,0 +1,248 @@
+{
+  "format_version": 1,
+  "name": "search-body-not-an-object",
+  "description": "A Search response body that is not an object raises ContractError contract_violation.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "The Search response body becomes a list holding the answer."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": [
+          {
+            "schema_version": 1,
+            "query_echo": {
+              "entry_path": "raw_text",
+              "raw_query": "ODA disbursements from Germany to Congo",
+              "normalized_query": "ODA disbursements from Germany to Congo",
+              "extract_skipped": false
+            },
+            "diagnostics": {
+              "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+              "trace_id": "c197307ca1cc4364a2f31d7fa99aa616",
+              "warnings": [],
+              "timing_ms": {
+                "total": 1788,
+                "by_step": {
+                  "coverage": 0,
+                  "extract": 1353
+                }
+              },
+              "llm_usage": {
+                "input_tokens": 2249,
+                "output_tokens": 154,
+                "cached_tokens": 859
+              },
+              "timed_out": false
+            },
+            "kind": "resolution",
+            "parts": [
+              {
+                "variable_text": "ODA disbursements",
+                "warnings": [],
+                "timing_ms": {
+                  "total": 434,
+                  "by_step": {
+                    "recall": 434
+                  }
+                },
+                "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                "sentence_plan": [
+                  {
+                    "kind": "text",
+                    "text": "\"",
+                    "segment": "heading",
+                    "entity_refs": [],
+                    "states": []
+                  },
+                  {
+                    "kind": "slot",
+                    "text": "Congo",
+                    "axis": "where",
+                    "segment": "heading",
+                    "role": "destination",
+                    "entity_refs": [],
+                    "states": []
+                  },
+                  {
+                    "kind": "text",
+                    "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                    "segment": "heading",
+                    "entity_refs": [],
+                    "states": []
+                  }
+                ],
+                "restatement": {
+                  "variable_text": "ODA disbursements",
+                  "entities": [
+                    {
+                      "text": "Germany",
+                      "role_text": "from"
+                    },
+                    {
+                      "text": "Congo",
+                      "role_text": "to"
+                    }
+                  ],
+                  "sources": [],
+                  "operations": []
+                },
+                "operations": [],
+                "departures": [],
+                "assumptions": [],
+                "status": "no_data",
+                "no_data": {
+                  "reason": "entity_ambiguous",
+                  "category": "unresolved",
+                  "message": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                  "entity_terms": [
+                    "Congo"
+                  ],
+                  "ambiguous_entities": [
+                    {
+                      "text": "Congo",
+                      "candidates": [
+                        {
+                          "ref": "country/COD",
+                          "label": "Congo [DRC]",
+                          "kind": "country"
+                        },
+                        {
+                          "ref": "country/COG",
+                          "label": "Congo [Republic]",
+                          "kind": "country"
+                        }
+                      ]
+                    }
+                  ],
+                  "source_terms": [],
+                  "ambiguous_sources": [],
+                  "unbound_qualifiers": [],
+                  "options": [
+                    {
+                      "mentions": [
+                        "Congo"
+                      ],
+                      "label": "Congo [DRC]",
+                      "data_query": {
+                        "kind": "parsed",
+                        "parts": [
+                          {
+                            "variable_text": "ODA disbursements",
+                            "entities": [
+                              {
+                                "text": "Germany",
+                                "role_text": "from",
+                                "dcid": "country/DEU"
+                              },
+                              {
+                                "text": "Congo",
+                                "role_text": "to",
+                                "dcid": "country/COD"
+                              }
+                            ],
+                            "sources": [],
+                            "operations": []
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "mentions": [
+                        "Congo"
+                      ],
+                      "label": "Congo [Republic]",
+                      "data_query": {
+                        "kind": "parsed",
+                        "parts": [
+                          {
+                            "variable_text": "ODA disbursements",
+                            "entities": [
+                              {
+                                "text": "Germany",
+                                "role_text": "from",
+                                "dcid": "country/DEU"
+                              },
+                              {
+                                "text": "Congo",
+                                "role_text": "to",
+                                "dcid": "country/COG"
+                              }
+                            ],
+                            "sources": [],
+                            "operations": []
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+            "sentence_plan": [
+              {
+                "kind": "text",
+                "text": "\"",
+                "segment": "heading",
+                "entity_refs": [],
+                "states": [],
+                "part_index": 0
+              },
+              {
+                "kind": "slot",
+                "text": "Congo",
+                "axis": "where",
+                "segment": "heading",
+                "role": "destination",
+                "entity_refs": [],
+                "states": [],
+                "part_index": 0
+              },
+              {
+                "kind": "text",
+                "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                "segment": "heading",
+                "entity_refs": [],
+                "states": [],
+                "part_index": 0
+              }
+            ],
+            "status": "no_data"
+          }
+        ]
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "contract_violation"
+      }
+    }
+  ]
+}

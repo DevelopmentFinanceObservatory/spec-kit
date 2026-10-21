@@ -30,7 +30,8 @@ document validates against its schema, then what the schemas cannot express:
   `actions.json` or `registries/codes.json`. Each row's class is one a
   scenario's error may name, other than a warning's, and only
   `refusal_without_code` takes the class its status maps to, and its
-  retryable flag `by_status`.
+  retryable flag `by_status`. Each reason the key-lookup rule raises is a
+  row of class `AuthenticationError`.
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
   none of them a code another table or `registries/codes.json` holds, and the
   warning codes are those the client rules issue: `route_deprecated`,
@@ -65,8 +66,9 @@ document validates against its schema, then what the schemas cannot express:
   `search_body` gives. A POST carries its body, a refused request repeated is
   a retry only as `may_retry` allows, a record that ends a run of retries
   while `may_retry` holds does not fit, each poll names the operation the
-  client holds, and each signed download is where `download_target` places
-  the `location` the files route answered. The outcomes give the waits
+  client holds, each files route is where `artifact_route` places the
+  artifact's `url`, and each signed download is where `download_target`
+  places the `location` the files route answered. The outcomes give the waits
   before retries and the warnings response headers issue. Every absolute URL
   a record holds, a `url` request or a `location` header, is a signed URL on
   the storage host with the query `X-Goog-Signature=redacted`, or a
@@ -393,6 +395,7 @@ def _check_client_codes(
     actions: dict[str, Any],
     registry: dict[str, Any],
     classes: Sequence[str],
+    lookup_reasons: Sequence[str],
 ) -> list[str]:
     codes = [row["code"] for row in document["codes"]]
     problems = [
@@ -430,6 +433,19 @@ def _check_client_codes(
         for row in document["codes"]
         if (row["retryable"] == BY_STATUS) != (row["class"] == BY_STATUS)
     )
+    classes_by_code = {row["code"]: row["class"] for row in document["codes"]}
+    for reason in lookup_reasons:
+        found = classes_by_code.get(reason)
+        if found is None:
+            problems.append(
+                f"client-codes.json: no row for {reason!r}, an error the "
+                "key-lookup rule raises"
+            )
+        elif found != KEY_LOOKUP_CLASS:
+            problems.append(
+                f"client-codes.json: {reason!r}, an error the key-lookup rule "
+                f"raises, takes {found!r}, not {KEY_LOOKUP_CLASS!r}"
+            )
     return problems
 
 
@@ -455,13 +471,6 @@ def _check_other_codes(
             for code in sorted(set(codes) & others)
         )
     return problems
-
-
-def _check_proxy_codes(
-    document: dict[str, Any], taken: Mapping[str, set[str]]
-) -> list[str]:
-    codes = [row["code"] for row in document["codes"]]
-    return _check_other_codes("proxy-codes.json", codes, taken)
 
 
 def _check_warning_codes(
@@ -490,6 +499,17 @@ def key_format_reasons(rules_schema: Mapping[str, Any]) -> list[str]:
     """The reasons the key-format rule warns with."""
     vectors = rules_schema["$defs"]["key_format"]["properties"]["vectors"]
     return vectors["items"]["properties"]["reason"]["enum"]
+
+
+# The class of every error the key-lookup rule raises.
+KEY_LOOKUP_CLASS = "AuthenticationError"
+
+
+def key_lookup_reasons(rules_schema: Mapping[str, Any]) -> list[str]:
+    """The reasons the key-lookup rule raises an error with."""
+    vectors = rules_schema["$defs"]["key_lookup"]["properties"]["vectors"]
+    error = vectors["items"]["properties"]["error"]
+    return error["properties"]["reason"]["enum"]
 
 
 # --- scenarios --------------------------------------------------------------
@@ -641,7 +661,8 @@ def _check_problem_code(
     if "code" not in body:
         if "error" not in body:
             return []
-        row = proxy_codes.get(body["error"])
+        error = body["error"]
+        row = proxy_codes.get(error) if isinstance(error, str) else None
         if row is None or row["status"] != response["status"]:
             return [
                 (
@@ -708,23 +729,27 @@ RETRYABLE_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 _PROXY_RETRY = "retry_after_delay"
 # The retries a client makes by default after a retryable refusal.
 MAX_RETRIES = 2
-# A build cut off by a retryable 504 is posted once more only.
-MAX_BUILD_TIMEOUT_RETRIES = 1
+# The status that cuts a synchronous build off at the server's limit.
+BUILD_CUT_OFF = 504
 
 
 def may_retry(
-    request: Mapping[str, Any], response: Mapping[str, Any], used: int
+    request: Mapping[str, Any], responses: Sequence[Mapping[str, Any]]
 ) -> bool:
-    """Whether a client sends `request` again after `response`, having retried
-    it `used` times: the response is a retryable refusal and the retries stay
-    within MAX_RETRIES, or within MAX_BUILD_TIMEOUT_RETRIES for a build cut
-    off by a 504."""
+    """Whether a client sends `request` again after `responses`, the answers
+    to it so far in order: the last is a retryable refusal, the retries made
+    stay under MAX_RETRIES, and for a build, no earlier answer was a 504
+    cut-off, after which the build is posted once more only. So a build
+    refused 504 then 503 raises the 503, and one refused 503 then 504 is
+    posted once more after the 504."""
+    *earlier, response = responses
     status = response["status"]
     if status < 400 or not retryable(status, problem_body(response)):
         return False
+    if len(earlier) >= MAX_RETRIES:
+        return False
     build = request["method"] == "POST" and request.get("path") == "/datasets"
-    limit = MAX_BUILD_TIMEOUT_RETRIES if build and status == 504 else MAX_RETRIES
-    return used < limit
+    return not (build and any(r["status"] == BUILD_CUT_OFF for r in earlier))
 
 
 # The content types a client reads a refusal's body as a problem document, or
@@ -944,6 +969,7 @@ def refusal_error(
 
 # The answer kinds a client reads. Any other kind raises ContractError.
 ANSWER_KINDS = ("resolution", "catalogue", "declined")
+RESOLUTION = "resolution"
 # The variable text an identity resubmit sends for a member no answer part names.
 UNNAMED_VARIABLE_TEXT = "dataset"
 # The warning severities a fetch reports in its SearchWarning; `info` stays quiet.
@@ -963,13 +989,15 @@ class Answer:
 
 def answer_from_body(body: Any) -> Answer:
     """The answer a search response holds. A body that is not an object, a
-    kind no client knows, a part whose `status` is not a string, and a spec
-    whose `definition.spec_id` differs from its `spec_id` raise
-    ContractError."""
+    kind no client knows, a resolution with no parts, a part whose `status`
+    is not a string, and a spec whose `definition.spec_id` differs from its
+    `spec_id` raise ContractError."""
     if not isinstance(body, dict) or body.get("kind") not in ANSWER_KINDS:
         raise ClientError("contract_violation")
     parts = body.get("parts", [])
     if not isinstance(parts, list) or not all(_readable(part) for part in parts):
+        raise ClientError("contract_violation")
+    if body["kind"] == RESOLUTION and not parts:
         raise ClientError("contract_violation")
     return Answer(body, parts, body.get("rendered_sentence"), body.get("status"))
 
@@ -1078,6 +1106,7 @@ def choice_input(answer: Answer, choice: Choice) -> dict[str, Any]:
     per part, in part order, so a picked candidate in a one-part answer posts
     its identity as the one entry, and Search answers the picked reading."""
     if len(answer.parts) == 1 and choice.option is not None:
+        _option_part(choice.option)
         return _data_query(choice.option)
     entries = [
         resubmit_entry(part, choice if index == choice.part else None)
@@ -1103,10 +1132,7 @@ def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any
             **_identity(candidate, reading_echo(part, candidate)),
         )
     if choice is not None and choice.option is not None:
-        parts = _data_query(choice.option).get("parts")
-        if not isinstance(parts, list) or len(parts) != 1:
-            raise ClientError("contract_violation")
-        return {"entry_kind": "parsed", "part": parts[0]}
+        return {"entry_kind": "parsed", "part": _option_part(choice.option)}
     match part.get("status"):
         case "definite":
             spec = part["spec"]
@@ -1135,6 +1161,16 @@ def _data_query(option: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(query, dict):
         raise ClientError("contract_violation")
     return query
+
+
+def _option_part(option: Mapping[str, Any]) -> Any:
+    """The one part a no_data option's `data_query` holds; a query of other
+    than one part raises ContractError, in a one-part answer as in a
+    several-part one."""
+    parts = _data_query(option).get("parts")
+    if not isinstance(parts, list) or len(parts) != 1:
+        raise ClientError("contract_violation")
+    return parts[0]
 
 
 def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
@@ -1262,14 +1298,16 @@ def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]
 
 def answer_members(answer: Answer) -> list[tuple[list[str], dict[str, Any]]]:
     """One member per distinct spec_id of the definite parts, in part order:
-    the variable text of every part it answers, and the first such part's
-    spec."""
+    the variable text of every part it answers that names one, and the first
+    such part's spec."""
     members: dict[str, tuple[list[str], dict[str, Any]]] = {}
     for part in answer.parts:
         if part.get("status") != "definite":
             continue
         spec = part["spec"]
-        members.setdefault(spec["spec_id"], ([], spec))[0].append(part["variable_text"])
+        named = members.setdefault(spec["spec_id"], ([], spec))[0]
+        if part.get("variable_text"):
+            named.append(part["variable_text"])
     return list(members.values())
 
 
@@ -1351,25 +1389,30 @@ def strict_gaps(
     schema: Any,
     body: Any,
     where: str = "",
+    component: str | None = None,
 ) -> list[str]:
     """The strict members `body` lacks or holds as null, read through
     `schema`: each component schema it reaches names its own, and a
-    discriminated union whose discriminator `body` lacks is a gap. A
-    discriminator value the union does not map, and a union without a
-    discriminator that offers more than one object branch, reach nothing."""
+    discriminated union whose discriminator `body` lacks is a gap. The walk
+    goes down only through strict members, the ones a client reads, so a
+    member no client reads, such as a spec's `resolved.equivalent_readings`,
+    is never checked. A discriminator value the union does not map, and a
+    union without a discriminator that offers more than one object branch,
+    reach nothing. `component` is the component schema `schema` belongs to."""
     if not isinstance(schema, dict):
         return []
     ref = schema.get("$ref")
     if isinstance(ref, str) and ref.startswith("#/"):
+        name = ref.rsplit("/", 1)[-1]
         gaps = []
         if isinstance(body, dict):
             gaps = [
-                f"{where}/{name}"
-                for name in members.get(ref.rsplit("/", 1)[-1], ())
-                if body.get(name) is None
+                f"{where}/{member}"
+                for member in members.get(name, ())
+                if body.get(member) is None
             ]
         return gaps + strict_gaps(
-            openapi, members, _resolve(openapi, ref[1:]), body, where
+            openapi, members, _resolve(openapi, ref[1:]), body, where, name
         )
     discriminator = schema.get("discriminator")
     if isinstance(discriminator, dict) and isinstance(body, dict):
@@ -1384,12 +1427,15 @@ def strict_gaps(
     for keyword in ("anyOf", "oneOf"):
         branches = [b for b in schema.get(keyword, []) if b.get("type") != "null"]
         if len(branches) == 1:
-            gaps.extend(strict_gaps(openapi, members, branches[0], body, where))
+            gaps.extend(
+                strict_gaps(openapi, members, branches[0], body, where, component)
+            )
     for branch in schema.get("allOf", []):
-        gaps.extend(strict_gaps(openapi, members, branch, body, where))
+        gaps.extend(strict_gaps(openapi, members, branch, body, where, component))
     if isinstance(body, dict):
+        read = members.get(component, ()) if component is not None else ()
         for name, member in schema.get("properties", {}).items():
-            if name in body:
+            if name in body and name in read:
                 gaps.extend(
                     strict_gaps(openapi, members, member, body[name], f"{where}/{name}")
                 )
@@ -1560,6 +1606,19 @@ def download_target(base_url: str, route_url: str, location: str) -> tuple[str, 
     if origin != f"{base.scheme}://{base.netloc}":
         raise ClientError("contract_violation")
     return "origin_path", urlunsplit(("", "", resolved.path, resolved.query, ""))
+
+
+def artifact_route(base_url: str, url: str) -> str:
+    """The `origin_path` of the files route a manifest artifact's `url`
+    names: a root-relative url as it resolves on the API's origin, and an
+    absolute url on that origin as its path and query. A url on any other
+    origin, the storage host's included, raises ContractError."""
+    base = urlsplit(base_url)
+    origin = f"{base.scheme}://{base.netloc}"
+    resolved = urlsplit(urljoin(f"{origin}/", url))
+    if f"{resolved.scheme}://{resolved.netloc}" != origin:
+        raise ClientError("contract_violation")
+    return urlunsplit(("", "", resolved.path, resolved.query, ""))
 
 
 def data_warning(manifest: Mapping[str, Any]) -> ClientError | None:
@@ -1791,20 +1850,20 @@ class _Replay:
             )
         self.cursor += 1
         self.took(exchange)
-        used = 0
+        answers = [exchange["response"]]
         while (
             retries
             and self.cursor < len(self.exchanges)
             and self.exchanges[self.cursor]["request"] == request
-            and may_retry(request, exchange["response"], used)
+            and may_retry(request, answers)
         ):
             headers = exchange["response"].get("headers", {})
-            self.retry_waits.append(retry_wait(headers, used))
+            self.retry_waits.append(retry_wait(headers, len(answers) - 1))
             exchange = self.exchanges[self.cursor]
             self.cursor += 1
             self.took(exchange)
-            used += 1
-        if retries and may_retry(request, exchange["response"], used):
+            answers.append(exchange["response"])
+        if retries and may_retry(request, answers):
             raise _UnfitError(
                 f"exchange {self.cursor - 1} is a retryable refusal with retries "
                 f"left, and the record holds no retry of {method} {target}"
@@ -1866,8 +1925,8 @@ class _Replay:
 
     def download(self, target: str, digest: str, *, origin: bool) -> None:
         """A file through the route that redirects to its signed URL: an
-        artifact's root-relative `url` when `origin`, else a path under the
-        base URL. The client fetches once the URL the route's `location`
+        `origin_path`, as `artifact_route` places an artifact's `url`, when
+        `origin`, else a path under the base URL. The client fetches once the URL the route's `location`
         names, as `download_target` places it. A refused fetch, or bytes that
         do not hash to `digest`, ask the route once more, and a second
         failure raises."""
@@ -1996,11 +2055,12 @@ class _Replay:
         artifact = pick_artifact(manifest, rendering)
         if artifact is None:
             raise ClientError("contract_violation")
+        route = artifact_route(self.base_url, artifact["url"])
         built = manifest["definition"]["spec_id"]
         sentence = None if spec is None else spec.get("sentence")
         if spec is None or built != spec["spec_id"] or sentence is None:
             sentence = self.sentence(parts, manifest["definition"], spec)
-        self.download(artifact["url"], artifact["artifact_digest"], origin=True)
+        self.download(route, artifact["artifact_digest"], origin=True)
         return {
             "parts": parts,
             "spec_id": built,
@@ -2088,7 +2148,8 @@ class _Replay:
         )
         if artifact is not None:
             try:
-                self.download(artifact["url"], digest, origin=True)
+                route = artifact_route(self.base_url, artifact["url"])
+                self.download(route, digest, origin=True)
             except ClientError as error:
                 if error.code not in FILE_GONE:
                     raise
@@ -2762,10 +2823,15 @@ def validate() -> list[str]:
         "client-codes.json", validators["client-codes.schema.json"], client_codes
     )
     scenario_schema = validators["scenario.schema.json"].schema
+    rules_schema = validators["rules/rules.schema.json"].schema
     problems.extend(
         errors
         or _check_client_codes(
-            client_codes, actions, registry, error_classes(scenario_schema)
+            client_codes,
+            actions,
+            registry,
+            error_classes(scenario_schema),
+            key_lookup_reasons(rules_schema),
         )
     )
     client_rows = [] if errors else client_codes["codes"]
@@ -2779,7 +2845,12 @@ def validate() -> list[str]:
     errors = _schema_problems(
         "proxy-codes.json", validators["proxy-codes.schema.json"], proxy_codes
     )
-    problems.extend(errors or _check_proxy_codes(proxy_codes, taken))
+    problems.extend(
+        errors
+        or _check_other_codes(
+            "proxy-codes.json", [row["code"] for row in proxy_codes["codes"]], taken
+        )
+    )
     proxy_rows = [] if errors else proxy_codes["codes"]
     warning_codes = _load(PACKAGE_DIR / "warning-codes.json")
     errors = _schema_problems(
@@ -2790,7 +2861,7 @@ def validate() -> list[str]:
         or _check_warning_codes(
             warning_codes,
             {**taken, "proxy-codes.json": {row["code"] for row in proxy_rows}},
-            key_format_reasons(validators["rules/rules.schema.json"].schema),
+            key_format_reasons(rules_schema),
         )
     )
 
