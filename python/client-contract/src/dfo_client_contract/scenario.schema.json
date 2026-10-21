@@ -188,9 +188,13 @@
           "$ref": "#/$defs/window"
         },
         "entities": {
+          "description": "The roles the caller rebinds. A role holds its new refs, or null to drop it; a role left out keeps the spec's binding.",
           "type": "object",
           "additionalProperties": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "minItems": 1,
             "items": {
               "type": "string",

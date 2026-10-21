@@ -91,6 +91,7 @@ from validate_client_contract import (
     owns_body_file,
     part_label,
     pick_artifact,
+    posted_scope,
     refusal_error,
     rendering_for,
     resubmitted_sentence,
@@ -668,23 +669,30 @@ class Session:
         spec: Spec,
         *,
         window: str | tuple[int, int] | None = None,
+        entities: Mapping[str, Sequence[str] | None] | None = None,
         facets: Mapping[str, str] | None = None,
         layout: str | None = None,
         strict: bool = False,
     ) -> list[Member]:
+        """Builds `spec` narrowed by `window`, `entities` and `facets`. A
+        role in `entities` replaces the spec's binding of it, or drops it
+        when null."""
         step: dict[str, Any] = {"op": "fetch", "spec": spec.step()}
-        scope: dict[str, Any] = {}
         if window is not None:
             step["window"] = list(window) if isinstance(window, tuple) else window
-            scope["window"] = _window(window)
+        if entities is not None:
+            step["entities"] = {
+                role: None if refs is None else list(refs)
+                for role, refs in entities.items()
+            }
         if facets is not None:
             step["facets"] = dict(facets)
-            scope["facets"] = {name: {"ref": ref} for name, ref in facets.items()}
+        scope = posted_scope(step)
         built: list[Member] = []
 
         def run() -> dict[str, Any]:
             rendering = rendering_for(layout)
-            built.append(self.build([], spec, scope or None, rendering, strict=strict))
+            built.append(self.build([], spec, scope, rendering, strict=strict))
             return dataset_outcome(built)
 
         self._step(_step_options(step, layout=layout, strict=strict), run)
@@ -972,12 +980,6 @@ def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
     return {"operation": {k: operation[k] for k in ("operation_id", "status")}}
 
 
-def _window(window: str | tuple[int, int]) -> dict[str, Any]:
-    if isinstance(window, tuple):
-        return {"kind": "range", "start_year": window[0], "end_year": window[1]}
-    return {"kind": window}
-
-
 def _build_body(
     spec: Spec, scope: dict[str, Any] | None, rendering: Mapping[str, Any]
 ) -> dict[str, Any]:
@@ -1040,6 +1042,7 @@ CANDIDATES_BESIDE_UNRESTATED = "GNI of Germany and debt of Kenya from 2015 to 20
 GROUP_DEFINITE = "GDP of the least developed countries"
 ASYNC = "ODA received by every recipient country from every provider (DAC2a) from 2018 to 2024"
 NARROW_WINDOW = (2020, 2023)
+REBOUND_ORIGIN = "country/FRA"
 SYNC_ROWS = 100_000
 
 
@@ -1195,6 +1198,23 @@ def _fetch_spec_narrowed(s: Session, ctx: Context) -> None:
     (member,) = s.fetch_spec(spec, window=NARROW_WINDOW)
     require(member.spec_id != spec.spec_id, "the window gives a new spec_id")
     require("2020 to 2023" in member.sentence, "the sentence names the window")
+
+
+def _fetch_spec_entities(
+    rebinds: Mapping[str, list[str] | None],
+) -> Callable[[Session, Context], None]:
+    """Fetches the definite spec with `rebinds` as `entities`, and checks the
+    build binds the entities the client posts."""
+
+    def run(s: Session, ctx: Context) -> None:
+        spec = ctx.definite_spec(DEFINITE)
+        (member,) = s.fetch_spec(spec, entities=rebinds)
+        posted = s.recorder.exchanges[0]["request"]["json"]["input"]["scope"]
+        bound = member.definition["identity"]["entities"]
+        require(member.spec_id != spec.spec_id, "the entities give a new spec_id")
+        require(bound == posted["entities"], "the build binds the posted entities")
+
+    return run
 
 
 def _fetch_spec_known_sentence(s: Session, ctx: Context) -> None:
@@ -1363,6 +1383,21 @@ RECORDED = (
         'identity entry (variable_text "dataset" for a spec no answer part names), checks the '
         "answer's spec_id equals the built one, then downloads the file.",
         _fetch_spec_narrowed,
+    ),
+    Recorded(
+        "fetch-spec-entity-rebound",
+        "Fetching a two-role spec with entities naming only origin posts input.scope.entities "
+        "with origin replaced and destination kept from the spec's definition, because the "
+        "server's scope.entities replaces the spec's whole entity binding. The build answers a "
+        "new spec_id bound to both roles.",
+        _fetch_spec_entities({"origin": [REBOUND_ORIGIN]}),
+    ),
+    Recorded(
+        "fetch-spec-entity-dropped",
+        "Fetching a two-role spec with entities binding origin to null posts "
+        "input.scope.entities with origin dropped and destination kept, and the build answers "
+        "a new spec_id bound to destination alone.",
+        _fetch_spec_entities({"origin": None}),
     ),
     Recorded(
         "fetch-spec-known-sentence",
@@ -2580,6 +2615,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 session.fetch_spec(
                     Spec(spec["spec_id"], spec["definition"], spec.get("sentence")),
                     window=tuple(window) if isinstance(window, list) else window,
+                    entities=step.get("entities"),
                     facets=step.get("facets"),
                     layout=step.get("layout"),
                     strict=step.get("strict", False),

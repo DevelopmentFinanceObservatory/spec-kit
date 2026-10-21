@@ -1200,6 +1200,33 @@ def rendering_for(layout: str | None) -> dict[str, Any]:
     return dict(LAYOUT_RENDERINGS[layout or "long"])
 
 
+def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The `input.scope` a fetch or mint of a spec posts for the step's
+    narrowing, or None when it narrows nothing. The server's
+    `scope.entities` replaces the spec's whole entity binding, so the
+    client posts the spec's bound roles with each role the step names
+    replaced, and a role named with null dropped. A step that names no
+    role posts no `entities`."""
+    scope: dict[str, Any] = {}
+    window = step.get("window")
+    if isinstance(window, list):
+        start, end = window
+        scope["window"] = {"kind": "range", "start_year": start, "end_year": end}
+    elif window is not None:
+        scope["window"] = {"kind": window}
+    if named := step.get("entities"):
+        bound = dict(step["spec"]["definition"]["identity"].get("entities", {}))
+        for role, refs in named.items():
+            if refs is None:
+                bound.pop(role, None)
+            else:
+                bound[role] = list(refs)
+        scope["entities"] = bound
+    if (facets := step.get("facets")) is not None:
+        scope["facets"] = {name: {"ref": ref} for name, ref in facets.items()}
+    return scope or None
+
+
 def pick_artifact(
     manifest: Mapping[str, Any], rendering: Mapping[str, Any]
 ) -> dict[str, Any] | None:
@@ -1490,16 +1517,35 @@ class _Replay:
 
     # -- builds --
 
-    def build(self, rendering: dict[str, Any]) -> dict[str, Any]:
-        """A build of the latest version, posting `rendering` as its options:
-        the manifest it answers, through a long build when it answers 202."""
+    def posted_build(
+        self, rendering: dict[str, Any], scope: dict[str, Any] | None
+    ) -> dict[str, Any]:
+        """A build request whose recorded body, when it has one, posts
+        `rendering` as its options and `scope` as its input's scope."""
         exchange = self.call(*_BUILD)
         sent = exchange["request"].get("json")
-        if sent is not None and sent.get("options") != rendering:
+        if sent is None:
+            return exchange
+        if sent.get("options") != rendering:
             raise _UnfitError(
                 f"exchange {self.cursor - 1} posts options {sent.get('options')}, "
                 f"where the rules post {rendering}"
             )
+        if "input" in sent and sent["input"].get("scope") != scope:
+            raise _UnfitError(
+                f"exchange {self.cursor - 1} posts scope "
+                f"{json.dumps(sent['input'].get('scope'))}, where the rules post "
+                f"{json.dumps(scope)}"
+            )
+        return exchange
+
+    def build(
+        self, rendering: dict[str, Any], scope: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """A build of the latest version, posting `rendering` as its options
+        and `scope` as its input's scope: the manifest it answers, through a
+        long build when it answers 202."""
+        exchange = self.posted_build(rendering, scope)
         if exchange["response"]["status"] != 202:
             return self.acted_on(exchange)
         resource = self.acted_on(exchange, _OPERATION)
@@ -1772,7 +1818,9 @@ class _Replay:
 
     def _fetch_spec(self, step: dict[str, Any]) -> dict[str, Any]:
         rendering = rendering_for(step.get("layout"))
-        member = self.fetched([], step["spec"], rendering, step.get("strict", False))
+        manifest = self.build(rendering, posted_scope(step))
+        strict = step.get("strict", False)
+        member = self.member([], step["spec"], manifest, rendering, strict)
         return {"dataset": dataset_summary([member], [])}
 
     def _fetch_ref(self, step: dict[str, Any]) -> dict[str, Any]:
@@ -1781,7 +1829,7 @@ class _Replay:
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
         rendering = rendering_for(step.get("layout"))
-        exchange = self.call(*_BUILD)
+        exchange = self.posted_build(rendering, posted_scope(step))
         if exchange["response"]["status"] == 200:
             raise _UnfitError("a mint step's build answers an operation")
         resource = self.acted_on(exchange, _OPERATION)

@@ -42,6 +42,8 @@ _DECLINED = "scenarios/answer-declined.json"
 _REQUEST_INVALID = "scenarios/fetch-spec-request-invalid.json"
 _UNKNOWN_VERSION = "scenarios/fetch-ref-unknown-version.json"
 _NEWER = "scenarios/fetch-ref-expired-newer-version.json"
+_REBOUND = "scenarios/fetch-spec-entity-rebound.json"
+_DROPPED = "scenarios/fetch-spec-entity-dropped.json"
 
 
 def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -166,6 +168,13 @@ def _resubmit_answers_built(doc: Any) -> None:
     """Search answers the identity resubmit with the built spec_id."""
     built = doc["exchanges"][0]["response"]["json"]["definition"]["spec_id"]
     doc["exchanges"][1]["response"]["json"]["parts"][0]["spec"]["spec_id"] = built
+
+
+def _posted_entities(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the entities the record's build posts."""
+    return lambda doc: change(
+        doc["exchanges"][0]["request"]["json"]["input"]["scope"]["entities"]
+    )
 
 
 def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -442,6 +451,24 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
             "where the rules post",
         ),
         (
+            _REBOUND,
+            _posted_entities(lambda entities: entities.pop("destination")),
+            "where the rules post",
+        ),
+        (
+            _DROPPED,
+            _posted_entities(lambda entities: entities.update(origin=["country/DEU"])),
+            "where the rules post",
+        ),
+        (
+            _REBOUND,
+            _posted_entities(
+                lambda entities: entities.update(origin=["country/DEU", "country/FRA"])
+            ),
+            "where the rules post",
+        ),
+        (_REBOUND, _set_step(0, entities={}), "where the rules post"),
+        (
             _FETCH,
             lambda doc: doc["call"].append({"op": "fetch"}),
             "does not follow a step in ['choose', 'fetch_answer', 'search']",
@@ -716,6 +743,10 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
         "definite-part-posted-parsed",
         "restated-part-posted-placeholder",
         "identity-resubmit-wrong-variable-text",
+        "unnamed-role-dropped",
+        "null-role-kept",
+        "named-role-merged",
+        "no-role-named-posts-entities",
         "answer-fetch-after-spec-fetch",
         "exchange-never-made",
         "exchanges-unfit",
