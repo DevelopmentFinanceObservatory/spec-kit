@@ -138,7 +138,7 @@
       }
     },
     "spec": {
-      "description": "A Spec as a client holds it: the server's spec_id and unmodified definition, and the sentence when the client knows it.",
+      "description": "A Spec as a client holds it: the server's spec_id and unmodified definition, the sentence when the client knows it, and the entity groups the server's resolved.entity_groups names, when it names any.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -155,6 +155,14 @@
         "sentence": {
           "type": "string",
           "minLength": 1
+        },
+        "entity_groups": {
+          "description": "The server's resolved.entity_groups: each grouped role's EntityGroup, keyed by role.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object"
+          }
         }
       }
     },

@@ -44,6 +44,9 @@ _UNKNOWN_VERSION = "scenarios/fetch-ref-unknown-version.json"
 _NEWER = "scenarios/fetch-ref-expired-newer-version.json"
 _REBOUND = "scenarios/fetch-spec-entity-rebound.json"
 _DROPPED = "scenarios/fetch-spec-entity-dropped.json"
+_GROUP_NARROWED = "scenarios/fetch-spec-group-narrowed.json"
+_GROUP_REBOUND = "scenarios/fetch-spec-group-origin-rebound.json"
+_ORIGIN_GROUP = {"label": "G7", "group_id": "groups/G7"}
 
 
 def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -175,6 +178,14 @@ def _posted_entities(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return lambda doc: change(
         doc["exchanges"][0]["request"]["json"]["input"]["scope"]["entities"]
     )
+
+
+def _rebound_group_kept(doc: Any) -> None:
+    """The held spec groups origin as well, and the resubmit keeps that group
+    though the fetch rebinds origin."""
+    doc["call"][0]["spec"]["entity_groups"]["origin"] = _ORIGIN_GROUP
+    entry = doc["exchanges"][1]["request"]["json"]["input"]["entries"][0]
+    entry["entity_groups"]["origin"] = _ORIGIN_GROUP
 
 
 def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -450,6 +461,12 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
             ].update(variable_text="ODA"),
             "where the rules post",
         ),
+        (
+            _GROUP_NARROWED,
+            _posted(0, lambda entry: entry.pop("entity_groups")),
+            "where the rules post",
+        ),
+        (_GROUP_REBOUND, _rebound_group_kept, "where the rules post"),
         (
             _REBOUND,
             _posted_entities(lambda entities: entities.pop("destination")),
@@ -743,6 +760,8 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
         "definite-part-posted-parsed",
         "restated-part-posted-placeholder",
         "identity-resubmit-wrong-variable-text",
+        "kept-group-dropped",
+        "rebound-role-group-kept",
         "unnamed-role-dropped",
         "null-role-kept",
         "named-role-merged",

@@ -72,7 +72,6 @@ from validate_client_contract import (
     FILE_GONE,
     NO_VERSIONS,
     REBUILD_REFUSED,
-    UNNAMED_VARIABLE_TEXT,
     VERSION_UNAVAILABLE,
     Answer,
     ClientError,
@@ -88,6 +87,7 @@ from validate_client_contract import (
     dataset_summary,
     digest_of,
     gap_kinds,
+    held_spec,
     owns_body_file,
     part_label,
     pick_artifact,
@@ -98,6 +98,7 @@ from validate_client_contract import (
     search_warning_code,
     search_warns,
     selector_path,
+    sentence_entry,
 )
 from validate_client_contract import main as validate_main
 
@@ -430,18 +431,29 @@ class Spec:
     spec_id: str
     definition: dict[str, Any]
     sentence: str | None = None
+    entity_groups: dict[str, Any] | None = None
 
     def step(self) -> dict[str, Any]:
         step: dict[str, Any] = {"spec_id": self.spec_id, "definition": self.definition}
         if self.sentence is not None:
             step["sentence"] = self.sentence
+        if self.entity_groups:
+            step["entity_groups"] = self.entity_groups
         return step
 
 
-def _part_spec(spec: dict[str, Any]) -> Spec:
+def _step_spec(step: Mapping[str, Any]) -> Spec:
+    """The Spec a step's `spec`, or `held_spec`'s shape, holds."""
     return Spec(
-        spec["spec_id"], spec["definition"], spec["resolved"]["rendered_sentence"]
+        step["spec_id"],
+        step["definition"],
+        step.get("sentence"),
+        step.get("entity_groups"),
     )
+
+
+def _part_spec(spec: dict[str, Any]) -> Spec:
+    return _step_spec(held_spec(spec))
 
 
 def _members(answer: Answer) -> list[tuple[list[str], Spec]]:
@@ -797,7 +809,8 @@ class Session:
         definition = manifest["definition"]
         sentence = None if spec is None else spec.sentence
         if spec is None or definition["spec_id"] != spec.spec_id or sentence is None:
-            sentence = self._identity_sentence(parts, definition)
+            held = None if spec is None else spec.step()
+            sentence = self._identity_sentence(parts, definition, held)
         digest = artifact["artifact_digest"]
         rows, columns = self.read_shape(self._download(artifact["url"], digest))
         return Member(
@@ -811,12 +824,13 @@ class Session:
             dict(rendering),
         )
 
-    def _identity_sentence(self, parts: list[str], definition: dict[str, Any]) -> str:
-        entry = {
-            "entry_kind": "identity",
-            "variable_text": parts[0] if parts else UNNAMED_VARIABLE_TEXT,
-            "identity": definition["identity"],
-        }
+    def _identity_sentence(
+        self,
+        parts: list[str],
+        definition: dict[str, Any],
+        held: dict[str, Any] | None,
+    ) -> str:
+        entry = sentence_entry(parts, definition, held)
         answer = self._resolve({"kind": "dataset_resubmit", "entries": [entry]})
         return resubmitted_sentence(answer, definition["spec_id"])
 
@@ -1040,6 +1054,7 @@ CANDIDATES_BESIDE_GROUP = (
 TWO_CANDIDATES = "GNI of Germany and tax revenue of Kenya from 2015 to 2022"
 CANDIDATES_BESIDE_UNRESTATED = "GNI of Germany and debt of Kenya from 2015 to 2022"
 GROUP_DEFINITE = "GDP of the least developed countries"
+GROUPED_FLOW = "Germany's ODA to the least developed countries"
 ASYNC = "ODA received by every recipient country from every provider (DAC2a) from 2018 to 2024"
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
@@ -1213,6 +1228,28 @@ def _fetch_spec_entities(
         bound = member.definition["identity"]["entities"]
         require(member.spec_id != spec.spec_id, "the entities give a new spec_id")
         require(bound == posted["entities"], "the build binds the posted entities")
+
+    return run
+
+
+def _fetch_spec_grouped(
+    *,
+    window: tuple[int, int] | None = None,
+    entities: Mapping[str, list[str] | None] | None = None,
+) -> Callable[[Session, Context], None]:
+    """Fetches the GROUPED_FLOW spec, whose destination is a named group, with
+    the narrowing given, and checks the built sentence still names the group."""
+
+    def run(s: Session, ctx: Context) -> None:
+        spec = ctx.definite_spec(GROUPED_FLOW)
+        groups = spec.entity_groups or {}
+        require("destination" in groups, "the destination is a named group")
+        (member,) = s.fetch_spec(spec, window=window, entities=entities)
+        require(member.spec_id != spec.spec_id, "the narrowing gives a new spec_id")
+        require(
+            groups["destination"]["label"] in member.sentence,
+            "the built sentence names the destination's group",
+        )
 
     return run
 
@@ -1398,6 +1435,22 @@ RECORDED = (
         "input.scope.entities with origin dropped and destination kept, and the build answers "
         "a new spec_id bound to destination alone.",
         _fetch_spec_entities({"origin": None}),
+    ),
+    Recorded(
+        "fetch-spec-group-narrowed",
+        "Fetching a spec whose destination is the least developed countries group with "
+        "window=(2020, 2023) answers a new spec_id. The identity entry that asks Search for its "
+        "sentence carries the spec's entity_groups whole, since a window leaves every role's "
+        "binding as it was, and the sentence names the group.",
+        _fetch_spec_grouped(window=NARROW_WINDOW),
+    ),
+    Recorded(
+        "fetch-spec-group-origin-rebound",
+        "Fetching a spec of Germany's flows to the least developed countries group with "
+        "entities naming only origin rebinds origin to France. The identity entry that asks "
+        "Search for the built sentence carries the destination's group, whose binding the "
+        "build kept, and the sentence names the group.",
+        _fetch_spec_grouped(entities={"origin": [REBOUND_ORIGIN]}),
     ),
     Recorded(
         "fetch-spec-known-sentence",
@@ -2613,7 +2666,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
             case {"op": "fetch", "spec": spec}:
                 window = step.get("window")
                 session.fetch_spec(
-                    Spec(spec["spec_id"], spec["definition"], spec.get("sentence")),
+                    _step_spec(spec),
                     window=tuple(window) if isinstance(window, list) else window,
                     entities=step.get("entities"),
                     facets=step.get("facets"),
@@ -2633,7 +2686,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 )
             case {"op": "mint", "spec": spec}:
                 session.mint(
-                    Spec(spec["spec_id"], spec["definition"], spec.get("sentence")),
+                    _step_spec(spec),
                     layout=step.get("layout"),
                 )
             case {"op": "operation", "operation_id": operation_id}:

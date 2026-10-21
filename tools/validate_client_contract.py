@@ -48,7 +48,8 @@ document validates against its schema, then what the schemas cannot express:
   counts are left to the Parquet bodies, and each download hashes to its
   artifact's digest or the outcome says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
-  data_query or dataset_resubmit entries, or a member's identity, and each
+  data_query or dataset_resubmit entries, or a member's identity with the
+  entity groups of the roles its build left bound as they were, and each
   build posts the options its layout gives. Every
   absolute URL a record holds, a `url` request or a `location` header, has
   the query `X-Goog-Signature=redacted`.
@@ -1054,6 +1055,21 @@ def answer_members(answer: Answer) -> list[tuple[list[str], dict[str, Any]]]:
     return list(members.values())
 
 
+def held_spec(spec: Mapping[str, Any]) -> dict[str, Any]:
+    """A served spec as a client holds it, the shape of a step's `spec`: its
+    spec_id, definition and sentence, and the entity groups its `resolved`
+    names, when it names any."""
+    resolved = spec["resolved"]
+    held = {
+        "spec_id": spec["spec_id"],
+        "definition": spec["definition"],
+        "sentence": resolved["rendered_sentence"],
+    }
+    if groups := resolved.get("entity_groups"):
+        held["entity_groups"] = groups
+    return held
+
+
 def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
     """An answer outcome. A declined or catalogue answer is never complete."""
     gaps = answer_gaps(answer, kinds)
@@ -1284,6 +1300,42 @@ def resubmitted_sentence(answer: Answer, spec_id: str) -> str:
     if spec.get("spec_id") != spec_id or not isinstance(sentence, str) or not sentence:
         raise ClientError("contract_violation")
     return sentence
+
+
+def kept_entity_groups(
+    held: Mapping[str, Any] | None, built: Mapping[str, Any]
+) -> dict[str, Any]:
+    """The held spec's entity groups a built definition keeps: the group of
+    each role the built identity binds to the same entities the held
+    definition binds it to. A role the narrowing rebound or dropped loses its
+    group; a window or facets narrowing keeps every group."""
+    if held is None or not (groups := held.get("entity_groups")):
+        return {}
+    before = held["definition"]["identity"].get("entities", {})
+    after = built["identity"].get("entities", {})
+    return {
+        role: group
+        for role, group in groups.items()
+        if role in after and set(after[role]) == set(before.get(role, ()))
+    }
+
+
+def sentence_entry(
+    parts: list[str], built: Mapping[str, Any], held: Mapping[str, Any] | None
+) -> dict[str, Any]:
+    """The dataset_resubmit identity entry that asks Search for a built
+    definition's sentence: the built identity, the member's first part or
+    UNNAMED_VARIABLE_TEXT, and the entity groups `kept_entity_groups` gives,
+    left out when it gives none. `held` is the spec the client built from,
+    None for a resumed operation."""
+    entry: dict[str, Any] = {
+        "entry_kind": "identity",
+        "variable_text": parts[0] if parts else UNNAMED_VARIABLE_TEXT,
+        "identity": built["identity"],
+    }
+    if groups := kept_entity_groups(held, built):
+        entry["entity_groups"] = groups
+    return entry
 
 
 def failed_operation(
@@ -1615,7 +1667,7 @@ class _Replay:
         built = manifest["definition"]["spec_id"]
         sentence = None if spec is None else spec.get("sentence")
         if spec is None or built != spec["spec_id"] or sentence is None:
-            sentence = self.sentence(parts, manifest["definition"])
+            sentence = self.sentence(parts, manifest["definition"], spec)
         self.download(artifact["url"], artifact["artifact_digest"], origin=True)
         return {
             "parts": parts,
@@ -1624,15 +1676,17 @@ class _Replay:
             "sentence": sentence,
         }
 
-    def sentence(self, parts: list[str], definition: dict[str, Any]) -> str:
-        """Search's sentence for a built identity. An answer that is not one
+    def sentence(
+        self,
+        parts: list[str],
+        definition: dict[str, Any],
+        held: dict[str, Any] | None,
+    ) -> str:
+        """Search's sentence for a built identity, posted with the entity
+        groups of `held` that the build keeps. An answer that is not one
         definite part of the built spec_id, with a sentence, raises
         ContractError."""
-        entry = {
-            "entry_kind": "identity",
-            "variable_text": parts[0] if parts else UNNAMED_VARIABLE_TEXT,
-            "identity": definition["identity"],
-        }
+        entry = sentence_entry(parts, definition, held)
         answer = self.resolve({"kind": "dataset_resubmit", "entries": [entry]})
         return resubmitted_sentence(answer, definition["spec_id"])
 
@@ -1679,7 +1733,7 @@ class _Replay:
             newest = self.newest(spec_id)
         else:
             if manifest["content_version"] == version:
-                held = {"spec_id": spec_id, "sentence": member["sentence"]}
+                held = {**spec, "sentence": member["sentence"]}
                 return self.member(member["parts"], held, manifest, rendering, False)
             newest = manifest["content_version"]
         raise ClientError(
@@ -1805,10 +1859,7 @@ class _Replay:
         members = [
             self.fetched(
                 parts,
-                {
-                    "spec_id": spec["spec_id"],
-                    "sentence": spec["resolved"]["rendered_sentence"],
-                },
+                held_spec(spec),
                 rendering,
                 strict,
             )
