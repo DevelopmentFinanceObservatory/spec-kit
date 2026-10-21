@@ -14,33 +14,33 @@ Usage:
 
 `openapi` builds the composed dfo-apis app from the checkout at PATH, with
 the deployed surfaces (Search, Datasets, Graph and Presentation), by
-calling `dfo_apis.app.create_app()` in that checkout's environment, and
-writes `app.openapi()` to `served/openapi.json` and the
-checkout's commit to `served/SOURCE.json`. No server runs. The surfaces load
-an origin catalogue and a graph release when they are built, so the capture
-publishes the checkout's own test catalogue and test release into a temporary
-directory; the document does not depend on the data they hold. A checkout with uncommitted changes to tracked files is
-refused, because the commit would not describe the document.
+calling `dfo_apis.app.create_app()` in that checkout's environment. It
+writes `app.openapi()` to `served/openapi.json` and the checkout's commit to
+`served/SOURCE.json`. No server runs. The surfaces load an origin catalogue
+and a graph release when they are built, so the capture publishes the
+checkout's own test catalogue and test release into a temporary directory.
+The document does not depend on the data they hold. A checkout with
+uncommitted changes to tracked files is refused, because the commit would
+not describe the document.
 
 `record` runs every scenario this file defines against the API at the base
-URL (dev by default; a local app at `http://127.0.0.1:8083/api`), the way a
-client would, and writes each record and its binary bodies to `scenarios/`.
-Each recorded scenario checks that its live answer still has the shape the
-scenario is named for and refuses to write one that does not. With
-`--offline` no request is made: each recorded scenario's steps run again
+URL (dev by default, or a local app at `http://127.0.0.1:8083/api`), the way
+a client would, and writes each record and its binary bodies to `scenarios/`.
+Each recorded scenario checks that its live answer has the shape the
+scenario is named for, and the run refuses to write one that does not. With
+`--offline` no request is made. Each recorded scenario's steps run again
 over its own exchanges and rewrite its `expect`, and each synthetic scenario
 is derived again from its parent. A synthetic derivation makes no request
-in either mode. Synthetic
-scenarios are derived from the recorded records after them, so a recording
-refreshes both, and a synthetic record names its parent's body files rather
-than copies. Every absolute URL a record keeps, a signed download or a
-`location` header, keeps its path, and its query becomes
-`X-Goog-Signature=redacted`, and a local app's blob URL becomes the storage
-URL a deployment signs; a record holding any other absolute URL, outside a
-`location` under the base URL, is refused. The
-long builds need two specs the server has not built, so a local recording
-starts on a fresh datasets database. `--scenarios-dir` writes outside the
-package, unvalidated. The run ends by validating the whole contract with
+in either mode. Synthetic scenarios are derived from the recorded records
+after them, so a recording refreshes both, and a synthetic record names its
+parent's body files and holds no copies. Every absolute URL a record keeps,
+a signed download or a `location` header, keeps its path and has its query
+replaced by `X-Goog-Signature=redacted`. A local app's blob URL becomes the
+storage URL a deployment signs. A record holding any other absolute URL,
+outside a `location` under the base URL, is refused. The long builds need
+two specs the server has not built, so a local recording starts on a fresh
+datasets database. `--scenarios-dir` writes outside the package,
+unvalidated. The run ends by validating the whole contract with
 `tools/validate_client_contract.py`, and fails when it reports a problem or
 the binary bodies pass 5 MB.
 
@@ -137,7 +137,7 @@ DEV_BASE_URL = "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api"
 REPOSITORY = "DevelopmentFinanceObservatory/apis"
 BINARY_BUDGET = 5_000_000
 
-# The rendering both clients ask for: bare long Parquet.
+# The rendering both clients ask for, bare long Parquet.
 RENDERING = {"format": "parquet", "bundle": False}
 # The response headers a client reads, and so the ones a record keeps, beside
 # a `cache-control` that marks the response shared-cacheable, which excuses it
@@ -314,7 +314,7 @@ class Transport(Protocol):
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    """Leaves a redirect to the caller: the files route's 302 is read by hand."""
+    """Leaves a redirect to the caller, since the files route's 302 is read by hand."""
 
     def redirect_request(self, *_: Any, **__: Any) -> None:
         return None
@@ -343,7 +343,7 @@ def _lower(items: Any) -> dict[str, str]:
     return {name.lower(): value for name, value in items}
 
 
-# A local composed app signs no URL: its launcher serves each file at
+# A local composed app signs no URL. Its launcher serves each file at
 # `/__e2e__/blob/{bucket}/{object}` on the API's own origin. A record states
 # such a URL as the storage URL a deployment signs for the same object.
 LOCAL_BLOB_PREFIX = "/__e2e__/blob/"
@@ -353,7 +353,7 @@ def redact_external_url(url: str) -> str:
     """An absolute `url` with its query, whatever signs it, replaced by
     `X-Goog-Signature=redacted`, and a local app's blob URL rewritten to
     `STORAGE_ORIGIN/{bucket}/{object}`, the object name percent-encoded as
-    storage signs it; a root-relative URL as it stands."""
+    storage signs it. A root-relative URL is returned as it stands."""
     parts = urlsplit(url)
     if not parts.netloc:
         return url
@@ -382,7 +382,7 @@ class Recorder:
     """Sends requests the way a client does and keeps each exchange.
 
     `canned` exchanges answer the first requests, in order, before the
-    network; a request that is not the next canned one ends the run."""
+    network. A request that is not the next canned one ends the run."""
 
     name: str
     base_url: str
@@ -610,14 +610,14 @@ def parquet_shape(data: bytes) -> tuple[int, list[str]]:
 
 
 def _reached[T](results: list[T], step: str) -> T:
-    """The result a step produced; a step that refused cannot be acted on."""
+    """The result a step produced. A step that refused cannot be acted on."""
     if not results:
         raise ShapeError(f"{step} refused, so the steps after it cannot run")
     return results[0]
 
 
 class ShapeError(Exception):
-    """The live answer no longer has the shape the scenario is named for."""
+    """The live answer lacks the shape the scenario is named for."""
 
 
 def require(condition: bool, message: str) -> None:
@@ -964,14 +964,14 @@ class Session:
         return resubmitted_sentence(answer, definition["spec_id"])
 
     def _download(self, target: str, digest: str, *, origin: bool = True) -> bytes:
-        """A file through its files route: an `origin_path`, as
-        `artifact_route` places an artifact's url, or a path under the base
+        """A file through its files route, named by an `origin_path`, as
+        `artifact_route` places an artifact's url, or by a path under the base
         URL. A 302's location is fetched once, where `download_target` places
         it, a local app's blob URL on the API's origin standing for the
-        storage URL a deployment signs; a 200 holds the file; any other
-        success raises ContractError `unexpected_response`. A fetch answering
-        other than 200, or bytes of another digest, ask the route once
-        more."""
+        storage URL a deployment signs. A 200 holds the file. Any other
+        success raises ContractError `unexpected_response`. A fetch that
+        answers with a status other than 200, or returns bytes of another
+        digest, asks the route once more."""
         base_url = self.recorder.base_url
         if origin:
             route_url = _origin(base_url) + target
@@ -1126,7 +1126,7 @@ class Session:
         return newest_listed(body)
 
     def _acted(self, response: Response) -> Any:
-        """The JSON body of a success; a refusal raises its error, and a
+        """The JSON body of a success. A refusal raises its error, and a
         success without a JSON body raises ContractError
         `unexpected_response`."""
         self._raise_problem(response)
@@ -1382,7 +1382,7 @@ def _fetch_spec_grouped(
     entities: Mapping[str, list[str] | None] | None = None,
 ) -> Callable[[Session, Context], None]:
     """Fetches the GROUPED_FLOW spec, whose destination is a named group, with
-    the narrowing given, and checks the built sentence still names the group."""
+    the narrowing given, and checks the built sentence names the group."""
 
     def run(s: Session, ctx: Context) -> None:
         spec = ctx.definite_spec(GROUPED_FLOW)
@@ -1888,7 +1888,7 @@ class Derived:
 
 @dataclass(frozen=True)
 class Synthetic:
-    """A scenario derived from a recorded one, with no request: its
+    """A scenario derived from a recorded one, with no request. Its
     derivation runs over a context whose transport refuses every request."""
 
     name: str
@@ -2135,8 +2135,8 @@ def _digest_mismatch(name: str) -> Callable[[dict[str, Any], Context], Derived]:
 
 
 def _resubmit_other_spec(parent: dict[str, Any], ctx: Context) -> Derived:
-    """Search answers the built identity with the spec the fetch posted
-    rather than the one the build answered."""
+    """Search answers the built identity with the spec the fetch posted,
+    which differs from the one the build answered."""
     index = next(
         i
         for i, e in enumerate(parent["exchanges"])
@@ -2301,7 +2301,7 @@ def _async_fetch(
     change: Callable[[list[dict[str, Any]], dict[str, Any]], None] | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
     """The parent's mint and result as one fetch of its spec, which makes the
-    same exchanges; `change` edits the exchanges and the fetch's outcome."""
+    same exchanges. `change` edits the exchanges and the fetch's outcome."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         mint, result = parent["call"]
@@ -2355,7 +2355,7 @@ def _operation_failed(exchanges: list[dict[str, Any]], build: dict[str, Any]) ->
 
 def _poll_busy(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
     """A 503 answers the first poll, and two more answer the third, after
-    the second answered: each spends a retry, the answer between restores
+    the second answered. Each spends a retry, the answer between restores
     both, and each poll after a 503 waits the wait the 503's poll waited."""
     first = _poll_index(exchanges)
     poll = exchanges[first]["request"]
@@ -2379,7 +2379,7 @@ def _unpaced(exchanges: list[dict[str, Any]]) -> None:
 
 def _poll_busy_unpaced(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
     """No response paces the polls, and a 503 with no Retry-After answers the
-    second poll: every poll waits the next step of the backoff, the one after
+    second poll. Every poll waits the next step of the backoff, the one after
     the 503 included."""
     _unpaced(exchanges)
     first = _poll_index(exchanges)
@@ -2399,8 +2399,8 @@ BUSY_POLL_RETRY_AFTER = 5
 def _poll_busy_retry_after(
     exchanges: list[dict[str, Any]], build: dict[str, Any]
 ) -> None:
-    """A 503 with Retry-After BUSY_POLL_RETRY_AFTER answers the first poll:
-    the poll after it waits that long, and the polls after keep the server's
+    """A 503 with Retry-After BUSY_POLL_RETRY_AFTER answers the first poll.
+    The poll after it waits that long, and the polls after keep the server's
     pacing."""
     index = _poll_index(exchanges)
     headers = {"retry-after": str(BUSY_POLL_RETRY_AFTER)}
@@ -2483,7 +2483,7 @@ def _files_route_answers(
     status: int, *, keep_location: bool
 ) -> Callable[[dict[str, Any], Context], Derived]:
     """The files route answers `status`, with its location when
-    `keep_location`, and raises ContractError unexpected_response; the
+    `keep_location`, and raises ContractError unexpected_response. The
     exchanges after it go."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2702,7 +2702,7 @@ def _answer_edit(
 
 
 # The x-dfo-trace-id header the Search responses of `answer-timed-out` and
-# `choose-refused-shared-label` carry: the first's answer_incomplete carries
+# `choose-refused-shared-label` carry. The first's answer_incomplete carries
 # it, and the second's choice_invalid, which describes the caller's choice,
 # does not.
 ANSWER_TRACE_ID = "5" * 32
@@ -2785,7 +2785,7 @@ def _assumption_clause(part_index: int, texts: Sequence[str]) -> list[dict[str, 
 
 def _picked_reading_assumes(parent: dict[str, Any], ctx: Context) -> Derived:
     """The parent's search and pick, with the picked reading's
-    reading_assumptions entry holding one declared default: the resubmit
+    reading_assumptions entry holding one declared default. The resubmit
     echoes it unchanged, and Search's answer states it."""
     exchanges = copy.deepcopy(parent["exchanges"][:2])
     search, resubmit = exchanges
@@ -2897,7 +2897,7 @@ SUNSET = "Sat, 01 May 2027 00:00:00 GMT"
 
 
 def _sunset_twice(parent: dict[str, Any], ctx: Context) -> Derived:
-    """The parent's search made twice, each response carrying SUNSET: the
+    """The parent's search made twice, each response carrying SUNSET. The
     first warns, and the second, with the same value, does not."""
     exchange = copy.deepcopy(parent["exchanges"][0])
     exchange["response"]["headers"]["sunset"] = SUNSET
@@ -2925,7 +2925,7 @@ def _artifact_urls_on(
     origin: Callable[[dict[str, Any]], str],
 ) -> Callable[[dict[str, Any], Context], Derived]:
     """Every artifact `url` of the parent's build becomes absolute on the
-    origin `origin` gives for the parent: on the API's own origin the record
+    origin `origin` gives for the parent. On the API's own origin the record
     stands, and on any other the build raises ContractError and the
     exchanges after it go."""
 
@@ -2956,7 +2956,7 @@ DEPRECATION = "@1777593600"
 
 def _server_warnings(parent: dict[str, Any], ctx: Context) -> Derived:
     """The parent's search made three times. The first response carries
-    SERVER_MESSAGE; the second the same message and SUNSET; the third
+    SERVER_MESSAGE, the second the same message and SUNSET, and the third
     OTHER_SERVER_MESSAGE, DEPRECATION and SUNSET. The warnings each step
     issues are written out, so a change to the warning rules fails the
     record."""
@@ -4004,7 +4004,7 @@ def write_record(
 def _refuse_local_host(record: dict[str, Any], base_url: str) -> None:
     """Refuses a record holding an absolute URL other than a redacted signed
     URL on the storage host, or a `location` under `base_url`, as
-    `absolute_url_problems` finds them: a local app's host, under any name
+    `absolute_url_problems` finds them. A local app's host, under any name
     or port, is one no deployed client can fetch."""
     if problems := absolute_url_problems(record, base_url):
         raise SystemExit("\n".join(problems))

@@ -18,13 +18,13 @@ document validates against its schema, then what the schemas cannot express:
   outside them and PLATFORM_PREFIXES.
 - Every `strict-fields.json` pointer resolves in `served/openapi.json` and
   names each property once. A required entry's property stays in its schema's
-  `required` list and admits no null; an enum entry's property admits every
+  `required` list and admits no null. An enum entry's property admits every
   value listed.
 - `actions.json` lists codes in order, each once. Every active refusal code in
   `registries/codes.json` with a `problem_details` or `no_data_reason` mapping
   has a row, and no row names another code. A row carries `gap_kind` exactly
-  when its code has a `no_data_reason` mapping; `choose` goes with the
-  `choice` gap kind and only with it; and a code with a `problem_details`
+  when its code has a `no_data_reason` mapping. The `choose` action goes with
+  the `choice` gap kind and only with it. A code with a `problem_details`
   mapping takes an action a problem document can carry.
 - `client-codes.json` lists codes in order, each once, none of them a code in
   `actions.json` or `registries/codes.json`. Each row's class is one a
@@ -56,7 +56,7 @@ document validates against its schema, then what the schemas cannot express:
   and the class of each error the client raises itself from
   `client-codes.json`, as `expected_outcomes` derives them, the waits
   before each poll included, under the record's base URL and again under
-  REPLAY_ORIGIN with the recorded origin a response names moved there; a
+  REPLAY_ORIGIN with the recorded origin a response names moved there. A
   dataset's rows, columns and per-part row counts are left to the Parquet
   bodies, and each download hashes to its artifact's digest or the outcome
   says it does not. Each Search request a
@@ -183,7 +183,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
 
 
 def _resolve(document: Any, pointer: str) -> Any:
-    """The value at an RFC 6901 `pointer` in `document`; raises `KeyError`."""
+    """The value at an RFC 6901 `pointer` in `document`. Raises `KeyError`."""
     node = document
     for raw in pointer.split("/")[1:]:
         token = raw.replace("~1", "/").replace("~0", "~")
@@ -545,7 +545,7 @@ class _Routes:
         self, base_path: str, request: dict[str, Any]
     ) -> tuple[str, str, dict[str, Any] | None] | None:
         """The route template an API request matches, its method's JSON
-        pointer under `/paths`, and the operation it serves; None for a
+        pointer under `/paths`, and the operation it serves. None for a
         request outside the API or one that matches no route."""
         if "url" in request:
             return None
@@ -696,7 +696,7 @@ def _check_problem_code(
 # --- outcomes ---------------------------------------------------------------
 #
 # A client's outcome for each step follows from the exchanges and from
-# `actions.json`. The functions here derive it; the validator checks each
+# `actions.json`. The functions here derive it. The validator checks each
 # record's `expect` against them, and `tools/capture_client_contract.py`
 # imports them to write `expect` when it records.
 
@@ -762,7 +762,7 @@ PROBLEM_MEDIA = ("application/problem+json", "application/json")
 
 def problem_body(response: Mapping[str, Any]) -> Any:
     """A refusal's JSON body when its content type is one of PROBLEM_MEDIA,
-    else None: a body in any other type reads as no body."""
+    else None. A body in any other type reads as no body."""
     content_type = response.get("headers", {}).get("content-type", "")
     media = content_type.split(";", maxsplit=1)[0].strip().lower()
     return response.get("json") if media in PROBLEM_MEDIA else None
@@ -907,7 +907,7 @@ def error_outcome(error: str, code: str | None, **members: Any) -> dict[str, Any
 
 
 # The warnings a client raises as errors under strict, which carry the
-# server's code rather than a client code.
+# server's code.
 WARNING_CLASSES = ("SearchWarning", "DataWarning")
 VERSION_UNAVAILABLE = "VersionUnavailableError"
 
@@ -993,7 +993,7 @@ def trace_id(body: Any, headers: Mapping[str, str] | None) -> str | None:
 
 
 def shared_cacheable(headers: Mapping[str, str]) -> bool:
-    """Whether a response is marked `Cache-Control: public`: a shared cache
+    """Whether a response is marked `Cache-Control: public`. A shared cache
     replays it, so it carries no per-request trace id."""
     directives = headers.get("cache-control", "").lower().replace(" ", "").split(",")
     return "public" in directives
@@ -1024,7 +1024,7 @@ def refusal_error(
 
 
 # The codes of the errors a client raises itself that describe a response,
-# beside the warnings it raises under strict; every other client code
+# beside the warnings it raises under strict. Every other client code
 # describes the caller's input or a storage-host fetch.
 RESPONSE_ERRORS = frozenset(
     {
@@ -1037,9 +1037,9 @@ RESPONSE_ERRORS = frozenset(
 
 
 def read_from(error: ClientError, trace: str | None) -> ClientError:
-    """`error`, raised on the API response whose trace id is `trace`: an
+    """`error`, raised on the API response whose trace id is `trace`. An
     error that describes a response, a RESPONSE_ERRORS code, SearchWarning
-    or DataWarning, takes `trace` unless its trace id is settled; an error that
+    or DataWarning, takes `trace` unless its trace id is settled. An error that
     describes the caller's input, or a storage-host fetch, keeps null."""
     if isinstance(error.trace_id, _Unset):
         reads = error.code in RESPONSE_ERRORS or error.error in WARNING_CLASSES
@@ -1050,7 +1050,7 @@ def read_from(error: ClientError, trace: str | None) -> ClientError:
 # --- reading members no strict pointer names ---------------------------------
 #
 # A member a client reads that no strict pointer names, and that holds a JSON
-# type other than the one its rule reads, reads as absent; so does every
+# type other than the one its rule reads, reads as absent. So does every
 # member of a holder that is not an object. Each read of such a member goes
 # through one of these.
 
@@ -1085,7 +1085,7 @@ ANSWER_KINDS = ("resolution", "catalogue", "declined")
 RESOLUTION = "resolution"
 # The variable text an identity resubmit sends for a member no answer part names.
 UNNAMED_VARIABLE_TEXT = "dataset"
-# The warning severities a fetch reports in its SearchWarning; `info` stays quiet.
+# The warning severities a fetch reports in its SearchWarning. `info` stays quiet.
 SHOWN_SEVERITIES = ("warn", "degraded")
 
 
@@ -1159,7 +1159,7 @@ def choice_for(
     With no part named, exactly one gap must await a choice: a `choice` gap,
     or any gap with options. A part is named by its index, its variable text,
     or a word that one gap's options mention, and must be a gap. A
-    candidates part's options are its candidates, chosen by index; any other
+    candidates part's options are its candidates, chosen by index. Any other
     gap's are its no_data options, chosen by index or label, a label scoped to
     the options that mention the word the part was named by."""
     gaps = answer_gaps(answer, kinds)
@@ -1226,7 +1226,7 @@ def mentions(option: Mapping[str, Any]) -> list[str]:
 
 def choice_input(answer: Answer, choice: Choice) -> dict[str, Any]:
     """The Search input a choice posts. In a one-part answer an option posts
-    its data_query; any other choice posts dataset_resubmit with one entry
+    its data_query. Any other choice posts dataset_resubmit with one entry
     per part, in part order, so a picked candidate in a one-part answer posts
     its identity as the one entry, and Search answers the picked reading."""
     if len(answer.parts) == 1 and choice.option is not None:
@@ -1288,7 +1288,7 @@ def _data_query(option: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _option_part(option: Mapping[str, Any]) -> Any:
-    """The one part a no_data option's `data_query` holds; a query of other
+    """The one part a no_data option's `data_query` holds. A query of other
     than one part raises ContractError, in a one-part answer as in a
     several-part one."""
     parts = _data_query(option).get("parts")
@@ -1301,7 +1301,7 @@ def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
     """The assumptions a resubmitted reading of `part` echoes: a definite
     part's `assumptions`, or a candidates part's `reading_assumptions` under
     the reading's spec_id. None, when the part carries no such member, posts
-    no `assumptions`, and Search reads the reading as a fresh request does;
+    no `assumptions`, and Search reads the reading as a fresh request does.
     `[]` states none."""
     if part.get("status") == "candidates":
         return read_list(read_object(part, "reading_assumptions"), spec["spec_id"])
@@ -1397,9 +1397,10 @@ def search_warning_code(answer: Answer) -> str | None:
 
 
 def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]]:
-    """Each part without a reading: a candidates part is a choice among its
-    specs; a no_data part takes its reason's gap kind, or `timed_out` when the
-    answer timed out; a part of unknown status is an `unknown` gap."""
+    """Each part without a reading. A candidates part is a choice among its
+    specs, a no_data part takes its reason's gap kind, or `timed_out` when the
+    answer timed out, an unsupported part is an `unsupported` gap, and a part
+    of unknown status is an `unknown` gap."""
     diagnostics = read_object(answer.body, "diagnostics")
     timed_out = diagnostics is not None and diagnostics.get("timed_out") is True
     gaps = []
@@ -1456,7 +1457,7 @@ def held_spec(spec: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
-    """An answer outcome. A declined or catalogue answer is never complete."""
+    """An answer outcome. A declined or catalogue answer is incomplete."""
     gaps = answer_gaps(answer, kinds)
     outcome: dict[str, Any] = {"kind": answer.body["kind"]}
     if answer.status is not None:
@@ -1470,7 +1471,7 @@ def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
 
 def part_label(member: Mapping[str, Any]) -> str:
     """The `part` column's value on a member's rows in a dataset of several
-    members: the member's parts joined by `; `, or its sentence when it
+    members. It is the member's parts joined by `; `, or its sentence when it
     answers no part."""
     return "; ".join(member["parts"]) or member["sentence"]
 
@@ -1526,7 +1527,7 @@ def json_type(value: Any) -> str:
 
 def schema_types(openapi: dict[str, Any], schema: Any) -> set[str] | None:
     """The JSON types `schema` admits, through `$ref`, `anyOf`, `oneOf` and
-    `allOf`, with `number` admitting an integer; None when it names none."""
+    `allOf`, with `number` admitting an integer. None when it names none."""
     if not isinstance(schema, dict):
         return None
     ref = schema.get("$ref")
@@ -1558,12 +1559,12 @@ def strict_gaps(
 ) -> list[str]:
     """The strict members `body` lacks, holds as null, or holds as a JSON
     type their schema does not admit, and each item of a strict list of a
-    type its item schema does not admit, read through `schema`: each component
+    type its item schema does not admit, read through `schema`. Each component
     schema it reaches names its own, and a
     discriminated union whose discriminator `body` lacks is a gap. The walk
     goes down only through strict members, the ones a client reads, so a
     member no client reads, such as a spec's `resolved.equivalent_readings`,
-    is never checked. A discriminator value the union does not map, and a
+    goes unchecked. A discriminator value the union does not map, and a
     union without a discriminator that offers more than one object branch,
     reach nothing. `component` is the component schema `schema` belongs to."""
     if not isinstance(schema, dict):
@@ -1638,8 +1639,8 @@ LAYOUT_RENDERINGS = {
     "long": {"format": "parquet", "bundle": False},
     "frame": {"format": "parquet", "bundle": False, "layout": "frame"},
 }
-# The snapshot refusal after which a stored version's lookup builds it again:
-# the version exists, but its file has expired. Any other refusal ends it.
+# The snapshot refusal after which a stored version's lookup builds it again.
+# The version exists, but its file has expired. Any other refusal ends it.
 FILE_EXPIRED = "artifact_expired"
 # The file route refusals after which the lookup takes its next step.
 FILE_GONE = frozenset({FILE_EXPIRED, "artifact_not_found", "not_found"})
@@ -1686,7 +1687,7 @@ def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
 
 
 def versions_path(spec_id: str) -> str:
-    """The versions route asked for the newest stored version alone: the
+    """The versions route asked for the newest stored version alone. The
     route lists versions newest first, so `limit=1` returns just it."""
     return f"/datasets/{spec_id}/versions?limit=1"
 
@@ -1714,9 +1715,9 @@ def build_body(
     scope: Mapping[str, Any] | None,
     rendering: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """The body a client posts to build `spec`, a step's `spec` or a ref's:
-    its spec_id and unmodified definition, `scope` when it narrows anything,
-    and `rendering` as the options."""
+    """The body a client posts to build `spec`, a step's `spec` or a ref's.
+    It holds the spec_id and unmodified definition, `scope` when it narrows
+    anything, and `rendering` as the options."""
     input_: dict[str, Any] = {
         "kind": "spec_id",
         "spec_id": spec["spec_id"],
@@ -1767,7 +1768,7 @@ def selector_path(
 STORAGE_ORIGIN = "https://storage.googleapis.com"
 REDACTED_QUERY = "X-Goog-Signature=redacted"
 # A files route answers FILES_ROUTE_REDIRECT with the `location` the client
-# fetches, or FILES_ROUTE_FILE with the file as its body; a refusal reads by
+# fetches, or FILES_ROUTE_FILE with the file as its body. A refusal reads by
 # the refusal rules, and any other status, another 2xx or 3xx included,
 # raises ContractError `unexpected_response`. A signed fetch that answers
 # other than SIGNED_FETCH_STATUS is a failed fetch.
@@ -1807,7 +1808,7 @@ def artifact_route(base_url: str, url: str) -> str:
 
 def data_warning(manifest: Mapping[str, Any]) -> ClientError | None:
     """The DataWarning a strict fetch raises for a manifest: its first warning
-    above `info` severity, with that warning's code; None when it has none."""
+    above `info` severity, with that warning's code. None when it has none."""
     for warning in read_objects(manifest, "warnings"):
         if read_string(warning, "severity") != "info":
             return ClientError(read_string(warning, "code"), error="DataWarning")
@@ -1815,7 +1816,7 @@ def data_warning(manifest: Mapping[str, Any]) -> ClientError | None:
 
 
 def resubmitted_sentence(answer: Answer, spec_id: str) -> str:
-    """The sentence Search gives a built identity it was posted: the answer
+    """The sentence Search gives a built identity it was posted. The answer
     must be one definite part of `spec_id`, with a sentence, or the client
     raises ContractError."""
     found = answer.parts[0] if len(answer.parts) == 1 else {}
@@ -1832,10 +1833,10 @@ def resubmitted_sentence(answer: Answer, spec_id: str) -> str:
 def kept_entity_groups(
     held: Mapping[str, Any] | None, built: Mapping[str, Any]
 ) -> dict[str, Any]:
-    """The held spec's entity groups a built definition keeps: the group of
-    each role the built identity binds to the same entities the held
+    """The held spec's entity groups a built definition keeps, which are the
+    group of each role the built identity binds to the same entities the held
     definition binds it to. A role the narrowing rebound or dropped loses its
-    group; a window or facets narrowing keeps every group."""
+    group, and a window or facets narrowing keeps every group."""
     if held is None or not (groups := read_object(held, "entity_groups")):
         return {}
     before = read_object(read_object(held["definition"], "identity"), "entities")
@@ -1849,8 +1850,8 @@ def kept_entity_groups(
 
 
 def bound_refs(entities: dict[str, Any] | None, role: str) -> set[str]:
-    """The refs an identity's `entities` binds `role` to, its string items;
-    a binding of another type, or an item of one, reads as absent."""
+    """The refs an identity's `entities` binds `role` to, its string items.
+    A binding of another type, or an item of one, reads as absent."""
     return {ref for ref in read_list(entities, role) or [] if isinstance(ref, str)}
 
 
@@ -1900,10 +1901,10 @@ class LongBuild:
     """A build the server runs on, followed the way a client polls it. Each
     wait before a poll is `PollPacing`'s. A retryable 429 poll spends no
     retry, any other retryable refused poll one of MAX_RETRIES, and a refused
-    poll that is not retryable raises, a 429 included; the poll after a
+    poll that is not retryable raises, a 429 included. The poll after a
     refusal waits as `PollPacing` gives. A poll answering a failed
     operation, retryable by its error, posts the build again once when the
-    client holds its request; otherwise, and for an operation that failed
+    client holds its request. Otherwise, and for an operation that failed
     before the client polled it, the operation's error raises. `entry` is
     the build's `long_builds` entry, and `result` its manifest once it is
     done."""
@@ -2038,8 +2039,8 @@ class _Replay:
         `path`, `origin_path` or `url`, is exactly `target`. With `retries`,
         a refusal followed by the same request is retried as `may_retry`
         allows, each retry after the wait `retry_wait` gives, and the last
-        exchange of the run is the one acted on; a run that ends while
-        `may_retry` still holds lacks a retry the client makes. Each API
+        exchange of the run is the one acted on. A run that ends while
+        `may_retry` holds lacks a retry the client makes. Each API
         response issues the warnings its headers carry."""
         if self.cursor >= len(self.exchanges):
             raise _UnfitError(f"the steps make a {method} {target} the record lacks")
@@ -2133,14 +2134,14 @@ class _Replay:
         return b""
 
     def download(self, target: str, digest: str, *, origin: bool) -> None:
-        """A file through its files route: an `origin_path`, as
-        `artifact_route` places an artifact's `url`, when `origin`, else a
+        """A file through its files route, named by an `origin_path`, as
+        `artifact_route` places an artifact's `url`, when `origin`, else by a
         path under the base URL. A 302 names the signed URL in its
         `location`, which the client fetches once where `download_target`
-        places it; a 200 holds the file; a refusal raises; any other status
-        raises ContractError `unexpected_response`. A fetch answering other
-        than 200, or bytes that do not hash to `digest`, ask the route once
-        more, and a second failure raises."""
+        places it. A 200 holds the file, a refusal raises, and any other
+        status raises ContractError `unexpected_response`. A fetch that
+        answers other than 200, or bytes that do not hash to `digest`, asks
+        the route once more, and a second failure raises."""
         failure = ClientError("download_failed")
         base = urlsplit(self.base_url)
         route_url = (
@@ -2211,8 +2212,8 @@ class _Replay:
         scope: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """A build of `spec`'s latest version, posting `rendering` as its
-        options and `scope` as its input's scope: the manifest it answers,
-        through a long build when it answers 202."""
+        options and `scope` as its input's scope. It returns the manifest the
+        build answers, through a long build when it answers 202."""
         exchange = self.posted_build(spec, rendering, scope)
         if exchange["response"]["status"] != 202:
             return self.acted_on(exchange)
@@ -2309,10 +2310,10 @@ class _Replay:
         """One version a ref names, through the lookup order: the snapshot
         route and the files route at the stored digest, then the file
         selector, then a build that must answer the same version. A snapshot
-        refusal other than artifact_expired ends the lookup; otherwise a
+        refusal other than artifact_expired ends the lookup. Otherwise a
         lookup that finds no file raises VersionUnavailableError with the
-        first refusal's code, or version_unavailable, and the newest version:
-        the one the build answered, or the versions route's first."""
+        first refusal's code, or version_unavailable, and the newest version,
+        either the one the build answered or the versions route's first."""
         spec = member["spec"]
         spec_id, version = spec["spec_id"], member["content_version"]
         rendering = member["artifact"]["rendering"]
@@ -2362,7 +2363,7 @@ class _Replay:
         """Whether the files route at the stored digest, or else the file
         selector, served the stored file, and the files route's refusal when
         it refused. A selector refusal outside FILE_GONE, and a files route
-        one, raise; a selector file of another digest is not the stored one."""
+        one, raise. A selector file of another digest is not the stored one."""
         digest = member["artifact"]["digest"]
         refusal = None
         artifact = next(
@@ -2395,7 +2396,7 @@ class _Replay:
 
     def newest(self, spec_id: str) -> str | None:
         """The newest stored version, the one the versions route lists first,
-        or None when it lists none or refuses the spec as unknown; a page
+        or None when it lists none or refuses the spec as unknown. A page
         that lists no versions in the form `newest_listed` reads raises."""
         try:
             body = self.acted_on(self.call("GET", versions_path(spec_id)))
@@ -2454,11 +2455,11 @@ class _Replay:
         return answer_outcome(chosen, self.kinds)
 
     def _fetch(self, step: dict[str, Any]) -> dict[str, Any]:
-        """A fetch of the answer: a declined or catalogue answer raises
-        DeclinedError; a gap raises IncompleteAnswerError unless the fetch is
-        partial and some part has a reading; a strict fetch whose readings
-        depart from the question raises SearchWarning; the frame layout with
-        several members raises InvalidRequestError; all before any request."""
+        """A fetch of the answer. Before any request, a declined or catalogue
+        answer raises DeclinedError, a gap raises IncompleteAnswerError unless
+        the fetch is partial and some part has a reading, a strict fetch whose
+        readings depart from the question raises SearchWarning, and the frame
+        layout with several members raises InvalidRequestError."""
         answer = self._answered()
         if answer.body.get("kind") != "resolution":
             raise read_from(ClientError("answer_declined"), answer.trace_id)
@@ -2579,7 +2580,7 @@ def expected_outcomes(
     Raises:
         ValueError: The exchanges do not fit the steps, or deriving an
             outcome raised, so the record names its own problem and the
-            other records are still checked.
+            other records are checked.
     """
     replay = _Replay(
         record["exchanges"],
@@ -2594,8 +2595,8 @@ def expected_outcomes(
         outcomes = [replay.step(step) for step in record["call"]]
     except (_UnfitError, KeyError, IndexError, StopIteration, ValueError) as exc:
         raise ValueError(f"the exchanges do not fit the steps: {exc!r}") from exc
-    # Any other exception is a malformed record the rules missed: it is this
-    # record's problem, and the other records are still checked.
+    # Any other exception is a malformed record the rules missed. It is this
+    # record's problem, and the other records are checked as before.
     except Exception as exc:
         raise ValueError(f"deriving its outcomes raised {exc!r}") from exc
     if replay.cursor != len(replay.exchanges):
@@ -2662,7 +2663,7 @@ def _under(url: str, base_url: str) -> bool:
 def absolute_url_problems(record: Mapping[str, Any], base_url: str) -> list[str]:
     """Each absolute URL a record holds, a `url` request or a `location`
     header, that is not a signed URL on the storage host, over https and
-    with the redacted query; a `location` may also name a route under
+    with the redacted query. A `location` may also name a route under
     `base_url`. A local app's host, or any other, is refused by name."""
     storage = urlsplit(STORAGE_ORIGIN)
     problems = []
@@ -2760,7 +2761,7 @@ def _part_problems(
 ) -> list[str]:
     """A dataset of several members has the `part` column first and a
     `part_rows` entry per member, in member order, whose `part` is that
-    member's `part_label` and whose rows sum to the dataset's; a dataset of
+    member's `part_label` and whose rows sum to the dataset's. A dataset of
     one member has neither."""
     several = len(members) > 1
     problems = []
