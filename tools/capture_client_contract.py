@@ -12,13 +12,14 @@ Usage:
     uv run tools/capture_client_contract.py record [--base-url URL]
         [--only NAME ...] [--offline] [--scenarios-dir DIR]
 
-`openapi` builds the composed dfo-apis app from the checkout at PATH, every
-surface flag on, by calling `dfo_apis.app.create_app()` in that checkout's
-environment, and writes `app.openapi()` to `served/openapi.json` and the
+`openapi` builds the composed dfo-apis app from the checkout at PATH, with
+the deployed surfaces (Search, Datasets, Graph and Presentation), by
+calling `dfo_apis.app.create_app()` in that checkout's environment, and
+writes `app.openapi()` to `served/openapi.json` and the
 checkout's commit to `served/SOURCE.json`. No server runs. The surfaces load
-an origin catalogue and a coverage index when they are built, so the capture
-gives them the checkout's own test fixtures; the document does not depend on
-the data they hold. A checkout with uncommitted changes to tracked files is
+an origin catalogue and a graph release when they are built, so the capture
+publishes the checkout's own test catalogue and test release into a temporary
+directory; the document does not depend on the data they hold. A checkout with uncommitted changes to tracked files is
 refused, because the commit would not describe the document.
 
 `record` runs every scenario this file defines against the API at the base
@@ -33,10 +34,11 @@ scenarios are derived from the recorded records after them, so a recording
 refreshes both, and a synthetic record names its parent's body files rather
 than copies. Every absolute URL a record keeps, a signed download or a
 `location` header, keeps its path, and its query becomes
-`X-Goog-Signature=redacted`. A scenario that needs a route or status
-`served/openapi.json` does not declare, or whose parent does, waits: the
-run names it and writes nothing for it, unless `--scenarios-dir` writes
-outside the package. The run ends by validating the whole contract with
+`X-Goog-Signature=redacted`, and a local app's blob URL becomes the storage
+URL a deployment signs, so no signed URL names the base URL's host. The
+long builds need two specs the server has not built, so a local recording
+starts on a fresh datasets database. `--scenarios-dir` writes outside the
+package, unvalidated. The run ends by validating the whole contract with
 `tools/validate_client_contract.py`, and fails when it reports a problem or
 the binary bodies pass 5 MB.
 
@@ -65,7 +67,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 from validate_client_contract import (
     FILE_EXPIRED,
@@ -80,7 +82,6 @@ from validate_client_contract import (
     answer_gaps,
     answer_members,
     answer_outcome,
-    candidate_answer,
     choice_for,
     choice_input,
     data_warning,
@@ -99,6 +100,7 @@ from validate_client_contract import (
     search_warns,
     selector_path,
     sentence_entry,
+    versions_path,
 )
 from validate_client_contract import main as validate_main
 
@@ -133,26 +135,28 @@ import json, os, sys, tempfile
 from pathlib import Path
 
 with tempfile.TemporaryDirectory() as tmp:
+    from tests.graph_release.support import build_session_release
     from tests.origin_catalogue.support import publish_sample
 
     os.environ["ORIGIN_CATALOGUE_URI"] = f"file://{tmp}/origin-catalogue"
     publish_sample(os.environ["ORIGIN_CATALOGUE_URI"])
+    os.environ["GRAPH_RELEASE_URI"] = f"file://{tmp}/releases"
+    build_session_release(os.environ["GRAPH_RELEASE_URI"])
     from dfo_apis.app import create_app
 
     document = create_app().openapi()
 Path(sys.argv[1]).write_text(json.dumps(document), encoding="utf-8")
 """
 
-# Placeholders the surfaces need to be built. None of them reaches the document.
+# The deployed composition's surface flags, Search always mounted beside them,
+# and placeholders the surfaces need to be built, none of which reaches the
+# document. Skills is not deployed, so its routes stay out of the document.
 _CAPTURE_ENV = {
     "SEARCH_GRAPH_BASE": "https://graph.offline.invalid",
     "DFO_PUBLIC_SITE_URL": "https://site.example",
-    "COVERAGE_RECHECK_SECONDS": "0",
-    "COVERAGE_INDEX_CHECK": "off",
     "DFO_DATASETS_SURFACE": "1",
     "DFO_GRAPH_SURFACE": "1",
     "DFO_PRESENTATION_SURFACE": "1",
-    "DFO_SKILLS_SURFACE": "1",
 }
 _PASSED_ENV = ("HOME", "PATH", "TMPDIR", "UV_CACHE_DIR", "UV_PYTHON")
 # The dfo-apis extras the composed app imports.
@@ -161,13 +165,11 @@ _EXTRAS = tuple(
 )
 
 
-def capture_env(checkout: Path, environ: Mapping[str, str]) -> dict[str, str]:
+def capture_env(environ: Mapping[str, str]) -> dict[str, str]:
     """The capture's environment: a few of the caller's variables and the
     placeholders, so a variable in the caller's shell cannot reach the app."""
     env = {name: environ[name] for name in _PASSED_ENV if name in environ}
     env.update(_CAPTURE_ENV)
-    coverage = checkout / "tests" / "fixtures" / "coverage_slice"
-    env["COVERAGE_ARTIFACT_URI"] = coverage.as_uri()
     return env
 
 
@@ -218,7 +220,7 @@ def capture_openapi(checkout: Path) -> tuple[dict[str, Any], str]:
                 str(out),
             ],
             cwd=checkout,
-            env=capture_env(checkout, os.environ),
+            env=capture_env(os.environ),
             capture_output=True,
             text=True,
             check=False,
@@ -299,12 +301,25 @@ def _lower(items: Any) -> dict[str, str]:
     return {name.lower(): value for name, value in items}
 
 
+# A local composed app signs no URL: its launcher serves each file at
+# `/__e2e__/blob/{bucket}/{object}` on the API's own origin. A record states
+# such a URL as the storage URL a deployment signs for the same object.
+LOCAL_BLOB_PREFIX = "/__e2e__/blob/"
+STORAGE_ORIGIN = "https://storage.googleapis.com"
+
+
 def redact_external_url(url: str) -> str:
     """An absolute `url` with its query, whatever signs it, replaced by
-    `X-Goog-Signature=redacted`; a root-relative URL as it stands."""
+    `X-Goog-Signature=redacted`, and a local app's blob URL rewritten to
+    `STORAGE_ORIGIN/{bucket}/{object}`, the object name percent-encoded as
+    storage signs it; a root-relative URL as it stands."""
     parts = urlsplit(url)
     if not parts.netloc:
         return url
+    if parts.path.startswith(LOCAL_BLOB_PREFIX):
+        bucket, _, name = parts.path.removeprefix(LOCAL_BLOB_PREFIX).partition("/")
+        path = f"/{bucket}/{quote(unquote(name), safe='/')}"
+        parts = urlsplit(STORAGE_ORIGIN)._replace(path=path)
     return urlunsplit(parts._replace(query="X-Goog-Signature=redacted"))
 
 
@@ -617,10 +632,8 @@ class Session:
         self, answer: Answer, option: int | str, *, part: int | str | None = None
     ) -> Answer | None:
         """Settles a part by the rules `choice_for` and `choice_input` state,
-        and returns the new answer, or None when the choice refused.
-
-        A choice among one part's candidates is local; any other choice posts
-        to Search."""
+        posting the choice to Search, and returns the answer Search gives, or
+        None when the choice refused."""
         step: dict[str, Any] = {"op": "choose"}
         if part is not None:
             step["part"] = part
@@ -629,11 +642,7 @@ class Session:
 
         def run() -> dict[str, Any]:
             choice = choice_for(answer, self.gap_kinds, part, option)
-            posts = choice_input(answer, choice)
-            if posts is not None:
-                answers.append(self._resolve(posts))
-            elif choice.candidate is not None:
-                answers.append(candidate_answer(answer, choice.part, choice.candidate))
+            answers.append(self._resolve(choice_input(answer, choice)))
             return self._answered(answers[0])
 
         self._step(step, run)
@@ -962,9 +971,7 @@ class Session:
 
     def _newest(self, spec_id: str) -> str | None:
         try:
-            body = self._acted(
-                self.recorder.api("GET", f"/datasets/{spec_id}/versions")
-            )
+            body = self._acted(self.recorder.api("GET", versions_path(spec_id)))
         except ClientError as error:
             if error.error_class(self.client_codes) in NO_VERSIONS:
                 return None
@@ -1007,35 +1014,6 @@ def _build_body(
     return {"schema_version": 1, "input": input_, "options": dict(rendering)}
 
 
-def with_place_options(body: Any) -> Any:
-    """`body` with each no_data `data_query` replaced by the `options` a
-    choice refusal carries once Search serves them: per ambiguous wording and
-    candidate, the data_query with that candidate pinned on every row that
-    has the wording."""
-    body = copy.deepcopy(body)
-    for part in body.get("parts", []) if isinstance(body, dict) else []:
-        no_data = part.get("no_data")
-        if not no_data or "data_query" not in no_data:
-            continue
-        base = no_data.pop("data_query")
-        options = []
-        for group in no_data.get("ambiguous_entities", []):
-            for candidate in group["candidates"]:
-                query = copy.deepcopy(base)
-                for row in query["parts"][0]["entities"]:
-                    if row["text"] == group["text"]:
-                        row["dcid"] = candidate["ref"]
-                options.append(
-                    {
-                        "mentions": [group["text"]],
-                        "label": candidate["label"],
-                        "data_query": query,
-                    }
-                )
-        no_data["options"] = options
-    return body
-
-
 # --- scenarios --------------------------------------------------------------
 
 DEFINITE = "ODA disbursements from Germany to Nigeria for basic health care"
@@ -1047,6 +1025,7 @@ TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
 TOP5 = "top 5 donors to Ethiopia in 2022"
+PLACE_LABELS = ["Congo [DRC]", "Congo [Republic]"]
 CANDIDATES_BESIDE_GROUP = (
     "GNI of Germany from 2015 to 2022, and ODA disbursements from Germany to "
     "sub-Saharan Africa"
@@ -1055,7 +1034,12 @@ TWO_CANDIDATES = "GNI of Germany and tax revenue of Kenya from 2015 to 2022"
 CANDIDATES_BESIDE_UNRESTATED = "GNI of Germany and debt of Kenya from 2015 to 2022"
 GROUP_DEFINITE = "GDP of the least developed countries"
 GROUPED_FLOW = "Germany's ODA to the least developed countries"
+CANDIDATES_BESIDE_ASSUMED = "GNI of Germany and aid flows to Kenya"
+# Two specs just above the 100,000-row sync budget, one for the mint and one
+# for the operation another process started: a version the server has built
+# answers inline, so each long build needs a spec the server has not built.
 ASYNC = "ODA received by every recipient country from every provider (DAC2a) from 2018 to 2024"
+ASYNC_RESUMED = "ODA received by every recipient country from every provider (DAC2a) from 2017 to 2024"
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
 SYNC_ROWS = 100_000
@@ -1115,9 +1099,10 @@ class Context:
             self._cache["ref"] = {"format_version": 1, "members": [member.ref()]}
         return self._cache["ref"]
 
-    def async_spec(self) -> Spec:
-        """The spec whose estimate is just above the sync budget."""
-        (part,) = self.definite_answer(ASYNC).parts
+    def async_spec(self, question: str = ASYNC) -> Spec:
+        """The spec `question` answers, whose estimate is just above the sync
+        budget."""
+        (part,) = self.definite_answer(question).parts
         rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
         require(
             SYNC_ROWS < rows < 2 * SYNC_ROWS,
@@ -1129,30 +1114,9 @@ class Context:
         """The id of a long build another process started."""
         if "operation" not in self._cache:
             self._cache["operation"] = self.session("prerequisite").mint(
-                self.async_spec()
+                self.async_spec(ASYNC_RESUMED)
             )
         return self._cache["operation"]
-
-
-# A route and status the served document must declare before a scenario that
-# needs them is recorded: the method, the route template as the served
-# document names it, and the status.
-type Need = tuple[str, str, str]
-ASYNC_BUILD: Need = ("POST", "/api/datasets", "202")
-FILE_SELECTOR: Need = ("GET", "/api/datasets/{id}/{content_version}/file", "302")
-
-
-def unmet(needs: Sequence[Need], openapi: Mapping[str, Any]) -> list[Need]:
-    """The needs the served document does not declare."""
-    return [
-        (method, path, status)
-        for method, path, status in needs
-        if status
-        not in openapi["paths"]
-        .get(path, {})
-        .get(method.lower(), {})
-        .get("responses", {})
-    ]
 
 
 @dataclass(frozen=True)
@@ -1160,7 +1124,6 @@ class Recorded:
     name: str
     description: str
     run: Callable[[Session, Context], None]
-    needs: tuple[Need, ...] = ()
 
 
 def _answer_definite_fetch(s: Session, ctx: Context) -> None:
@@ -1174,7 +1137,16 @@ def _answer_candidates(s: Session, ctx: Context) -> None:
     require(
         answer.status == "candidates" and len(answer.parts) == 1, "one candidates part"
     )
-    s.fetch_answer(s.choose(answer, 0))
+    picked = answer.parts[0]["candidates"]["specs"][0]["spec_id"]
+    chosen = s.choose(answer, 0)
+    require(
+        chosen is not None
+        and _statuses(chosen) == ["definite"]
+        and chosen.parts[0]["spec"]["spec_id"] == picked,
+        "Search answers the picked reading definite",
+    )
+    if chosen is not None:
+        s.fetch_answer(chosen)
 
 
 def _answer_mixed_raises(s: Session, ctx: Context) -> None:
@@ -1284,7 +1256,7 @@ def _fetch_ref_unknown_version(s: Session, ctx: Context) -> None:
 
 
 def _mint_async(s: Session, ctx: Context) -> None:
-    s.mint(ctx.async_spec())
+    s.mint(ctx.async_spec(ASYNC))
     s.result()
 
 
@@ -1307,13 +1279,45 @@ def _answer_kind(question: str, kind: str) -> Callable[[Session, Context], None]
     return run
 
 
+def _place_answer(s: Session, question: str, parts: int) -> Answer:
+    """The answer to `question`: `parts` entity_ambiguous parts, each with an
+    option per Congo."""
+    answer = s.search(question)
+    require(
+        [p.get("no_data", {}).get("reason") for p in answer.parts]
+        == ["entity_ambiguous"] * parts,
+        f"{parts} entity_ambiguous part(s)",
+    )
+    require(
+        all(
+            [o["label"] for o in p["no_data"].get("options", [])] == PLACE_LABELS
+            for p in answer.parts
+        ),
+        f"each part offers {PLACE_LABELS}",
+    )
+    return answer
+
+
 def _search_place(question: str, parts: int) -> Callable[[Session, Context], None]:
     def run(s: Session, ctx: Context) -> None:
-        answer = s.search(question)
+        _place_answer(s, question, parts)
+
+    return run
+
+
+def _choose_place(
+    question: str, parts: int, part: int | str | None
+) -> Callable[[Session, Context], None]:
+    """Chooses "Congo [DRC]" on `part` of the answer to `question`, and checks
+    the chosen part answers definite."""
+
+    def run(s: Session, ctx: Context) -> None:
+        answer = _place_answer(s, question, parts)
+        chosen = s.choose(answer, PLACE_LABELS[0], part=part)
+        index = part if isinstance(part, int) else 0
         require(
-            [p.get("no_data", {}).get("reason") for p in answer.parts]
-            == ["entity_ambiguous"] * parts,
-            f"{parts} entity_ambiguous part(s)",
+            chosen is not None and _statuses(chosen)[index] == "definite",
+            "the chosen part answers definite",
         )
 
     return run
@@ -1362,6 +1366,27 @@ def _resubmit_candidates_sibling(s: Session, ctx: Context) -> None:
         require(before == after, "the candidates keep their posted order")
 
 
+def _choose_candidate_echoes_assumptions(s: Session, ctx: Context) -> None:
+    answer = s.search(CANDIDATES_BESIDE_ASSUMED)
+    require(_statuses(answer) == ["candidates", "definite"], "candidates, definite")
+    stated = answer.parts[1].get("assumptions")
+    require(bool(stated), "the definite part states assumptions")
+    require(
+        "reading_assumptions" in answer.parts[0],
+        "the candidates part states its readings' assumptions",
+    )
+    chosen = s.choose(answer, 0, part=0)
+    require(
+        chosen is not None and _statuses(chosen) == ["definite", "definite"],
+        "the choice answers both parts definite",
+    )
+    if chosen is not None:
+        require(
+            chosen.parts[1].get("assumptions") == stated,
+            "the rebuilt definite part states the echoed assumptions",
+        )
+
+
 def _resubmit_placeholder(s: Session, ctx: Context) -> None:
     answer = s.search(CANDIDATES_BESIDE_UNRESTATED)
     require(_statuses(answer) == ["candidates", "no_data"], "candidates, no_data")
@@ -1385,9 +1410,10 @@ RECORDED = (
     Recorded(
         "answer-candidates-choose-fetch",
         "A question with three readings answers one candidates part, a choice gap with three "
-        "options. Choosing option 0 makes no request: the new answer is definite, its sentence "
-        "is that candidate's spec.resolved.rendered_sentence, and fetching it builds that "
-        "candidate's spec.",
+        "options. Choosing option 0 posts that candidate's identity to Search as the one "
+        "dataset_resubmit identity entry, echoing the part's reading_assumptions under its "
+        "spec_id as assumptions. Search answers that reading definite with its own sentence, "
+        "and fetching the answer builds that candidate's spec.",
         _answer_candidates,
     ),
     Recorded(
@@ -1487,7 +1513,6 @@ RECORDED = (
         "backing off from 1 to 8 seconds otherwise, until done; the done manifest's file is "
         "then downloaded.",
         _mint_async,
-        needs=(ASYNC_BUILD,),
     ),
     Recorded(
         "operation-resume",
@@ -1497,7 +1522,6 @@ RECORDED = (
         'identity with variable_text "dataset", then downloads the file. A resumed build holds '
         "no request, so a failed operation is not posted again.",
         _operation_resume,
-        needs=(ASYNC_BUILD,),
     ),
     Recorded(
         "fetch-spec-frame-layout",
@@ -1521,16 +1545,35 @@ RECORDED = (
     Recorded(
         "search-place-ambiguous",
         "A question naming a place that matches two countries answers with one no_data part "
-        "whose entity_ambiguous reason makes a choice gap. This build carries no options, so "
-        "the gap offers none.",
+        "whose entity_ambiguous reason makes a choice gap, with one option per country: each "
+        "option's data_query pins that country on the ambiguous wording.",
         _search_place(PLACE, 1),
     ),
     Recorded(
         "search-two-parts-place-ambiguous",
         "A two-part question naming a place that matches two countries answers no_data on both "
-        "parts, each an entity_ambiguous choice gap. This build carries no options, so the gaps "
-        "offer none.",
+        "parts, each an entity_ambiguous choice gap with one option per country.",
         _search_place(TWO_PLACES, 2),
+    ),
+    Recorded(
+        "choose-place-one-part",
+        'Choosing "Congo [DRC]" by label in a one-part answer posts that option\'s data_query '
+        "unchanged as the input of a new search, which answers definite.",
+        _choose_place(PLACE, 1, None),
+    ),
+    Recorded(
+        "choose-part-by-mention",
+        'Naming the part by "Congo", a word its options mention, and the option by label posts '
+        "that option's data_query, as naming the part by index does.",
+        _choose_place(PLACE, 1, "Congo"),
+    ),
+    Recorded(
+        "choose-place-two-parts",
+        'Choosing "Congo [DRC]" on part 1 of a two-part answer posts dataset_resubmit with one '
+        "entry per part in part order: the chosen option's data_query part as a parsed entry, "
+        "and part 0, still a refusal, as a parsed entry of its restatement. Part 1 answers "
+        "definite.",
+        _choose_place(TWO_PLACES, 2, 1),
     ),
     Recorded(
         "search-warning-top5",
@@ -1554,6 +1597,15 @@ RECORDED = (
         "candidates entry: its candidate set in the server's order, each with its identity, and "
         "its ordering and truncated echoed. Part 1 answers candidates again in the same order.",
         _resubmit_candidates_sibling,
+    ),
+    Recorded(
+        "choose-candidate-echoes-assumptions",
+        "Choosing candidate 0 on part 0 beside a definite part that states assumptions posts "
+        "each identity entry with its reading's assumptions echoed: the chosen candidate's "
+        "reading_assumptions entry, [] here, and the definite part's own assumptions. The "
+        "rebuilt definite part states the same assumptions; an entry with no assumptions "
+        "would be read as a fresh request.",
+        _choose_candidate_echoes_assumptions,
     ),
     Recorded(
         "resubmit-placeholder-without-restatement",
@@ -1624,8 +1676,7 @@ class Derived:
 @dataclass(frozen=True)
 class Synthetic:
     """A scenario derived from a recorded one. A `live` derivation records
-    some of its exchanges against the base URL. A synthetic scenario waits
-    for its own needs and its parent's."""
+    some of its exchanges against the base URL."""
 
     name: str
     derived_from: str
@@ -1633,7 +1684,6 @@ class Synthetic:
     description: str
     derive: Callable[[dict[str, Any], Context], Derived]
     live: bool = False
-    needs: tuple[Need, ...] = ()
 
 
 def _same(parent: dict[str, Any], exchanges: list[dict[str, Any]]) -> Derived:
@@ -1703,6 +1753,13 @@ _NOT_RESOLVABLE = _problem(
     "The spec's variable no longer resolves in the graph.",
     retryable=False,
 )
+_CAPABILITY_UNAVAILABLE = _problem(
+    "capability_unavailable",
+    501,
+    "Not Implemented",
+    "This deployment does not enable the frame layout.",
+    retryable=False,
+)
 _OPERATION_FAILED = _problem(
     "operation_failed",
     500,
@@ -1755,6 +1812,14 @@ def _not_resolvable(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     error = refusal_error(422, _NOT_RESOLVABLE, ctx.actions).outcome(ctx.client_codes)
     return [_refusal(build["request"], 422, _NOT_RESOLVABLE)], error
+
+
+def _capability_unavailable(
+    build: dict[str, Any], ctx: Context
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    problem = _CAPABILITY_UNAVAILABLE
+    error = refusal_error(501, problem, ctx.actions).outcome(ctx.client_codes)
+    return [_refusal(build["request"], 501, problem)], error
 
 
 def _strict_warning(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -2013,7 +2078,7 @@ def _unknown_enum_value(parent: dict[str, Any], ctx: Context) -> Derived:
 
 
 def _null_member(parent: dict[str, Any], ctx: Context) -> Derived:
-    """Flips the status column's `distinct`, a required member that admits
+    """Flips the status column's `distinct`, an optional member that admits
     null, between left out and served as null."""
     exchanges = copy.deepcopy(parent["exchanges"])
     manifest = exchanges[_build_index(parent)]["response"]["json"]
@@ -2042,10 +2107,6 @@ def _renamed_strict_field(parent: dict[str, Any], ctx: Context) -> Derived:
 type BodyEdit = Callable[[Any, Context], Any]
 
 
-def _with_options(body: Any, ctx: Context) -> Any:
-    return with_place_options(body)
-
-
 def _choice(
     option: int | str,
     part: int | str | None = None,
@@ -2053,15 +2114,14 @@ def _choice(
     edit: BodyEdit | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
     """The parent's search, its answer body changed by `edit`, then a choice.
-    A choice that posts is recorded live, its answer changed by
-    `with_place_options`; one that refuses makes no request."""
+    A choice that posts is recorded live; one that refuses makes no request."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         canned = copy.deepcopy(parent["exchanges"][:1])
         if edit is not None:
             response = canned[0]["response"]
             response["json"] = edit(response["json"], ctx)
-        session = ctx.session("synthetic", canned=canned, edit=with_place_options)
+        session = ctx.session("synthetic", canned=canned)
         answer = session.search(parent["call"][0]["question"])
         session.choose(answer, option, part=part)
         return Derived(session.call, session.recorder.exchanges, session.expect)
@@ -2071,8 +2131,8 @@ def _choice(
 
 def _definite_beside(body: Any, ctx: Context) -> Any:
     """Part 0 becomes the definite part a live search for GROUP_DEFINITE
-    answers, and the other part's data_query becomes options."""
-    body = with_place_options(body)
+    answers."""
+    body = copy.deepcopy(body)
     (part,) = copy.deepcopy(ctx.definite_answer(GROUP_DEFINITE).parts)
     require(bool(part["spec"]["resolved"].get("entity_groups")), "a group part")
     body["parts"][0] = part
@@ -2080,10 +2140,18 @@ def _definite_beside(body: Any, ctx: Context) -> Any:
     return body
 
 
+def _without_options(body: Any, ctx: Context) -> Any:
+    """Each no_data part's options go, as from a build that serves none."""
+    body = copy.deepcopy(body)
+    for part in body["parts"]:
+        part.get("no_data", {}).pop("options", None)
+    return body
+
+
 def _choice_refused(
-    option: int | str, part: int | str | None = None, *, options: bool = False
+    option: int | str, part: int | str | None = None, *, edit: BodyEdit | None = None
 ) -> Callable[[dict[str, Any], Context], Derived]:
-    choose = _choice(option, part, edit=_with_options if options else None)
+    choose = _choice(option, part, edit=edit)
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         derived = choose(parent, ctx)
@@ -2155,6 +2223,67 @@ _INFO_NOTICE = {
 }
 
 
+# A declared default as a recorded definite part states it, the item
+# `choose-candidate-echoes-assumptions` records on its definite part.
+_DECLARED_DEFAULT = {
+    "kind": "declared_default",
+    "binding_ref": "how:dac2aAidType",
+    "text": "official development assistance",
+    "refs": ["DAC2aAidType206"],
+}
+
+
+def _assumption_clause(part_index: int, texts: Sequence[str]) -> list[dict[str, Any]]:
+    """The sentence plan tokens Search renders for a part's assumptions:
+    one `segment="assumption"` clause, "Assumed: a; b."."""
+
+    def token(text: str) -> dict[str, Any]:
+        return {
+            "kind": "text",
+            "text": text,
+            "segment": "assumption",
+            "entity_refs": [],
+            "states": [],
+            "part_index": part_index,
+        }
+
+    clause = [token(" "), token("Assumed: ")]
+    for index, text in enumerate(texts):
+        clause.extend([token("; "), token(text)] if index else [token(text)])
+    return [*clause, token(".")]
+
+
+def _picked_reading_assumes(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's search and pick, with the picked reading's
+    reading_assumptions entry holding one declared default: the resubmit
+    echoes it unchanged, and Search's answer states it."""
+    exchanges = copy.deepcopy(parent["exchanges"][:2])
+    search, resubmit = exchanges
+    part = search["response"]["json"]["parts"][0]
+    spec_id = part["candidates"]["specs"][0]["spec_id"]
+    require(part["reading_assumptions"][spec_id] == [], "the reading assumes nothing")
+    part["reading_assumptions"][spec_id] = [copy.deepcopy(_DECLARED_DEFAULT)]
+    (entry,) = resubmit["request"]["json"]["input"]["entries"]
+    entry["assumptions"] = [copy.deepcopy(_DECLARED_DEFAULT)]
+    body = resubmit["response"]["json"]
+    body["parts"][0]["assumptions"] = [copy.deepcopy(_DECLARED_DEFAULT)]
+    clause = _assumption_clause(0, [_DECLARED_DEFAULT["text"]])
+    body["sentence_plan"].extend(clause)
+    body["rendered_sentence"] += "".join(token["text"] for token in clause)
+    answer = answer_from_body(search["response"]["json"])
+    kinds = gap_kinds(ctx.actions)
+    posted = choice_input(answer, choice_for(answer, kinds, None, 0))
+    require(posted == resubmit["request"]["json"]["input"], "the pick echoes the list")
+    return Derived(
+        copy.deepcopy(parent["call"][:2]),
+        exchanges,
+        [
+            answer_outcome(answer, kinds),
+            answer_outcome(answer_from_body(body), kinds),
+        ],
+    )
+
+
 def _strict_info_notice(parent: dict[str, Any], ctx: Context) -> Derived:
     exchanges = copy.deepcopy(parent["exchanges"])
     exchanges[0]["response"]["json"]["parts"][0]["warnings"].append(dict(_INFO_NOTICE))
@@ -2219,6 +2348,15 @@ SYNTHETIC = (
         _ends_at_build(_not_resolvable),
     ),
     Synthetic(
+        "fetch-spec-capability-unavailable",
+        "fetch-spec-frame-layout",
+        "A 501 capability_unavailable answers the build.",
+        "A well-formed build that asks for a rendering this deployment does not enable "
+        "refuses 501 capability_unavailable, which raises InvalidRequestError, since the "
+        "caller asks for another rendering, and makes no further request.",
+        _ends_at_build(_capability_unavailable),
+    ),
+    Synthetic(
         "fetch-spec-strict-warning",
         "fetch-spec-known-sentence",
         "The fetch is strict, and the exchanges after the build go.",
@@ -2272,10 +2410,10 @@ SYNTHETIC = (
         "fetch-ref-expired-not-reproducible",
         "fetch-ref",
         "The snapshot refuses 410 artifact_expired and the rebuild 422 member_not_resolvable; the versions route is recorded live.",
-        "When the stored version has expired and the build is refused, the client reads the "
-        "versions route for the newest version. Dev refuses the keyless recorder 403 "
-        "publish_not_permitted there, so the client raises VersionUnavailableError with the "
-        "snapshot's artifact_expired code and no newest version.",
+        "When the stored version has expired and the build is refused, the client asks the "
+        "versions route for the newest version alone with limit=1, since the route lists "
+        "versions newest first, and raises VersionUnavailableError with the snapshot's "
+        "artifact_expired code and that version as the newest.",
         _expired_not_reproducible,
         live=True,
     ),
@@ -2287,7 +2425,6 @@ SYNTHETIC = (
         "the stored version in the ref's rendering and downloads the file it redirects to, "
         "which hashes to the stored digest.",
         _expired_file_selector,
-        needs=(FILE_SELECTOR,),
     ),
     Synthetic(
         "fetch-spec-async-build",
@@ -2343,9 +2480,9 @@ SYNTHETIC = (
         "fetch-null-member",
         "answer-definite-fetch",
         "The manifest's status column distinct flips between left out and served as null.",
-        "A required member that admits null may be left out or served as null; a client reads "
-        "both as null, and neither changes the outcome. The recording and this record carry "
-        "the two forms of the status column's distinct.",
+        "A member that admits null may be left out or served as null; a client reads both as "
+        "null, and neither changes the outcome. The recording and this record carry the two "
+        "forms of the status column's distinct.",
         _null_member,
     ),
     Synthetic(
@@ -2357,44 +2494,14 @@ SYNTHETIC = (
         _renamed_strict_field,
     ),
     Synthetic(
-        "choose-place-one-part",
-        "search-place-ambiguous",
-        "Each refusal's data_query becomes the no_data options Search serves, and the chosen option's answer is recorded live.",
-        "A place refusal offers one option per candidate, so its choice gap has two options. "
-        'Choosing "Congo [DRC]" by label in a one-part answer posts that option\'s data_query '
-        "unchanged as the input of a new search, which answers definite.",
-        _choice("Congo [DRC]", edit=_with_options),
-        live=True,
-    ),
-    Synthetic(
-        "choose-place-two-parts",
-        "search-two-parts-place-ambiguous",
-        "Each refusal's data_query becomes the no_data options Search serves, and the chosen option's answer is recorded live.",
-        'Choosing "Congo [DRC]" on part 1 of a two-part answer posts dataset_resubmit with one '
-        "entry per part in part order: the chosen option's data_query part as a parsed entry, "
-        "and part 0, still a refusal, as a parsed entry of its restatement. Part 1 answers "
-        "definite and part 0 refuses again with its two options.",
-        _choice("Congo [DRC]", 1, edit=_with_options),
-        live=True,
-    ),
-    Synthetic(
         "choose-place-beside-definite",
         "search-two-parts-place-ambiguous",
         f"Part 0 becomes the definite part, entity groups included, of a live search for "
-        f'"{GROUP_DEFINITE}"; part 1\'s data_query becomes options; the choice is recorded live.',
+        f'"{GROUP_DEFINITE}", and the choice is recorded live.',
         'Choosing "Congo [DRC]" on part 1 beside a definite part posts dataset_resubmit with the '
         "definite part's identity and entity_groups as an identity entry, and the chosen "
         "option's data_query part as a parsed entry. Both parts answer definite.",
         _choice("Congo [DRC]", 1, edit=_definite_beside),
-        live=True,
-    ),
-    Synthetic(
-        "choose-part-by-mention",
-        "search-place-ambiguous",
-        "The refusal's data_query becomes options, and the choice is recorded live.",
-        'Naming the part by "Congo", a word its options mention, and the option by label posts '
-        "that option's data_query, as naming the part by index does.",
-        _choice("Congo [DRC]", "Congo", edit=_with_options),
         live=True,
     ),
     Synthetic(
@@ -2456,10 +2563,21 @@ SYNTHETIC = (
     Synthetic(
         "choose-refused-no-options",
         "search-place-ambiguous",
-        "A choice of option 0 follows the search.",
+        "The no_data part's options go, and a choice of option 0 follows the search.",
         "Choosing in a choice gap that offers no options raises InvalidRequestError with no "
         "request.",
-        _choice_refused(0),
+        _choice_refused(0, edit=_without_options),
+    ),
+    Synthetic(
+        "choose-candidate-assumed-reading",
+        "answer-candidates-choose-fetch",
+        "The picked reading's reading_assumptions entry holds one declared default, the pick "
+        "echoes it, Search's answer states it, and the fetch goes.",
+        "Picking a candidate whose reading_assumptions entry holds an assumption posts that "
+        "list unchanged as the identity entry's assumptions. The picked answer's assumptions "
+        'and its sentence, closed by the assumption clause ("Assumed: official development '
+        "assistance.\"), are Search's response, which the client takes as it stands.",
+        _picked_reading_assumes,
     ),
     Synthetic(
         "choose-refused-option-out-of-range",
@@ -2471,10 +2589,10 @@ SYNTHETIC = (
     Synthetic(
         "choose-refused-unknown-label",
         "search-place-ambiguous",
-        'The refusal\'s data_query becomes options, and a choice of "Congo [Nowhere]" follows.',
+        'A choice of "Congo [Nowhere]" follows the search.',
         "Choosing an option by a label no option has raises InvalidRequestError with no "
         "request.",
-        _choice_refused("Congo [Nowhere]", options=True),
+        _choice_refused("Congo [Nowhere]"),
     ),
     Synthetic(
         "choose-refused-answered-part",
@@ -2495,10 +2613,10 @@ SYNTHETIC = (
     Synthetic(
         "choose-refused-mention-names-two-parts",
         "search-two-parts-place-ambiguous",
-        'Each refusal\'s data_query becomes options, and a choice on part "Congo" follows.',
+        'A choice of "Congo [DRC]" on part "Congo" follows the search.',
         'Naming a part by "Congo", a word both parts\' options mention, raises '
         "InvalidRequestError with no request.",
-        _choice_refused("Congo [DRC]", "Congo", options=True),
+        _choice_refused("Congo [DRC]", "Congo"),
     ),
 )
 
@@ -2542,6 +2660,19 @@ def write_record(
     _write_json(path, record)
 
 
+def _refuse_local_host(record: dict[str, Any], base_url: str) -> None:
+    """Refuses a record whose signed download or `location` header names the
+    base URL's host: a client fetches those cross-origin, without its key."""
+    local = urlsplit(base_url).netloc
+    for exchange in record["exchanges"]:
+        urls = [
+            exchange["request"].get("url"),
+            exchange["response"].get("headers", {}).get("location"),
+        ]
+        if any(url and urlsplit(url).netloc == local for url in urls):
+            raise SystemExit(f"{record['name']}: a signed URL still names {local}")
+
+
 def record_recorded(definition: Recorded, ctx: Context, directory: Path) -> None:
     recorded_at = _now()
     session = ctx.session(definition.name)
@@ -2561,6 +2692,7 @@ def record_recorded(definition: Recorded, ctx: Context, directory: Path) -> None
     }
     derived = Derived(session.call, session.recorder.exchanges, session.expect)
     record = _record(definition.name, definition.description, origin, derived)
+    _refuse_local_host(record, ctx.base_url)
     write_record(directory, record, session.recorder.bodies)
 
 
@@ -2573,11 +2705,9 @@ def record_synthetic(definition: Synthetic, ctx: Context, directory: Path) -> No
         "derived_from": definition.derived_from,
         "edit": definition.edit,
     }
-    write_record(
-        directory,
-        _record(definition.name, definition.description, origin, derived),
-        derived.bodies,
-    )
+    record = _record(definition.name, definition.description, origin, derived)
+    _refuse_local_host(record, ctx.base_url)
+    write_record(directory, record, derived.bodies)
 
 
 def binary_total(directory: Path) -> int:
@@ -2726,20 +2856,6 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
     )
 
 
-def waiting(openapi: Mapping[str, Any]) -> dict[str, list[str]]:
-    """Each scenario that waits for a route or status `openapi` does not
-    declare, its own or its parent's, with what it waits for."""
-    recorded = {d.name: d.needs for d in RECORDED}
-    found = {}
-    for definition in (*RECORDED, *SYNTHETIC):
-        needs = definition.needs
-        if isinstance(definition, Synthetic):
-            needs = (*needs, *recorded.get(definition.derived_from, ()))
-        if missing := unmet(needs, openapi):
-            found[definition.name] = [" ".join(need) for need in missing]
-    return found
-
-
 def run_record(args: argparse.Namespace) -> int:
     package_dir: Path = args.package_dir
     directory: Path = args.scenarios_dir or package_dir / "scenarios"
@@ -2747,17 +2863,7 @@ def run_record(args: argparse.Namespace) -> int:
     unknown = set(args.only or ()) - names
     if unknown:
         raise SystemExit(f"no scenario is named {sorted(unknown)}")
-    served = json.loads(
-        (package_dir / "served" / "openapi.json").read_text(encoding="utf-8")
-    )
     chosen = set(args.only or names)
-    # A record outside the package is not validated, so it waits for nothing.
-    for name, needs in waiting(served).items() if args.scenarios_dir is None else ():
-        if name in chosen:
-            print(
-                f"waiting {name}: the served document declares no {needs}", flush=True
-            )
-            chosen.discard(name)
     live = sorted(d.name for d in SYNTHETIC if d.live and d.name in chosen)
     if args.offline and live:
         raise SystemExit(f"--offline derives no live scenario, and {live} are live")

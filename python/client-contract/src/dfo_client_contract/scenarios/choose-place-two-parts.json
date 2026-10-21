@@ -1,11 +1,12 @@
 {
   "format_version": 1,
   "name": "choose-place-two-parts",
-  "description": "Choosing \"Congo [DRC]\" on part 1 of a two-part answer posts dataset_resubmit with one entry per part in part order: the chosen option's data_query part as a parsed entry, and part 0, still a refusal, as a parsed entry of its restatement. Part 1 answers definite and part 0 refuses again with its two options.",
+  "description": "Choosing \"Congo [DRC]\" on part 1 of a two-part answer posts dataset_resubmit with one entry per part in part order: the chosen option's data_query part as a parsed entry, and part 0, still a refusal, as a parsed entry of its restatement. Part 1 answers definite.",
   "origin": {
-    "kind": "synthetic",
-    "derived_from": "search-two-parts-place-ambiguous",
-    "edit": "Each refusal's data_query becomes the no_data options Search serves, and the chosen option's answer is recorded live."
+    "kind": "recorded",
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:59:04Z"
   },
   "call": [
     {
@@ -42,23 +43,23 @@
             "entry_path": "raw_text",
             "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
             "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "1fdae229dbd2489c8551682aa2bb6880",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "1766e66cd8cf4a89be01be85c97b7faa",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 1165,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1160
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2256,
+              "output_tokens": 207,
+              "cached_tokens": 861
             },
             "timed_out": false
           },
@@ -120,6 +121,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -222,9 +224,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 1,
                 "by_step": {
-                  "recall": 0
+                  "recall": 1
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -274,6 +276,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -475,18 +478,18 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "d81985d7be53420d9ad6129d1c803479",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "1fff9c87a16c4188ab68dc6df0cd69b3",
             "warnings": [],
             "timing_ms": {
-              "total": 848,
+              "total": 2296,
               "by_step": {
                 "coverage": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
+              "input_tokens": 4244,
+              "output_tokens": 202,
               "cached_tokens": 0
             },
             "timed_out": false
@@ -503,9 +506,9 @@
                 }
               ],
               "timing_ms": {
-                "total": 1,
+                "total": 0,
                 "by_step": {
-                  "recall": 1
+                  "recall": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -555,6 +558,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -668,20 +672,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 374,
+                "total": 2151,
                 "by_step": {
-                  "recall": 1,
-                  "shape_arcs": 4,
-                  "shape_probe_coverage": 7,
-                  "shape_probe": 7,
-                  "shape_groups": 42,
-                  "shape_labels": 1,
+                  "recall": 0,
+                  "shape_arcs": 0,
+                  "shape_probe_coverage": 2,
+                  "shape_probe": 366,
+                  "shape_groups": 16,
+                  "shape_labels": 0,
                   "shape_admission": 1,
-                  "shape": 335,
-                  "bind": 9,
-                  "materialise": 15,
-                  "answer": 9,
-                  "options": 5
+                  "shape": 1139,
+                  "bind": 1000,
+                  "materialise": 6,
+                  "answer": 4,
+                  "options": 2
                 }
               },
               "restatement": {
@@ -708,6 +712,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_4b8c1ba9efe879b10dc3fde2c24dc483",
@@ -1073,7 +1078,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1546,7 +1551,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3671,8 +3676,22 @@
               }
             }
           ],
-          "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific. Germany's gross disbursements to Democratic Republic of the Congo and Kenya for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
+          "rendered_sentence": "Answered 1 of 2 parts. \"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific. Germany's gross disbursements to Democratic Republic of the Congo and Kenya for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
           "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "Answered 1 of 2 parts.",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
             {
               "kind": "text",
               "text": "\"",
@@ -3936,7 +3955,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific. Germany's gross disbursements to Democratic Republic of the Congo and Kenya for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Answered 1 of 2 parts. \"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific. Germany's gross disbursements to Democratic Republic of the Congo and Kenya for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
         "complete": false,
         "specs": [
           "spec_4b8c1ba9efe879b10dc3fde2c24dc483"

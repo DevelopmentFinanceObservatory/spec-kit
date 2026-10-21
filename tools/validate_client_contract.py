@@ -390,11 +390,7 @@ class _Routes:
     def __init__(self, openapi: dict[str, Any]) -> None:
         self.openapi = openapi
         self._templates = [(t, t.split("/")) for t in openapi["paths"]]
-        registry = _openapi_registry(openapi)
-        self._validator = jsonschema.validators.extend(
-            jsonschema.Draft202012Validator, {"required": _required_unless_nullable}
-        )
-        self._registry = registry
+        self._registry = _openapi_registry(openapi)
 
     def template(self, path: str) -> str | None:
         """The route template matching `path`, preferring a literal segment
@@ -440,30 +436,13 @@ class _Routes:
         return None if media is None else content[media].get("schema")
 
     def validate(self, pointer: str, body: Any) -> list[str]:
-        validator = self._validator(
+        validator = jsonschema.Draft202012Validator(
             {"$ref": f"{_OPENAPI_URI}#{pointer}"}, registry=self._registry
         )
         return [
             f"{_where(error)}: {error.message[:300]}"
             for error in validator.iter_errors(body)
         ]
-
-
-def _required_unless_nullable(
-    validator: Any, required: list[str], instance: Any, schema: dict[str, Any]
-) -> Iterator[jsonschema.ValidationError]:
-    """`required`, except that a member whose schema admits null may be
-    absent: the server leaves null members out of the bodies it serves."""
-    if not validator.is_type(instance, "object"):
-        return
-    properties = schema.get("properties", {})
-    for name in required:
-        if name in instance:
-            continue
-        member = properties.get(name)
-        if member is not None and validator.evolve(schema=member).is_valid(None):
-            continue
-        yield jsonschema.ValidationError(f"{name!r} is a required property")
 
 
 def _api_path(base_path: str, request: dict[str, Any]) -> str:
@@ -792,21 +771,6 @@ def answer_from_body(body: dict[str, Any]) -> Answer:
     )
 
 
-def candidate_answer(answer: Answer, part: int, spec: dict[str, Any]) -> Answer:
-    """The answer a choice among one part's candidates makes with no request:
-    that part definite on the chosen spec, keeping its other members, with
-    that spec's sentence."""
-    chosen = answer.parts[part]
-    definite = {
-        **{k: v for k, v in chosen.items() if k != "candidates"},
-        "status": "definite",
-        "spec": spec,
-    }
-    return Answer(
-        answer.body, [definite], spec["resolved"]["rendered_sentence"], "definite"
-    )
-
-
 # --- choices ----------------------------------------------------------------
 
 
@@ -889,14 +853,12 @@ def _options(answer: Answer, index: int) -> list[dict[str, Any]]:
     return answer.parts[index].get("no_data", {}).get("options", [])
 
 
-def choice_input(answer: Answer, choice: Choice) -> dict[str, Any] | None:
-    """The Search input a choice posts, or None for a choice among one part's
-    candidates, which makes no request. In a one-part answer an option posts
-    its data_query; in a several-part answer the choice posts
-    dataset_resubmit with one entry per part, in part order."""
-    if len(answer.parts) == 1:
-        if choice.option is None:
-            return None
+def choice_input(answer: Answer, choice: Choice) -> dict[str, Any]:
+    """The Search input a choice posts. In a one-part answer an option posts
+    its data_query; any other choice posts dataset_resubmit with one entry
+    per part, in part order, so a picked candidate in a one-part answer posts
+    its identity as the one entry, and Search answers the picked reading."""
+    if len(answer.parts) == 1 and choice.option is not None:
         return choice.option["data_query"]
     entries = [
         resubmit_entry(part, choice if index == choice.part else None)
@@ -910,9 +872,17 @@ def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any
     identity and the chosen option its one parsed part. Otherwise a definite
     part posts its spec's identity, a candidates part its candidate set in the
     server's order with its ordering and truncated echoed, and any other part
-    its restatement as a parsed entry, or a placeholder when it has none."""
+    its restatement as a parsed entry, or a placeholder when it has none.
+    Each identity, the chosen candidate's, a definite part's and each of a
+    candidates entry's, echoes its reading's assumptions as `reading_echo`
+    gives them."""
     if choice is not None and choice.candidate is not None:
-        return _echo(part, entry_kind="identity", **_identity(choice.candidate))
+        candidate = choice.candidate
+        return _echo(
+            part,
+            entry_kind="identity",
+            **_identity(candidate, reading_echo(part, candidate)),
+        )
     if choice is not None and choice.option is not None:
         parts = choice.option["data_query"].get("parts")
         if not isinstance(parts, list) or len(parts) != 1:
@@ -920,7 +890,10 @@ def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any
         return {"entry_kind": "parsed", "part": parts[0]}
     match part.get("status"):
         case "definite":
-            return _echo(part, entry_kind="identity", **_identity(part["spec"]))
+            spec = part["spec"]
+            return _echo(
+                part, entry_kind="identity", **_identity(spec, reading_echo(part, spec))
+            )
         case "candidates":
             candidates = part["candidates"]
             return _echo(
@@ -928,9 +901,23 @@ def resubmit_entry(part: dict[str, Any], choice: Choice | None) -> dict[str, Any
                 entry_kind="candidates",
                 ordering=candidates.get("ordering"),
                 truncated=candidates.get("truncated") is True,
-                candidates=[_identity(spec) for spec in candidates["specs"]],
+                candidates=[
+                    _identity(spec, reading_echo(part, spec))
+                    for spec in candidates["specs"]
+                ],
             )
     return _restated_entry(part)
+
+
+def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
+    """The assumptions a resubmitted reading of `part` echoes: a definite
+    part's `assumptions`, or a candidates part's `reading_assumptions` under
+    the reading's spec_id. None, when the part carries no such member, posts
+    no `assumptions`, and Search reads the reading as a fresh request does;
+    `[]` states none."""
+    if part.get("status") == "candidates":
+        return (part.get("reading_assumptions") or {}).get(spec["spec_id"])
+    return part.get("assumptions")
 
 
 def _restated_entry(part: dict[str, Any]) -> dict[str, Any]:
@@ -953,12 +940,15 @@ def _restated_entry(part: dict[str, Any]) -> dict[str, Any]:
     raise _refuse()
 
 
-def _identity(spec: dict[str, Any]) -> dict[str, Any]:
-    """A spec's identity, and its entity groups when it has any."""
+def _identity(spec: dict[str, Any], assumptions: Any = None) -> dict[str, Any]:
+    """A spec's identity, its entity groups when it has any, and the
+    reading's `assumptions` echo unless it is None."""
     item: dict[str, Any] = {"identity": spec["definition"]["identity"]}
     groups = spec.get("resolved", {}).get("entity_groups")
     if groups:
         item["entity_groups"] = groups
+    if assumptions is not None:
+        item["assumptions"] = assumptions
     return item
 
 
@@ -1207,7 +1197,7 @@ FILE_GONE = frozenset({FILE_EXPIRED, "artifact_not_found", "not_found"})
 REBUILD_REFUSED = frozenset(
     {"InvalidRequestError", "NotFoundError", VERSION_UNAVAILABLE}
 )
-NO_VERSIONS = frozenset({"NotFoundError", "PermissionDeniedError"})
+NO_VERSIONS = frozenset({"NotFoundError"})
 OPERATION_FAILED = "operation_failed"
 
 
@@ -1217,7 +1207,7 @@ def rendering_for(layout: str | None) -> dict[str, Any]:
 
 
 def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
-    """The `input.scope` a fetch or mint of a spec posts for the step's
+    """The `input.scope` a fetch of a spec posts for the step's
     narrowing, or None when it narrows nothing. The server's
     `scope.entities` replaces the spec's whole entity binding, so the
     client posts the spec's bound roles with each role the step names
@@ -1241,6 +1231,12 @@ def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
     if (facets := step.get("facets")) is not None:
         scope["facets"] = {name: {"ref": ref} for name, ref in facets.items()}
     return scope or None
+
+
+def versions_path(spec_id: str) -> str:
+    """The versions route asked for the newest stored version alone: the
+    route lists versions newest first, so `limit=1` returns just it."""
+    return f"/datasets/{spec_id}/versions?limit=1"
 
 
 def pick_artifact(
@@ -1779,10 +1775,10 @@ class _Replay:
         return True, None
 
     def newest(self, spec_id: str) -> str | None:
-        """The newest stored version the versions route lists first, or None
-        when it lists none or refuses as unknown or forbidden."""
+        """The newest stored version, the one the versions route lists first,
+        or None when it lists none or refuses the spec as unknown."""
         try:
-            body = self.acted_on(self.call("GET", f"/datasets/{spec_id}/versions"))
+            body = self.acted_on(self.call("GET", versions_path(spec_id)))
         except ClientError as error:
             if error.error_class(self.client_codes) in NO_VERSIONS:
                 return None
@@ -1826,13 +1822,7 @@ class _Replay:
     def _choose(self, step: dict[str, Any]) -> dict[str, Any]:
         answer = self._answered()
         choice = choice_for(answer, self.kinds, step.get("part"), step["option"])
-        posts = choice_input(answer, choice)
-        if posts is not None:
-            chosen = self.resolve(posts)
-        elif choice.candidate is not None:
-            chosen = candidate_answer(answer, choice.part, choice.candidate)
-        else:
-            raise _UnfitError("a choice posts unless it picks a candidate")
+        chosen = self.resolve(choice_input(answer, choice))
         self.answer = chosen
         return answer_outcome(chosen, self.kinds)
 
@@ -1880,7 +1870,7 @@ class _Replay:
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
         rendering = rendering_for(step.get("layout"))
-        exchange = self.posted_build(rendering, posted_scope(step))
+        exchange = self.posted_build(rendering, None)
         if exchange["response"]["status"] == 200:
             raise _UnfitError("a mint step's build answers an operation")
         resource = self.acted_on(exchange, _OPERATION)

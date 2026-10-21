@@ -62,36 +62,14 @@ def _without_shapes(expect: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 _LIVE = sorted(d.name for d in capture.SYNTHETIC if d.live)
-_SERVED = json.loads(
-    (capture.PACKAGE_DIR / "served" / "openapi.json").read_text(encoding="utf-8")
-)
-_WAITING = capture.waiting(_SERVED)
 
 
 def test_every_record_has_a_definition_and_every_definition_a_record() -> None:
-    """Each definition has its record unless it waits for the served document."""
     for kind, definitions in (
         ("recorded", capture.RECORDED),
         ("synthetic", capture.SYNTHETIC),
     ):
-        landed = sorted(d.name for d in definitions if d.name not in _WAITING)
-        assert landed == _records(kind)
-
-
-def test_a_scenario_waits_for_its_own_needs_and_its_parents() -> None:
-    assert _WAITING == {
-        "mint-async-build": ["POST /api/datasets 202"],
-        "operation-resume": ["POST /api/datasets 202"],
-        "fetch-spec-async-build": ["POST /api/datasets 202"],
-        "fetch-spec-poll-rate-limited": ["POST /api/datasets 202"],
-        "fetch-spec-operation-failed-resubmitted": ["POST /api/datasets 202"],
-        "fetch-ref-expired-file-selector": [
-            "GET /api/datasets/{id}/{content_version}/file 302"
-        ],
-    }
-    served = copy.deepcopy(_SERVED)
-    served["paths"]["/api/datasets"]["post"]["responses"]["202"] = {}
-    assert sorted(capture.waiting(served)) == ["fetch-ref-expired-file-selector"]
+        assert sorted(d.name for d in definitions) == _records(kind)
 
 
 @pytest.mark.parametrize("name", [*_records("recorded"), *_LIVE])
@@ -169,11 +147,40 @@ def test_a_recorder_keeps_bodies_redacts_signed_urls_and_names_the_commit() -> N
             "/api/datasets/operations/op_1?page=2",
             "/api/datasets/operations/op_1?page=2",
         ),
+        (
+            "http://127.0.0.1:19493/__e2e__/blob/e2e-working/sha256:ab?response_type=x",
+            "https://storage.googleapis.com/e2e-working/sha256%3Aab?X-Goog-Signature=redacted",
+        ),
     ],
-    ids=["v4-signed", "v2-signed", "no-query", "root-relative"],
+    ids=["v4-signed", "v2-signed", "no-query", "root-relative", "local-blob"],
 )
 def test_every_absolute_url_loses_its_query(url: str, expected: str) -> None:
     assert capture.redact_external_url(url) == expected
+
+
+@pytest.mark.parametrize(
+    ("location", "refused"),
+    [
+        ("http://127.0.0.1:19493/__e2e__/blob/b/o?X-Goog-Signature=redacted", True),
+        ("https://storage.googleapis.com/b/o?X-Goog-Signature=redacted", False),
+        ("/api/datasets/operations/op_1", False),
+    ],
+    ids=["local-signed-url", "storage-url", "root-relative"],
+)
+def test_a_record_whose_signed_url_names_the_local_host_is_refused(
+    location: str, refused: bool
+) -> None:
+    exchange = {
+        "request": {"method": "GET", "path": "/datasets/s/v/file"},
+        "response": {"status": 302, "headers": {"location": location}},
+    }
+    record = {"name": "s", "exchanges": [exchange]}
+    base_url = "http://127.0.0.1:19493/api"
+    if refused:
+        with pytest.raises(SystemExit, match=r"still names 127\.0\.0\.1:19493"):
+            capture._refuse_local_host(record, base_url)
+    else:
+        capture._refuse_local_host(record, base_url)
 
 
 @pytest.mark.parametrize("name", [n for n in _records("synthetic") if n not in _LIVE])
@@ -219,26 +226,6 @@ def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:
     assert record["expect"][-1] == {
         "error": {"class": "ContractError", "code": "contract_violation"}
     }
-
-
-def test_place_options_pin_each_candidate_on_the_ambiguous_wording() -> None:
-    body = _load("search-place-ambiguous")["exchanges"][0]["response"]["json"]
-    no_data = capture.with_place_options(body)["parts"][0]["no_data"]
-    assert "data_query" not in no_data
-    assert [o["label"] for o in no_data["options"]] == [
-        "Congo [DRC]",
-        "Congo [Republic]",
-    ]
-    assert [o["mentions"] for o in no_data["options"]] == [["Congo"], ["Congo"]]
-    pins = [
-        {e["text"]: e.get("dcid") for e in o["data_query"]["parts"][0]["entities"]}
-        for o in no_data["options"]
-    ]
-    assert pins == [
-        {"Germany": "country/DEU", "Congo": "country/COD"},
-        {"Germany": "country/DEU", "Congo": "country/COG"},
-    ]
-    assert "options" not in body["parts"][0]["no_data"], "the input is left unchanged"
 
 
 @pytest.mark.parametrize(
@@ -325,23 +312,17 @@ def test_a_rewritten_record_drops_the_body_files_it_no_longer_names(
     assert (tmp_path / "s.parquet").read_bytes() == b"3"
 
 
-def test_the_capture_environment_takes_nothing_else_from_the_caller(
-    tmp_path: Path,
-) -> None:
+def test_the_capture_environment_takes_nothing_else_from_the_caller() -> None:
     caller = {
         "PATH": "/bin",
         "HOME": "/home/x",
         "DFO_DATASETS_SURFACE": "0",
         "GEMINI_API_KEY": "k",
     }
-    env = capture.capture_env(tmp_path, caller)
+    env = capture.capture_env(caller)
     assert env["DFO_DATASETS_SURFACE"] == "1"
     assert "GEMINI_API_KEY" not in env
     assert env["PATH"] == "/bin"
-    assert (
-        env["COVERAGE_ARTIFACT_URI"]
-        == (tmp_path / "tests" / "fixtures" / "coverage_slice").as_uri()
-    )
 
 
 def _checkout(path: Path) -> Path:

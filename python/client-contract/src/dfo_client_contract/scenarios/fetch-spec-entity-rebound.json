@@ -4,9 +4,9 @@
   "description": "Fetching a two-role spec with entities naming only origin posts input.scope.entities with origin replaced and destination kept from the spec's definition, because the server's scope.entities replaces the spec's whole entity binding. The build answers a new spec_id bound to both roles.",
   "origin": {
     "kind": "recorded",
-    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "687d48bf1bbeffce437765ae950a2ba755137b98",
-    "recorded_at": "2026-10-21T06:52:57Z"
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:57:50Z"
   },
   "call": [
     {
@@ -194,12 +194,24 @@
             "schema_version": 1,
             "spec_id": "spec_1ee5f6648c9e46ddcc806fa0034bb6a8",
             "identity": {
+              "entities": {
+                "destination": [
+                  "country/NGA"
+                ],
+                "origin": [
+                  "country/FRA"
+                ]
+              },
+              "identity_version": "spec1",
+              "requested_window": {
+                "kind": "all"
+              },
               "shape": {
                 "kind": "statvar_schema",
-                "stat_type": "measuredValue",
-                "population_type": "FinancialFlow",
                 "measured_property": "amount",
-                "measurement_qualifier": "Nominal"
+                "measurement_qualifier": "Nominal",
+                "population_type": "FinancialFlow",
+                "stat_type": "measuredValue"
               },
               "slots": [
                 {
@@ -242,23 +254,11 @@
                   },
                   "property": "nettingBasis"
                 }
-              ],
-              "entities": {
-                "origin": [
-                  "country/FRA"
-                ],
-                "destination": [
-                  "country/NGA"
-                ]
-              },
-              "identity_version": "spec1",
-              "requested_window": {
-                "kind": "all"
-              }
+              ]
             }
           },
           "content_version": "cv_7947f7ed828c0b23b8df4c601d463c09",
-          "prepared_at": "2026-10-21T06:50:58Z",
+          "prepared_at": "2026-10-21T08:57:51Z",
           "coverage": {
             "rows": 2,
             "dimensions": [
@@ -287,9 +287,9 @@
             ],
             "window": {
               "kind": "all",
-              "origin": "default",
+              "start_year": 2019,
               "end_year": 2021,
-              "start_year": 2019
+              "origin": "default"
             }
           },
           "citation": {
@@ -375,47 +375,25 @@
             ]
           },
           "trace": {
-            "facets": [
-              {
-                "ref": "provenance/OECDCreditorReportingSystem",
-                "axis": "provenance",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868",
-                "default_policy_version": "1"
-              },
-              {
-                "ref": "CurrencyUSD",
-                "axis": "unit",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868",
-                "default_policy_version": "1"
-              }
-            ],
             "applied_window": {
               "kind": "all",
-              "origin": "default",
+              "start_year": 2019,
               "end_year": 2021,
-              "start_year": 2019
+              "origin": "default"
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00260-6xk",
-            "normalisations": [],
+            "graph_revision": null,
             "code_index_stamp": {
-              "exported_at": "2026-10-20T19:50:14Z",
               "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
+              "exported_at": "2026-10-20T19:50:14Z",
               "graph_endpoint": "graph_release"
             },
+            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/OECDCreditorReportingSystem",
                 "revision": "2026-10-15"
               }
             ],
-            "capability_version": "dset_1e6cd9546fac19e9",
-            "materialiser_build": "687d48bf1bbeffce437765ae950a2ba755137b98",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
@@ -586,12 +564,34 @@
                 "observation_count": 0
               }
             ],
-            "family_member_count": 21,
             "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
+            "family_member_count": 21,
+            "facets": [
+              {
+                "axis": "provenance",
+                "ref": "provenance/OECDCreditorReportingSystem",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868"
+              },
+              {
+                "axis": "unit",
+                "ref": "CurrencyUSD",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868"
+              }
+            ],
+            "normalisations": [],
             "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261020T170016Z-691bf0da",
-            "served_from": "head",
-            "confirmed_at": "2026-10-21T06:50:59.135638+00:00"
+            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "capability_version": "dset_88fecfec3c5b89d1",
+            "served_from": "materialise",
+            "confirmed_at": "2026-10-21T08:57:51.201451+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -611,7 +611,7 @@
               },
               "bytes": 9059,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T06:50:59.083645+00:00",
+              "created_at": "2026-10-21T08:57:51.176503+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297"
             },
@@ -622,14 +622,14 @@
               },
               "bytes": 5628,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T06:50:59.083645+00:00",
+              "created_at": "2026-10-21T08:57:51.176503+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:36616ef68df33904cc9dfa37fb145d8fd1563b1b3701710dcd8d9e04ed50d79a"
             }
           ],
           "series_count": 2,
           "output_options": {
-            "capability_version": "dset_1e6cd9546fac19e9",
+            "capability_version": "dset_88fecfec3c5b89d1",
             "columns": [
               {
                 "name": "stat_var",
@@ -864,7 +864,11 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4"
+          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "retention": {
+            "pinned": false,
+            "held_until": "2026-11-20T08:57:51.176927Z"
+          }
         }
       }
     },
@@ -881,12 +885,24 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
+                  "entities": {
+                    "destination": [
+                      "country/NGA"
+                    ],
+                    "origin": [
+                      "country/FRA"
+                    ]
+                  },
+                  "identity_version": "spec1",
+                  "requested_window": {
+                    "kind": "all"
+                  },
                   "shape": {
                     "kind": "statvar_schema",
-                    "stat_type": "measuredValue",
-                    "population_type": "FinancialFlow",
                     "measured_property": "amount",
-                    "measurement_qualifier": "Nominal"
+                    "measurement_qualifier": "Nominal",
+                    "population_type": "FinancialFlow",
+                    "stat_type": "measuredValue"
                   },
                   "slots": [
                     {
@@ -929,19 +945,7 @@
                       },
                       "property": "nettingBasis"
                     }
-                  ],
-                  "entities": {
-                    "origin": [
-                      "country/FRA"
-                    ],
-                    "destination": [
-                      "country/NGA"
-                    ]
-                  },
-                  "identity_version": "spec1",
-                  "requested_window": {
-                    "kind": "all"
-                  }
+                  ]
                 }
               }
             ]
@@ -960,11 +964,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "687d48bf1bbeffce437765ae950a2ba755137b98",
-            "trace_id": "a4fd321a6db64e49b724fb75dac0193b",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "489a2234e7584dfdac5aad7c27819e90",
             "warnings": [],
             "timing_ms": {
-              "total": 398,
+              "total": 608,
               "by_step": {
                 "coverage": 0
               }
@@ -977,23 +981,24 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 293,
+                "total": 587,
                 "by_step": {
-                  "validate": 5,
-                  "walk": 242,
-                  "reread_arcs": 1,
+                  "validate": 2,
+                  "walk": 65,
+                  "reread_arcs": 0,
                   "detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 3,
-                  "bind": 1,
-                  "where_places": 0,
-                  "materialise": 16,
-                  "answer": 21,
-                  "options": 4
+                  "shape": 2,
+                  "bind": 0,
+                  "where_places": 329,
+                  "materialise": 5,
+                  "answer": 183,
+                  "options": 1
                 }
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_1ee5f6648c9e46ddcc806fa0034bb6a8",
@@ -2000,7 +2005,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_3f35867df5a65761"
+                    "capability_version": "cap_347a470e04c97eec"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4605,15 +4610,14 @@
       "response": {
         "status": 302,
         "headers": {
-          "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297?X-Goog-Signature=redacted"
+          "location": "https://storage.googleapis.com/e2e-working/sha256%3A3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297?X-Goog-Signature=redacted"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/e2e-working/sha256%3A3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,

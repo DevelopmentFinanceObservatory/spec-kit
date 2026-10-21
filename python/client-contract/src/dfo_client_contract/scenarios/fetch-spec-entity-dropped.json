@@ -4,9 +4,9 @@
   "description": "Fetching a two-role spec with entities binding origin to null posts input.scope.entities with origin dropped and destination kept, and the build answers a new spec_id bound to destination alone.",
   "origin": {
     "kind": "recorded",
-    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "687d48bf1bbeffce437765ae950a2ba755137b98",
-    "recorded_at": "2026-10-21T06:52:59Z"
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:57:51Z"
   },
   "call": [
     {
@@ -189,12 +189,21 @@
             "schema_version": 1,
             "spec_id": "spec_4c228c73be6c18efd0939eabb3b3c456",
             "identity": {
+              "entities": {
+                "destination": [
+                  "country/NGA"
+                ]
+              },
+              "identity_version": "spec1",
+              "requested_window": {
+                "kind": "all"
+              },
               "shape": {
                 "kind": "statvar_schema",
-                "stat_type": "measuredValue",
-                "population_type": "FinancialFlow",
                 "measured_property": "amount",
-                "measurement_qualifier": "Nominal"
+                "measurement_qualifier": "Nominal",
+                "population_type": "FinancialFlow",
+                "stat_type": "measuredValue"
               },
               "slots": [
                 {
@@ -237,20 +246,11 @@
                   },
                   "property": "nettingBasis"
                 }
-              ],
-              "entities": {
-                "destination": [
-                  "country/NGA"
-                ]
-              },
-              "identity_version": "spec1",
-              "requested_window": {
-                "kind": "all"
-              }
+              ]
             }
           },
           "content_version": "cv_1868d697e8e7d56da6a83740a940c2e5",
-          "prepared_at": "2026-10-21T06:50:59Z",
+          "prepared_at": "2026-10-21T08:57:52Z",
           "coverage": {
             "rows": 309,
             "dimensions": [
@@ -279,9 +279,9 @@
             ],
             "window": {
               "kind": "all",
-              "origin": "default",
+              "start_year": 1995,
               "end_year": 2024,
-              "start_year": 1995
+              "origin": "default"
             }
           },
           "citation": {
@@ -367,47 +367,25 @@
             ]
           },
           "trace": {
-            "facets": [
-              {
-                "ref": "provenance/OECDCreditorReportingSystem",
-                "axis": "provenance",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868",
-                "default_policy_version": "1"
-              },
-              {
-                "ref": "CurrencyUSD",
-                "axis": "unit",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868",
-                "default_policy_version": "1"
-              }
-            ],
             "applied_window": {
               "kind": "all",
-              "origin": "default",
+              "start_year": 1995,
               "end_year": 2024,
-              "start_year": 1995
+              "origin": "default"
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00260-6xk",
-            "normalisations": [],
+            "graph_revision": null,
             "code_index_stamp": {
-              "exported_at": "2026-10-20T19:50:14Z",
               "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
+              "exported_at": "2026-10-20T19:50:14Z",
               "graph_endpoint": "graph_release"
             },
+            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/OECDCreditorReportingSystem",
                 "revision": "2026-10-15"
               }
             ],
-            "capability_version": "dset_1e6cd9546fac19e9",
-            "materialiser_build": "687d48bf1bbeffce437765ae950a2ba755137b98",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
@@ -578,12 +556,34 @@
                 "observation_count": 0
               }
             ],
-            "family_member_count": 21,
             "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
+            "family_member_count": 21,
+            "facets": [
+              {
+                "axis": "provenance",
+                "ref": "provenance/OECDCreditorReportingSystem",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868"
+              },
+              {
+                "axis": "unit",
+                "ref": "CurrencyUSD",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868"
+              }
+            ],
+            "normalisations": [],
             "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261020T170016Z-691bf0da",
-            "served_from": "head",
-            "confirmed_at": "2026-10-21T06:50:59.928161+00:00"
+            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "capability_version": "dset_88fecfec3c5b89d1",
+            "served_from": "materialise",
+            "confirmed_at": "2026-10-21T08:57:52.666745+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -603,7 +603,7 @@
               },
               "bytes": 13341,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T06:50:59.873948+00:00",
+              "created_at": "2026-10-21T08:57:52.631622+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:da9aa46394801d54e23b886528b98b609d8fda2ed46a2eb9e365575ee73ddf3a"
             },
@@ -614,14 +614,14 @@
               },
               "bytes": 9074,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T06:50:59.873948+00:00",
+              "created_at": "2026-10-21T08:57:52.631622+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:ffd0e9eaabfc35d3113188c82648ce0bf809307a01a024b52b0baa133ef63d18"
             }
           ],
           "series_count": 58,
           "output_options": {
-            "capability_version": "dset_1e6cd9546fac19e9",
+            "capability_version": "dset_88fecfec3c5b89d1",
             "columns": [
               {
                 "name": "stat_var",
@@ -974,7 +974,11 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4"
+          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "retention": {
+            "pinned": false,
+            "held_until": "2026-11-20T08:57:52.631891Z"
+          }
         }
       }
     },
@@ -991,12 +995,21 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
+                  "entities": {
+                    "destination": [
+                      "country/NGA"
+                    ]
+                  },
+                  "identity_version": "spec1",
+                  "requested_window": {
+                    "kind": "all"
+                  },
                   "shape": {
                     "kind": "statvar_schema",
-                    "stat_type": "measuredValue",
-                    "population_type": "FinancialFlow",
                     "measured_property": "amount",
-                    "measurement_qualifier": "Nominal"
+                    "measurement_qualifier": "Nominal",
+                    "population_type": "FinancialFlow",
+                    "stat_type": "measuredValue"
                   },
                   "slots": [
                     {
@@ -1039,16 +1052,7 @@
                       },
                       "property": "nettingBasis"
                     }
-                  ],
-                  "entities": {
-                    "destination": [
-                      "country/NGA"
-                    ]
-                  },
-                  "identity_version": "spec1",
-                  "requested_window": {
-                    "kind": "all"
-                  }
+                  ]
                 }
               }
             ]
@@ -1067,11 +1071,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "687d48bf1bbeffce437765ae950a2ba755137b98",
-            "trace_id": "7d611a2ae07b416194eac78b2d77f22b",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "abe8d0c9bf6e4834b93b843fb67a3fb7",
             "warnings": [],
             "timing_ms": {
-              "total": 505,
+              "total": 127,
               "by_step": {
                 "coverage": 0
               }
@@ -1090,23 +1094,31 @@
                 }
               ],
               "timing_ms": {
-                "total": 339,
+                "total": 91,
                 "by_step": {
-                  "validate": 4,
-                  "walk": 222,
+                  "validate": 2,
+                  "walk": 64,
                   "reread_arcs": 1,
                   "detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 4,
-                  "bind": 1,
-                  "where_places": 1,
-                  "materialise": 57,
-                  "answer": 21,
-                  "options": 28
+                  "shape": 1,
+                  "bind": 0,
+                  "where_places": 0,
+                  "materialise": 11,
+                  "answer": 10,
+                  "options": 2
                 }
               },
               "operations": [],
               "departures": [],
+              "assumptions": [
+                {
+                  "kind": "open_role",
+                  "binding_ref": "origin:",
+                  "text": "every provider",
+                  "refs": []
+                }
+              ],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_4c228c73be6c18efd0939eabb3b3c456",
@@ -2237,7 +2249,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_3f35867df5a65761"
+                    "capability_version": "cap_347a470e04c97eec"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4618,7 +4630,7 @@
               }
             }
           ],
-          "rendered_sentence": "Gross ODA disbursements to Nigeria from 25 providers for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+          "rendered_sentence": "Gross ODA disbursements to Nigeria from 25 providers for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS). Assumed: every provider.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -4821,6 +4833,38 @@
               "segment": "byline",
               "entity_refs": [],
               "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Assumed: ",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "every provider",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
             }
           ],
           "status": "definite"
@@ -4835,15 +4879,14 @@
       "response": {
         "status": 302,
         "headers": {
-          "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ada9aa46394801d54e23b886528b98b609d8fda2ed46a2eb9e365575ee73ddf3a?X-Goog-Signature=redacted"
+          "location": "https://storage.googleapis.com/e2e-working/sha256%3Ada9aa46394801d54e23b886528b98b609d8fda2ed46a2eb9e365575ee73ddf3a?X-Goog-Signature=redacted"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ada9aa46394801d54e23b886528b98b609d8fda2ed46a2eb9e365575ee73ddf3a?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/e2e-working/sha256%3Ada9aa46394801d54e23b886528b98b609d8fda2ed46a2eb9e365575ee73ddf3a?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,

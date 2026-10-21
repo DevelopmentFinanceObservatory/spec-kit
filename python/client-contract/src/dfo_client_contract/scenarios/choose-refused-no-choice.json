@@ -41,22 +41,22 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Nigeria for basic health care",
             "normalized_query": "ODA disbursements from Germany to Nigeria for basic health care",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "c37510c195ea4f928cd9dc72e7adf6b9",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "aa5fbbb0593047b59a36bed2b62cd908",
             "warnings": [],
             "timing_ms": {
-              "total": 4,
+              "total": 4556,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 889
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
+              "input_tokens": 6116,
+              "output_tokens": 408,
               "cached_tokens": 0
             },
             "timed_out": false
@@ -64,27 +64,27 @@
           "kind": "resolution",
           "parts": [
             {
-              "variable_text": "ODA disbursements for basic health care",
+              "variable_text": "basic health care ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 4815,
+                "total": 3505,
                 "by_step": {
-                  "recall": 549,
+                  "recall": 628,
                   "shape_arcs": 1,
-                  "shape_probe_coverage": 80,
-                  "shape_probe": 238,
-                  "shape_groups": 142,
-                  "shape_labels": 0,
+                  "shape_probe_coverage": 5,
+                  "shape_probe": 477,
+                  "shape_groups": 22,
+                  "shape_labels": 1,
                   "shape_admission": 1,
-                  "shape": 1269,
-                  "bind": 2396,
-                  "materialise": 226,
-                  "answer": 227,
-                  "options": 148
+                  "shape": 1283,
+                  "bind": 1188,
+                  "materialise": 11,
+                  "answer": 381,
+                  "options": 14
                 }
               },
               "restatement": {
-                "variable_text": "ODA disbursements for basic health care",
+                "variable_text": "basic health care ODA disbursements",
                 "entities": [
                   {
                     "text": "Germany",
@@ -100,6 +100,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
@@ -195,14 +196,6 @@
                       {
                         "axis": "how",
                         "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      {
-                        "axis": "how",
-                        "property": {
                           "ref": "crsPurpose",
                           "label": "CRS purpose"
                         },
@@ -241,6 +234,14 @@
                         "label": "netting basis"
                       },
                       {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      {
                         "axis": "where",
                         "label": "place"
                       },
@@ -264,20 +265,6 @@
                     ]
                   },
                   "slots": [
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "binding": {
-                        "kind": "unbound"
-                      },
-                      "summable": true
-                    },
                     {
                       "key": {
                         "axis": "how",
@@ -375,6 +362,20 @@
                         }
                       },
                       "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": true
                     },
                     {
                       "key": {
@@ -512,7 +513,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -537,6 +538,102 @@
                     }
                   },
                   "slot_options": [
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsPurpose",
+                          "label": "CRS purpose"
+                        },
+                        "label": "sector"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode122",
+                              "label": "basic health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "parent",
+                          "parent": "CRSPurposeCode120",
+                          "member_count": 4,
+                          "served_rows": 88,
+                          "served_rows_exact": true
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsTypeOfFinance",
+                          "label": "CRS type of finance"
+                        },
+                        "label": "instrument"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSTypeOfFinance100",
+                              "label": "grant"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSTypeOfFinance110",
+                              "label": "standard grant"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSTypeOfFinance100",
+                          "member_count": 12672,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsTypeOfFlow",
+                          "label": "CRS type of flow"
+                        },
+                        "label": "flow"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSTypeOfFlow10",
+                              "label": "official development assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 14098,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
                     {
                       "key": {
                         "axis": "how",
@@ -640,102 +737,6 @@
                           "parent": "CRSCooperationModalityD",
                           "member_count": 1600,
                           "served_rows": 1,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsPurpose",
-                          "label": "CRS purpose"
-                        },
-                        "label": "sector"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSPurposeCode122",
-                              "label": "basic health"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "parent",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 4,
-                          "served_rows": 88,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFinance",
-                          "label": "CRS type of finance"
-                        },
-                        "label": "instrument"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSTypeOfFinance100",
-                              "label": "grant"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 30,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSTypeOfFinance110",
-                              "label": "standard grant"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSTypeOfFinance100",
-                          "member_count": 12672,
-                          "served_rows": 30,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsTypeOfFlow",
-                          "label": "CRS type of flow"
-                        },
-                        "label": "flow"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSTypeOfFlow10",
-                              "label": "official development assistance"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 14098,
-                          "served_rows": 30,
                           "served_rows_exact": true
                         }
                       ],
@@ -1012,19 +1013,6 @@
                         "key": {
                           "axis": "how",
                           "property": {
-                            "ref": "crsCooperationModality",
-                            "label": "CRS cooperation modality"
-                          },
-                          "label": "modality"
-                        },
-                        "binding_kind": "unbound",
-                        "refs": [],
-                        "provenance": "binder"
-                      },
-                      {
-                        "key": {
-                          "axis": "how",
-                          "property": {
                             "ref": "crsPurpose",
                             "label": "CRS purpose"
                           },
@@ -1108,6 +1096,19 @@
                       },
                       {
                         "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "crsCooperationModality",
+                            "label": "CRS cooperation modality"
+                          },
+                          "label": "modality"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
                           "axis": "where",
                           "label": "place"
                         },
@@ -1141,18 +1142,6 @@
                     ],
                     "query_qualifiers": [
                       {
-                        "text": "ODA",
-                        "named": [
-                          {
-                            "ref": "CRSTypeOfFlow10",
-                            "label": "official development assistance"
-                          }
-                        ],
-                        "slot": "crsTypeOfFlow",
-                        "disposition": "bound",
-                        "selected": []
-                      },
-                      {
                         "text": "basic health care",
                         "named": [
                           {
@@ -1163,9 +1152,21 @@
                         "slot": "crsPurpose",
                         "disposition": "bound",
                         "selected": []
+                      },
+                      {
+                        "text": "ODA",
+                        "named": [
+                          {
+                            "ref": "CRSTypeOfFlow10",
+                            "label": "official development assistance"
+                          }
+                        ],
+                        "slot": "crsTypeOfFlow",
+                        "disposition": "bound",
+                        "selected": []
                       }
                     ],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []

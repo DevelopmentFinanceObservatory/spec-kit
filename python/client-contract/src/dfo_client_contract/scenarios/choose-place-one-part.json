@@ -1,11 +1,12 @@
 {
   "format_version": 1,
   "name": "choose-place-one-part",
-  "description": "A place refusal offers one option per candidate, so its choice gap has two options. Choosing \"Congo [DRC]\" by label in a one-part answer posts that option's data_query unchanged as the input of a new search, which answers definite.",
+  "description": "Choosing \"Congo [DRC]\" by label in a one-part answer posts that option's data_query unchanged as the input of a new search, which answers definite.",
   "origin": {
-    "kind": "synthetic",
-    "derived_from": "search-place-ambiguous",
-    "edit": "Each refusal's data_query becomes the no_data options Search serves, and the chosen option's answer is recorded live."
+    "kind": "recorded",
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:58:57Z"
   },
   "call": [
     {
@@ -41,23 +42,23 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Congo",
             "normalized_query": "ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "cc29e19289f44bb6bb0a6e0f4c8524a7",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "9c755dc7ffaf4568afe68d812e56d8fa",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 1084,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1082
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2249,
+              "output_tokens": 154,
+              "cached_tokens": 859
             },
             "timed_out": false
           },
@@ -67,9 +68,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 0,
                 "by_step": {
-                  "recall": 1
+                  "recall": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -115,6 +116,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -279,19 +281,18 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "5999fc9843df4455932843b0a2ac8175",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "2c9b56f048d44958a65955fad3114ade",
             "warnings": [],
             "timing_ms": {
-              "total": 3,
+              "total": 2145,
               "by_step": {
-                "coverage": 0,
-                "response_cache_layer2": 1
+                "coverage": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
+              "input_tokens": 4231,
+              "output_tokens": 200,
               "cached_tokens": 0
             },
             "timed_out": false
@@ -313,20 +314,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 1703,
+                "total": 2028,
                 "by_step": {
                   "recall": 0,
-                  "shape_arcs": 2,
-                  "shape_probe_coverage": 8,
-                  "shape_probe": 136,
-                  "shape_groups": 41,
+                  "shape_arcs": 0,
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 309,
+                  "shape_groups": 20,
                   "shape_labels": 1,
                   "shape_admission": 0,
-                  "shape": 380,
-                  "bind": 1297,
-                  "materialise": 13,
-                  "answer": 7,
-                  "options": 6
+                  "shape": 1051,
+                  "bind": 967,
+                  "materialise": 4,
+                  "answer": 4,
+                  "options": 2
                 }
               },
               "restatement": {
@@ -348,6 +349,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
@@ -697,7 +699,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1161,7 +1163,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []

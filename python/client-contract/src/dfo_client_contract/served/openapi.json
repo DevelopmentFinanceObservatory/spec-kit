@@ -7,8 +7,11 @@
   "paths": {
     "/api/search/resolve": {
       "post": {
-        "summary": "Resolve Endpoint",
-        "operationId": "resolve_endpoint_api_search_resolve_post",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Resolve",
+        "operationId": "search_resolve",
         "requestBody": {
           "content": {
             "application/json": {
@@ -36,7 +39,7 @@
                       "$ref": "#/components/schemas/DeclinedAnswer"
                     }
                   ],
-                  "title": "Response Resolve Endpoint Api Search Resolve Post",
+                  "title": "Response Search Resolve",
                   "discriminator": {
                     "propertyName": "kind",
                     "mapping": {
@@ -81,9 +84,12 @@
     },
     "/api/search/options": {
       "post": {
-        "summary": "Options Endpoint",
+        "tags": [
+          "Search"
+        ],
+        "summary": "List Options",
         "description": "The options door: on-demand candidate enumeration for one resolved\nentity role (origin, destination, or observationAbout) of a posted\nidentity, queried independently of the /resolve pipeline and fetched\nlazily when a user opens an editor.\n\nComposes engine.options.resolve.resolve_options_target (derive the\nposted identity's own StatVar population, typed anchors and\nrole-target validity, server-side, with no resubmit or materialise\npipeline) with engine.options.surface.compute_options (compute the\nper-role option surface), then assembles the envelope here --\nsee those two modules' own docstrings for the full design, including\nthe option_target_invalid (422) role check that runs inside\nresolution. Every EngineInputError either half raises propagates\nuncaught to classify_search_exception above, the same RFC 9457\nproblem body every other door's refusal returns -- no bespoke\nhandling here.\n\nresolve_options_target always runs, hit or miss on the response\ncache below: it is what runs validate_edited_identity and the role/\nanchor refusals, and none of those may be skipped just because an\nidentical target was already answered once. Only build_options_\nresponse's own compute -- the graph/SDMX work -- is what a cache hit\nskips; see options.options_response_cache's own module docstring for\nthe key and the warning-free-result caching rule.",
-        "operationId": "options_endpoint_api_search_options_post",
+        "operationId": "search_list_options",
         "requestBody": {
           "content": {
             "application/json": {
@@ -130,8 +136,11 @@
     },
     "/api/search/healthz": {
       "get": {
-        "summary": "Healthz",
-        "operationId": "healthz_api_search_healthz_get",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Health",
+        "operationId": "search_get_health",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -158,8 +167,11 @@
     },
     "/api/search/schema": {
       "get": {
-        "summary": "Schema",
-        "operationId": "schema_api_search_schema_get",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Schema",
+        "operationId": "search_get_schema",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -209,8 +221,11 @@
     },
     "/api/search/capabilities": {
       "get": {
-        "summary": "Capabilities",
-        "operationId": "capabilities_api_search_capabilities_get",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Capabilities",
+        "operationId": "search_get_capabilities",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -237,9 +252,12 @@
     },
     "/api/search/catalogue": {
       "get": {
-        "summary": "Catalogue Endpoint",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Catalogue",
         "description": "What DFO holds and example sentences to ask of it, from the published\nsearch catalogue. `place` scopes the counts to one country and offers the\nexamples whose StatVar has data there, filled with its name.",
-        "operationId": "catalogue_endpoint_api_search_catalogue_get",
+        "operationId": "search_get_catalogue",
         "parameters": [
           {
             "name": "place",
@@ -297,8 +315,11 @@
     },
     "/api/datasets/healthz": {
       "get": {
-        "summary": "Healthz",
-        "operationId": "healthz_api_datasets_healthz_get",
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "Get Health",
+        "operationId": "datasets_get_health",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -325,8 +346,11 @@
     },
     "/api/datasets/schema": {
       "get": {
-        "summary": "Schema",
-        "operationId": "schema_api_datasets_schema_get",
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "Get Schema",
+        "operationId": "datasets_get_schema",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -436,8 +460,11 @@
     },
     "/api/datasets/capabilities": {
       "get": {
-        "summary": "Capabilities",
-        "operationId": "capabilities_api_datasets_capabilities_get",
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "Get Capabilities",
+        "operationId": "datasets_get_capabilities",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -464,8 +491,11 @@
     },
     "/api/datasets/operations/{operation_id}": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Operation",
-        "operationId": "get_operation_api_datasets_operations__operation_id__get",
+        "operationId": "datasets_get_operation",
         "parameters": [
           {
             "name": "operation_id",
@@ -533,8 +563,11 @@
     },
     "/api/datasets/register": {
       "post": {
-        "summary": "Register Endpoint",
-        "operationId": "register_endpoint_api_datasets_register_post",
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "Register",
+        "operationId": "datasets_register",
         "requestBody": {
           "content": {
             "application/json": {
@@ -581,8 +614,11 @@
     },
     "/api/datasets": {
       "post": {
-        "summary": "Mint Endpoint",
-        "operationId": "mint_endpoint_api_datasets_post",
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "Mint",
+        "operationId": "datasets_mint",
         "requestBody": {
           "content": {
             "application/json": {
@@ -600,6 +636,31 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Manifest"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "The build runs as a background operation. Poll `Location` until the operation is done; the done poll carries the manifest.",
+            "headers": {
+              "Location": {
+                "description": "The operation's poll URL, `operation.poll` in the body.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "description": "Whole seconds to wait before the next poll, rounded up from `operation.retry_after_ms`. The value grows as the build runs.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1.0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResource"
                 }
               }
             }
@@ -629,8 +690,11 @@
     },
     "/api/datasets/{id}": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Definition",
-        "operationId": "get_definition_api_datasets__id__get",
+        "operationId": "datasets_get_definition",
         "parameters": [
           {
             "name": "id",
@@ -649,6 +713,31 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Manifest"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "The build runs as a background operation. Poll `Location` until the operation is done; the done poll carries the manifest.",
+            "headers": {
+              "Location": {
+                "description": "The operation's poll URL, `operation.poll` in the body.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "description": "Whole seconds to wait before the next poll, rounded up from `operation.retry_after_ms`. The value grows as the build runs.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResource"
                 }
               }
             }
@@ -678,9 +767,12 @@
     },
     "/api/datasets/{id}/options": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Definition Options",
         "description": "The definition's current version with no rendering, reported as\n`output_options`: what the data honours. A rebuild records the version and advances\nthe head as a GET does. Any query key refuses `request_invalid` with an\n`/options/<key>` pointer, the same `QueryOptionsInvalid` this door's `get_definition`\nraises for a query key outside its own namespace, through the same\n`query_options.pointer_for_key` mapping.",
-        "operationId": "get_definition_options_api_datasets__id__options_get",
+        "operationId": "datasets_get_definition_options",
         "parameters": [
           {
             "name": "id",
@@ -726,9 +818,12 @@
         }
       },
       "post": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Post Definition Options",
         "description": "The GET route's envelope for a spec id whose canonical `definition` the body\ncarries, registered or not. An unregistered definition is admitted as a mint admits a\nsidecar, registered, and served as the GET route serves a registered one, so the\nmint that follows is a head hit. Query keys refuse as on the GET route.",
-        "operationId": "post_definition_options_api_datasets__id__options_post",
+        "operationId": "datasets_post_definition_options",
         "parameters": [
           {
             "name": "id",
@@ -786,9 +881,12 @@
     },
     "/api/datasets/{id}/members": {
       "post": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Post Definition Members",
         "description": "The members a mint of the spec serves, resolved without materialising a frame:\neach member's ref, label, declared roles and constraints, their count, and the\nfamily's count and digest. The body may carry the spec's canonical `definition`,\nwhich an unregistered id needs; it is admitted as a mint admits a sidecar and nothing\nis registered. Refusals are the mint's member refusals. Query keys refuse as on the\noptions route.",
-        "operationId": "post_definition_members_api_datasets__id__members_post",
+        "operationId": "datasets_post_definition_members",
         "parameters": [
           {
             "name": "id",
@@ -853,9 +951,12 @@
     },
     "/api/datasets/frames/refresh": {
       "post": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Refresh Frame",
         "description": "Whether the named dataset frame is still its rendering's current frame. Answers\n`current`, `moved` with the current frame, or `pending` with the queued rebuild.",
-        "operationId": "refresh_frame_api_datasets_frames_refresh_post",
+        "operationId": "datasets_refresh_frame",
         "requestBody": {
           "content": {
             "application/json": {
@@ -883,7 +984,7 @@
                       "$ref": "#/components/schemas/FramePending"
                     }
                   ],
-                  "title": "Response Refresh Frame Api Datasets Frames Refresh Post",
+                  "title": "Response Datasets Refresh Frame",
                   "discriminator": {
                     "propertyName": "status",
                     "mapping": {
@@ -921,8 +1022,11 @@
     },
     "/api/datasets/frames/{spec_id}/{content_version}/recipe": {
       "put": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Put Recipe",
-        "operationId": "put_recipe_api_datasets_frames__spec_id___content_version__recipe_put",
+        "operationId": "datasets_put_recipe",
         "parameters": [
           {
             "name": "spec_id",
@@ -989,8 +1093,11 @@
         }
       },
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Recipe",
-        "operationId": "get_recipe_api_datasets_frames__spec_id___content_version__recipe_get",
+        "operationId": "datasets_get_recipe",
         "parameters": [
           {
             "name": "spec_id",
@@ -1049,8 +1156,11 @@
     },
     "/api/datasets/recipes/replays/{replay_key}": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Replay",
-        "operationId": "get_replay_api_datasets_recipes_replays__replay_key__get",
+        "operationId": "datasets_get_replay",
         "parameters": [
           {
             "name": "replay_key",
@@ -1099,8 +1209,11 @@
     },
     "/api/datasets/{id}/versions": {
       "get": {
-        "summary": "Get Versions",
-        "operationId": "get_versions_api_datasets__id__versions_get",
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "List Versions",
+        "operationId": "datasets_list_versions",
         "parameters": [
           {
             "name": "id",
@@ -1110,6 +1223,34 @@
               "type": "string",
               "title": "Id"
             }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
           }
         ],
         "responses": {
@@ -1118,7 +1259,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DatasetVersionsResponse"
+                  "$ref": "#/components/schemas/DatasetVersionsPage"
                 }
               }
             }
@@ -1148,8 +1289,11 @@
     },
     "/api/datasets/{id}/{content_version}": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Snapshot",
-        "operationId": "get_snapshot_api_datasets__id___content_version__get",
+        "operationId": "datasets_get_snapshot",
         "parameters": [
           {
             "name": "id",
@@ -1206,8 +1350,11 @@
     },
     "/api/datasets/{id}/{content_version}/description": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Description",
-        "operationId": "get_description_api_datasets__id___content_version__description_get",
+        "operationId": "datasets_get_description",
         "parameters": [
           {
             "name": "id",
@@ -1277,8 +1424,11 @@
     },
     "/api/datasets/{id}/{content_version}/description/values": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Description Values",
-        "operationId": "get_description_values_api_datasets__id___content_version__description_values_get",
+        "operationId": "datasets_get_description_values",
         "parameters": [
           {
             "name": "id",
@@ -1370,8 +1520,11 @@
     },
     "/api/datasets/{id}/{content_version}/files/{digest}": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get File",
-        "operationId": "get_file_api_datasets__id___content_version__files__digest__get",
+        "operationId": "datasets_get_file",
         "parameters": [
           {
             "name": "id",
@@ -1436,10 +1589,113 @@
         }
       }
     },
+    "/api/datasets/{id}/{content_version}/file": {
+      "get": {
+        "tags": [
+          "Datasets"
+        ],
+        "summary": "Get Version File",
+        "description": "Redirect to the version's file in the format, bundle and layout the query names,\nrenewing an aged copy whose bytes survive, else rendering it from the version's stored\nframe.",
+        "operationId": "datasets_get_version_file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          },
+          {
+            "name": "content_version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Content Version"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "the file format; csv when absent",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "csv",
+                "xlsx",
+                "parquet"
+              ],
+              "default": "csv"
+            }
+          },
+          {
+            "name": "bundle",
+            "in": "query",
+            "required": false,
+            "description": "true for a zip bundle with its documentation; true when absent",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "layout",
+            "in": "query",
+            "required": false,
+            "description": "frame for a bare parquet file in the frame layout; needs format=parquet and bundle=false",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "frame"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "a redirect to the artifact's bytes",
+            "headers": {
+              "Location": {
+                "description": "a GET URL signed for at most five minutes",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "the request body or parameters failed validation (request_invalid)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/datasets/{id}/{content_version}/observations": {
       "get": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Get Observations",
-        "operationId": "get_observations_api_datasets__id___content_version__observations_get",
+        "operationId": "datasets_get_observations",
         "parameters": [
           {
             "name": "id",
@@ -1496,8 +1752,12 @@
     },
     "/api/datasets/{id}/{content_version}/pin": {
       "post": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Post Pin",
-        "operationId": "post_pin_api_datasets__id___content_version__pin_post",
+        "description": "Pin an artifact of a version, and the frame its files render from: the version's own frame and, for a derived version, its base version's frame, servable or aged, so every format stays fetchable and the version reports `retention.pinned`. A frame whose bytes are gone stays unpinned: the named artifact still pins, and `retention` keeps that frame's `held_until`. Only the named artifact's copy waits on the daily pin budget; the frame copies skip it and count toward later calls, so one pin can add up to three copies to the count.",
+        "operationId": "datasets_post_pin",
         "parameters": [
           {
             "name": "id",
@@ -1564,9 +1824,12 @@
     },
     "/api/datasets/frames/publish": {
       "post": {
+        "tags": [
+          "Datasets"
+        ],
         "summary": "Post Publish",
         "description": "Publish a validated body under the permit the route class took for this request.",
-        "operationId": "post_publish_api_datasets_frames_publish_post",
+        "operationId": "datasets_post_publish",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1613,8 +1876,11 @@
     },
     "/api/graph/healthz": {
       "get": {
-        "summary": "Healthz",
-        "operationId": "healthz_api_graph_healthz_get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Health",
+        "operationId": "graph_get_health",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1641,8 +1907,11 @@
     },
     "/api/graph/capabilities": {
       "get": {
-        "summary": "Capabilities",
-        "operationId": "capabilities_api_graph_capabilities_get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Capabilities",
+        "operationId": "graph_get_capabilities",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1669,8 +1938,11 @@
     },
     "/api/graph/schema": {
       "get": {
-        "summary": "Schema",
-        "operationId": "schema_api_graph_schema_get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Schema",
+        "operationId": "graph_get_schema",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1697,8 +1969,11 @@
     },
     "/api/graph/resolve": {
       "post": {
-        "summary": "Resolve Endpoint",
-        "operationId": "resolve_endpoint_api_graph_resolve_post",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Resolve",
+        "operationId": "graph_resolve",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1745,8 +2020,11 @@
     },
     "/api/graph/documentation/{dcid}": {
       "get": {
-        "summary": "Sources Endpoint",
-        "operationId": "sources_endpoint_api_graph_documentation__dcid__get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Documentation",
+        "operationId": "graph_get_documentation",
         "parameters": [
           {
             "name": "dcid",
@@ -1794,8 +2072,11 @@
     },
     "/api/graph/sources": {
       "get": {
-        "summary": "Sources Catalogue Endpoint",
-        "operationId": "sources_catalogue_endpoint_api_graph_sources_get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "List Sources",
+        "operationId": "graph_list_sources",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1822,8 +2103,11 @@
     },
     "/api/graph/node/{dcid}/members": {
       "get": {
-        "summary": "Members Endpoint",
-        "operationId": "members_endpoint_api_graph_node__dcid__members_get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "List Members",
+        "operationId": "graph_list_members",
         "parameters": [
           {
             "name": "dcid",
@@ -1996,8 +2280,11 @@
     },
     "/api/graph/roots": {
       "get": {
-        "summary": "Roots Endpoint",
-        "operationId": "roots_endpoint_api_graph_roots_get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "List Roots",
+        "operationId": "graph_list_roots",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2024,8 +2311,11 @@
     },
     "/api/graph/node/{dcid}": {
       "get": {
-        "summary": "Node Endpoint",
-        "operationId": "node_endpoint_api_graph_node__dcid__get",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Node",
+        "operationId": "graph_get_node",
         "parameters": [
           {
             "name": "dcid",
@@ -2131,7 +2421,7 @@
                       "other": "#/components/schemas/OtherNode"
                     }
                   },
-                  "title": "Response Node Endpoint Api Graph Node  Dcid  Get"
+                  "title": "Response Graph Get Node"
                 }
               }
             }
@@ -2161,8 +2451,11 @@
     },
     "/api/graph/nodes": {
       "post": {
-        "summary": "Nodes Endpoint",
-        "operationId": "nodes_endpoint_api_graph_nodes_post",
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Nodes",
+        "operationId": "graph_get_nodes",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2209,8 +2502,11 @@
     },
     "/api/presentation/healthz": {
       "get": {
-        "summary": "Healthz",
-        "operationId": "healthz_api_presentation_healthz_get",
+        "tags": [
+          "Presentation"
+        ],
+        "summary": "Get Health",
+        "operationId": "presentation_get_health",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2237,8 +2533,11 @@
     },
     "/api/presentation/capabilities": {
       "get": {
-        "summary": "Capabilities",
-        "operationId": "capabilities_api_presentation_capabilities_get",
+        "tags": [
+          "Presentation"
+        ],
+        "summary": "Get Capabilities",
+        "operationId": "presentation_get_capabilities",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2265,8 +2564,11 @@
     },
     "/api/presentation/components": {
       "post": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Create Component",
-        "operationId": "create_component_api_presentation_components_post",
+        "operationId": "presentation_create_component",
         "parameters": [
           {
             "name": "x-dfo-write-token",
@@ -2331,8 +2633,11 @@
     },
     "/api/presentation/components/{component_id}": {
       "patch": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Revise Component",
-        "operationId": "revise_component_api_presentation_components__component_id__patch",
+        "operationId": "presentation_revise_component",
         "parameters": [
           {
             "name": "component_id",
@@ -2404,8 +2709,11 @@
         }
       },
       "get": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Read Component",
-        "operationId": "read_component_api_presentation_components__component_id__get",
+        "operationId": "presentation_read_component",
         "parameters": [
           {
             "name": "component_id",
@@ -2470,8 +2778,11 @@
     },
     "/api/presentation/components/{component_id}/revisions/{revision}/data": {
       "get": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Read Component Data",
-        "operationId": "read_component_data_api_presentation_components__component_id__revisions__revision__data_get",
+        "operationId": "presentation_read_component_data",
         "parameters": [
           {
             "name": "component_id",
@@ -2553,9 +2864,12 @@
     },
     "/api/presentation/components/{component_id}/revisions/{revision}/render": {
       "post": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Render Component Revision",
         "description": "Draw one stored revision on the frame the body names. Appends no revision.",
-        "operationId": "render_component_revision_api_presentation_components__component_id__revisions__revision__render_post",
+        "operationId": "presentation_render_component_revision",
         "parameters": [
           {
             "name": "component_id",
@@ -2623,9 +2937,12 @@
     },
     "/api/presentation/components/{component_id}/revisions/{revision}/render/data": {
       "get": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Read Rendered Component Data",
         "description": "The data export of one stored revision drawn on the frame the query names.",
-        "operationId": "read_rendered_component_data_api_presentation_components__component_id__revisions__revision__render_data_get",
+        "operationId": "presentation_read_rendered_component_data",
         "parameters": [
           {
             "name": "component_id",
@@ -2725,8 +3042,11 @@
     },
     "/api/presentation/frames/{spec_id}/{content_version}": {
       "get": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Get Frame",
-        "operationId": "get_frame_api_presentation_frames__spec_id___content_version__get",
+        "operationId": "presentation_get_frame",
         "parameters": [
           {
             "name": "spec_id",
@@ -2796,7 +3116,7 @@
                       "$ref": "#/components/schemas/FrameFilteredViewResponse"
                     }
                   ],
-                  "title": "Response 200 Get Frame Api Presentation Frames  Spec Id   Content Version  Get"
+                  "title": "Response 200 Presentation Get Frame"
                 }
               }
             }
@@ -2826,8 +3146,11 @@
     },
     "/api/presentation/release": {
       "get": {
+        "tags": [
+          "Presentation"
+        ],
         "summary": "Get Release",
-        "operationId": "get_release_api_presentation_release_get",
+        "operationId": "presentation_get_release",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2852,173 +3175,13 @@
         }
       }
     },
-    "/api/skills/healthz": {
-      "get": {
-        "summary": "Healthz",
-        "operationId": "healthz_api_skills_healthz_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "any non-2xx response uses this envelope",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/skills": {
-      "get": {
-        "summary": "List Endpoint",
-        "operationId": "list_endpoint_api_skills_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SkillListResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "any non-2xx response uses this envelope",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/skills/{skill_id}": {
-      "get": {
-        "summary": "Fetch Endpoint",
-        "operationId": "fetch_endpoint_api_skills__skill_id__get",
-        "parameters": [
-          {
-            "name": "skill_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Skill Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SkillBody"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "any non-2xx response uses this envelope",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "the request body or parameters failed validation (request_invalid)",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/skills/{skill_id}/resources/{path}": {
-      "get": {
-        "summary": "Resource Endpoint",
-        "operationId": "resource_endpoint_api_skills__skill_id__resources__path__get",
-        "parameters": [
-          {
-            "name": "skill_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Skill Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SkillResourceContent"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "any non-2xx response uses this envelope",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "the request body or parameters failed validation (request_invalid)",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/codes/{code}": {
       "get": {
-        "summary": "Code Registry Entry",
-        "operationId": "code_registry_entry_codes__code__get",
+        "tags": [
+          "Codes"
+        ],
+        "summary": "Get Code",
+        "operationId": "codes_get_code",
         "parameters": [
           {
             "name": "code",
@@ -3233,7 +3396,7 @@
           "kind"
         ],
         "title": "AmbiguousEntityCandidate",
-        "description": "One graph node an ambiguous query wording could name -- one entry of\nan AmbiguousEntityGroup's own `candidates`. Mirrors engine.region.result.\nAmbiguousEntityCandidate field-for-field, with `label` in place of that\ndataclass's `name` (this contract's own vocabulary for a display\nstring, matching ResolvedEntity.label)."
+        "description": "One graph node an ambiguous query wording could name -- one entry of\nan AmbiguousEntityGroup's own `candidates`. Mirrors engine.region.result.\nAmbiguousEntityCandidate field-for-field, with `label` in place of that\ndataclass's `name` (this contract's own vocabulary for a display\nstring, matching ResolvedEntity.label), except that it omits `group_node`\nand `group_name`, which only NoData.options read."
       },
       "AmbiguousEntityGroup": {
         "properties": {
@@ -3386,6 +3549,52 @@
           "url"
         ],
         "title": "ArtifactEntryModel"
+      },
+      "Assumption": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "declared_default",
+              "open_role",
+              "place_scope"
+            ],
+            "title": "Kind",
+            "description": "what the engine filled. 'declared_default' is a slot the request left open that its code system's or shape's declared default fixed. 'open_role' is a flow role no request word asked for, read across every entity on it with data, as one series per member where the role scope default filled it and the shape declares the role, else as the total over them. 'place_scope' is a request that named no place, read across every place with data"
+          },
+          "binding_ref": {
+            "type": "string",
+            "maxLength": 1036,
+            "title": "Binding Ref",
+            "description": "the identity binding whose edit replaces this assumption: 'how:<property dcid>' for a declared default, 'origin:' or 'where:' for a role or the place scope, as on the sentence's own tokens"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text",
+            "description": "the words the sentence's assumptions clause states for this fill: the bound code's full label for a declared default ('official development assistance' for CRSTypeOfFlow10, whose short name is 'ODA'), 'every' and the role's noun in the answer's flow family for an open role ('every provider', 'every creditor'), and 'every country', 'every place' or 'the world as a whole' for the place scope, as its members are typed"
+          },
+          "refs": {
+            "items": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "type": "array",
+            "maxItems": 1,
+            "title": "Refs",
+            "description": "the value dcid a declared default bound its slot to, as the slot's trace.slot_filters[].refs list it (['CRSTypeOfFlow10'] for official development assistance). An open role and the place scope carry []. A dataset_resubmit echo matches a declared default to its slot by these values"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "binding_ref",
+          "text"
+        ],
+        "title": "Assumption",
+        "description": "One value the answer filled that its request did not ask for, stated for people\nin `text` and for code in `kind`, `binding_ref` and `refs`.\n\nAssumptions live on the part (`_PartBase.assumptions`), and a candidates part holds\neach shown reading's own list as well (`CandidatesPart.reading_assumptions`), the one\na client echoes on a dataset_resubmit after picking that reading. The sentence that\ncarries the part closes with them as one clause: \"Assumed: official development\nassistance; every provider.\""
       },
       "Authority": {
         "properties": {
@@ -3973,7 +4182,7 @@
           "specs": {
             "items": {
               "$ref": "#/components/schemas/Spec",
-              "description": "the resolved Spec answering this part. Several parts sharing one five-tuple shape carry the identical spec verbatim (the same spec_id); a part that shares the spec without minting it carries a part-scoped binding_folded warning"
+              "description": "the resolved Spec answering this part. Parts whose specs share a spec_id are one reading of the data, the same series, entities and years. A later part that folds into an earlier part's spec carries binding_folded. A part posted with separate: true never folds and keeps its own part, so two separate parts can carry one spec_id by request. Parts sharing a spec_id can differ in assumptions, so a client never dedupes parts by spec_id"
             },
             "type": "array",
             "minItems": 2,
@@ -4014,7 +4223,7 @@
           "separate": {
             "type": "boolean",
             "title": "Separate",
-            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. False, the default, is omitted",
+            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. Two parts marked separate that resolve to one reading carry the same spec_id and stay two parts. False, the default, is omitted",
             "default": false
           },
           "warnings": {
@@ -4046,7 +4255,7 @@
               }
             ],
             "title": "Rendered Sentence",
-            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
+            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order, and a candidates part's then closes with its assumptions clause. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
           },
           "sentence_plan": {
             "anyOf": [
@@ -4090,6 +4299,14 @@
             "title": "Departures",
             "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, year_unavailable, modelled_values, group_read_as_members, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
           },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Assumption"
+            },
+            "type": "array",
+            "title": "Assumptions",
+            "description": "every value the engine filled that the request did not ask for, in clause order. Declared defaults come first, in the order of the Spec's trace.slot_filters, then open roles, then the place scope. A declared default is a slot the request left open that its code system's or shape's declared default fixed, named by the bound code's full label. An open role is a flow role no request word asked for, read across every entity on it with data. It is either a role the role scope default filled (resolved.scope on that axis), whatever its member count, served as one series per member where the shape declares the role, or a role the heading states with no entity of its own ('from 164 providers', 'owed to all creditors'), served as the total over its members. A role the identity binds in entities or lists in open_roles, that one of the part's operations runs over ('top 5 donors'), or that the request's words asked every member of ('all donors'), is asked. The place scope is a request that named no place, read across every place with data. Every door fills assumptions. A definite part reads them from its Spec, a candidates part carries the items every list in CandidatesPart.reading_assumptions holds alike, text included, and no_data and unsupported parts carry []. A dataset_resubmit identity entry posts every slot bound, so its part states the items of the entry's assumptions echo that still hold (see ResubmitIdentityEntry.assumptions), and a candidates entry reads each reading with its candidate's echo (see ResubmitCandidate.assumptions). The sentence that carries this part closes with them as one segment='assumption' clause ('Assumed: official development assistance; every provider.'), after its departures. [] when the answer fills nothing"
+          },
           "status": {
             "type": "string",
             "const": "candidates",
@@ -4099,6 +4316,17 @@
           "candidates": {
             "$ref": "#/components/schemas/CandidateSet",
             "description": "2..N competing Specs"
+          },
+          "reading_assumptions": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/Assumption"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Reading Assumptions",
+            "description": "each shown reading's own assumptions, keyed by its Spec's spec_id (candidates.specs[].spec_id). Each list is the one a definite part answering that Spec for this part's request carries, read with the part's operations and the axes the request's words asked every member of. The part's own assumptions are the items every list here holds alike, text included, so an open role one reading reads, or an item two readings word differently ('every provider' against 'every creditor'), is stated here alone. A client that picks a reading posts its identity as a dataset_resubmit identity entry and echoes reading_assumptions[spec_id] as the entry's assumptions, so the picked answer states what that reading assumed. A client that edits the set echoes each reading's entry as its candidate's assumptions. [] for a reading that assumes nothing"
           }
         },
         "additionalProperties": false,
@@ -4277,7 +4505,8 @@
         "required": [
           "query_echo",
           "diagnostics",
-          "scope"
+          "scope",
+          "kind"
         ],
         "title": "CatalogueAnswer",
         "description": "A resolve response to a question that asks what DFO holds and names\nneither an indicator nor a subject, such as \"what data do you have?\". It\ncarries the country the question named, when the resolver confirms one."
@@ -5346,8 +5575,7 @@
         "required": [
           "name",
           "kind",
-          "droppable",
-          "distinct"
+          "droppable"
         ],
         "title": "ColumnOptionModel",
         "description": "One frame column, verbatim from `materialise.profile.ColumnProfile`."
@@ -6761,7 +6989,7 @@
               }
             ],
             "title": "Base Content Version",
-            "description": "the raw version a derived version (a full groupby collapse, a party-totals cut, or both) was rendered from; null on every other version"
+            "description": "the raw version a derived version (a full groupby collapse, a party-totals cut, or both) was rendered from. Null on every other version"
           },
           "rendering": {
             "type": "string",
@@ -6783,12 +7011,12 @@
                 "type": "null"
               }
             ],
-            "description": "the groupby a collapse was summed by, as its file's rendering records it; null unless `rendering` is groupby"
+            "description": "the groupby a collapse was summed by, as its file's rendering records it. Null unless `rendering` is groupby"
           },
           "without_party_totals": {
             "type": "boolean",
             "title": "Without Party Totals",
-            "description": "true when the derived version's frame leaves out the group totals of its open party roles, as its file's rendering records it; absent when false",
+            "description": "true when the derived version's frame leaves out the group totals of its open party roles, as its file's rendering records it. Absent when false",
             "default": false
           }
         },
@@ -6802,7 +7030,7 @@
         ],
         "title": "DatasetVersion"
       },
-      "DatasetVersionsResponse": {
+      "DatasetVersionsPage": {
         "properties": {
           "schema_version": {
             "type": "integer",
@@ -6820,16 +7048,35 @@
             },
             "type": "array",
             "title": "Versions",
-            "description": "stored versions, newest first"
+            "description": "stored versions that are not revoked, newest first"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "continues the list after this page's last version; null when complete"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "description": "true when this page reaches the end of the list"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
           "spec_id",
-          "versions"
+          "versions",
+          "next_cursor",
+          "complete"
         ],
-        "title": "DatasetVersionsResponse"
+        "title": "DatasetVersionsPage"
       },
       "DateRange": {
         "properties": {
@@ -6907,7 +7154,8 @@
           "query_echo",
           "diagnostics",
           "reason",
-          "scope"
+          "scope",
+          "kind"
         ],
         "title": "DeclinedAnswer",
         "description": "A resolve response to a question search does not answer."
@@ -6929,7 +7177,7 @@
           "separate": {
             "type": "boolean",
             "title": "Separate",
-            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. False, the default, is omitted",
+            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. Two parts marked separate that resolve to one reading carry the same spec_id and stay two parts. False, the default, is omitted",
             "default": false
           },
           "warnings": {
@@ -6961,7 +7209,7 @@
               }
             ],
             "title": "Rendered Sentence",
-            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
+            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order, and a candidates part's then closes with its assumptions clause. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
           },
           "sentence_plan": {
             "anyOf": [
@@ -7005,6 +7253,14 @@
             "title": "Departures",
             "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, year_unavailable, modelled_values, group_read_as_members, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
           },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Assumption"
+            },
+            "type": "array",
+            "title": "Assumptions",
+            "description": "every value the engine filled that the request did not ask for, in clause order. Declared defaults come first, in the order of the Spec's trace.slot_filters, then open roles, then the place scope. A declared default is a slot the request left open that its code system's or shape's declared default fixed, named by the bound code's full label. An open role is a flow role no request word asked for, read across every entity on it with data. It is either a role the role scope default filled (resolved.scope on that axis), whatever its member count, served as one series per member where the shape declares the role, or a role the heading states with no entity of its own ('from 164 providers', 'owed to all creditors'), served as the total over its members. A role the identity binds in entities or lists in open_roles, that one of the part's operations runs over ('top 5 donors'), or that the request's words asked every member of ('all donors'), is asked. The place scope is a request that named no place, read across every place with data. Every door fills assumptions. A definite part reads them from its Spec, a candidates part carries the items every list in CandidatesPart.reading_assumptions holds alike, text included, and no_data and unsupported parts carry []. A dataset_resubmit identity entry posts every slot bound, so its part states the items of the entry's assumptions echo that still hold (see ResubmitIdentityEntry.assumptions), and a candidates entry reads each reading with its candidate's echo (see ResubmitCandidate.assumptions). The sentence that carries this part closes with them as one segment='assumption' clause ('Assumed: official development assistance; every provider.'), after its departures. [] when the answer fills nothing"
+          },
           "status": {
             "type": "string",
             "const": "definite",
@@ -7013,7 +7269,7 @@
           },
           "spec": {
             "$ref": "#/components/schemas/Spec",
-            "description": "the resolved Spec answering this part. Several parts sharing one five-tuple shape carry the identical spec verbatim (the same spec_id); a part that shares the spec without minting it carries a part-scoped binding_folded warning"
+            "description": "the resolved Spec answering this part. Parts whose specs share a spec_id are one reading of the data, the same series, entities and years. A later part that folds into an earlier part's spec carries binding_folded. A part posted with separate: true never folds and keeps its own part, so two separate parts can carry one spec_id by request. Parts sharing a spec_id can differ in assumptions, so a client never dedupes parts by spec_id"
           }
         },
         "additionalProperties": false,
@@ -8665,25 +8921,6 @@
         "title": "Freshness",
         "description": "A source's own refresh cadence, read from DCP provenance arcs that imports populate\nunevenly: `dc/base/WHO_COVID19` carries both `sourceReleaseFrequency` and\n`automaticRefreshType`, `dc/base/BIS_CentralBankPolicyRate` only the second, and\n`dc/base/WHO_GHO` neither. Nullability is the contract.\n\n`release_frequency` is the raw `sourceReleaseFrequency` ISO 8601 duration (`P1M`);\n`release_frequency_label` is `materialise.cadence.cadence_label`'s display label for it\n(`Monthly`), or the raw token when that module does not recognise it.\n\n`refresh_type` is `automaticRefreshType`'s value: how this deployment refreshes the\nsource, such as `GCPCloudRunAutomaticRefresh`, or the sentinel `NoAutomaticRefresh`."
       },
-      "FrontMatterValue": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "items": {
-              "$ref": "#/components/schemas/FrontMatterValue"
-            },
-            "type": "array"
-          },
-          {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/FrontMatterValue"
-            },
-            "type": "object"
-          }
-        ]
-      },
       "GraphRef": {
         "properties": {
           "ref": {
@@ -9624,6 +9861,17 @@
             ],
             "title": "Series Coverage Stamp",
             "description": "the series_coverage artifact stamp this request's sync-admission estimate was computed against, kept as lineage only. content_version is a pure function of the frame and does not fold this in. Not the same coverage as the 'coverage' field above (materialise.window.Coverage's row/dimension/window report)"
+          },
+          "retention": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetentionModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "how long this version can still be fetched: the retention of the frame every file renders from (a derived version's base frame). Each door sets it on its response"
           }
         },
         "additionalProperties": false,
@@ -10306,7 +10554,7 @@
             },
             "type": "array",
             "title": "Entity Terms",
-            "description": "the query entity text responsible for an entity-resolution outcome, in query order: every entity the engine could not resolve for entity_not_resolved, every ambiguous wording for entity_ambiguous, or every resolved-but-unadmitted entity for entity_role_not_admitted. Empty for every other no_data reason. This structured list is the client-facing source of those terms; rendered_sentence may quote the same wording for people, but clients must not parse it."
+            "description": "the query entity text responsible for an entity-resolution outcome, in query order: every entity the engine could not resolve for entity_not_resolved, every ambiguous wording for entity_ambiguous, every resolved-but-unadmitted entity for entity_role_not_admitted, or every name whose flow direction the query leaves untold for role_not_resolved. Empty for every other no_data reason. This structured list is the client-facing source of those terms; rendered_sentence may quote the same wording for people, but clients must not parse it."
           },
           "ambiguous_entities": {
             "items": {
@@ -10330,7 +10578,7 @@
             },
             "type": "array",
             "title": "Ambiguous Sources",
-            "description": "every ambiguous source wording responsible for a source_ambiguous outcome, in query order, each paired with the admitted sources it could name, and for source_code_ambiguous the part's source_code paired with the provenances holding it. Empty for every other no_data reason. A client posts the chosen candidate's ref on that mention of data_query, or for a source code as a new mention in its sources, and posts the part back."
+            "description": "every ambiguous source wording responsible for a source_ambiguous outcome, in query order, each paired with the admitted sources it could name, and for source_code_ambiguous the part's source_code paired with the provenances holding it. Empty for every other no_data reason. A client posts the matching entry of options."
           },
           "unit_alternatives": {
             "anyOf": [
@@ -10366,16 +10614,13 @@
             ],
             "description": "the denominator the question named and the one the flagged match divides by, set on every denominator_not_available refusal the engine returns after electing a series; null for every other no_data reason. A client can offer the flagged match, or fetch its nearest_real level and the denominator asked and divide them"
           },
-          "data_query": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ParsedInput"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "the parsed form of this part, one part long, set when reason is entity_ambiguous, source_ambiguous or source_code_ambiguous: its variable text, entities with role_text, time, unit, sources, and operations. On entity_ambiguous every entity that resolved to one graph node is pinned to its dcid and each ambiguous wording left unpinned. A named group stays unpinned too, so it resolves to the same members again. On source_ambiguous every source mention that resolved carries its ref and each ambiguous wording carries none. On source_code_ambiguous it carries the code and the part's mentions. A client pins the candidate the user picks from ambiguous_entities or ambiguous_sources and posts the part back, through the parsed door or as a dataset_resubmit parsed entry. It is set when the part has no restatement too: an entity whose direction the question leaves unnamed carries no role_text. Null for every other no_data reason, and when the part's inputs exceed the ParsedPart bounds"
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/NoDataOption"
+            },
+            "type": "array",
+            "title": "Options",
+            "description": "one ready request per choice of an entity_ambiguous, source_ambiguous, source_code_ambiguous, role_not_resolved or unit_not_resolved refusal, in query then candidate order. An entity option pins the candidate on every row with the ambiguous wording and every entity that resolved to one node; named groups, sets read as members and other ambiguous wordings stay unpinned, so a second ambiguity refuses again with the first pick kept. A candidate that is a group's own node, asked for its members, posts the group's registry name with no dcid, and has no option when no registry name resolves to the group alone. A source option sets the candidate's ref on the ambiguous mention; a source-code option names the holding provenance as the part's only included source. A role option states a direction for every name the question left unstated, so that every axis the shape declares a role on and the part does not ask open holds a place, offered while that gives at most six readings. A unit option names one of unit_alternatives in place of the ambiguous currency words. An option whose part breaks the ParsedPart bounds, or states a direction its own wording contradicts, is left out. Empty for other reasons; when the part's inputs exceed the ParsedPart bounds; on a role_not_resolved refusal with more than six readings, with no reading that leaves a place on every such axis, whose readings were all read with none holding data, or that the shape refused before placing names; and on a unit_not_resolved refusal without unit_alternatives"
           }
         },
         "additionalProperties": false,
@@ -10416,6 +10661,36 @@
         "title": "NoDataDenominator",
         "description": "The denominators a denominator_not_available refusal compared: the one the question\nnamed and the one its flagged match divides by -- NoData.denominator."
       },
+      "NoDataOption": {
+        "properties": {
+          "mentions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Mentions",
+            "description": "the request's own words this option settles, in query order: the ambiguous entity wording, the ambiguous source wording, the part's source_code, the part's unit_text, or for role_not_resolved every name whose direction the option states"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "the choice in words for a menu: the candidate's display name, prefixed 'Excluding' for a source the part excludes; for role_not_resolved the direction the option reads, such as 'France to Germany' or 'To Kenya and Uganda'; for a role currency the role's currency, such as \"recipient's currency\". Clients must not parse it"
+          },
+          "data_query": {
+            "$ref": "#/components/schemas/ParsedInput",
+            "description": "a one-part parsed input settling this choice only. Post it unchanged as the input of /api/search/resolve; its one part is a dataset_resubmit parsed entry's part. A second ambiguous wording refuses again. Whether data exists for it is not checked"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mentions",
+          "label",
+          "data_query"
+        ],
+        "title": "NoDataOption",
+        "description": "One answer to the choice a no_data refusal asks for: the words it settles, a label\nfor people, and the request that settles them. It is one entry of NoData.options."
+      },
       "NoDataPart": {
         "properties": {
           "variable_text": {
@@ -10433,7 +10708,7 @@
           "separate": {
             "type": "boolean",
             "title": "Separate",
-            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. False, the default, is omitted",
+            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. Two parts marked separate that resolve to one reading carry the same spec_id and stay two parts. False, the default, is omitted",
             "default": false
           },
           "warnings": {
@@ -10465,7 +10740,7 @@
               }
             ],
             "title": "Rendered Sentence",
-            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
+            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order, and a candidates part's then closes with its assumptions clause. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
           },
           "sentence_plan": {
             "anyOf": [
@@ -10508,6 +10783,14 @@
             "type": "array",
             "title": "Departures",
             "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, year_unavailable, modelled_values, group_read_as_members, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
+          },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Assumption"
+            },
+            "type": "array",
+            "title": "Assumptions",
+            "description": "every value the engine filled that the request did not ask for, in clause order. Declared defaults come first, in the order of the Spec's trace.slot_filters, then open roles, then the place scope. A declared default is a slot the request left open that its code system's or shape's declared default fixed, named by the bound code's full label. An open role is a flow role no request word asked for, read across every entity on it with data. It is either a role the role scope default filled (resolved.scope on that axis), whatever its member count, served as one series per member where the shape declares the role, or a role the heading states with no entity of its own ('from 164 providers', 'owed to all creditors'), served as the total over its members. A role the identity binds in entities or lists in open_roles, that one of the part's operations runs over ('top 5 donors'), or that the request's words asked every member of ('all donors'), is asked. The place scope is a request that named no place, read across every place with data. Every door fills assumptions. A definite part reads them from its Spec, a candidates part carries the items every list in CandidatesPart.reading_assumptions holds alike, text included, and no_data and unsupported parts carry []. A dataset_resubmit identity entry posts every slot bound, so its part states the items of the entry's assumptions echo that still hold (see ResubmitIdentityEntry.assumptions), and a candidates entry reads each reading with its candidate's echo (see ResubmitCandidate.assumptions). The sentence that carries this part closes with them as one segment='assumption' clause ('Assumed: official development assistance; every provider.'), after its departures. [] when the answer fills nothing"
           },
           "status": {
             "type": "string",
@@ -10693,8 +10976,33 @@
         "description": "A batch entry for a dcid where `GET /api/graph/node/{dcid}` answers 404\n`node_not_held`."
       },
       "ObservationPoint": {
-        "additionalProperties": true,
-        "type": "object"
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "description": "the observation date, e.g. '2018'"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value",
+            "description": "the observed value; null when the graph reports a date with no value"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "value"
+        ],
+        "title": "ObservationPoint",
+        "description": "One (date, value) pair from a resolved StatVar's observation series."
       },
       "ObservationSeries": {
         "properties": {
@@ -11089,7 +11397,8 @@
           "operation_id": {
             "type": "string",
             "pattern": "^op_",
-            "title": "Operation Id"
+            "title": "Operation Id",
+            "description": "`op_` plus the SHA-256 of the subject and its sorted member dcids, the origin catalogue build, and the rendering key. A repeat submission with the same identity joins the running operation and returns this id. Synchronous builds coalesce per API instance only."
           },
           "status": {
             "type": "string",
@@ -11122,7 +11431,7 @@
               }
             ],
             "title": "Retry After Ms",
-            "description": "present only on the initial 202 submit response; absent on a pending/running poll -- a caller polling with no backoff strategy of its own gets no ongoing pacing guidance from this field past the first response"
+            "description": "Milliseconds to wait before the next poll. Present on the 202 submit response and on every pending or running poll. Absent on a done poll. It grows as the build runs, at a quarter of the time since the operation's current submission, from 1,500 to 8,000. The `Retry-After` response header carries the same value in whole seconds, rounded up."
           },
           "progress": {
             "anyOf": [
@@ -11890,7 +12199,7 @@
           "separate": {
             "type": "boolean",
             "title": "Separate",
-            "description": "true when this part is asked beside the others to be compared with them, as in 'health ODA versus education ODA': it answers as its own part and never folds into another part of the same shape (binding_folded). False, the default, folds parts that share a shape into one set answer",
+            "description": "true when this part is asked beside the others to be compared with them, as in 'health ODA versus education ODA': it answers as its own part and never folds into another part of the same shape (binding_folded). False, the default, folds parts that share a shape into one set answer. Two parts marked separate that resolve to one reading carry the same spec_id and stay two parts",
             "default": false
           }
         },
@@ -13354,7 +13663,7 @@
               }
             ],
             "title": "Rendered Sentence",
-            "description": "the envelope-level confirmation sentence describing the whole query, composed across every part's own sentence in query order. When every contributing part is definite, their headings join into one sentence. A qualifier axis (where, when, or source, each a wire value of axis, plus origin, identified by role=='origin' instead since SentenceAxis has no 'origin' member) whose bound value agrees across every contributing part is stated once after the joined phrases, a possessive lead every part shares opens the sentence once, and the byline follows once. A qualifier that differs stays inline in each part's own phrase. The response falls back to one sentence per part, each part's own text left exactly as that part rendered it, when a part is still resolving, when the parts' bylines differ, or when a differing qualifier's connective opens with a comma (a period range). A part still resolving contributes up to three tokens of its own: an optional prefix text token, its own variable_text as an editable slot, and a text token stating the outcome. A lone part that is not definite composes to exactly that part's own sentence. After the headings and bylines, each part's departures follow in part order as segment='departure' tokens carrying that part's part_index. This is the one sentence that writes out a definite part's departures."
+            "description": "the envelope-level confirmation sentence describing the whole query, composed across every part's own sentence in query order. When every contributing part is definite, their headings join into one sentence. A qualifier axis (where, when, or source, each a wire value of axis, plus origin, identified by role=='origin' instead since SentenceAxis has no 'origin' member) whose bound value agrees across every contributing part is stated once after the joined phrases, a possessive lead every part shares opens the sentence once, and the byline follows once. A qualifier that differs stays inline in each part's own phrase. The response falls back to one sentence per part, each part's own text left exactly as that part rendered it, when a part is still resolving, when the parts' bylines differ, or when a differing qualifier's connective opens with a comma (a period range). A part still resolving contributes up to three tokens of its own: an optional prefix text token, its own variable_text as an editable slot, and a text token stating the outcome. A lone part that is not definite composes to exactly that part's own sentence. After the headings and bylines, each part's departures follow in part order as segment='departure' tokens carrying that part's part_index. This is the one sentence that writes out a definite part's departures. The parts' assumptions close the sentence as segment='assumption' tokens. A joined sentence takes one clause, each item carrying the part_index of its part and an item two parts share carrying none. A sentence written part by part takes each part's own clause after its departures. There, a part whose sentence and clause both repeat an earlier part's is stated once with it, that sentence and clause carrying no part_index, followed by each part's own departures, and a part whose clause differs keeps its own sentence. On a mixed resolution with at least one definite part, the sentence opens 'Answered N of M parts.', where N counts the definite parts, folded ones included, and M is len(parts)."
           },
           "sentence_plan": {
             "anyOf": [
@@ -13369,7 +13678,7 @@
               }
             ],
             "title": "Sentence Plan",
-            "description": "the ordered token form of rendered_sentence, present under the same condition; null or omitted otherwise. Composed the same way rendered_sentence is, from every part's own sentence_plan -- see SentenceToken.part_index for how a client recovers which parts[i] each variable phrase and attached qualifier belongs to, and which tokens are shared skeleton (an inter-phrase connective, a hoisted shared qualifier, the terminal '.', or the shared ' ' the per-part fallback puts between two sentences) rather than any one part's own."
+            "description": "the ordered token form of rendered_sentence, present under the same condition; null or omitted otherwise. Composed the same way rendered_sentence is, from every part's own sentence_plan -- see SentenceToken.part_index for how a client recovers which parts[i] each variable phrase and attached qualifier belongs to, and which tokens are shared skeleton (an inter-phrase connective, a hoisted shared qualifier, the terminal '.', or the shared ' ' the per-part fallback puts between two sentences) rather than any one part's own. On a mixed resolution with at least one definite part, the plan opens with two segment='coverage' tokens carrying no part_index, 'Answered N of M parts.' and ' '. A mixed resolution with no definite part has no opener."
           },
           "skills": {
             "anyOf": [
@@ -13405,7 +13714,8 @@
           "query_echo",
           "diagnostics",
           "parts",
-          "status"
+          "status",
+          "kind"
         ],
         "title": "Resolution",
         "description": "A resolve response that resolved the question into data: one part per\nvariable asked, in query order, each a complete outcome carrying its own\nstatus and payload.\n\nA single-variable query is one part, so `status` reads that one part's\nstatus directly. A query in which extraction found no variable is also\none part, whose `variable_text` is the whole query text.\n\n`status` below is a computed field that rides in every serialised\nresponse body without being a settable input, so this class stays a\nplain `BaseModel`, which allows unknown fields. `StrictModel` forbids them,\nwhich would make `Resolution.model_validate` reject its own `model_dump()`\noutput, breaking every round-trip a client or this codebase does on a\nfetched response body. A posted `status` is ignored and recomputed.\n\nUsage::\n\n    resp = RESOLVE_RESPONSE_ADAPTER.validate_python(obj)\n    if resp.kind == \"resolution\":\n        resp.status          # \"definite\" | \"candidates\" | \"no_data\" | \"unsupported\" | \"mixed\"\n        resp.parts[0].status  # this part's own status"
@@ -14596,6 +14906,22 @@
             ],
             "title": "Entity Groups",
             "description": "the named group each role's entities were asked for as, keyed by entity role key. Post a prior Spec's resolved.entity_groups beside any identity derived from that Spec. A group is kept when it posts a dcid and the graph's members of that node are exactly the identity's entities on the role; any other group, including one on a role the identity binds no entity on, is dropped"
+          },
+          "assumptions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Assumption"
+                },
+                "type": "array",
+                "maxItems": 67
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assumptions",
+            "description": "the assumptions of the reading this candidate rebuilds, echoed as the response gave them, which are the candidates part's reading_assumptions under the reading's spec_id. The rebuilt reading's reading_assumptions entry states the echoed items that still hold, each worded from the rebuilt reading by the rule ResubmitIdentityEntry.assumptions states, and the rebuilt part's assumptions are the items every reading_assumptions list holds alike. An item the echo lacks is not stated, so an edit of a defaulted slot to another value drops that default, and [], the echo of a reading that stated none, states none. None, the default, means the client echoes nothing for this reading, which yields what a fresh request would: no declared default, since the posted identity binds every slot, and the open roles and place scope the reading reads"
           }
         },
         "additionalProperties": false,
@@ -14729,6 +15055,22 @@
             "maxItems": 8,
             "title": "Operations",
             "description": "the operations the question asks for over this part's data, in query order; the engine echoes them onto the part it resolves. Empty when the question asks for none"
+          },
+          "assumptions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Assumption"
+                },
+                "type": "array",
+                "maxItems": 67
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assumptions",
+            "description": "the assumptions of the part this entry rebuilds, echoed as the response gave them. For a definite part these are its assumptions. For a reading picked from a candidates part they are that part's reading_assumptions under the reading's spec_id. The rebuilt part states the echoed items that still hold, each worded from the rebuilt answer: a declared_default whose slot (binding_ref) still binds the echoed refs, an open_role whose axis the answer still reads across every member with no entity of the identity's, and a place_scope on an answer that still names no place. An item the echo lacks is not stated, since the posted identity or its edit asked for it. An edit of a defaulted slot to another value therefore drops that default, and [], the echo of a part that stated none, states none. None, the default, means the client echoes nothing, and the part states what a fresh request would: no declared default, since the posted identity binds every slot, and the open roles and place scope the answer reads. The engine cannot tell an echoed default from one the caller writes for a slot it chose itself, and states such an item while the slot binds its refs. An echo shapes only the caller's own response"
           }
         },
         "additionalProperties": false,
@@ -14858,6 +15200,35 @@
         ],
         "title": "ResubmitPlaceholderEntry",
         "description": "One part restated as a stub from a no_data/unsupported outcome the\nclient already holds -- zero graph round-trips, zero LLM calls. Carried\nforward unresolved so its sibling parts' composed sentence and fold can\nstill be computed across the whole dataset; the engine stamps a\npart-scoped `part_restated` info warning on the rebuilt part."
+      },
+      "RetentionModel": {
+        "properties": {
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned",
+            "description": "whether the frame the version's files render from is in the pinned tier, which has no expiry"
+          },
+          "held_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Held Until",
+            "description": "when the working-tier frame stops being guaranteed, 30 days after it was stored. A download of the frame after `held_until`, while its bytes survive, renews it for 30 days. After it, a file selector or download link request that must render its file again renews the frame for 30 days if the frame's bytes survive, and otherwise refuses `artifact_expired`. A rebuild of unchanged data through `GET /api/datasets/{id}` or `POST /api/datasets` stores the frame again. Absent when pinned. It can be in the past"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "pinned"
+        ],
+        "title": "RetentionModel",
+        "description": "How long a version can still be fetched, which `datasets_api.retention` computes when a\ndoor serves the version. No stored body holds it."
       },
       "RoleAxis": {
         "type": "string",
@@ -15019,7 +15390,8 @@
                 "type": "null"
               }
             ],
-            "title": "Window"
+            "title": "Window",
+            "description": "the years to serve. Replaces the spec's window whole"
           },
           "entities": {
             "anyOf": [
@@ -15036,7 +15408,8 @@
                 "type": "null"
               }
             ],
-            "title": "Entities"
+            "title": "Entities",
+            "description": "role name to dcids. Replaces the spec's whole entity binding. A role this map omits is unbound, so a client narrowing one role repeats the spec's other roles, and {} unbinds every bound role. An open role the map binds is no longer open"
           },
           "facets": {
             "anyOf": [
@@ -15074,13 +15447,14 @@
                 "type": "null"
               }
             ],
-            "title": "Facets"
+            "title": "Facets",
+            "description": "axis to binding. Replaces the spec's whole facet binding"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "Scope",
-        "description": "The `scope` block a mint request may carry: an omitted member means\nunbound (everything). `window` narrows the result to `all`, `latest`,\nor a `start_year`/`end_year` range. `entities` binds role names to\nnon-empty lists of dcids (a role's values must each be non-empty and\nmust not contain `+` or `,`). `facets` binds a known axis\n(`provenance`, `measurementMethod`, `unit`) to a specific ref, or\n`measurementMethod` or `unit` to a null ref. The `unit` axis alone may\ninstead carry a conversion request (`FacetUnitRequestBinding`) or ask for\neach entity's own currency (`FacetNationalCurrencyBinding`)."
+        "description": "The `scope` block a mint request may carry. On a `spec_id` input each\nsupplied member replaces the stored spec's value for that member whole,\nand an omitted member keeps the spec's value. On a `statvar_set` input,\nwhich has no stored spec, an omitted member is unbound (everything).\n`window` narrows the result to `all`, `latest`, or a\n`start_year`/`end_year` range. `entities` binds role names to non-empty\nlists of dcids (a role's values must each be non-empty and must not\ncontain `+` or `,`). `facets` binds a known axis (`provenance`,\n`measurementMethod`, `unit`) to a specific ref, or `measurementMethod`\nor `unit` to a null ref. The `unit` axis alone may instead carry a\nconversion request (`FacetUnitRequestBinding`) or ask for each entity's\nown currency (`FacetNationalCurrencyBinding`)."
       },
       "Scope-Output": {
         "properties": {
@@ -15190,12 +15564,14 @@
           "segment": {
             "type": "string",
             "enum": [
+              "coverage",
               "heading",
               "byline",
-              "departure"
+              "departure",
+              "assumption"
             ],
             "title": "Segment",
-            "description": "the part of the sentence this token belongs to: 'heading' (what the answer is), 'byline' (latest-year label, unit, source, and a bound method), or 'departure' (the text of one Departure on the same part, never on a Spec's own plan). A client styles each segment as a block; the plain join of every token's text still equals rendered_sentence",
+            "description": "the part of the sentence this token belongs to: 'coverage' (the 'Answered N of M parts.' a mixed envelope sentence opens with, never on a part's or a Spec's own plan), 'heading' (what the answer is), 'byline' (latest-year label, unit, source, and a bound method), 'departure' (the text of one Departure on the same part, never on a Spec's own plan), or 'assumption' (the closing clause naming what the answer assumed, from the parts' assumptions, never on a Spec's own plan). A client styles each segment as a block; the plain join of every token's text still equals rendered_sentence",
             "default": "heading"
           },
           "property_dcid": {
@@ -15219,7 +15595,7 @@
                 "type": "null"
               }
             ],
-            "description": "origin/destination when this token renders a directional entity role (the flow's two endpoints read back), or the directional scope an unbound where slot resolved to. entity_refs is the discriminator: non-empty on the entity read-back, empty on the unbound-where-slot fallback. binding_ref is not: an entity read-back carries binding_ref too whenever the shape declares a where slot backing the 'destination' axis (e.g. dev-finance), the same condition under which the unbound-where-slot fallback always carries it, so a present binding_ref value never separates the two. Both kinds join to the Spec.resolved.entity_options entry on the same role. A third token sits on an entity_ambiguous no_data plan, which has no Spec: the ambiguous wording, with the role the request gave it (null when it gave none), no entity_refs and no binding_ref, and text equal to one NoData.ambiguous_entities[i].text on the same part. The client titles that wording's candidate menu by this role and pins the pick into NoData.data_query."
+            "description": "origin/destination when this token renders a directional entity role (the flow's two endpoints read back), or the directional scope an unbound where slot resolved to. entity_refs is the discriminator: non-empty on the entity read-back, empty on the unbound-where-slot fallback. binding_ref is not: an entity read-back carries binding_ref too whenever the shape declares a where slot backing the 'destination' axis (e.g. dev-finance), the same condition under which the unbound-where-slot fallback always carries it, so a present binding_ref value never separates the two. Both kinds join to the Spec.resolved.entity_options entry on the same role. A third token sits on an entity_ambiguous no_data plan, which has no Spec: the ambiguous wording, with the role the request gave it (null when it gave none), no entity_refs and no binding_ref, and text equal to one NoData.ambiguous_entities[i].text on the same part. The client titles that wording's candidate menu by this role and posts the pick's entry of NoData.options."
           },
           "binding_ref": {
             "anyOf": [
@@ -15271,7 +15647,7 @@
               }
             ],
             "title": "Part Index",
-            "description": "this token's position in Resolution.parts, when this plan is the envelope-level composed sentence (Resolution.sentence_plan) and this token belongs to exactly one part's own contribution -- a variable phrase token, or a qualifier attached to it because it did not agree across every part, or a token of a part composed as its own sentence. Null carries three distinct readings a client must not conflate: on a part's own plan (DefinitePart.spec.resolved.sentence_plan, or the candidates/no_data/unsupported sentence_plan on _PartBase) the field has no meaning at all and is never set; on a composer-minted connective, it means the token belongs to the sentence as a whole rather than to any one part (the Oxford-joined ' and '/', ', the plan's own terminal '.', and the shared ' ' the per-part fallback puts between two sentences are all such tokens); and on a token every contributing part states alike and the join states once (a hoisted qualifier on the where, when, or source axis, each a wire value of axis, or the origin role, identified by role=='origin' instead since SentenceAxis has no 'origin' member; a shared possessive lead; the shared byline; or a heading or byline token of a part a later part folded into, binding_folded, which both parts state) it means the token no longer describes a single variable."
+            "description": "this token's position in Resolution.parts, when this plan is the envelope-level composed sentence (Resolution.sentence_plan) and this token belongs to exactly one part's own contribution -- a variable phrase token, or a qualifier attached to it because it did not agree across every part, or a token of a part composed as its own sentence. Null carries four distinct readings a client must not conflate: on a part's own plan (DefinitePart.spec.resolved.sentence_plan, or the candidates/no_data/unsupported sentence_plan on _PartBase) the field has no meaning at all and is never set; on a composer-minted token, it means the token belongs to the sentence as a whole rather than to any one part (the Oxford-joined ' and '/', ', the plan's own terminal '.', the shared ' ' the per-part fallback puts between two sentences, the 'coverage' opener, and an assumptions clause's lead, separators and '.' when no one part carries every item it names are all such tokens); on a token every contributing part states alike and the join states once (a hoisted qualifier on the where, when, or source axis, each a wire value of axis, or the origin role, identified by role=='origin' instead since SentenceAxis has no 'origin' member; a shared possessive lead; the shared byline; or a heading or byline token of a part a later part folded into, binding_folded, which both parts state) it means the token no longer describes a single variable; and on an 'assumption' item it means more than one part assumed it, and each part's own assumptions list says which."
           }
         },
         "additionalProperties": false,
@@ -15281,7 +15657,7 @@
           "text"
         ],
         "title": "SentenceToken",
-        "description": "One token in the ordered sentence plan: a \"text\" token (invariant\nwording such as a connective, a bare separator, the terminal period, or a\ndeparture sentence) or a \"slot\" token (a slot- or entity-bound phrase, or\nthe wording of an ambiguous entity).\n\n``rendered_sentence`` (the flat string) is the plain concatenation of every\ntoken's ``text``, in order. The two are computed together and cannot drift.\nA \"slot\" token with nothing bound appears too, with ``text=\"\"``: the same\ntoken structure serves a loading skeleton (before binding is known) and the\nfinal sentence (after it is). The first non-empty token's text is\ncapitalised.\n\nEvery token belongs to one ``segment``. The heading states what the answer\nis: actor, measure noun, counterpart, and period, in possessive order, one\nslot token per axis (\"Germany's gross ODA disbursements to Kenya, 1973 to\n2024\"). A unit that changes the magnitude (per capita, percent of GDP, PPP\ninternational dollars) stays in the heading. The byline follows it: the\nlatest-year label when one applies, the plain unit with its price basis\n(\"current US dollars\", \"constant 2022 US dollars\") as a slot token with\naxis \"unit\", the source, and, when the identity binds measurementMethod, the\nmethod as a slot token with axis \"method\". Departures come last and sit only on a part's or\nthe envelope's sentence, so ``spec.resolved.sentence_plan`` carries none."
+        "description": "One token in the ordered sentence plan: a \"text\" token (invariant\nwording such as a connective, a bare separator, the terminal period, or a\ndeparture sentence) or a \"slot\" token (a slot- or entity-bound phrase, or\nthe wording of an ambiguous entity).\n\n``rendered_sentence`` (the flat string) is the plain concatenation of every\ntoken's ``text``, in order. The two are computed together and cannot drift.\nA \"slot\" token with nothing bound appears too, with ``text=\"\"``: the same\ntoken structure serves a loading skeleton (before binding is known) and the\nfinal sentence (after it is). The first non-empty token's text is\ncapitalised.\n\nEvery token belongs to one ``segment``. The heading states what the answer\nis: actor, measure noun, counterpart, and period, in possessive order, one\nslot token per axis (\"Germany's gross ODA disbursements to Kenya, 1973 to\n2024\"). A unit that changes the magnitude (per capita, percent of GDP, PPP\ninternational dollars) stays in the heading. The byline follows it: the\nlatest-year label when one applies, the plain unit with its price basis\n(\"current US dollars\", \"constant 2022 US dollars\") as a slot token with\naxis \"unit\", the source, and, when the identity binds measurementMethod, the\nmethod as a slot token with axis \"method\". Departures come next, then the\nassumptions clause, and both sit only on a part's or the envelope's sentence, so\n``spec.resolved.sentence_plan`` carries neither."
       },
       "Series": {
         "properties": {
@@ -15858,356 +16234,6 @@
         "title": "Skill",
         "description": "One skill's front matter on the wire, keyed by id in\nResolution.skills. Mirrors skills_index.SkillFrontMatter's four\nmembers -- the search API's own wire model, not that dataclass itself,\nso it carries its own field descriptions the way every other response\nmodel does."
       },
-      "SkillBody": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id",
-            "description": "the skill's id, its dcid without the `skill/` prefix"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "description": "the front matter's `name`, equal to `id`"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "description": "the front matter's `description`"
-          },
-          "frontmatter": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/FrontMatterValue"
-            },
-            "type": "object",
-            "title": "Frontmatter",
-            "description": "the whole parsed front matter, every scalar a string"
-          },
-          "content_version": {
-            "type": "string",
-            "title": "Content Version",
-            "description": "`sha256:` digest over the manifest's paths and digests, in order"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url",
-            "description": "the skill's source directory for a human reader, never fetched here"
-          },
-          "attached": {
-            "type": "boolean",
-            "title": "Attached",
-            "description": "true when the skill's reach names at least one node on this build, so search can name it"
-          },
-          "excluded": {
-            "type": "boolean",
-            "title": "Excluded",
-            "description": "true when search cannot match this skill on this build: its reach broke a bound or a read the build depended on did not complete"
-          },
-          "statvar_count": {
-            "type": "integer",
-            "title": "Statvar Count",
-            "description": "the distinct StatVars this skill's downward reach carries. A provenance attachment adds nothing to the count, so a skill attached only to provenances reports 0 while covering every series of those datasets"
-          },
-          "statvar_count_truncated": {
-            "type": "boolean",
-            "title": "Statvar Count Truncated",
-            "description": "true when statvar_count stopped at this deployment's count bound rather than exhausting the reach"
-          },
-          "warnings": {
-            "items": {
-              "$ref": "#/components/schemas/SkillWarning"
-            },
-            "type": "array",
-            "title": "Warnings",
-            "description": "this skill's own warnings"
-          },
-          "resources": {
-            "items": {
-              "$ref": "#/components/schemas/SkillFileListing"
-            },
-            "type": "array",
-            "title": "Resources",
-            "description": "the skill's manifest: `SKILL.md` first, then its references in path order"
-          },
-          "content_text": {
-            "type": "string",
-            "title": "Content Text",
-            "description": "`SKILL.md` verbatim, front matter included"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "description",
-          "frontmatter",
-          "content_version",
-          "url",
-          "attached",
-          "excluded",
-          "statvar_count",
-          "statvar_count_truncated",
-          "warnings",
-          "resources",
-          "content_text"
-        ],
-        "title": "SkillBody",
-        "description": "The skill door's response: the list entry plus the skill's text."
-      },
-      "SkillFileListing": {
-        "properties": {
-          "path": {
-            "type": "string",
-            "title": "Path",
-            "description": "the file's path, relative to its skill's own bundle"
-          },
-          "size": {
-            "type": "integer",
-            "title": "Size",
-            "description": "the byte size of the file's UTF-8 content"
-          },
-          "digest": {
-            "type": "string",
-            "title": "Digest",
-            "description": "`sha256:` plus the lower-case hex SHA-256 of that content"
-          },
-          "media_type": {
-            "type": "string",
-            "title": "Media Type",
-            "description": "the file's media type, from its extension"
-          }
-        },
-        "type": "object",
-        "required": [
-          "path",
-          "size",
-          "digest",
-          "media_type"
-        ],
-        "title": "SkillFileListing",
-        "description": "One file in a skill's manifest. The client fetches it at the resources door\nby the skill id and this `path`."
-      },
-      "SkillListResponse": {
-        "properties": {
-          "skills": {
-            "items": {
-              "$ref": "#/components/schemas/SkillSummary"
-            },
-            "type": "array",
-            "title": "Skills",
-            "description": "every served skill, ordered by id"
-          },
-          "warnings": {
-            "items": {
-              "$ref": "#/components/schemas/SkillWarning"
-            },
-            "type": "array",
-            "title": "Warnings",
-            "description": "corpus warnings, including one per skill left out of the catalogue"
-          }
-        },
-        "type": "object",
-        "required": [
-          "skills",
-          "warnings"
-        ],
-        "title": "SkillListResponse",
-        "description": "`GET /api/skills`'s response body: every served skill's entry, ordered by\nid, plus the corpus warnings. A per-skill warning rides on that skill's own\nentry."
-      },
-      "SkillResourceContent": {
-        "properties": {
-          "skill_id": {
-            "type": "string",
-            "title": "Skill Id",
-            "description": "the skill this file belongs to"
-          },
-          "path": {
-            "type": "string",
-            "title": "Path",
-            "description": "the file's path, relative to its skill's own bundle"
-          },
-          "size": {
-            "type": "integer",
-            "title": "Size",
-            "description": "the byte size of the file's UTF-8 content"
-          },
-          "digest": {
-            "type": "string",
-            "title": "Digest",
-            "description": "`sha256:` plus the lower-case hex SHA-256 of that content"
-          },
-          "media_type": {
-            "type": "string",
-            "title": "Media Type",
-            "description": "the file's media type, from its extension"
-          },
-          "content_text": {
-            "type": "string",
-            "title": "Content Text",
-            "description": "the file's text"
-          }
-        },
-        "type": "object",
-        "required": [
-          "skill_id",
-          "path",
-          "size",
-          "digest",
-          "media_type",
-          "content_text"
-        ],
-        "title": "SkillResourceContent",
-        "description": "The resources door's response: one manifest file and its text.\n\nCarries `skill_id` and `path` so a client that fires several requests\nconcurrently can tell which response answers which request."
-      },
-      "SkillSummary": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id",
-            "description": "the skill's id, its dcid without the `skill/` prefix"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "description": "the front matter's `name`, equal to `id`"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "description": "the front matter's `description`"
-          },
-          "frontmatter": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/FrontMatterValue"
-            },
-            "type": "object",
-            "title": "Frontmatter",
-            "description": "the whole parsed front matter, every scalar a string"
-          },
-          "content_version": {
-            "type": "string",
-            "title": "Content Version",
-            "description": "`sha256:` digest over the manifest's paths and digests, in order"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url",
-            "description": "the skill's source directory for a human reader, never fetched here"
-          },
-          "attached": {
-            "type": "boolean",
-            "title": "Attached",
-            "description": "true when the skill's reach names at least one node on this build, so search can name it"
-          },
-          "excluded": {
-            "type": "boolean",
-            "title": "Excluded",
-            "description": "true when search cannot match this skill on this build: its reach broke a bound or a read the build depended on did not complete"
-          },
-          "statvar_count": {
-            "type": "integer",
-            "title": "Statvar Count",
-            "description": "the distinct StatVars this skill's downward reach carries. A provenance attachment adds nothing to the count, so a skill attached only to provenances reports 0 while covering every series of those datasets"
-          },
-          "statvar_count_truncated": {
-            "type": "boolean",
-            "title": "Statvar Count Truncated",
-            "description": "true when statvar_count stopped at this deployment's count bound rather than exhausting the reach"
-          },
-          "warnings": {
-            "items": {
-              "$ref": "#/components/schemas/SkillWarning"
-            },
-            "type": "array",
-            "title": "Warnings",
-            "description": "this skill's own warnings"
-          },
-          "resources": {
-            "items": {
-              "$ref": "#/components/schemas/SkillFileListing"
-            },
-            "type": "array",
-            "title": "Resources",
-            "description": "the skill's manifest: `SKILL.md` first, then its references in path order"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "description",
-          "frontmatter",
-          "content_version",
-          "url",
-          "attached",
-          "excluded",
-          "statvar_count",
-          "statvar_count_truncated",
-          "warnings",
-          "resources"
-        ],
-        "title": "SkillSummary",
-        "description": "One skill's list entry: front matter, attachment and breadth figures, own\nwarnings, and manifest. `SkillBody` adds the skill's text.\n\n`url` is the skill's source directory for a human reader. The platform never\nfetches it."
-      },
-      "SkillWarning": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "description": "stable machine code from the platform's code registry"
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "info",
-              "warn",
-              "degraded"
-            ],
-            "title": "Severity",
-            "description": "the severity level"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "human-readable explanation of the warning"
-          },
-          "skill_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Skill Id",
-            "description": "the served skill's id, the dcid of a skill left out of the catalogue, or null for a corpus-level warning"
-          }
-        },
-        "type": "object",
-        "required": [
-          "code",
-          "severity",
-          "message",
-          "skill_id"
-        ],
-        "title": "SkillWarning",
-        "description": "One corpus-level or skill-level issue, on the wire. `skill_id` is the\ncatalogue id for an issue about a served skill, the roster dcid for a skill\nleft out of the catalogue, or `None` for an issue about the whole corpus.\nOnly an issue about a served skill rides on that skill's entry. The other two\nare corpus warnings on the list door."
-      },
       "Slot": {
         "properties": {
           "key": {
@@ -16305,8 +16331,132 @@
         "description": "A slot's typed identity: axis, constraint property, and human label."
       },
       "SlotOption": {
-        "additionalProperties": true,
-        "type": "object"
+        "properties": {
+          "value": {
+            "$ref": "#/components/schemas/SlotValue",
+            "description": "one taxonomy member or observed facet value"
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CoverageExact"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CoverageBreadth"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CoverageBare"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "bare": "#/components/schemas/CoverageBare",
+                    "breadth": "#/components/schemas/CoverageBreadth",
+                    "exact": "#/components/schemas/CoverageExact"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage",
+            "description": "this option's observation footprint if it were bound instead of the current value; populated when response_options.include_option_coverage is true"
+          },
+          "relation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "child",
+                  "parent",
+                  "root"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relation",
+            "description": "where this option sits in a level-scoped constraint-slot menu on a code-index-carried taxonomy: 'child' or 'parent' of the slot's bound value, and 'root' for every other classification root beside a bound root; for an unbound hierarchical slot, 'root' for a classification root and 'child' for a child of the root named in parent; 'root' for every value of a flat code system. None on every other surface this type serves -- entity_options, facet_options, and the options door's OptionsSet -- none of which classify their candidates by level"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent",
+            "description": "dcid of this option's parent in a hierarchical code system, for a level-scoped constraint-slot option that has one; None for a root, for a flat code system's values, and on every surface where relation is None"
+          },
+          "member_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Member Count",
+            "description": "how many StatVars this index holds coded directly to this option's value (not a subtree rollup), for a level-scoped constraint-slot option; None on every other surface this type serves -- entity_options, facet_options, and the options door's OptionsSet -- none of which count members from the code index"
+          },
+          "served_rows": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served Rows",
+            "description": "the rows this answer's file would hold if this option were bound instead of the current value, in the terms of ResolvedSpec.download.rows: one per series and year with a point inside the requested window, or under 'latest' one per series holding its StatVar's latest year. A series is a served StatVar carrying the option or one of its code-index descendants (the widening the binder applies to a bound value) at one entity, or donor and recipient pair. An unbound slot counts the answer's own family; a bound slot counts the family with that slot left unbound and every other binding kept. An option this answer would serve nothing for is omitted from the menu, except the slot's current value. None where the option is not counted: on entity_options, facet_options and the options door, and on a bound slot whose family needs graph reads to count, where a trailing slot_options event can supply it. A StatVar the coverage artifact does not hold adds no rows: the count covers the pick's other StatVars, and an option all of whose StatVars are missing from the artifact is omitted"
+          },
+          "served_rows_exact": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Served Rows Exact",
+            "description": "true when served_rows equals the download.rows a pick of this option would state; false when it is an upper bound: a counted StatVar whose series sit in more than one facet group (provenance, method and unit) in the window, of which the pick's read elects one; an answer read in bulk whose pick's StatVars sit in more than one facet, since a bulk read elects one; under 'latest', a StatVar with a facet observed more often than yearly; an answer that pins a facet value; a unit request whose conversion cannot be read as download.rows_exact describes, that converts a counted series from a currency the answer does not serve, or whose options the coverage probe counts (a bound slot of a subject-place family, a candidates reading); or a series whose facets carry no complete date list. Null exactly when served_rows is null"
+          },
+          "party_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "party",
+                  "total",
+                  "residual"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Party Kind",
+            "description": "on an origin or destination entity option, what the party is beside the others on its side: 'party' (a country, territory or organisation), 'total' (other parties' figures, so a sum across the role that counts it counts its members twice) or 'residual' (figures no other party holds), as the code index lists it. Absent for a party the index does not list, and on every other option"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "SlotOption",
+        "description": "One candidate value the binder had available for a slot."
       },
       "SlotOptions": {
         "properties": {
@@ -18556,7 +18706,7 @@
           "separate": {
             "type": "boolean",
             "title": "Separate",
-            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. False, the default, is omitted",
+            "description": "true when this part was asked beside the others to be compared with them. A client resubmitting an identity, candidate set, or placeholder posts this flag on that entry to preserve the comparison. Two parts marked separate that resolve to one reading carry the same spec_id and stay two parts. False, the default, is omitted",
             "default": false
           },
           "warnings": {
@@ -18588,7 +18738,7 @@
               }
             ],
             "title": "Rendered Sentence",
-            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
+            "description": "a human-readable string. For candidates, a header naming how many readings there are ('3 readings.'), then each shown candidate's heading and a byline led by the source and span that set it apart; for no_data, a heading in the same claim form naming the entity, measure, and counterpart that were checked. Either ends with the text of this part's departures, in order, and a candidates part's then closes with its assumptions clause. For a definite part this stays null or omitted: the confirmation sentence (heading and byline) lives at spec.resolved.rendered_sentence, and its departures reach the envelope's composed sentence."
           },
           "sentence_plan": {
             "anyOf": [
@@ -18631,6 +18781,14 @@
             "type": "array",
             "title": "Departures",
             "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, year_unavailable, modelled_values, group_read_as_members, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
+          },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Assumption"
+            },
+            "type": "array",
+            "title": "Assumptions",
+            "description": "every value the engine filled that the request did not ask for, in clause order. Declared defaults come first, in the order of the Spec's trace.slot_filters, then open roles, then the place scope. A declared default is a slot the request left open that its code system's or shape's declared default fixed, named by the bound code's full label. An open role is a flow role no request word asked for, read across every entity on it with data. It is either a role the role scope default filled (resolved.scope on that axis), whatever its member count, served as one series per member where the shape declares the role, or a role the heading states with no entity of its own ('from 164 providers', 'owed to all creditors'), served as the total over its members. A role the identity binds in entities or lists in open_roles, that one of the part's operations runs over ('top 5 donors'), or that the request's words asked every member of ('all donors'), is asked. The place scope is a request that named no place, read across every place with data. Every door fills assumptions. A definite part reads them from its Spec, a candidates part carries the items every list in CandidatesPart.reading_assumptions holds alike, text included, and no_data and unsupported parts carry []. A dataset_resubmit identity entry posts every slot bound, so its part states the items of the entry's assumptions echo that still hold (see ResubmitIdentityEntry.assumptions), and a candidates entry reads each reading with its candidate's echo (see ResubmitCandidate.assumptions). The sentence that carries this part closes with them as one segment='assumption' clause ('Assumed: official development assistance; every provider.'), after its departures. [] when the answer fills nothing"
           },
           "status": {
             "type": "string",
@@ -20407,5 +20565,27 @@
         "type": "object"
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Search",
+      "description": "Resolve a plain-language data question to dataset definitions and their options."
+    },
+    {
+      "name": "Datasets",
+      "description": "Register and mint datasets, poll their operations, and read versions, observations and files."
+    },
+    {
+      "name": "Graph",
+      "description": "Resolve names to graph nodes and read nodes, members, sources and documentation."
+    },
+    {
+      "name": "Presentation",
+      "description": "Create, revise and render presentation components, and read frames and the release."
+    },
+    {
+      "name": "Codes",
+      "description": "Look up a problem code's registry entry."
+    }
+  ]
 }

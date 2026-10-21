@@ -5,7 +5,7 @@
   "origin": {
     "kind": "synthetic",
     "derived_from": "search-two-parts-place-ambiguous",
-    "edit": "Part 0 becomes the definite part, entity groups included, of a live search for \"GDP of the least developed countries\"; part 1's data_query becomes options; the choice is recorded live."
+    "edit": "Part 0 becomes the definite part, entity groups included, of a live search for \"GDP of the least developed countries\", and the choice is recorded live."
   },
   "call": [
     {
@@ -42,23 +42,23 @@
             "entry_path": "raw_text",
             "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
             "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "1fdae229dbd2489c8551682aa2bb6880",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "670f1650b70c4616805aa3dd54c4dae8",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 1333,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1329
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2256,
+              "output_tokens": 207,
+              "cached_tokens": 861
             },
             "timed_out": false
           },
@@ -68,27 +68,26 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 3568,
+                "total": 2622,
                 "by_step": {
-                  "recall": 479,
-                  "shape_arcs": 4,
+                  "recall": 1,
+                  "shape_arcs": 2,
                   "shape_probe": 0,
-                  "shape_groups": 97,
-                  "shape_labels": 14,
-                  "shape_admission": 1,
-                  "shape": 1189,
-                  "bind": 1465,
-                  "materialise": 70,
-                  "answer": 241,
-                  "options": 124
+                  "shape_groups": 25,
+                  "shape_labels": 6,
+                  "shape_admission": 0,
+                  "shape": 839,
+                  "bind": 1261,
+                  "materialise": 253,
+                  "answer": 7,
+                  "options": 261
                 }
               },
               "restatement": {
                 "variable_text": "GDP",
                 "entities": [
                   {
-                    "text": "Least Developed Countries",
-                    "members": true
+                    "text": "Least Developed Countries"
                   }
                 ],
                 "sources": [],
@@ -103,6 +102,7 @@
                   "text": "You asked for least developed countries. This shows its members, each on its own."
                 }
               ],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_e11cdfec28d9fac6551cfaa892be9558",
@@ -2389,7 +2389,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3822,7 +3822,7 @@
                             }
                           ],
                           "query_qualifiers": [],
-                          "capability_version": "cap_3f35867df5a65761",
+                          "capability_version": "cap_347a470e04c97eec",
                           "default_reading": {
                             "applied": true,
                             "removed_stat_vars": []
@@ -3929,9 +3929,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 2,
                 "by_step": {
-                  "recall": 0
+                  "recall": 2
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -3981,6 +3981,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -4215,6 +4216,7 @@
                     "group_id": "groups/UN.LDC"
                   }
                 },
+                "assumptions": [],
                 "variable_text": "GDP"
               },
               {
@@ -4258,19 +4260,19 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "7175fe98eec005479f1397936dc011ad120092d5",
-            "trace_id": "a5fa21b9a9af4c30ade3d59d4dcbef4b",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "6181bee2a8f84811bec4231e3fae4535",
             "warnings": [],
             "timing_ms": {
-              "total": 2385,
+              "total": 3738,
               "by_step": {
                 "coverage": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 3703,
-              "output_tokens": 173,
-              "cached_tokens": 0
+              "input_tokens": 4244,
+              "output_tokens": 202,
+              "cached_tokens": 1518
             },
             "timed_out": false
           },
@@ -4280,19 +4282,19 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 1299,
+                "total": 3733,
                 "by_step": {
-                  "validate": 1,
-                  "walk": 179,
+                  "validate": 0,
+                  "walk": 0,
                   "reread_arcs": 0,
                   "detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 873,
+                  "shape": 593,
                   "bind": 0,
-                  "where_places": 1,
-                  "materialise": 118,
-                  "answer": 3,
-                  "options": 124
+                  "where_places": 0,
+                  "materialise": 203,
+                  "answer": 1,
+                  "options": 2936
                 }
               },
               "operations": [],
@@ -4303,6 +4305,7 @@
                   "text": "This shows the 44 Least Developed Countries, each on its own."
                 }
               ],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_e11cdfec28d9fac6551cfaa892be9558",
@@ -6296,7 +6299,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_3f35867df5a65761"
+                    "capability_version": "cap_347a470e04c97eec"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -6405,20 +6408,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 1816,
+                "total": 2095,
                 "by_step": {
-                  "recall": 0,
+                  "recall": 1,
                   "shape_arcs": 1,
-                  "shape_probe_coverage": 14,
-                  "shape_probe": 135,
-                  "shape_groups": 66,
-                  "shape_labels": 1,
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 182,
+                  "shape_groups": 23,
+                  "shape_labels": 0,
                   "shape_admission": 0,
-                  "shape": 594,
-                  "bind": 1190,
-                  "materialise": 15,
-                  "answer": 9,
-                  "options": 8
+                  "shape": 1093,
+                  "bind": 985,
+                  "materialise": 7,
+                  "answer": 6,
+                  "options": 3
                 }
               },
               "restatement": {
@@ -6445,6 +6448,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_4b8c1ba9efe879b10dc3fde2c24dc483",
@@ -6810,7 +6814,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -7283,7 +7287,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []

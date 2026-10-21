@@ -43,20 +43,20 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "95437670d1314551aa1fbdce8c8122b6",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "d0fa88511b064cc6966082b296cd6ea8",
             "warnings": [],
             "timing_ms": {
-              "total": 140,
+              "total": 4688,
               "by_step": {
                 "coverage": 0,
-                "extract": 1
+                "extract": 928
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 5885,
+              "output_tokens": 606,
+              "cached_tokens": 860
             },
             "timed_out": false
           },
@@ -66,20 +66,20 @@
               "variable_text": "debt service",
               "warnings": [],
               "timing_ms": {
-                "total": 58,
+                "total": 3547,
                 "by_step": {
-                  "recall": 0,
+                  "recall": 312,
                   "shape_arcs": 2,
-                  "shape_probe_coverage": 15,
-                  "shape_probe": 16,
-                  "shape_groups": 5,
-                  "shape_labels": 9,
+                  "shape_probe_coverage": 2,
+                  "shape_probe": 192,
+                  "shape_groups": 2,
+                  "shape_labels": 6,
                   "shape_admission": 0,
-                  "shape": 37,
-                  "bind": 2,
-                  "materialise": 9,
-                  "answer": 2,
-                  "options": 8
+                  "shape": 912,
+                  "bind": 1643,
+                  "materialise": 3,
+                  "answer": 462,
+                  "options": 215
                 }
               },
               "restatement": {
@@ -94,6 +94,14 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [
+                {
+                  "kind": "open_role",
+                  "binding_ref": "origin:",
+                  "text": "every creditor",
+                  "refs": []
+                }
+              ],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_78d04fefc3b3f1ef71acd622957e4995",
@@ -537,7 +545,7 @@
                       "label": "Creative Commons Attribution License"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1255,7 +1263,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3240,15 +3248,15 @@
               "variable_text": "price of tea",
               "warnings": [],
               "timing_ms": {
-                "total": 14,
+                "total": 502,
                 "by_step": {
-                  "recall": 0,
+                  "recall": 307,
                   "shape_arcs": 1,
-                  "shape_probe": 3,
-                  "shape_groups": 3,
+                  "shape_probe": 190,
+                  "shape_groups": 1,
                   "shape_labels": 0,
-                  "shape_admission": 2,
-                  "shape": 14
+                  "shape_admission": 0,
+                  "shape": 195
                 }
               },
               "rendered_sentence": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
@@ -3263,6 +3271,7 @@
               ],
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "unsupported",
               "unsupported": {
                 "code": "scope_too_broad",
@@ -3271,8 +3280,22 @@
               }
             }
           ],
-          "rendered_sentence": "Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). No match for price of tea. Try a different wording or a related indicator.",
+          "rendered_sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. No match for price of tea. Try a different wording or a related indicator.",
           "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "Answered 1 of 2 parts.",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
             {
               "kind": "slot",
               "text": "Kenya",
@@ -3505,6 +3528,38 @@
             {
               "kind": "text",
               "text": " ",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Assumed: ",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "every creditor",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
               "segment": "heading",
               "entity_refs": [],
               "states": []
@@ -3545,7 +3600,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). No match for price of tea. Try a different wording or a related indicator.",
+        "sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. No match for price of tea. Try a different wording or a related indicator.",
         "complete": false,
         "specs": [
           "spec_78d04fefc3b3f1ef71acd622957e4995"

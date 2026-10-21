@@ -386,13 +386,13 @@
       }
     },
     "mint_step": {
+      "description": "A mint of a spec, which starts its build and answers the operation; it takes a layout and no narrowing.",
       "type": "object",
       "additionalProperties": false,
       "required": [
         "op",
         "spec"
       ],
-      "$ref": "#/$defs/narrowing",
       "properties": {
         "op": {
           "const": "mint"
@@ -402,10 +402,7 @@
         },
         "layout": {
           "$ref": "#/$defs/layout"
-        },
-        "window": true,
-        "entities": true,
-        "facets": true
+        }
       }
     },
     "operation_step": {

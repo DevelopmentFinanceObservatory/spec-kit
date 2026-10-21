@@ -4,9 +4,9 @@
   "description": "A question asking for a ranking answers one definite part that does not run the rank, with a departure and two warn-severity warnings. A strict fetch raises SearchWarning before any build; a fetch that is not strict builds the dataset and issues one SearchWarning for all of them.",
   "origin": {
     "kind": "recorded",
-    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "7175fe98eec005479f1397936dc011ad120092d5",
-    "recorded_at": "2026-10-20T16:52:35Z"
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:59:08Z"
   },
   "call": [
     {
@@ -48,20 +48,20 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "7175fe98eec005479f1397936dc011ad120092d5",
-            "trace_id": "05ba0d7c03b3468c98629e82ffeeb157",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "b87a5f3d6ed54104885bb9ca8e8e4a73",
             "warnings": [],
             "timing_ms": {
-              "total": 4392,
+              "total": 3381,
               "by_step": {
                 "coverage": 0,
-                "extract": 1310
+                "extract": 1159
               }
             },
             "llm_usage": {
               "input_tokens": 6103,
-              "output_tokens": 370,
-              "cached_tokens": 0
+              "output_tokens": 381,
+              "cached_tokens": 860
             },
             "timed_out": false
           },
@@ -82,20 +82,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 2885,
+                "total": 2178,
                 "by_step": {
-                  "recall": 391,
-                  "shape_arcs": 3,
-                  "shape_probe_coverage": 18,
-                  "shape_probe": 157,
-                  "shape_groups": 5,
-                  "shape_labels": 0,
+                  "recall": 383,
+                  "shape_arcs": 2,
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 253,
+                  "shape_groups": 4,
+                  "shape_labels": 1,
                   "shape_admission": 1,
-                  "shape": 1098,
-                  "bind": 1154,
-                  "materialise": 42,
-                  "answer": 187,
-                  "options": 13
+                  "shape": 846,
+                  "bind": 918,
+                  "materialise": 19,
+                  "answer": 9,
+                  "options": 3
                 }
               },
               "restatement": {
@@ -128,6 +128,16 @@
                   "code": "operation_not_applied",
                   "asked": "top 5 donors",
                   "text": "You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings."
+                }
+              ],
+              "assumptions": [
+                {
+                  "kind": "declared_default",
+                  "binding_ref": "how:dac2aAidType",
+                  "text": "official development assistance",
+                  "refs": [
+                    "DAC2aAidType206"
+                  ]
                 }
               ],
               "status": "definite",
@@ -490,7 +500,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -939,7 +949,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3048,7 +3058,7 @@
               }
             }
           ],
-          "rendered_sentence": "Gross disbursements to Ethiopia from 137 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings.",
+          "rendered_sentence": "Gross disbursements to Ethiopia from 137 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -3244,6 +3254,38 @@
               "entity_refs": [],
               "states": [],
               "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "Assumed: ",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "official development assistance",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "assumption",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
             }
           ],
           "status": "definite"
@@ -3386,7 +3428,7 @@
             }
           },
           "content_version": "cv_534dd4c2bf9bdafc837d51a3ba4bcf3e",
-          "prepared_at": "2026-10-20T16:52:43Z",
+          "prepared_at": "2026-10-21T08:59:13Z",
           "coverage": {
             "rows": 110,
             "dimensions": [
@@ -3509,13 +3551,13 @@
               "end_year": 2022,
               "origin": "query"
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00259-rpx",
+            "graph_revision": null,
             "code_index_stamp": {
               "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
-              "exported_at": "2026-10-20T13:18:18Z",
+              "exported_at": "2026-10-20T19:50:14Z",
               "graph_endpoint": "graph_release"
             },
-            "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
+            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
@@ -3565,10 +3607,10 @@
             ],
             "normalisations": [],
             "frame_grammar_version": "1.1.0",
-            "materialiser_build": "7175fe98eec005479f1397936dc011ad120092d5",
-            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "capability_version": "dset_88fecfec3c5b89d1",
             "served_from": "materialise",
-            "confirmed_at": "2026-10-20T16:52:44.191752+00:00"
+            "confirmed_at": "2026-10-21T08:59:13.197667+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -3588,7 +3630,7 @@
               },
               "bytes": 10828,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-20T16:52:44.112078+00:00",
+              "created_at": "2026-10-21T08:59:13.158978+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f"
             },
@@ -3599,14 +3641,14 @@
               },
               "bytes": 10167,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-20T16:52:44.112078+00:00",
+              "created_at": "2026-10-21T08:59:13.158978+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:5b508be6b46ce8e01315f9c89a1837e17ed7b49d7d2554011cfdba9f32203084"
             }
           ],
           "series_count": 110,
           "output_options": {
-            "capability_version": "dset_1e6cd9546fac19e9",
+            "capability_version": "dset_88fecfec3c5b89d1",
             "columns": [
               {
                 "name": "stat_var",
@@ -3912,7 +3954,11 @@
               ]
             }
           },
-          "series_coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5"
+          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "retention": {
+            "pinned": false,
+            "held_until": "2026-11-20T08:59:13.158787Z"
+          }
         }
       }
     },
@@ -3924,15 +3970,14 @@
       "response": {
         "status": 302,
         "headers": {
-          "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f?X-Goog-Signature=redacted"
+          "location": "https://storage.googleapis.com/e2e-working/sha256%3A7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f?X-Goog-Signature=redacted"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/e2e-working/sha256%3A7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -3948,7 +3993,7 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Gross disbursements to Ethiopia from 137 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings.",
+        "sentence": "Gross disbursements to Ethiopia from 137 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
         "complete": true,
         "specs": [
           "spec_7778beed72f8433bb7fde4293acfd175"

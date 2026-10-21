@@ -5,7 +5,7 @@
   "origin": {
     "kind": "synthetic",
     "derived_from": "search-two-parts-place-ambiguous",
-    "edit": "Each refusal's data_query becomes options, and a choice on part \"Congo\" follows."
+    "edit": "A choice of \"Congo [DRC]\" on part \"Congo\" follows the search."
   },
   "call": [
     {
@@ -42,23 +42,23 @@
             "entry_path": "raw_text",
             "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
             "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "1fdae229dbd2489c8551682aa2bb6880",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "670f1650b70c4616805aa3dd54c4dae8",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 1333,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1329
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2256,
+              "output_tokens": 207,
+              "cached_tokens": 861
             },
             "timed_out": false
           },
@@ -120,6 +120,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -222,9 +223,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 2,
                 "by_step": {
-                  "recall": 0
+                  "recall": 2
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -274,6 +275,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",

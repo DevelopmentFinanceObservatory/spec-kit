@@ -67,23 +67,23 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Congo",
             "normalized_query": "ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "cc29e19289f44bb6bb0a6e0f4c8524a7",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "c197307ca1cc4364a2f31d7fa99aa616",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 1788,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1353
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2249,
+              "output_tokens": 154,
+              "cached_tokens": 859
             },
             "timed_out": false
           },
@@ -93,9 +93,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 434,
                 "by_step": {
-                  "recall": 1
+                  "recall": 434
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -141,6 +141,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -169,27 +170,64 @@
                 "source_terms": [],
                 "ambiguous_sources": [],
                 "unbound_qualifiers": [],
-                "data_query": {
-                  "kind": "parsed",
-                  "parts": [
-                    {
-                      "variable_text": "ODA disbursements",
-                      "entities": [
+                "options": [
+                  {
+                    "mentions": [
+                      "Congo"
+                    ],
+                    "label": "Congo [DRC]",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
                         {
-                          "text": "Germany",
-                          "role_text": "from",
-                          "dcid": "country/DEU"
-                        },
-                        {
-                          "text": "Congo",
-                          "role_text": "to"
+                          "variable_text": "ODA disbursements",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "from",
+                              "dcid": "country/DEU"
+                            },
+                            {
+                              "text": "Congo",
+                              "role_text": "to",
+                              "dcid": "country/COD"
+                            }
+                          ],
+                          "sources": [],
+                          "operations": []
                         }
-                      ],
-                      "sources": [],
-                      "operations": []
+                      ]
                     }
-                  ]
-                }
+                  },
+                  {
+                    "mentions": [
+                      "Congo"
+                    ],
+                    "label": "Congo [Republic]",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA disbursements",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "from",
+                              "dcid": "country/DEU"
+                            },
+                            {
+                              "text": "Congo",
+                              "role_text": "to",
+                              "dcid": "country/COG"
+                            }
+                          ],
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  }
+                ]
               }
             }
           ],
@@ -239,7 +277,7 @@
           {
             "part": 0,
             "kind": "choice",
-            "options": 0
+            "options": 2
           }
         ]
       }

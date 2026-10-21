@@ -3,9 +3,10 @@
   "name": "choose-part-by-mention",
   "description": "Naming the part by \"Congo\", a word its options mention, and the option by label posts that option's data_query, as naming the part by index does.",
   "origin": {
-    "kind": "synthetic",
-    "derived_from": "search-place-ambiguous",
-    "edit": "The refusal's data_query becomes options, and the choice is recorded live."
+    "kind": "recorded",
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:59:01Z"
   },
   "call": [
     {
@@ -42,23 +43,23 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Congo",
             "normalized_query": "ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
-            "trace_id": "cc29e19289f44bb6bb0a6e0f4c8524a7",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "2ea977c9567e4f2e9c14324b2748a52d",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 1645,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1643
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2249,
+              "output_tokens": 154,
+              "cached_tokens": 859
             },
             "timed_out": false
           },
@@ -116,6 +117,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "entity_ambiguous",
@@ -280,19 +282,19 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "7175fe98eec005479f1397936dc011ad120092d5",
-            "trace_id": "afd8940c0d5744b1ab5b12df2287d858",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "f5c1d08be0fc4630b1a1653334f28190",
             "warnings": [],
             "timing_ms": {
-              "total": 4246,
+              "total": 2024,
               "by_step": {
-                "coverage": 0
+                "coverage": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 3690,
-              "output_tokens": 171,
-              "cached_tokens": 0
+              "input_tokens": 4231,
+              "output_tokens": 200,
+              "cached_tokens": 1516
             },
             "timed_out": false
           },
@@ -313,20 +315,20 @@
                 }
               ],
               "timing_ms": {
-                "total": 3780,
+                "total": 1906,
                 "by_step": {
                   "recall": 1,
-                  "shape_arcs": 1,
-                  "shape_probe_coverage": 11,
-                  "shape_probe": 172,
-                  "shape_groups": 56,
-                  "shape_labels": 1,
-                  "shape_admission": 1,
-                  "shape": 498,
-                  "bind": 3246,
-                  "materialise": 16,
-                  "answer": 11,
-                  "options": 8
+                  "shape_arcs": 0,
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 3,
+                  "shape_groups": 16,
+                  "shape_labels": 0,
+                  "shape_admission": 0,
+                  "shape": 845,
+                  "bind": 1051,
+                  "materialise": 4,
+                  "answer": 4,
+                  "options": 1
                 }
               },
               "restatement": {
@@ -348,6 +350,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_53b1ed52ebddd28ce274d419b53037c3",
@@ -697,7 +700,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "62e7b1eb49fad49a576aaaa4599270e0561fdb04580337cddd04d38b555864c5",
+                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1161,7 +1164,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_3f35867df5a65761",
+                    "capability_version": "cap_347a470e04c97eec",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []

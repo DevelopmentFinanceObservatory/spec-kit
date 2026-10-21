@@ -42,6 +42,8 @@ _DECLINED = "scenarios/answer-declined.json"
 _REQUEST_INVALID = "scenarios/fetch-spec-request-invalid.json"
 _UNKNOWN_VERSION = "scenarios/fetch-ref-unknown-version.json"
 _NEWER = "scenarios/fetch-ref-expired-newer-version.json"
+_NOT_REPRODUCIBLE = "scenarios/fetch-ref-expired-not-reproducible.json"
+_ECHOES = "scenarios/choose-candidate-echoes-assumptions.json"
 _REBOUND = "scenarios/fetch-spec-entity-rebound.json"
 _DROPPED = "scenarios/fetch-spec-entity-dropped.json"
 _GROUP_NARROWED = "scenarios/fetch-spec-group-narrowed.json"
@@ -192,6 +194,23 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return lambda doc: change(doc["exchanges"][-1]["response"])
 
 
+def _versions_forbidden(response: Any) -> None:
+    """The versions route refuses 403 publish_not_permitted."""
+    response.update(
+        status=403,
+        json={
+            "type": "/codes/publish_not_permitted",
+            "title": "Forbidden",
+            "status": 403,
+            "detail": "This caller may not list versions.",
+            "code": "publish_not_permitted",
+            "trace_id": "0" * 32,
+            "capability_version": "synthetic",
+            "retryable": False,
+        },
+    )
+
+
 @pytest.mark.parametrize(
     ("target", "change", "expected"),
     [
@@ -334,6 +353,11 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
         ),
         (
             "actions.json",
+            _set_action("capability_unavailable", action="report"),
+            "scenarios/fetch-spec-capability-unavailable.json: step 0 expects",
+        ),
+        (
+            "actions.json",
             _set_action("variable_not_resolved", gap_kind="no_data"),
             "scenarios/answer-mixed-fetch-raises.json: step 0 expects",
         ),
@@ -412,7 +436,7 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
         (
             "scenarios/choose-refused-option-out-of-range.json",
             _set_step(1, option=2),
-            "step 1 expects",
+            "the steps make a POST /search/resolve the record lacks",
         ),
         (
             "scenarios/choose-refused-mention-names-two-parts.json",
@@ -709,6 +733,49 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
             lambda doc: doc["call"][1].pop("layout"),
             "the steps make a POST /datasets the record lacks",
         ),
+        (
+            _ECHOES,
+            _posted(1, lambda entry: entry.pop("assumptions")),
+            "where the rules post",
+        ),
+        (
+            _ECHOES,
+            _posted(0, lambda entry: entry.pop("assumptions")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/resubmit-candidates-sibling.json",
+            _posted(1, lambda entry: entry["candidates"][0].pop("assumptions")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/answer-candidates-choose-fetch.json",
+            _posted(0, lambda entry: entry.pop("assumptions")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/choose-candidate-assumed-reading.json",
+            _posted(0, lambda entry: entry["assumptions"][0].update(text="ODA")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/choose-candidate-assumed-reading.json",
+            _set_body(1, lambda body: body.update(rendered_sentence="Other.")),
+            "step 1 expects",
+        ),
+        (
+            _NOT_REPRODUCIBLE,
+            lambda doc: doc["exchanges"][-1]["request"].update(
+                path=doc["exchanges"][-1]["request"]["path"].removesuffix("?limit=1")
+            ),
+            "where the steps make a GET",
+        ),
+        (_NOT_REPRODUCIBLE, _last_response(_versions_forbidden), "step 0 expects"),
+        (
+            "scenarios/mint-async-build.json",
+            _set_step(0, window=[2020, 2023]),
+            "scenarios/mint-async-build.json: schema: call/0",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -736,6 +803,7 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
         "expect-wrong-option-count",
         "expect-wrong-complete",
         "expect-stale-after-action-change",
+        "capability-unavailable-reported",
         "expect-stale-after-gap-kind-change",
         "answer-without-kind",
         "expect-wrong-content-version",
@@ -806,6 +874,15 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
         "frame-build-posts-long-options",
         "resubmit-answering-another-spec",
         "several-readings-fetched-long",
+        "definite-entry-without-its-assumptions",
+        "chosen-entry-without-its-reading-assumptions",
+        "candidate-without-its-reading-assumptions",
+        "one-part-pick-without-its-reading-assumptions",
+        "one-part-pick-rewords-its-reading-assumptions",
+        "picked-sentence-not-taken-from-the-response",
+        "versions-without-limit",
+        "versions-forbidden-raises",
+        "mint-step-narrowed",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -836,6 +913,17 @@ def test_an_orphan_body_file_is_reported(package_dir: Path) -> None:
     (package_dir / "scenarios" / "stray.parquet").write_bytes(b"")
     problems = validator.validate()
     assert any("no scenario names this body file" in p for p in problems), problems
+
+
+def test_a_required_member_that_admits_null_stays_required() -> None:
+    """A recorded body must carry a required member, null or not."""
+    served = validator.PACKAGE_DIR / "served" / "openapi.json"
+    routes = validator._Routes(json.loads(served.read_text(encoding="utf-8")))
+    page = "/components/schemas/DatasetVersionsPage"
+    body = {"spec_id": "spec_" + "0" * 32, "versions": [], "complete": True}
+    assert routes.validate(page, {**body, "next_cursor": None}) == []
+    problems = routes.validate(page, body)
+    assert any("'next_cursor' is a required property" in p for p in problems)
 
 
 def test_no_scenarios_is_a_hard_failure(package_dir: Path) -> None:

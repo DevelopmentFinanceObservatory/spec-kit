@@ -4,9 +4,9 @@
   "description": "Choosing candidate 0 on part 0 posts part 1, a no_data part with no restatement, as a placeholder entry with its variable_text, status and reason.",
   "origin": {
     "kind": "recorded",
-    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "7175fe98eec005479f1397936dc011ad120092d5",
-    "recorded_at": "2026-10-20T16:53:04Z"
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T08:59:30Z"
   },
   "call": [
     {
@@ -46,20 +46,20 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "7175fe98eec005479f1397936dc011ad120092d5",
-            "trace_id": "37707c965ae94bb8bd120182f24077fb",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "2961e5bd14b94abeba99a744e68b1d02",
             "warnings": [],
             "timing_ms": {
-              "total": 4768,
+              "total": 3933,
               "by_step": {
                 "coverage": 0,
-                "extract": 1393
+                "extract": 1117
               }
             },
             "llm_usage": {
-              "input_tokens": 7108,
-              "output_tokens": 691,
-              "cached_tokens": 862
+              "input_tokens": 12163,
+              "output_tokens": 848,
+              "cached_tokens": 2448
             },
             "timed_out": false
           },
@@ -69,19 +69,19 @@
               "variable_text": "GNI",
               "warnings": [],
               "timing_ms": {
-                "total": 120,
+                "total": 1762,
                 "by_step": {
-                  "recall": 2,
-                  "shape_arcs": 4,
-                  "shape_probe_coverage": 9,
-                  "shape_probe": 11,
-                  "shape_groups": 61,
-                  "shape_labels": 15,
+                  "recall": 0,
+                  "shape_arcs": 2,
+                  "shape_probe_coverage": 4,
+                  "shape_probe": 4,
+                  "shape_groups": 24,
+                  "shape_labels": 6,
                   "shape_admission": 1,
-                  "shape": 106,
-                  "bind": 2,
-                  "materialise": 2,
-                  "answer": 8
+                  "shape": 840,
+                  "bind": 919,
+                  "materialise": 0,
+                  "answer": 3
                 }
               },
               "rendered_sentence": "3 readings. Primary income for gross of fixed capital consumption in Germany and Kenya. OECD DAC1 · 2015 to 2022 · Current US dollars. Gross national income based on purchasing power parity in international dollars in Germany and Kenya. World Development Indicators · 2015 to 2022. Gross national income based on purchasing power parity per capita in international dollars in Germany and Kenya. World Development Indicators · 2015 to 2022.",
@@ -376,6 +376,7 @@
               },
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "candidates",
               "candidates": {
                 "ordering": "intent_rank",
@@ -905,7 +906,7 @@
                           "start_year": 2015,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_3f35867df5a65761",
+                        "capability_version": "cap_347a470e04c97eec",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": [
@@ -1456,7 +1457,7 @@
                           "start_year": 2015,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_3f35867df5a65761",
+                        "capability_version": "cap_347a470e04c97eec",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": [
@@ -2015,7 +2016,7 @@
                           "start_year": 2015,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_3f35867df5a65761",
+                        "capability_version": "cap_347a470e04c97eec",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": [
@@ -2055,6 +2056,11 @@
                   }
                 ],
                 "truncated": false
+              },
+              "reading_assumptions": {
+                "spec_9ce16f72ff8416d06a56f9fe82b10ad3": [],
+                "spec_bef1fcb184525d3bbe7cd6a0316b4a35": [],
+                "spec_b77d2ebaaeb7e6d5f8499a8b0e3571a1": []
               }
             },
             {
@@ -2067,17 +2073,17 @@
                 }
               ],
               "timing_ms": {
-                "total": 3359,
+                "total": 2809,
                 "by_step": {
-                  "recall": 387,
-                  "shape_arcs": 3,
-                  "shape_probe_coverage": 18,
-                  "shape_probe": 94,
-                  "shape_groups": 10,
+                  "recall": 290,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 5,
+                  "shape_probe": 207,
+                  "shape_groups": 2,
                   "shape_labels": 0,
                   "shape_admission": 1,
-                  "shape": 1165,
-                  "bind": 1807
+                  "shape": 1017,
+                  "bind": 1502
                 }
               },
               "rendered_sentence": "Could not tell who is giving and who is receiving among \"Germany\" and \"Kenya\". Put \"from\" or \"to\" before a name.",
@@ -2092,6 +2098,7 @@
               ],
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "role_not_resolved",
@@ -2104,7 +2111,65 @@
                 "ambiguous_entities": [],
                 "source_terms": [],
                 "ambiguous_sources": [],
-                "unbound_qualifiers": []
+                "unbound_qualifiers": [],
+                "options": [
+                  {
+                    "mentions": [
+                      "Germany",
+                      "Kenya"
+                    ],
+                    "label": "Germany to Kenya",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "debt",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "Kenya",
+                              "role_text": "to"
+                            }
+                          ],
+                          "time_text": "2015 to 2022",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "Germany",
+                      "Kenya"
+                    ],
+                    "label": "Kenya to Germany",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "debt",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "Kenya",
+                              "role_text": "from"
+                            }
+                          ],
+                          "time_text": "2015 to 2022",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  }
+                ]
               }
             }
           ],
@@ -2492,6 +2557,7 @@
                     "end_year": 2022
                   }
                 },
+                "assumptions": [],
                 "variable_text": "GNI"
               },
               {
@@ -2516,11 +2582,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "7175fe98eec005479f1397936dc011ad120092d5",
-            "trace_id": "318a8737564e45d48f515461ffd9c3b0",
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "769a9afba9da443b89962d16356a9141",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 4,
               "by_step": {
                 "coverage": 0
               }
@@ -2533,9 +2599,19 @@
               "variable_text": "GNI",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 1,
                 "by_step": {
-                  "response_cache_part_memo": 0
+                  "validate": 0,
+                  "walk": 0,
+                  "reread_arcs": 0,
+                  "detect_edits": 0,
+                  "resolve_survivors": 0,
+                  "shape": 0,
+                  "bind": 0,
+                  "where_places": 0,
+                  "materialise": 1,
+                  "answer": 0,
+                  "options": 0
                 }
               },
               "operations": [],
@@ -2546,6 +2622,7 @@
                   "text": "You asked for Kenya. The data holds no values for it."
                 }
               ],
+              "assumptions": [],
               "status": "definite",
               "spec": {
                 "spec_id": "spec_9ce16f72ff8416d06a56f9fe82b10ad3",
@@ -3068,7 +3145,7 @@
                       "start_year": 2015,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_3f35867df5a65761"
+                    "capability_version": "cap_347a470e04c97eec"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -3102,6 +3179,7 @@
               ],
               "operations": [],
               "departures": [],
+              "assumptions": [],
               "status": "no_data",
               "no_data": {
                 "reason": "role_not_resolved",
@@ -3111,12 +3189,27 @@
                 "ambiguous_entities": [],
                 "source_terms": [],
                 "ambiguous_sources": [],
-                "unbound_qualifiers": []
+                "unbound_qualifiers": [],
+                "options": []
               }
             }
           ],
-          "rendered_sentence": "Primary income for gross of fixed capital consumption in Germany and Kenya, 2015 to 2022. Current US dollars · OECD DAC1. You asked for Kenya. The data holds no values for it. Could not tell who is giving and who is receiving in this query. Put \"from\" or \"to\" before a name.",
+          "rendered_sentence": "Answered 1 of 2 parts. Primary income for gross of fixed capital consumption in Germany and Kenya, 2015 to 2022. Current US dollars · OECD DAC1. You asked for Kenya. The data holds no values for it. Could not tell who is giving and who is receiving in this query. Put \"from\" or \"to\" before a name.",
           "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "Answered 1 of 2 parts.",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
             {
               "kind": "slot",
               "text": "Primary income",
@@ -3297,7 +3390,7 @@
           {
             "part": 1,
             "kind": "choice",
-            "options": 0
+            "options": 2
           }
         ]
       }
@@ -3306,7 +3399,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Primary income for gross of fixed capital consumption in Germany and Kenya, 2015 to 2022. Current US dollars · OECD DAC1. You asked for Kenya. The data holds no values for it. Could not tell who is giving and who is receiving in this query. Put \"from\" or \"to\" before a name.",
+        "sentence": "Answered 1 of 2 parts. Primary income for gross of fixed capital consumption in Germany and Kenya, 2015 to 2022. Current US dollars · OECD DAC1. You asked for Kenya. The data holds no values for it. Could not tell who is giving and who is receiving in this query. Put \"from\" or \"to\" before a name.",
         "complete": false,
         "specs": [
           "spec_9ce16f72ff8416d06a56f9fe82b10ad3"
