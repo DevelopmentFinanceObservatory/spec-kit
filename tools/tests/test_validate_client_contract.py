@@ -424,6 +424,15 @@ def _no_data_options(change: Callable[[Any], Any]) -> Callable[[Any], None]:
     return edit
 
 
+def _built_destination_as_objects(doc: Any) -> None:
+    """The built manifest binds destination to objects, not refs, so the
+    build keeps no destination group and the sentence lookup posts none."""
+    entities = doc["exchanges"][0]["response"]["json"]["definition"]["identity"][
+        "entities"
+    ]
+    entities["destination"] = [{"dcid": ref} for ref in entities["destination"]]
+
+
 def _mentions_a_string(doc: Any) -> None:
     """Each no_data option of the first answer mentions one string, its
     words joined, in place of a list of words."""
@@ -1509,6 +1518,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "expects",
         ),
         (_SEARCH, _no_data_options(lambda options: None), "step 0 expects"),
+        (_GROUP_NARROWED, _built_destination_as_objects, "where the rules post"),
         (
             "scenarios/choose-part-by-mention.json",
             _mentions_a_string,
@@ -1750,6 +1760,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "files-route-201-read-as-a-redirect",
         "no-data-options-as-an-object-counted",
         "no-data-options-null-counted",
+        "bound-entities-as-objects-compared",
         "mentions-as-a-string-matched",
         "diagnostics-not-an-object-read",
         "candidate-spec-not-an-object-read",
@@ -1781,6 +1792,42 @@ def test_a_record_that_holds_only_under_its_recorded_host_is_reported(
         p for p in problems if p.startswith(name)
     ]
     assert any(p.startswith(name) for p in problems), problems
+
+
+@pytest.mark.parametrize("body_trace", ["", 7], ids=["empty", "a-number"])
+def test_a_body_trace_id_that_is_not_a_non_empty_string_reads_as_absent(
+    package_dir: Path, body_trace: Any
+) -> None:
+    """A problem document's trace_id that is empty or not a string reads as
+    absent, so the refusal carries its x-dfo-trace-id header."""
+
+    def change(doc: Any) -> None:
+        response = doc["exchanges"][0]["response"]
+        response["json"]["trace_id"] = body_trace
+        doc["expect"][0]["error"]["trace_id"] = response["headers"]["x-dfo-trace-id"]
+
+    _edit(package_dir / _CODELESS, change)
+    problems = validator.validate()
+    assert not [p for p in problems if _CODELESS in p], problems
+
+
+def test_one_record_that_crashes_its_derivation_is_its_own_problem(
+    package_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An exception while deriving one record's outcomes is that record's
+    problem, and every other record is still checked."""
+    step = validator._Replay.step
+
+    def crashing(self: Any, chosen: dict[str, Any]) -> dict[str, Any]:
+        if chosen.get("question") == "should donors give more aid to Kenya?":
+            raise TypeError("a malformed member the rules missed")
+        return step(self, chosen)
+
+    monkeypatch.setattr(validator._Replay, "step", crashing)
+    _edit(package_dir / _FETCH, _set_outcome(0, lambda o: o.update(dataset={})))
+    problems = validator.validate()
+    assert any(p.startswith(_DECLINED) and "TypeError" in p for p in problems), problems
+    assert any(p.startswith(_FETCH) for p in problems), problems
 
 
 @pytest.mark.parametrize(

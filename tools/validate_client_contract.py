@@ -1836,16 +1836,22 @@ def kept_entity_groups(
     each role the built identity binds to the same entities the held
     definition binds it to. A role the narrowing rebound or dropped loses its
     group; a window or facets narrowing keeps every group."""
-    if held is None or not (groups := held.get("entity_groups")):
+    if held is None or not (groups := read_object(held, "entity_groups")):
         return {}
-    before = held["definition"]["identity"].get("entities", {})
-    after = read_object(built["identity"], "entities") or {}
+    before = read_object(read_object(held["definition"], "identity"), "entities")
+    after = read_object(built["identity"], "entities")
     return {
         role: group
         for role, group in groups.items()
-        if isinstance(after.get(role), list)
-        and set(after[role]) == set(before.get(role, ()))
+        if read_list(after, role) is not None
+        and bound_refs(after, role) == bound_refs(before, role)
     }
+
+
+def bound_refs(entities: dict[str, Any] | None, role: str) -> set[str]:
+    """The refs an identity's `entities` binds `role` to, its string items;
+    a binding of another type, or an item of one, reads as absent."""
+    return {ref for ref in read_list(entities, role) or [] if isinstance(ref, str)}
 
 
 def sentence_entry(
@@ -2571,7 +2577,9 @@ def expected_outcomes(
     columns.
 
     Raises:
-        ValueError: The exchanges do not fit the steps.
+        ValueError: The exchanges do not fit the steps, or deriving an
+            outcome raised, so the record names its own problem and the
+            other records are still checked.
     """
     replay = _Replay(
         record["exchanges"],
@@ -2586,6 +2594,10 @@ def expected_outcomes(
         outcomes = [replay.step(step) for step in record["call"]]
     except (_UnfitError, KeyError, IndexError, StopIteration, ValueError) as exc:
         raise ValueError(f"the exchanges do not fit the steps: {exc!r}") from exc
+    # Any other exception is a malformed record the rules missed: it is this
+    # record's problem, and the other records are still checked.
+    except Exception as exc:
+        raise ValueError(f"deriving its outcomes raised {exc!r}") from exc
     if replay.cursor != len(replay.exchanges):
         raise ValueError(
             f"the steps never make exchanges {replay.cursor} to "
