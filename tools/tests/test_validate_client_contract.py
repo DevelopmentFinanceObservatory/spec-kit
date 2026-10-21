@@ -194,6 +194,60 @@ def _last_response(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return lambda doc: change(doc["exchanges"][-1]["response"])
 
 
+_RETRY_503 = "scenarios/search-retry-after-503.json"
+
+
+def _repeat(index: int, times: int) -> Callable[[Any], None]:
+    """Exchange `index` answers `times` more times before the next one."""
+
+    def change(doc: Any) -> None:
+        exchange = doc["exchanges"][index]
+        for _ in range(times):
+            doc["exchanges"].insert(index, copy.deepcopy(exchange))
+
+    return change
+
+
+def _refused_400(doc: Any) -> None:
+    """The first search is refused 400 request_invalid, then answered."""
+    doc["exchanges"][0]["response"]["json"].update(
+        type="/codes/request_invalid",
+        title="Bad Request",
+        status=400,
+        code="request_invalid",
+        retryable=False,
+    )
+    doc["exchanges"][0]["response"]["status"] = 400
+
+
+def _swap_builds(doc: Any) -> None:
+    """The two builds post each other's input."""
+    first, second = doc["exchanges"][1]["request"], doc["exchanges"][4]["request"]
+    first["json"]["input"], second["json"]["input"] = (
+        second["json"]["input"],
+        first["json"]["input"],
+    )
+
+
+def _poll_other_operation(doc: Any) -> None:
+    for exchange in doc["exchanges"]:
+        if exchange["request"].get("path", "").startswith("/datasets/operations/"):
+            exchange["request"]["path"] = "/datasets/operations/op_" + "f" * 64
+
+
+def _made_up_code(doc: Any) -> None:
+    doc["exchanges"][0]["response"]["json"]["code"] = "made_up_code"
+    doc["expect"][0]["error"]["code"] = "made_up_code"
+
+
+def _drop_paths(prefix: str) -> Callable[[Any], None]:
+    def change(doc: Any) -> None:
+        for path in [p for p in doc["paths"] if p.startswith(prefix)]:
+            del doc["paths"][path]
+
+    return change
+
+
 def _versions_forbidden(response: Any) -> None:
     """The versions route refuses 403 publish_not_permitted."""
     response.update(
@@ -292,7 +346,7 @@ def _versions_forbidden(response: Any) -> None:
         ),
         (
             _FETCH,
-            lambda doc: doc["exchanges"][1]["request"].update(method="POST"),
+            lambda doc: doc["exchanges"][1]["request"].update(method="POST", json={}),
             "serves no POST",
         ),
         (
@@ -469,7 +523,7 @@ def _versions_forbidden(response: Any) -> None:
             "where the rules post",
         ),
         (
-            "scenarios/choose-place-beside-definite.json",
+            "scenarios/choose-option-beside-definite.json",
             _posted(0, lambda entry: entry.update(entry_kind="parsed")),
             "where the rules post",
         ),
@@ -709,7 +763,7 @@ def _versions_forbidden(response: Any) -> None:
         (
             "scenarios/fetch-spec-strict-warning.json",
             _set_body(0, lambda body: body["warnings"][0].update(severity="info")),
-            "the steps make a GET origin the record lacks",
+            "the steps make a GET /api/datasets/",
         ),
         (
             "scenarios/fetch-spec-digest-mismatch.json",
@@ -726,7 +780,7 @@ def _versions_forbidden(response: Any) -> None:
         (
             "scenarios/fetch-spec-resubmit-other-spec.json",
             _resubmit_answers_built,
-            "the steps make a GET origin the record lacks",
+            "the steps make a GET /api/datasets/",
         ),
         (
             "scenarios/fetch-frame-several-readings.json",
@@ -771,6 +825,76 @@ def _versions_forbidden(response: Any) -> None:
             "where the steps make a GET",
         ),
         (_NOT_REPRODUCIBLE, _last_response(_versions_forbidden), "step 0 expects"),
+        (_RETRY_503, _repeat(0, 2), "the steps never make exchanges"),
+        (
+            _RETRY_503,
+            _set_body(0, lambda body: body.update(retryable=False)),
+            "the steps never make exchanges",
+        ),
+        (_RETRY_503, _refused_400, "the steps never make exchanges"),
+        (
+            "scenarios/fetch-retry-after-504.json",
+            _repeat(1, 1),
+            "the steps never make exchanges",
+        ),
+        (
+            "scenarios/answer-candidates-choose-fetch.json",
+            lambda doc: doc["exchanges"][1]["request"].pop("json"),
+            "scenarios/answer-candidates-choose-fetch.json: schema",
+        ),
+        (
+            _REBOUND,
+            lambda doc: doc["exchanges"][0]["request"].pop("json"),
+            "scenarios/fetch-spec-entity-rebound.json: schema",
+        ),
+        (
+            "scenarios/answer-several-readings-folded.json",
+            _swap_builds,
+            "where the rules post",
+        ),
+        (
+            "scenarios/mint-async-build.json",
+            _poll_other_operation,
+            "where the steps make a GET /datasets/operations/op_",
+        ),
+        (
+            "scenarios/fetch-spec-known-sentence.json",
+            lambda doc: doc["exchanges"][2]["request"].update(
+                url="https://storage.googleapis.com/other-bucket/other-object"
+                "?X-Goog-Signature=redacted"
+            ),
+            "where the steps make a GET https://storage.googleapis.com/",
+        ),
+        (
+            "scenarios/fetch-spec-known-sentence.json",
+            lambda doc: doc["exchanges"][1]["response"]["headers"].pop("location"),
+            "names no location",
+        ),
+        (
+            "scenarios/fetch-spec-member-not-resolvable.json",
+            _made_up_code,
+            "problem code 'made_up_code' is not in the registry",
+        ),
+        (
+            "scenarios/mint-async-build.json",
+            lambda doc: doc["exchanges"][0]["response"].update(status=200),
+            "a mint step's build answers 200; a mint expects an operation",
+        ),
+        (
+            "served/openapi.json",
+            _drop_paths("/api/graph/"),
+            "no route under /api/graph",
+        ),
+        (
+            "served/openapi.json",
+            lambda doc: doc["paths"].update({"/api/skills": {}}),
+            "/api/skills is under no deployed surface",
+        ),
+        (
+            "scenarios/fetch-ref-newest-version.json",
+            _set_outcome(0, lambda o: o["newest_version"].update(content_version=None)),
+            "step 0 expects",
+        ),
         (
             "scenarios/mint-async-build.json",
             _set_step(0, window=[2020, 2023]),
@@ -882,6 +1006,21 @@ def _versions_forbidden(response: Any) -> None:
         "picked-sentence-not-taken-from-the-response",
         "versions-without-limit",
         "versions-forbidden-raises",
+        "retry-past-the-budget",
+        "retry-of-a-refusal-not-retryable",
+        "retry-of-a-400",
+        "build-504-retried-twice",
+        "pick-posted-without-a-body",
+        "build-posted-without-a-body",
+        "builds-in-another-order",
+        "poll-of-another-operation",
+        "signed-url-not-the-redirect",
+        "redirect-without-location",
+        "synthetic-problem-code-unregistered",
+        "mint-answering-200",
+        "served-document-without-graph",
+        "served-document-with-skills",
+        "newest-version-not-the-listed-one",
         "mint-step-narrowed",
     ],
 )

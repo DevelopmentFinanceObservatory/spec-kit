@@ -13,7 +13,9 @@ Usage:
 Checks that every packaged schema is valid draft 2020-12 and that every
 document validates against its schema, then what the schemas cannot express:
 
-- `served/SOURCE.json` names a 40-character dfo-apis commit.
+- `served/SOURCE.json` names a 40-character dfo-apis commit, and
+  `served/openapi.json` holds routes under each of SURFACE_PREFIXES and none
+  outside them and PLATFORM_PREFIXES.
 - Every `strict-fields.json` pointer resolves in `served/openapi.json` and
   names each property once. A required entry's property stays in its schema's
   `required` list and admits no null; an enum entry's property admits every
@@ -35,8 +37,9 @@ document validates against its schema, then what the schemas cannot express:
   parent names. In a recorded scenario each API request matches a route and
   method in `served/openapi.json`, its JSON body validates against the
   route's request schema, each JSON response body validates against the
-  route's schema for its status, and a problem document's `code` is an active
-  code registered with that status.
+  route's schema for its status, a required member included when it admits
+  null. In every scenario a problem document's `code`, a failed operation's
+  error included, is an active code registered with its status.
 - Each error a scenario expects, other than a `SearchWarning` or
   `DataWarning`, carries a refusal's code from its exchanges, a failed
   operation's included, or a client code of its class.
@@ -50,7 +53,11 @@ document validates against its schema, then what the schemas cannot express:
   record holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity with the
   entity groups of the roles its build left bound as they were, and each
-  build posts the options its layout gives. Every
+  build posts the body `build_body` gives for the spec the step builds, its
+  narrowing and its layout. A POST carries its body, a refused request
+  repeated is a retry only as `may_retry` allows, each poll names the
+  operation the client holds, and each signed download is the `location` the
+  files route answered. Every
   absolute URL a record holds, a `url` request or a `location` header, has
   the query `X-Goog-Signature=redacted`.
 - Each ref example's file name matches its `name` and gets the verdict it
@@ -60,9 +67,7 @@ document validates against its schema, then what the schemas cannot express:
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once.
 
-A recorded body is checked with one allowance: a required member whose schema
-admits null may be absent, because the server leaves null members out of the
-bodies it serves. It does not import `dfo_client_contract`, whose tests replay
+It does not import `dfo_client_contract`, whose tests replay
 the rule vectors. `tools/capture_client_contract.py` imports the outcome
 rules from here, so the records are written by the code that checks them.
 """
@@ -208,6 +213,34 @@ def _allowed_values(openapi: dict[str, Any], schema: Any) -> set[str]:
             values.add(branch["const"])
         values.update(branch.get("enum", []))
     return values
+
+
+# The route prefixes of the surfaces the deployed composition mounts, and of
+# the platform routes beside them. The served document holds these and only
+# these.
+SURFACE_PREFIXES = ("/api/search", "/api/datasets", "/api/graph", "/api/presentation")
+PLATFORM_PREFIXES = ("/codes",)
+
+
+def surface_problems(openapi: Mapping[str, Any]) -> list[str]:
+    """A surface of SURFACE_PREFIXES the document lacks, and a path under no
+    surface or platform prefix."""
+
+    def under(path: str, prefix: str) -> bool:
+        return path == prefix or path.startswith(prefix + "/")
+
+    paths = list(openapi.get("paths", {}))
+    problems = [
+        f"served/openapi.json: no route under {prefix}, so its surface is not mounted"
+        for prefix in SURFACE_PREFIXES
+        if not any(under(path, prefix) for path in paths)
+    ]
+    problems.extend(
+        f"served/openapi.json: {path} is under no deployed surface"
+        for path in paths
+        if not any(under(path, p) for p in (*SURFACE_PREFIXES, *PLATFORM_PREFIXES))
+    )
+    return problems
 
 
 def _check_source(source: Any) -> list[str]:
@@ -578,6 +611,23 @@ RETRYABLE_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 _PROXY_RETRY = "retry_after_delay"
 # The retries a client makes by default after a retryable refusal.
 MAX_RETRIES = 2
+# A build cut off by a retryable 504 is posted once more only.
+MAX_BUILD_TIMEOUT_RETRIES = 1
+
+
+def may_retry(
+    request: Mapping[str, Any], response: Mapping[str, Any], used: int
+) -> bool:
+    """Whether a client sends `request` again after `response`, having retried
+    it `used` times: the response is a retryable refusal and the retries stay
+    within MAX_RETRIES, or within MAX_BUILD_TIMEOUT_RETRIES for a build cut
+    off by a 504."""
+    status = response["status"]
+    if status < 400 or not retryable(status, response.get("json")):
+        return False
+    build = request["method"] == "POST" and request.get("path") == "/datasets"
+    limit = MAX_BUILD_TIMEOUT_RETRIES if build and status == 504 else MAX_RETRIES
+    return used < limit
 
 
 def gap_kinds(actions: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
@@ -1179,7 +1229,8 @@ class _UnfitError(Exception):
 
 _SEARCH = ("POST", "/search/resolve")
 _BUILD = ("POST", "/datasets")
-_POLL = ("GET", "/datasets/operations/")
+# The path a client polls an operation at, under the base URL.
+POLL_PATH = "/datasets/operations/{operation_id}"
 _MANIFEST = {"$ref": "#/components/schemas/Manifest"}
 _OPERATION = {"$ref": "#/components/schemas/OperationResource"}
 # The bare Parquet rendering a fetch asks for, by layout.
@@ -1237,6 +1288,24 @@ def versions_path(spec_id: str) -> str:
     """The versions route asked for the newest stored version alone: the
     route lists versions newest first, so `limit=1` returns just it."""
     return f"/datasets/{spec_id}/versions?limit=1"
+
+
+def build_body(
+    spec: Mapping[str, Any],
+    scope: Mapping[str, Any] | None,
+    rendering: Mapping[str, Any],
+) -> dict[str, Any]:
+    """The body a client posts to build `spec`, a step's `spec` or a ref's:
+    its spec_id and unmodified definition, `scope` when it narrows anything,
+    and `rendering` as the options."""
+    input_: dict[str, Any] = {
+        "kind": "spec_id",
+        "spec_id": spec["spec_id"],
+        "definition": spec["definition"],
+    }
+    if scope:
+        input_["scope"] = dict(scope)
+    return {"schema_version": 1, "input": input_, "options": dict(rendering)}
 
 
 def pick_artifact(
@@ -1468,35 +1537,34 @@ class _Replay:
 
     # -- exchanges --
 
-    def call(self, method: str, target: str, *, retries: bool = True) -> dict[str, Any]:
-        """The exchange a client acts on for its next request: with `retries`,
-        the last of a run that repeats one request, each refusal before it a
-        retry. `target` is a path under the base URL, a path prefix ending in
-        `/`, `origin` for a root-relative URL or `url` for an absolute one."""
+    def call(
+        self, method: str, target: str, *, kind: str = "path", retries: bool = True
+    ) -> dict[str, Any]:
+        """The exchange a client acts on for its next request, whose `kind`,
+        `path`, `origin_path` or `url`, is exactly `target`. With `retries`,
+        a refusal followed by the same request is retried as `may_retry`
+        allows, and the last exchange of the run is the one acted on."""
         if self.cursor >= len(self.exchanges):
             raise _UnfitError(f"the steps make a {method} {target} the record lacks")
         exchange = self.exchanges[self.cursor]
         request = exchange["request"]
-        actual = request.get("path") or (
-            "origin" if "origin_path" in request else "url"
-        )
-        fits = request["method"] == method and (
-            actual == target or (target.endswith("/") and actual.startswith(target))
-        )
-        if not fits:
+        if request["method"] != method or request.get(kind) != target:
+            actual = request.get("path") or request.get("origin_path") or request["url"]
             raise _UnfitError(
                 f"exchange {self.cursor} is {request['method']} {actual}, where the "
                 f"steps make a {method} {target}"
             )
         self.cursor += 1
+        used = 0
         while (
             retries
-            and exchange["response"]["status"] >= 400
             and self.cursor < len(self.exchanges)
             and self.exchanges[self.cursor]["request"] == request
+            and may_retry(request, exchange["response"], used)
         ):
             exchange = self.exchanges[self.cursor]
             self.cursor += 1
+            used += 1
         return exchange
 
     def acted_on(self, exchange: dict[str, Any], schema: Any = None) -> Any:
@@ -1531,18 +1599,18 @@ class _Replay:
     def download(self, target: str, digest: str, *, origin: bool) -> None:
         """A file through the route that redirects to its signed URL: an
         artifact's root-relative `url` when `origin`, else a path under the
-        base URL. A refused signed URL, or bytes that do not hash to `digest`,
-        ask the route once more, and a second failure raises."""
+        base URL. The client fetches the URL the route's `location` names. A
+        refused signed URL, or bytes that do not hash to `digest`, ask the
+        route once more, and a second failure raises."""
         failure = ClientError("download_failed")
         for _ in range(2):
-            exchange = self.call("GET", "origin" if origin else target)
-            asked = exchange["request"].get("origin_path", target)
-            if asked != target:
-                raise _UnfitError(
-                    f"the record asks {asked}, where the rules ask {target}"
-                )
+            kind = "origin_path" if origin else "path"
+            exchange = self.call("GET", target, kind=kind)
             self.acted_on(exchange)
-            signed = self.call("GET", "url", retries=False)["response"]
+            location = exchange["response"].get("headers", {}).get("location")
+            if not isinstance(location, str):
+                raise _UnfitError(f"the redirect from {target} names no location")
+            signed = self.call("GET", location, kind="url", retries=False)["response"]
             if signed["status"] >= 400:
                 failure = ClientError("download_failed")
                 continue
@@ -1552,11 +1620,10 @@ class _Replay:
         raise failure
 
     def resolve(self, posts: dict[str, Any]) -> Answer:
-        """A Search request whose recorded body, when it has one, posts the
-        input `posts`."""
+        """A Search request whose recorded body posts the input `posts`."""
         exchange = self.call(*_SEARCH)
         sent = exchange["request"].get("json")
-        if sent is not None and sent.get("input") != posts:
+        if not isinstance(sent, dict) or sent.get("input") != posts:
             raise _UnfitError(
                 f"exchange {self.cursor - 1} posts {json.dumps(sent.get('input'))[:300]}"
                 f", where the rules post {json.dumps(posts)[:300]}"
@@ -1566,34 +1633,33 @@ class _Replay:
     # -- builds --
 
     def posted_build(
-        self, rendering: dict[str, Any], scope: dict[str, Any] | None
+        self,
+        spec: Mapping[str, Any],
+        rendering: dict[str, Any],
+        scope: dict[str, Any] | None,
     ) -> dict[str, Any]:
-        """A build request whose recorded body, when it has one, posts
-        `rendering` as its options and `scope` as its input's scope."""
+        """A build request whose recorded body is the one `build_body` gives
+        for `spec`, `scope` and `rendering`."""
         exchange = self.call(*_BUILD)
         sent = exchange["request"].get("json")
-        if sent is None:
-            return exchange
-        if sent.get("options") != rendering:
+        posts = build_body(spec, scope, rendering)
+        if sent != posts:
             raise _UnfitError(
-                f"exchange {self.cursor - 1} posts options {sent.get('options')}, "
-                f"where the rules post {rendering}"
-            )
-        if "input" in sent and sent["input"].get("scope") != scope:
-            raise _UnfitError(
-                f"exchange {self.cursor - 1} posts scope "
-                f"{json.dumps(sent['input'].get('scope'))}, where the rules post "
-                f"{json.dumps(scope)}"
+                f"exchange {self.cursor - 1} posts {json.dumps(sent)[:300]}, "
+                f"where the rules post {json.dumps(posts)[:300]}"
             )
         return exchange
 
     def build(
-        self, rendering: dict[str, Any], scope: dict[str, Any] | None = None
+        self,
+        spec: Mapping[str, Any],
+        rendering: dict[str, Any],
+        scope: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """A build of the latest version, posting `rendering` as its options
-        and `scope` as its input's scope: the manifest it answers, through a
-        long build when it answers 202."""
-        exchange = self.posted_build(rendering, scope)
+        """A build of `spec`'s latest version, posting `rendering` as its
+        options and `scope` as its input's scope: the manifest it answers,
+        through a long build when it answers 202."""
+        exchange = self.posted_build(spec, rendering, scope)
         if exchange["response"]["status"] != 202:
             return self.acted_on(exchange)
         resource = self.acted_on(exchange, _OPERATION)
@@ -1612,7 +1678,8 @@ class _Replay:
         self.long_builds.append(build.entry)
         while build.result is None:
             build.next_wait()
-            response = self.call(*_POLL, retries=False)["response"]
+            path = POLL_PATH.format(operation_id=build.entry["operation_id"])
+            response = self.call("GET", path, retries=False)["response"]
             body = response.get("json")
             if response["status"] < 400:
                 self.strict(_OPERATION, body)
@@ -1643,7 +1710,7 @@ class _Replay:
         strict: bool,
     ) -> dict[str, Any]:
         """One member: the build, then the member's files."""
-        return self.member(parts, spec, self.build(rendering), rendering, strict)
+        return self.member(parts, spec, self.build(spec, rendering), rendering, strict)
 
     def member(
         self,
@@ -1721,7 +1788,7 @@ class _Replay:
                 return stored
 
         try:
-            manifest = self.build(rendering)
+            manifest = self.build(spec, rendering)
         except ClientError as error:
             if error.error_class(self.client_codes) not in REBUILD_REFUSED:
                 raise
@@ -1859,7 +1926,7 @@ class _Replay:
 
     def _fetch_spec(self, step: dict[str, Any]) -> dict[str, Any]:
         rendering = rendering_for(step.get("layout"))
-        manifest = self.build(rendering, posted_scope(step))
+        manifest = self.build(step["spec"], rendering, posted_scope(step))
         strict = step.get("strict", False)
         member = self.member([], step["spec"], manifest, rendering, strict)
         return {"dataset": dataset_summary([member], [])}
@@ -1870,9 +1937,11 @@ class _Replay:
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
         rendering = rendering_for(step.get("layout"))
-        exchange = self.posted_build(rendering, None)
+        exchange = self.posted_build(step["spec"], rendering, None)
         if exchange["response"]["status"] == 200:
-            raise _UnfitError("a mint step's build answers an operation")
+            raise _UnfitError(
+                "a mint step's build answers 200; a mint expects an operation"
+            )
         resource = self.acted_on(exchange, _OPERATION)
         headers = exchange["response"].get("headers", {})
         self.minted = _Minted(
@@ -1881,12 +1950,17 @@ class _Replay:
         return _operation_outcome(resource)
 
     def _operation(self, step: dict[str, Any]) -> dict[str, Any]:
-        exchange = self.call("GET", f"/datasets/operations/{step['operation_id']}")
+        exchange = self.call("GET", POLL_PATH.format(operation_id=step["operation_id"]))
         resource = self.acted_on(exchange, _OPERATION)
         headers = exchange["response"].get("headers", {})
         rendering = rendering_for(step.get("layout"))
         self.minted = _Minted(resource, headers, None, None, rendering)
         return _operation_outcome(resource)
+
+    def _newest_version(self, step: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "newest_version": {"content_version": self.newest(step["spec"]["spec_id"])}
+        }
 
     def _result(self, step: dict[str, Any]) -> dict[str, Any]:
         if self.minted is None:
@@ -2128,17 +2202,29 @@ def _check_scenarios(
         problems.extend(_check_body_files(file_name, record, parent, directory))
         recorded = parent or record
         base_path = urlsplit(recorded["origin"]["base_url"]).path.rstrip("/")
-        if origin["kind"] == "recorded":
-            for index, exchange in enumerate(record["exchanges"]):
+        for index, exchange in enumerate(record["exchanges"]):
+            label = f"scenarios/{file_name}: exchange {index}"
+            if origin["kind"] == "recorded":
                 problems.extend(
-                    _check_exchange(
-                        f"scenarios/{file_name}: exchange {index}",
-                        exchange,
-                        base_path,
-                        routes,
-                        registry,
-                    )
+                    _check_exchange(label, exchange, base_path, routes, registry)
                 )
+            elif "json" in exchange["response"]:
+                problems.extend(
+                    _check_problem_code(label, exchange["response"], registry)
+                )
+        for resource in _failed_operations(record):
+            error = resource.get("error")
+            status = error.get("status") if isinstance(error, dict) else None
+            problems.extend(
+                _check_problem_code(
+                    f"scenarios/{file_name}: failed operation",
+                    {
+                        "status": status if isinstance(status, int) else 500,
+                        "json": error,
+                    },
+                    registry,
+                )
+            )
         try:
             derived = expected_outcomes(
                 record,
@@ -2326,6 +2412,7 @@ def validate() -> list[str]:
     openapi = _load(PACKAGE_DIR / "served" / "openapi.json")
     registry = _load(REGISTRY_PATH)
     problems = _check_source(_load(PACKAGE_DIR / "served" / "SOURCE.json"))
+    problems.extend(surface_problems(openapi))
 
     strict = _load(PACKAGE_DIR / "strict-fields.json")
     errors = _schema_problems(

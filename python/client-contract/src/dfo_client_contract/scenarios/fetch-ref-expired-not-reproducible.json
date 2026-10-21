@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "fetch-ref-expired-not-reproducible",
-  "description": "When the stored version has expired and the build is refused, the client asks the versions route for the newest version alone with limit=1, since the route lists versions newest first, and raises VersionUnavailableError with the snapshot's artifact_expired code and that version as the newest.",
+  "description": "When the stored version has expired and the build is refused, the client asks the versions route for the newest version alone with limit=1, and raises VersionUnavailableError with the snapshot's artifact_expired code and that version as the newest.",
   "origin": {
     "kind": "synthetic",
-    "derived_from": "fetch-ref",
-    "edit": "The snapshot refuses 410 artifact_expired and the rebuild 422 member_not_resolvable; the versions route is recorded live."
+    "derived_from": "fetch-ref-newest-version",
+    "edit": "A fetch of a ref to the listed version, its unreached artifact digest all zeros, whose snapshot refuses 410 artifact_expired and whose rebuild refuses 422 member_not_resolvable, comes before the parent's versions exchange."
   },
   "call": [
     {
@@ -14,9 +14,7 @@
         "format_version": 1,
         "members": [
           {
-            "parts": [
-              "basic health care ODA disbursements"
-            ],
+            "parts": [],
             "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
             "spec": {
               "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
@@ -24,64 +22,64 @@
                 "schema_version": 1,
                 "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
                 "identity": {
+                  "identity_version": "spec1",
                   "shape": {
                     "kind": "statvar_schema",
-                    "stat_type": "measuredValue",
                     "population_type": "FinancialFlow",
                     "measured_property": "amount",
+                    "stat_type": "measuredValue",
                     "measurement_qualifier": "Nominal"
                   },
                   "slots": [
                     {
+                      "property": "crsCooperationModality",
                       "binding": {
                         "state": "unbound"
-                      },
-                      "property": "crsCooperationModality"
+                      }
                     },
                     {
+                      "property": "crsPurpose",
                       "binding": {
-                        "ref": "CRSPurposeCode12220",
-                        "state": "value"
-                      },
-                      "property": "crsPurpose"
+                        "state": "value",
+                        "ref": "CRSPurposeCode12220"
+                      }
                     },
                     {
+                      "property": "crsTypeOfFinance",
                       "binding": {
                         "state": "unbound"
-                      },
-                      "property": "crsTypeOfFinance"
+                      }
                     },
                     {
+                      "property": "crsTypeOfFlow",
                       "binding": {
-                        "ref": "CRSTypeOfFlow10",
-                        "state": "value"
-                      },
-                      "property": "crsTypeOfFlow"
+                        "state": "value",
+                        "ref": "CRSTypeOfFlow10"
+                      }
                     },
                     {
+                      "property": "financialFlowType",
                       "binding": {
-                        "ref": "Disbursement",
-                        "state": "value"
-                      },
-                      "property": "financialFlowType"
+                        "state": "value",
+                        "ref": "Disbursement"
+                      }
                     },
                     {
+                      "property": "nettingBasis",
                       "binding": {
-                        "ref": "Gross",
-                        "state": "value"
-                      },
-                      "property": "nettingBasis"
+                        "state": "value",
+                        "ref": "Gross"
+                      }
                     }
                   ],
                   "entities": {
-                    "origin": [
-                      "country/DEU"
-                    ],
                     "destination": [
                       "country/NGA"
+                    ],
+                    "origin": [
+                      "country/DEU"
                     ]
                   },
-                  "identity_version": "spec1",
                   "requested_window": {
                     "kind": "all"
                   }
@@ -90,7 +88,7 @@
             },
             "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
             "artifact": {
-              "digest": "sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde",
+              "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
               "rendering": {
                 "format": "parquet",
                 "bundle": false
@@ -137,64 +135,64 @@
               "schema_version": 1,
               "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
               "identity": {
+                "identity_version": "spec1",
                 "shape": {
                   "kind": "statvar_schema",
-                  "stat_type": "measuredValue",
                   "population_type": "FinancialFlow",
                   "measured_property": "amount",
+                  "stat_type": "measuredValue",
                   "measurement_qualifier": "Nominal"
                 },
                 "slots": [
                   {
+                    "property": "crsCooperationModality",
                     "binding": {
                       "state": "unbound"
-                    },
-                    "property": "crsCooperationModality"
+                    }
                   },
                   {
+                    "property": "crsPurpose",
                     "binding": {
-                      "ref": "CRSPurposeCode12220",
-                      "state": "value"
-                    },
-                    "property": "crsPurpose"
+                      "state": "value",
+                      "ref": "CRSPurposeCode12220"
+                    }
                   },
                   {
+                    "property": "crsTypeOfFinance",
                     "binding": {
                       "state": "unbound"
-                    },
-                    "property": "crsTypeOfFinance"
+                    }
                   },
                   {
+                    "property": "crsTypeOfFlow",
                     "binding": {
-                      "ref": "CRSTypeOfFlow10",
-                      "state": "value"
-                    },
-                    "property": "crsTypeOfFlow"
+                      "state": "value",
+                      "ref": "CRSTypeOfFlow10"
+                    }
                   },
                   {
+                    "property": "financialFlowType",
                     "binding": {
-                      "ref": "Disbursement",
-                      "state": "value"
-                    },
-                    "property": "financialFlowType"
+                      "state": "value",
+                      "ref": "Disbursement"
+                    }
                   },
                   {
+                    "property": "nettingBasis",
                     "binding": {
-                      "ref": "Gross",
-                      "state": "value"
-                    },
-                    "property": "nettingBasis"
+                      "state": "value",
+                      "ref": "Gross"
+                    }
                   }
                 ],
                 "entities": {
-                  "origin": [
-                    "country/DEU"
-                  ],
                   "destination": [
                     "country/NGA"
+                  ],
+                  "origin": [
+                    "country/DEU"
                   ]
                 },
-                "identity_version": "spec1",
                 "requested_window": {
                   "kind": "all"
                 }

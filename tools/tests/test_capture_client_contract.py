@@ -61,9 +61,6 @@ def _without_shapes(expect: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return expect
 
 
-_LIVE = sorted(d.name for d in capture.SYNTHETIC if d.live)
-
-
 def test_every_record_has_a_definition_and_every_definition_a_record() -> None:
     for kind, definitions in (
         ("recorded", capture.RECORDED),
@@ -72,7 +69,7 @@ def test_every_record_has_a_definition_and_every_definition_a_record() -> None:
         assert sorted(d.name for d in definitions) == _records(kind)
 
 
-@pytest.mark.parametrize("name", [*_records("recorded"), *_LIVE])
+@pytest.mark.parametrize("name", _records("recorded"))
 def test_the_recorder_reproduces_each_record_from_its_steps(name: str) -> None:
     record = _load(name)
     served = capture.Served(record, SCENARIOS)
@@ -183,7 +180,7 @@ def test_a_record_whose_signed_url_names_the_local_host_is_refused(
         capture._refuse_local_host(record, base_url)
 
 
-@pytest.mark.parametrize("name", [n for n in _records("synthetic") if n not in _LIVE])
+@pytest.mark.parametrize("name", _records("synthetic"))
 def test_each_derived_record_follows_from_its_parent(name: str) -> None:
     record = _load(name)
     definition = next(d for d in capture.SYNTHETIC if d.name == name)
@@ -213,9 +210,56 @@ def test_an_offline_rederivation_rewrites_only_the_expect(tmp_path: Path) -> Non
     assert fresh == (SCENARIOS / f"{name}.json").read_text(encoding="utf-8")
 
 
-def test_an_offline_run_refuses_a_live_scenario() -> None:
-    with pytest.raises(SystemExit, match="derives no live scenario"):
-        capture.main(["record", "--offline", "--only", _LIVE[0]])
+def test_a_recorder_refuses_a_request_that_is_not_the_next_canned_one() -> None:
+    def transport(method: str, url: str, **kwargs: Any) -> Any:
+        raise AssertionError(f"{method} {url} reached the network")
+
+    canned = [
+        {
+            "request": {"method": "GET", "path": "/datasets/a"},
+            "response": {"status": 200},
+        }
+    ]
+    recorder = capture.Recorder("s", capture.DEV_BASE_URL, transport, canned=canned)
+    with pytest.raises(SystemExit, match="is not the canned request"):
+        recorder.api("GET", "/datasets/b")
+
+
+def test_a_recorded_scenario_answered_by_a_canned_exchange_is_refused(
+    tmp_path: Path,
+) -> None:
+    canned = {
+        "request": {"method": "GET", "path": "/datasets/a"},
+        "response": {"status": 200, "json": {}},
+    }
+
+    def run(s: Any, ctx: Any) -> None:
+        s.recorder.canned = [canned]
+        s.recorder.api("GET", "/datasets/a")
+
+    def transport(method: str, url: str, **kwargs: Any) -> Any:
+        raise AssertionError(f"{method} {url} reached the network")
+
+    definition = capture.Recorded("s", "None.", run)
+    ctx = capture.Context(capture.DEV_BASE_URL, transport, ACTIONS, CLIENT_CODES)
+    with pytest.raises(SystemExit, match="1 were canned"):
+        capture.record_recorded(definition, ctx, tmp_path)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_a_synthetic_derivation_makes_no_request(tmp_path: Path) -> None:
+    (tmp_path / "parent.json").write_text(json.dumps({"exchanges": []}))
+
+    def derive(parent: dict[str, Any], ctx: Any) -> Any:
+        ctx.session("synthetic").search("anything")
+
+    def transport(method: str, url: str, **kwargs: Any) -> Any:
+        raise AssertionError(f"{method} {url} reached the network")
+
+    definition = capture.Synthetic("s", "parent", "None.", "None.", derive)
+    ctx = capture.Context(capture.DEV_BASE_URL, transport, ACTIONS, CLIENT_CODES)
+    with pytest.raises(SystemExit, match="makes no request"):
+        capture.record_synthetic(definition, ctx, tmp_path)
 
 
 def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:

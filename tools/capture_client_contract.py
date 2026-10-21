@@ -29,7 +29,8 @@ Each recorded scenario checks that its live answer still has the shape the
 scenario is named for and refuses to write one that does not. With
 `--offline` no request is made: each recorded scenario's steps run again
 over its own exchanges and rewrite its `expect`, and each synthetic scenario
-that records nothing live is derived again from its parent. Synthetic
+is derived again from its parent. A synthetic derivation makes no request
+in either mode. Synthetic
 scenarios are derived from the recorded records after them, so a recording
 refreshes both, and a synthetic record names its parent's body files rather
 than copies. Every absolute URL a record keeps, a signed download or a
@@ -63,7 +64,7 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
@@ -73,6 +74,7 @@ from validate_client_contract import (
     FILE_EXPIRED,
     FILE_GONE,
     NO_VERSIONS,
+    POLL_PATH,
     REBUILD_REFUSED,
     VERSION_UNAVAILABLE,
     Answer,
@@ -82,6 +84,7 @@ from validate_client_contract import (
     answer_gaps,
     answer_members,
     answer_outcome,
+    build_body,
     choice_for,
     choice_input,
     data_warning,
@@ -100,6 +103,7 @@ from validate_client_contract import (
     search_warns,
     selector_path,
     sentence_entry,
+    surface_problems,
     versions_path,
 )
 from validate_client_contract import main as validate_main
@@ -114,7 +118,6 @@ BINARY_BUDGET = 5_000_000
 RENDERING = {"format": "parquet", "bundle": False}
 # The response headers a client reads, and so the ones a record keeps.
 KEPT_HEADERS = ("content-type", "location", "retry-after")
-POLL_PATH = "/datasets/operations/{operation_id}"
 
 
 def dump_json(document: Any) -> str:
@@ -227,7 +230,13 @@ def capture_openapi(checkout: Path) -> tuple[dict[str, Any], str]:
         )
         if result.returncode != 0:
             raise SystemExit(f"the capture failed in {checkout}:\n{result.stderr}")
-        return json.loads(out.read_text(encoding="utf-8")), commit
+        document = json.loads(out.read_text(encoding="utf-8"))
+    if problems := surface_problems(document):
+        raise SystemExit(
+            "the captured document is not the deployed composition:\n"
+            + "\n".join(problems)
+        )
+    return document, commit
 
 
 def write_served(
@@ -340,17 +349,17 @@ _EXTENSIONS = {"application/vnd.apache.parquet": "parquet"}
 class Recorder:
     """Sends requests the way a client does and keeps each exchange.
 
-    `canned` exchanges are served in order, before the network, to the
-    requests that match them; `edit` rewrites each live JSON response body."""
+    `canned` exchanges answer the first requests, in order, before the
+    network; a request that is not the next canned one ends the run."""
 
     name: str
     base_url: str
     transport: Transport
     canned: list[dict[str, Any]] = field(default_factory=list)
-    edit: Callable[[Any], Any] | None = None
     exchanges: list[dict[str, Any]] = field(default_factory=list)
     bodies: dict[str, bytes] = field(default_factory=dict)
     commits: set[str] = field(default_factory=set)
+    canned_served: int = 0
 
     def api(self, method: str, path: str, json_body: Any = None) -> Response:
         """A request to `path` under the base URL."""
@@ -381,9 +390,15 @@ class Recorder:
         request: dict[str, Any] = {"method": method, **target}
         if json_body is not None:
             request["json"] = json_body
-        if self.canned and self.canned[0]["request"] == request:
+        if self.canned:
+            if self.canned[0]["request"] != request:
+                raise SystemExit(
+                    f"{self.name}: {method} {url} is not the canned request "
+                    f"{json.dumps(self.canned[0]['request'])[:300]}"
+                )
             exchange = self.canned.pop(0)
             self.exchanges.append(exchange)
+            self.canned_served += 1
             return _canned_response(exchange["response"])
 
         headers = {} if bare else {"user-agent": "dfo-client-contract-recorder/1"}
@@ -396,9 +411,6 @@ class Recorder:
         )
         if not bare and "x-dfo-commit" in response.headers:
             self.commits.add(response.headers["x-dfo-commit"])
-        if self.edit is not None and _is_json(response.headers.get("content-type", "")):
-            edited = json.dumps(self.edit(response.json())).encode()
-            response = Response(response.status, response.headers, edited)
         self.exchanges.append({"request": request, "response": self._keep(response)})
         return response
 
@@ -727,6 +739,17 @@ class Session:
 
         self._step({"op": "fetch", "ref": ref}, run)
 
+    def newest_version(self, spec: Spec) -> str | None:
+        """The newest stored version of `spec`, from the versions route."""
+        found: list[str | None] = []
+
+        def run() -> dict[str, Any]:
+            found.append(self._newest(spec.spec_id))
+            return {"newest_version": {"content_version": found[0]}}
+
+        self._step({"op": "newest_version", "spec": spec.step()}, run)
+        return found[0] if found else None
+
     def mint(self, spec: Spec, *, layout: str | None = None) -> str:
         operation: list[str] = []
 
@@ -1004,14 +1027,8 @@ def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
 def _build_body(
     spec: Spec, scope: dict[str, Any] | None, rendering: Mapping[str, Any]
 ) -> dict[str, Any]:
-    input_: dict[str, Any] = {
-        "kind": "spec_id",
-        "spec_id": spec.spec_id,
-        "definition": spec.definition,
-    }
-    if scope:
-        input_["scope"] = scope
-    return {"schema_version": 1, "input": input_, "options": dict(rendering)}
+    held = {"spec_id": spec.spec_id, "definition": spec.definition}
+    return build_body(held, scope, rendering)
 
 
 # --- scenarios --------------------------------------------------------------
@@ -1033,6 +1050,9 @@ CANDIDATES_BESIDE_GROUP = (
 TWO_CANDIDATES = "GNI of Germany and tax revenue of Kenya from 2015 to 2022"
 CANDIDATES_BESIDE_UNRESTATED = "GNI of Germany and debt of Kenya from 2015 to 2022"
 GROUP_DEFINITE = "GDP of the least developed countries"
+# A definite part whose places are a named group, beside a part whose
+# direction the question leaves open, which offers one option per direction.
+GROUP_BESIDE_OPTIONS = "GDP of sub-Saharan Africa, and debt of Kenya"
 GROUPED_FLOW = "Germany's ODA to the least developed countries"
 CANDIDATES_BESIDE_ASSUMED = "GNI of Germany and aid flows to Kenya"
 # Two specs just above the 100,000-row sync budget, one for the mint and one
@@ -1387,6 +1407,32 @@ def _choose_candidate_echoes_assumptions(s: Session, ctx: Context) -> None:
         )
 
 
+def _choose_option_beside_definite(s: Session, ctx: Context) -> None:
+    answer = s.search(GROUP_BESIDE_OPTIONS)
+    require(_statuses(answer) == ["definite", "no_data"], "definite, no_data")
+    require(
+        bool(answer.parts[0]["spec"]["resolved"].get("entity_groups")),
+        "the definite part names an entity group",
+    )
+    require(
+        bool(answer.parts[1]["no_data"].get("options")), "the no_data part has options"
+    )
+    chosen = s.choose(answer, 0, part=1)
+    require(
+        chosen is not None
+        and _statuses(chosen)[0] == "definite"
+        and _statuses(chosen)[1] in ("definite", "candidates"),
+        "part 0 stays definite and part 1 answers in the chosen direction",
+    )
+
+
+def _fetch_ref_newest_version(s: Session, ctx: Context) -> None:
+    (member,) = ctx.definite_ref()["members"]
+    spec = ctx.definite_spec(DEFINITE)
+    newest = s.newest_version(spec)
+    require(newest == member["content_version"], "the stored version is the newest")
+
+
 def _resubmit_placeholder(s: Session, ctx: Context) -> None:
     answer = s.search(CANDIDATES_BESIDE_UNRESTATED)
     require(_statuses(answer) == ["candidates", "no_data"], "candidates, no_data")
@@ -1599,6 +1645,21 @@ RECORDED = (
         _resubmit_candidates_sibling,
     ),
     Recorded(
+        "choose-option-beside-definite",
+        "Choosing option 0 on part 1, a no_data part whose direction the question leaves "
+        "open, beside a definite part whose places are a named group posts dataset_resubmit "
+        "with the definite part's identity, entity_groups and assumptions as an identity "
+        "entry, and the chosen option's data_query part as a parsed entry. Part 0 answers "
+        "definite again, and part 1 answers the debt read in the chosen direction.",
+        _choose_option_beside_definite,
+    ),
+    Recorded(
+        "fetch-ref-newest-version",
+        "The newest stored version of a spec is the one the versions route lists first, so "
+        "the client asks for it alone with limit=1. The route needs no key.",
+        _fetch_ref_newest_version,
+    ),
+    Recorded(
         "choose-candidate-echoes-assumptions",
         "Choosing candidate 0 on part 0 beside a definite part that states assumptions posts "
         "each identity entry with its reading's assumptions echoed: the chosen candidate's "
@@ -1675,15 +1736,14 @@ class Derived:
 
 @dataclass(frozen=True)
 class Synthetic:
-    """A scenario derived from a recorded one. A `live` derivation records
-    some of its exchanges against the base URL."""
+    """A scenario derived from a recorded one, with no request: its
+    derivation runs over a context whose transport refuses every request."""
 
     name: str
     derived_from: str
     edit: str
     description: str
     derive: Callable[[dict[str, Any], Context], Derived]
-    live: bool = False
 
 
 def _same(parent: dict[str, Any], exchanges: list[dict[str, Any]]) -> Derived:
@@ -1949,25 +2009,42 @@ def _expired_newer(parent: dict[str, Any], ctx: Context) -> Derived:
     )
 
 
+# The digest a ref names for a file the lookup never reaches.
+UNREACHED_DIGEST = "sha256:" + "0" * 64
+
+
 def _expired_not_reproducible(parent: dict[str, Any], ctx: Context) -> Derived:
-    """The parent's ref, its snapshot expired and its rebuild refused; the
-    versions route is recorded live."""
-    ref = copy.deepcopy(parent["call"][0]["ref"])
-    (member,) = ref["members"]
-    spec = Spec(member["spec"]["spec_id"], member["spec"]["definition"])
-    body = _build_body(spec, None, member["artifact"]["rendering"])
+    """A ref to the version the parent lists as newest, whose snapshot
+    refuses 410 artifact_expired and whose rebuild refuses 422
+    member_not_resolvable, then the parent's versions exchange."""
+    (step,) = parent["call"]
+    (outcome,) = parent["expect"]
+    version = outcome["newest_version"]["content_version"]
+    require(version is not None, "the parent lists a stored version")
+    spec = step["spec"]
+    ref = {
+        "format_version": 1,
+        "members": [
+            {
+                "parts": [],
+                "sentence": spec["sentence"],
+                "spec": {"spec_id": spec["spec_id"], "definition": spec["definition"]},
+                "content_version": version,
+                "artifact": {"digest": UNREACHED_DIGEST, "rendering": dict(RENDERING)},
+            }
+        ],
+    }
+    body = _build_body(_step_spec(spec), None, RENDERING)
     canned = [
         _snapshot_expired(ref),
         _refusal(
             {"method": "POST", "path": "/datasets", "json": body}, 422, _NOT_RESOLVABLE
         ),
+        *copy.deepcopy(parent["exchanges"]),
     ]
     session = ctx.session("synthetic", canned=canned)
     session.fetch_ref(ref)
-    require(
-        session.expect[-1].get("error", {}).get("class") == VERSION_UNAVAILABLE,
-        "the lookup raises VersionUnavailableError",
-    )
+    require(not session.recorder.canned, "the lookup makes every exchange")
     return Derived(session.call, session.recorder.exchanges, session.expect)
 
 
@@ -2113,8 +2190,8 @@ def _choice(
     *,
     edit: BodyEdit | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
-    """The parent's search, its answer body changed by `edit`, then a choice.
-    A choice that posts is recorded live; one that refuses makes no request."""
+    """The parent's search, its answer body changed by `edit`, then a choice
+    that refuses and makes no request."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         canned = copy.deepcopy(parent["exchanges"][:1])
@@ -2127,17 +2204,6 @@ def _choice(
         return Derived(session.call, session.recorder.exchanges, session.expect)
 
     return derive
-
-
-def _definite_beside(body: Any, ctx: Context) -> Any:
-    """Part 0 becomes the definite part a live search for GROUP_DEFINITE
-    answers."""
-    body = copy.deepcopy(body)
-    (part,) = copy.deepcopy(ctx.definite_answer(GROUP_DEFINITE).parts)
-    require(bool(part["spec"]["resolved"].get("entity_groups")), "a group part")
-    body["parts"][0] = part
-    body["status"] = "mixed"
-    return body
 
 
 def _without_options(body: Any, ctx: Context) -> Any:
@@ -2408,14 +2474,15 @@ SYNTHETIC = (
     ),
     Synthetic(
         "fetch-ref-expired-not-reproducible",
-        "fetch-ref",
-        "The snapshot refuses 410 artifact_expired and the rebuild 422 member_not_resolvable; the versions route is recorded live.",
+        "fetch-ref-newest-version",
+        "A fetch of a ref to the listed version, its unreached artifact digest all zeros, "
+        "whose snapshot refuses 410 artifact_expired and whose rebuild refuses 422 "
+        "member_not_resolvable, comes before the parent's versions exchange.",
         "When the stored version has expired and the build is refused, the client asks the "
-        "versions route for the newest version alone with limit=1, since the route lists "
-        "versions newest first, and raises VersionUnavailableError with the snapshot's "
-        "artifact_expired code and that version as the newest.",
+        "versions route for the newest version alone with limit=1, and raises "
+        "VersionUnavailableError with the snapshot's artifact_expired code and that version "
+        "as the newest.",
         _expired_not_reproducible,
-        live=True,
     ),
     Synthetic(
         "fetch-ref-expired-file-selector",
@@ -2480,7 +2547,8 @@ SYNTHETIC = (
         "fetch-null-member",
         "answer-definite-fetch",
         "The manifest's status column distinct flips between left out and served as null.",
-        "A member that admits null may be left out or served as null; a client reads both as "
+        "An optional member that admits null may be left out or served as null; a client "
+        "reads both as "
         "null, and neither changes the outcome. The recording and this record carry the two "
         "forms of the status column's distinct.",
         _null_member,
@@ -2492,17 +2560,6 @@ SYNTHETIC = (
         "A manifest without content_version, a strict field, raises ContractError on the build "
         "response, before any download.",
         _renamed_strict_field,
-    ),
-    Synthetic(
-        "choose-place-beside-definite",
-        "search-two-parts-place-ambiguous",
-        f"Part 0 becomes the definite part, entity groups included, of a live search for "
-        f'"{GROUP_DEFINITE}", and the choice is recorded live.',
-        'Choosing "Congo [DRC]" on part 1 beside a definite part posts dataset_resubmit with the '
-        "definite part's identity and entity_groups as an identity entry, and the chosen "
-        "option's data_query part as a parsed entry. Both parts answer definite.",
-        _choice("Congo [DRC]", 1, edit=_definite_beside),
-        live=True,
     ),
     Synthetic(
         "answer-timed-out",
@@ -2677,6 +2734,11 @@ def record_recorded(definition: Recorded, ctx: Context, directory: Path) -> None
     recorded_at = _now()
     session = ctx.session(definition.name)
     definition.run(session, ctx)
+    if session.recorder.canned_served:
+        raise SystemExit(
+            f"{definition.name}: a recorded scenario holds only exchanges the server made, "
+            f"and {session.recorder.canned_served} were canned"
+        )
     commits = session.recorder.commits
     if len(commits) != 1 or not re.fullmatch(r"[0-9a-f]{40}", next(iter(commits))):
         raise SystemExit(
@@ -2699,7 +2761,7 @@ def record_recorded(definition: Recorded, ctx: Context, directory: Path) -> None
 def record_synthetic(definition: Synthetic, ctx: Context, directory: Path) -> None:
     parent_path = directory / f"{definition.derived_from}.json"
     parent = json.loads(parent_path.read_text(encoding="utf-8"))
-    derived = definition.derive(parent, ctx)
+    derived = definition.derive(parent, replace(ctx, transport=_offline))
     origin = {
         "kind": "synthetic",
         "derived_from": definition.derived_from,
@@ -2779,7 +2841,7 @@ class Served:
 
 
 def _offline(method: str, url: str, **_: Any) -> Response:
-    raise SystemExit(f"--offline makes no request, and a scenario sent {method} {url}")
+    raise SystemExit(f"this derivation makes no request, and it sent {method} {url}")
 
 
 def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
@@ -2805,6 +2867,8 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 )
             case {"op": "fetch", "ref": ref}:
                 session.fetch_ref(ref)
+            case {"op": "newest_version", "spec": spec}:
+                session.newest_version(_step_spec(spec))
             case {"op": "fetch"}:
                 if answer is None:
                     raise ValueError("a fetch of an answer follows no answer")
@@ -2864,9 +2928,6 @@ def run_record(args: argparse.Namespace) -> int:
     if unknown:
         raise SystemExit(f"no scenario is named {sorted(unknown)}")
     chosen = set(args.only or names)
-    live = sorted(d.name for d in SYNTHETIC if d.live and d.name in chosen)
-    if args.offline and live:
-        raise SystemExit(f"--offline derives no live scenario, and {live} are live")
     ctx = Context(
         args.base_url,
         _offline if args.offline else urllib_transport,

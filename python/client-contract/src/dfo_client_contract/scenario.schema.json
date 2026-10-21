@@ -239,6 +239,9 @@
           "$ref": "#/$defs/fetch_ref_step"
         },
         {
+          "$ref": "#/$defs/newest_version_step"
+        },
+        {
           "$ref": "#/$defs/mint_step"
         },
         {
@@ -385,6 +388,23 @@
         }
       }
     },
+    "newest_version_step": {
+      "description": "The newest stored version of a spec, the one the versions route lists first.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "spec"
+      ],
+      "properties": {
+        "op": {
+          "const": "newest_version"
+        },
+        "spec": {
+          "$ref": "#/$defs/spec"
+        }
+      }
+    },
     "mint_step": {
       "description": "A mint of a spec, which starts its build and answers the operation; it takes a layout and no narrowing.",
       "type": "object",
@@ -459,7 +479,7 @@
       }
     },
     "request": {
-      "description": "Exactly one of path, a path the client composes under the base URL; origin_path, a root-relative URL the server returned, resolved against the base URL's origin; or url, an absolute URL outside the API, such as a signed storage URL.",
+      "description": "Exactly one of path, a path the client composes under the base URL; origin_path, a root-relative URL the server returned, resolved against the base URL's origin; or url, an absolute URL outside the API, such as a signed storage URL. A POST names its body in json.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -482,6 +502,18 @@
           ]
         }
       ],
+      "if": {
+        "properties": {
+          "method": {
+            "const": "POST"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "json"
+        ]
+      },
       "properties": {
         "method": {
           "enum": [
@@ -598,6 +630,18 @@
           "properties": {
             "operation": {
               "$ref": "#/$defs/operation"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "newest_version"
+          ],
+          "properties": {
+            "newest_version": {
+              "$ref": "#/$defs/newest_version"
             }
           }
         },
@@ -805,6 +849,26 @@
             "running",
             "done",
             "failed"
+          ]
+        }
+      }
+    },
+    "newest_version": {
+      "description": "The newest stored version a newest_version step finds, or null when the spec has none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_version"
+      ],
+      "properties": {
+        "content_version": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/content_version"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       }
