@@ -51,3 +51,16 @@ def test_client_codes_are_disjoint_from_the_refusal_codes() -> None:
     assert client == sorted(set(client))
     assert not refusals & set(client)
     assert dfo_client_contract.client_codes_schema()["title"] == "Client codes"
+
+
+def test_client_code_tables_are_disjoint() -> None:
+    tables = {
+        "client": dfo_client_contract.client_codes(),
+        "proxy": dfo_client_contract.proxy_codes(),
+        "warning": dfo_client_contract.warning_codes(),
+        "actions": dfo_client_contract.actions(),
+    }
+    codes = [row["code"] for table in tables.values() for row in table["codes"]]
+    assert len(codes) == len(set(codes))
+    assert dfo_client_contract.proxy_codes_schema()["title"] == "Proxy codes"
+    assert dfo_client_contract.warning_codes_schema()["title"] == "Warning codes"

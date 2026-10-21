@@ -22,6 +22,7 @@
         "required": [
           "code",
           "class",
+          "retryable",
           "condition"
         ],
         "properties": {
@@ -33,6 +34,17 @@
             "description": "The error class the client raises, one the scenario schema names, or by_status for the class a refusal's HTTP status maps to.",
             "type": "string",
             "pattern": "^([A-Z][A-Za-z]*|by_status)$"
+          },
+          "retryable": {
+            "description": "Whether the error is one a caller may retry, which both clients set as the error's retryable flag; by_status for the error whose class its status maps to, retryable as that status is.",
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "const": "by_status"
+              }
+            ]
           },
           "condition": {
             "description": "The condition, in one line.",

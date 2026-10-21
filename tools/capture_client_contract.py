@@ -36,7 +36,8 @@ refreshes both, and a synthetic record names its parent's body files rather
 than copies. Every absolute URL a record keeps, a signed download or a
 `location` header, keeps its path, and its query becomes
 `X-Goog-Signature=redacted`, and a local app's blob URL becomes the storage
-URL a deployment signs, so no signed URL names the base URL's host. The
+URL a deployment signs; a record holding any other absolute URL, outside a
+`location` under the base URL, is refused. The
 long builds need two specs the server has not built, so a local recording
 starts on a fresh datasets database. `--scenarios-dir` writes outside the
 package, unvalidated. The run ends by validating the whole contract with
@@ -68,7 +69,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
-from urllib.parse import quote, unquote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
 from validate_client_contract import (
     FILE_EXPIRED,
@@ -76,10 +77,12 @@ from validate_client_contract import (
     NO_VERSIONS,
     POLL_PATH,
     REBUILD_REFUSED,
+    STORAGE_ORIGIN,
     VERSION_UNAVAILABLE,
     Answer,
     ClientError,
     LongBuild,
+    absolute_url_problems,
     answer_from_body,
     answer_gaps,
     answer_members,
@@ -90,21 +93,30 @@ from validate_client_contract import (
     data_warning,
     dataset_summary,
     digest_of,
+    download_target,
+    failed_operation,
     gap_kinds,
+    header_warnings,
     held_spec,
+    may_retry,
+    newest_listed,
     owns_body_file,
     part_label,
     pick_artifact,
     posted_scope,
+    problem_body,
     refusal_error,
     rendering_for,
     resubmitted_sentence,
+    retry_wait,
+    search_body,
     search_warning_code,
     search_warns,
     selector_path,
     sentence_entry,
     surface_problems,
     versions_path,
+    with_step_notes,
 )
 from validate_client_contract import main as validate_main
 
@@ -117,7 +129,14 @@ BINARY_BUDGET = 5_000_000
 # The rendering both clients ask for: bare long Parquet.
 RENDERING = {"format": "parquet", "bundle": False}
 # The response headers a client reads, and so the ones a record keeps.
-KEPT_HEADERS = ("content-type", "location", "retry-after")
+KEPT_HEADERS = (
+    "content-type",
+    "location",
+    "retry-after",
+    "deprecation",
+    "sunset",
+    "x-dfo-warning",
+)
 
 
 def dump_json(document: Any) -> str:
@@ -314,7 +333,6 @@ def _lower(items: Any) -> dict[str, str]:
 # `/__e2e__/blob/{bucket}/{object}` on the API's own origin. A record states
 # such a URL as the storage URL a deployment signs for the same object.
 LOCAL_BLOB_PREFIX = "/__e2e__/blob/"
-STORAGE_ORIGIN = "https://storage.googleapis.com"
 
 
 def redact_external_url(url: str) -> str:
@@ -360,6 +378,8 @@ class Recorder:
     bodies: dict[str, bytes] = field(default_factory=dict)
     commits: set[str] = field(default_factory=set)
     canned_served: int = 0
+    warned: set[tuple[str, ...]] = field(default_factory=set)
+    warnings: list[str] = field(default_factory=list)
 
     def api(self, method: str, path: str, json_body: Any = None) -> Response:
         """A request to `path` under the base URL."""
@@ -399,7 +419,7 @@ class Recorder:
             exchange = self.canned.pop(0)
             self.exchanges.append(exchange)
             self.canned_served += 1
-            return _canned_response(exchange["response"])
+            return self._warned(_canned_response(exchange["response"]), bare=bare)
 
         headers = {} if bare else {"user-agent": "dfo-client-contract-recorder/1"}
         body = None
@@ -412,6 +432,12 @@ class Recorder:
         if not bare and "x-dfo-commit" in response.headers:
             self.commits.add(response.headers["x-dfo-commit"])
         self.exchanges.append({"request": request, "response": self._keep(response)})
+        return self._warned(response, bare=bare)
+
+    def _warned(self, response: Response, *, bare: bool) -> Response:
+        """Notes the warnings an API response's headers issue."""
+        if not bare:
+            self.warnings.extend(header_warnings(response.headers, self.warned))
         return response
 
     def _keep(self, response: Response) -> dict[str, Any]:
@@ -604,6 +630,7 @@ class Session:
     expect: list[dict[str, Any]] = field(default_factory=list)
     minted: Minted | None = None
     long_builds: list[dict[str, Any]] = field(default_factory=list)
+    retry_waits: list[float] = field(default_factory=list)
 
     @property
     def gap_kinds(self) -> dict[str, str]:
@@ -611,23 +638,50 @@ class Session:
 
     def _step(self, step: dict[str, Any], run: Callable[[], dict[str, Any]]) -> None:
         self.call.append(step)
-        self.long_builds = []
+        self.long_builds, self.retry_waits = [], []
+        self.recorder.warnings = []
         try:
             outcome = run()
         except ClientError as error:
             outcome = error.outcome(self.client_codes)
-        if self.long_builds:
-            (value,) = outcome.values()
-            value["long_builds"] = self.long_builds
-        self.expect.append(outcome)
+        self.expect.append(
+            with_step_notes(
+                outcome,
+                long_builds=self.long_builds,
+                retry_waits=self.retry_waits,
+                warnings=self.recorder.warnings,
+            )
+        )
 
     def _answered(self, answer: Answer) -> dict[str, Any]:
         return answer_outcome(answer, self.gap_kinds)
 
-    def _resolve(self, input_: dict[str, Any]) -> Answer:
-        response = self.recorder.api(
-            "POST", "/search/resolve", {"schema_version": 1, "input": input_}
+    def _retried(
+        self, request: dict[str, Any], send: Callable[[], Response]
+    ) -> Response:
+        """Sends `request` through `send`, and again after each refusal
+        `may_retry` allows, waiting `retry_wait` before each retry."""
+        response = send()
+        used = 0
+        while may_retry(request, _read(response), used):
+            wait = retry_wait(response.headers, used)
+            self.retry_waits.append(wait)
+            self.sleep(wait)
+            response = send()
+            used += 1
+        return response
+
+    def _api(self, method: str, path: str, json_body: Any = None) -> Response:
+        """A request under the base URL, retried as a client retries it."""
+        request: dict[str, Any] = {"method": method, "path": path}
+        if json_body is not None:
+            request["json"] = json_body
+        return self._retried(
+            request, lambda: self.recorder.api(method, path, json_body)
         )
+
+    def _resolve(self, input_: dict[str, Any]) -> Answer:
+        response = self._api("POST", "/search/resolve", search_body(input_))
         return answer_from_body(self._acted(response))
 
     def search(self, question: str) -> Answer:
@@ -756,7 +810,7 @@ class Session:
         def run() -> dict[str, Any]:
             rendering = rendering_for(layout)
             body = _build_body(spec, None, rendering)
-            response = self.recorder.api("POST", "/datasets", body)
+            response = self._api("POST", "/datasets", body)
             resource = self._acted(response)
             require(
                 response.status == 202, f"the build answered {response.status}, not 202"
@@ -778,7 +832,7 @@ class Session:
 
         def run() -> dict[str, Any]:
             path = POLL_PATH.format(operation_id=operation_id)
-            response = self.recorder.api("GET", path)
+            response = self._api("GET", path)
             resource = self._acted(response)
             self.minted = Minted(
                 resource, response.headers, None, None, rendering_for(layout)
@@ -819,7 +873,7 @@ class Session:
 
     def _built(self, body: dict[str, Any]) -> dict[str, Any]:
         """The manifest a build answers, through a long build on a 202."""
-        response = self.recorder.api("POST", "/datasets", body)
+        response = self._api("POST", "/datasets", body)
         reply = self._acted(response)
         if response.status != 202:
             return reply
@@ -868,18 +922,39 @@ class Session:
 
     def _download(self, target: str, digest: str, *, origin: bool = True) -> bytes:
         """A file through the route that redirects to it: an artifact's
-        root-relative url, or a path under the base URL. A refused signed URL
-        or bytes of another digest ask the route once more."""
+        root-relative url, or a path under the base URL. The redirect's
+        location is fetched once, where `download_target` places it; a local
+        app's blob URL on the API's origin stands for the storage URL a
+        deployment signs. A refused fetch or bytes of another digest ask the
+        route once more."""
+        base_url = self.recorder.base_url
+        if origin:
+            route_url = _origin(base_url) + target
+            request = {"method": "GET", "origin_path": target}
+        else:
+            route_url = base_url.rstrip("/") + target
+            request = {"method": "GET", "path": target}
         failure = ClientError("download_failed")
         for _ in range(2):
-            files = (
-                self.recorder.origin("GET", target)
-                if origin
-                else self.recorder.api("GET", target)
+            files = self._retried(
+                request,
+                lambda: (
+                    self.recorder.origin("GET", target)
+                    if origin
+                    else self.recorder.api("GET", target)
+                ),
             )
             self._raise_problem(files)
             require(files.status == 302, f"the files route answered {files.status}")
-            data = self.recorder.external(files.headers["location"])
+            location = files.headers["location"]
+            kind, at = download_target(base_url, route_url, location)
+            if kind == "origin_path" and at.startswith(LOCAL_BLOB_PREFIX):
+                kind = "url"
+            data = (
+                self.recorder.external(urljoin(route_url, location))
+                if kind == "url"
+                else self.recorder.origin("GET", at)
+            )
             if data.status >= 400:
                 failure = ClientError("download_failed")
                 continue
@@ -905,9 +980,9 @@ class Session:
             self.sleep(build.next_wait())
             path = POLL_PATH.format(operation_id=build.entry["operation_id"])
             response = self.recorder.api("GET", path)
-            if build.polled(response.status, response.headers, _json(response)):
-                again = self.recorder.api("POST", "/datasets", request)
-                build.reposted(again.status, again.headers, _json(again))
+            if build.polled(response.status, response.headers, _answered(response)):
+                again = self._api("POST", "/datasets", request)
+                build.reposted(again.status, again.headers, _answered(again))
         return build.result
 
     # -- stored versions --
@@ -922,9 +997,7 @@ class Session:
         refusal: ClientError | None = None
         manifest = None
         try:
-            manifest = self._acted(
-                self.recorder.api("GET", f"/datasets/{spec_id}/{version}")
-            )
+            manifest = self._acted(self._api("GET", f"/datasets/{spec_id}/{version}"))
         except ClientError as error:
             if error.code != FILE_EXPIRED:
                 raise
@@ -994,29 +1067,46 @@ class Session:
 
     def _newest(self, spec_id: str) -> str | None:
         try:
-            body = self._acted(self.recorder.api("GET", versions_path(spec_id)))
+            body = self._acted(self._api("GET", versions_path(spec_id)))
         except ClientError as error:
             if error.error_class(self.client_codes) in NO_VERSIONS:
                 return None
             raise
-        versions = body.get("versions") if isinstance(body, dict) else None
-        first = versions[0] if isinstance(versions, list) and versions else None
-        newest = first.get("content_version") if isinstance(first, dict) else None
-        return newest if isinstance(newest, str) else None
+        return newest_listed(body)
 
     def _acted(self, response: Response) -> Any:
+        """The JSON body of a success; a refusal raises its error, and a
+        success without a JSON body raises ContractError
+        `unexpected_response`."""
         self._raise_problem(response)
-        return response.json()
+        return _answered(response)
 
     def _raise_problem(self, response: Response) -> None:
         if response.status < 400:
             return
-        raise refusal_error(response.status, _json(response), self.actions)
+        raise refusal_error(
+            response.status, problem_body(_read(response)), self.actions
+        )
 
 
-def _json(response: Response) -> Any:
-    """A response's JSON body, or None for an empty one."""
-    return response.json() if response.body else None
+def _read(response: Response) -> dict[str, Any]:
+    """A response as a record holds it: its status, headers, and its JSON
+    body when it has one."""
+    read: dict[str, Any] = {"status": response.status, "headers": response.headers}
+    if response.body and _is_json(response.headers.get("content-type", "")):
+        read["json"] = response.json()
+    return read
+
+
+def _answered(response: Response) -> Any:
+    """A success's JSON body, which a success without one lacks, raising
+    ContractError `unexpected_response`, or a refusal's problem body."""
+    read = _read(response)
+    if response.status >= 400:
+        return problem_body(read)
+    if "json" not in read:
+        raise ClientError("unexpected_response")
+    return read["json"]
 
 
 def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
@@ -1752,6 +1842,28 @@ def _same(parent: dict[str, Any], exchanges: list[dict[str, Any]]) -> Derived:
     )
 
 
+def _waited(outcome: dict[str, Any], *refusals: dict[str, Any]) -> dict[str, Any]:
+    """`outcome` with the waits before the retries that follow `refusals`,
+    the refused exchanges of one request in order."""
+    waits = [
+        retry_wait(refused["response"].get("headers", {}), attempt)
+        for attempt, refused in enumerate(refusals)
+    ]
+    return with_step_notes(outcome, long_builds=(), retry_waits=waits, warnings=())
+
+
+def _refused_first(
+    parent: dict[str, Any], index: int, refused: dict[str, Any]
+) -> Derived:
+    """The parent with `refused` answering exchange `index` first, and the
+    retry's wait in the outcome of the last step, which makes it."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    exchanges.insert(index, refused)
+    expect = copy.deepcopy(parent["expect"])
+    expect[-1] = _waited(expect[-1], refused)
+    return Derived(copy.deepcopy(parent["call"]), exchanges, expect)
+
+
 def _retry_after_503(parent: dict[str, Any], ctx: Context) -> Derived:
     first = parent["exchanges"][0]
     problem = _problem(
@@ -1762,7 +1874,7 @@ def _retry_after_503(parent: dict[str, Any], ctx: Context) -> Derived:
         retryable=True,
     )
     refused = _refusal(first["request"], 503, problem, {"retry-after": "1"})
-    return _same(parent, [refused, *copy.deepcopy(parent["exchanges"])])
+    return _refused_first(parent, 0, refused)
 
 
 def _proxy_429(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -1770,7 +1882,7 @@ def _proxy_429(parent: dict[str, Any], ctx: Context) -> Derived:
     refused = _refusal(
         first["request"], 429, dict(_PROXY_RATE_LIMITED), {"retry-after": "2"}
     )
-    return _same(parent, [refused, *copy.deepcopy(parent["exchanges"])])
+    return _refused_first(parent, 0, refused)
 
 
 def _proxy_502(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -1781,7 +1893,9 @@ def _proxy_502(parent: dict[str, Any], ctx: Context) -> Derived:
     error = refusal_error(502, _PROXY_UNAVAILABLE, ctx.actions).outcome(
         ctx.client_codes
     )
-    return Derived(copy.deepcopy(parent["call"]), refused, [error])
+    return Derived(
+        copy.deepcopy(parent["call"]), refused, [_waited(error, *refused[:2])]
+    )
 
 
 def _build_index(parent: dict[str, Any]) -> int:
@@ -1831,11 +1945,17 @@ _OPERATION_FAILED = _problem(
 NEWER_VERSION = "cv_" + "1" * 32
 
 
-def _retry_after_504(parent: dict[str, Any], ctx: Context) -> Derived:
-    exchanges = copy.deepcopy(parent["exchanges"])
-    index = _build_index(parent)
-    exchanges.insert(index, _refusal(exchanges[index]["request"], 504, _TIMEOUT))
-    return _same(parent, exchanges)
+def _retry_after_504(
+    headers: Mapping[str, str] | None = None,
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """A 504 timeout, carrying `headers`, answers the parent's first build."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        index = _build_index(parent)
+        build = parent["exchanges"][index]["request"]
+        return _refused_first(parent, index, _refusal(build, 504, _TIMEOUT, headers))
+
+    return derive
 
 
 def _ends_at_build(
@@ -1864,7 +1984,7 @@ def _cut_off_twice(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     refused = _refusal(build["request"], 504, _TIMEOUT)
     error = refusal_error(504, _TIMEOUT, ctx.actions).outcome(ctx.client_codes)
-    return [refused, copy.deepcopy(refused)], error
+    return [refused, copy.deepcopy(refused)], _waited(error, refused)
 
 
 def _not_resolvable(
@@ -2362,6 +2482,154 @@ def _strict_info_notice(parent: dict[str, Any], ctx: Context) -> Derived:
     return Derived(call, exchanges, copy.deepcopy(parent["expect"]))
 
 
+def _signed_url_refused_twice(parent: dict[str, Any], ctx: Context) -> Derived:
+    """Both signed fetches refuse 403, the second after the files route was
+    asked again."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    index = next(i for i, e in enumerate(exchanges) if "url" in e["request"])
+    files, signed = exchanges[index - 1], exchanges[index]
+    signed["response"] = {"status": 403, "headers": {"content-type": "application/xml"}}
+    return Derived(
+        copy.deepcopy(parent["call"]),
+        [*exchanges[: index + 1], copy.deepcopy(files), copy.deepcopy(signed)],
+        [*copy.deepcopy(parent["expect"][:-1]), ctx.raised("download_failed")],
+    )
+
+
+# The relative Location a files route answers in `fetch-spec-relative-location`,
+# which names a path beside the route's own.
+RELATIVE_LOCATION = "bytes"
+
+
+def _relative_location(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The files route answers RELATIVE_LOCATION, and the file comes from the
+    path it resolves to against the route's URL, on the API's origin."""
+    exchanges = copy.deepcopy(parent["exchanges"])
+    index = next(i for i, e in enumerate(exchanges) if "url" in e["request"])
+    files, signed = exchanges[index - 1], exchanges[index]
+    route = files["request"]["origin_path"]
+    files["response"]["headers"]["location"] = RELATIVE_LOCATION
+    resolved = urlsplit(urljoin(f"https://api.invalid{route}", RELATIVE_LOCATION))
+    signed["request"] = {"method": "GET", "origin_path": resolved.path}
+    return _same(parent, exchanges)
+
+
+def _failed_without_error(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The resumed operation's first poll answers it failed with no error."""
+    resume, poll = copy.deepcopy(parent["exchanges"][:2])
+    operation = poll["response"]["json"]["operation"]
+    operation["status"] = "failed"
+    operation.pop("progress", None)
+    poll["response"]["json"] = {"operation": operation}
+    error, _ = failed_operation(poll["response"]["json"], ctx.actions)
+    (build,) = parent["expect"][1]["dataset"]["long_builds"]
+    entry = {**build, "poll_waits": build["poll_waits"][:1], "resubmissions": 0}
+    outcome = with_step_notes(
+        error.outcome(ctx.client_codes),
+        long_builds=[entry],
+        retry_waits=(),
+        warnings=(),
+    )
+    return Derived(
+        copy.deepcopy(parent["call"]),
+        [resume, poll],
+        [copy.deepcopy(parent["expect"][0]), outcome],
+    )
+
+
+def _versions_renamed(parent: dict[str, Any], ctx: Context) -> Derived:
+    exchanges = copy.deepcopy(parent["exchanges"])
+    body = exchanges[0]["response"]["json"]
+    body["items"] = body.pop("versions")
+    return Derived(
+        copy.deepcopy(parent["call"]), exchanges, [ctx.raised("contract_violation")]
+    )
+
+
+# The Sunset header `search-sunset-warning`'s responses carry, with no
+# Deprecation header beside it.
+SUNSET = "Sat, 01 May 2027 00:00:00 GMT"
+
+
+def _sunset_twice(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's search made twice, each response carrying SUNSET: the
+    first warns, and the second, with the same value, does not."""
+    exchange = copy.deepcopy(parent["exchanges"][0])
+    exchange["response"]["headers"]["sunset"] = SUNSET
+    (step,) = parent["call"]
+    (outcome,) = parent["expect"]
+    warned = with_step_notes(
+        copy.deepcopy(outcome),
+        long_builds=(),
+        retry_waits=(),
+        warnings=header_warnings(exchange["response"]["headers"], set()),
+    )
+    return Derived(
+        [copy.deepcopy(step), copy.deepcopy(step)],
+        [exchange, copy.deepcopy(exchange)],
+        [warned, copy.deepcopy(outcome)],
+    )
+
+
+def _search_ends(
+    change: Callable[[dict[str, Any]], None], code: str
+) -> Callable[[dict[str, Any], Context], Derived]:
+    """The parent's search alone, its response changed by `change`, ending
+    in the client error `code`."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        exchange = copy.deepcopy(parent["exchanges"][0])
+        change(exchange["response"])
+        return Derived(
+            copy.deepcopy(parent["call"][:1]), [exchange], [ctx.raised(code)]
+        )
+
+    return derive
+
+
+def _status_a_number(response: dict[str, Any]) -> None:
+    response["json"]["parts"][1]["status"] = 7
+
+
+def _definition_spec_id_differs(response: dict[str, Any]) -> None:
+    response["json"]["parts"][0]["spec"]["definition"]["spec_id"] = UNKNOWN_SPEC_ID
+
+
+# The spec_id a Search spec's definition names in
+# `answer-definition-spec-id-mismatch`, one no build answered.
+UNKNOWN_SPEC_ID = "spec_" + "0" * 32
+
+
+def _without_json(response: dict[str, Any]) -> None:
+    del response["json"]
+    response["headers"] = {"content-type": "text/html; charset=utf-8"}
+
+
+def _without_data_query(body: Any, ctx: Context) -> Any:
+    """The first option of the one no_data part loses its data_query."""
+    body = copy.deepcopy(body)
+    del body["parts"][0]["no_data"]["options"][0]["data_query"]
+    return body
+
+
+def _choice_without_data_query(parent: dict[str, Any], ctx: Context) -> Derived:
+    derived = _choice(parent["call"][1]["option"], edit=_without_data_query)(
+        parent, ctx
+    )
+    require(
+        derived.expect[-1] == ctx.raised("contract_violation"),
+        "the choice raises ContractError",
+    )
+    return derived
+
+
+def _empty_narrowing(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The fetch names `entities: {}` and `facets: {}`, which narrow nothing."""
+    derived = _same(parent, copy.deepcopy(parent["exchanges"]))
+    derived.call[0].update(entities={}, facets={})
+    return derived
+
+
 SYNTHETIC = (
     Synthetic(
         "search-retry-after-503",
@@ -2394,8 +2662,17 @@ SYNTHETIC = (
         "answer-definite-fetch",
         "A 504 timeout with retryable true answers the first build.",
         "A synchronous build cut off at the server's limit answers a retryable 504 timeout; the "
-        "client builds once more and reaches the same dataset.",
-        _retry_after_504,
+        "client waits the first backoff, 0.5 seconds, builds once more and reaches the same "
+        "dataset.",
+        _retry_after_504(),
+    ),
+    Synthetic(
+        "fetch-spec-504-retry-after",
+        "fetch-spec-known-sentence",
+        "A 504 timeout with retryable true and Retry-After 5 answers the build.",
+        "A build cut off by a 504 that carries Retry-After is posted once more after the "
+        "Retry-After seconds, not the backoff, and reaches the same dataset.",
+        _retry_after_504({"retry-after": "5"}),
     ),
     Synthetic(
         "fetch-spec-504-twice",
@@ -2525,6 +2802,91 @@ SYNTHETIC = (
         "A signed storage URL that refuses is never retried: the client asks the files route "
         "for a fresh redirect and downloads from that, reaching the same dataset.",
         _signed_url_refused,
+    ),
+    Synthetic(
+        "fetch-ref-signed-url-refused-twice",
+        "fetch-ref",
+        "The signed download answers 403, and so does the one the files route names when asked again.",
+        "A download asks the files route once and fetches the signed URL once, then asks the "
+        "route once more and fetches again, with no wait; a second refused fetch raises "
+        "ServerError download_failed.",
+        _signed_url_refused_twice,
+    ),
+    Synthetic(
+        "fetch-spec-relative-location",
+        "fetch-spec-known-sentence",
+        f"The files route's Location becomes the relative URL {RELATIVE_LOCATION!r}, and the "
+        "file comes from the path it resolves to.",
+        "A relative Location resolves against the files route's URL, not the base URL's "
+        "origin, and the client fetches the file there, on the API's origin, reaching the "
+        "same dataset.",
+        _relative_location,
+    ),
+    Synthetic(
+        "operation-failed-without-error",
+        "operation-resume",
+        "The resumed operation's first poll answers it failed with no error member.",
+        "A failed operation whose resource carries no error raises ServerError with the code "
+        "operation_failed; a resumed operation holds no build request, so nothing is posted "
+        "again.",
+        _failed_without_error,
+    ),
+    Synthetic(
+        "newest-version-unreadable-page",
+        "fetch-ref-newest-version",
+        "The versions page names its versions list items.",
+        "A versions page with no versions list raises ContractError contract_violation, "
+        "since only a NotFoundError reads as no stored version.",
+        _versions_renamed,
+    ),
+    Synthetic(
+        "search-sunset-warning",
+        "search-place-ambiguous",
+        f"The search is made twice, and each response carries Sunset {SUNSET!r} with no "
+        "Deprecation header.",
+        "A Sunset header alone issues the route_deprecated warning, once per process per "
+        "distinct value, so the second search, whose response carries the same value, "
+        "warns nothing.",
+        _sunset_twice,
+    ),
+    Synthetic(
+        "answer-part-status-not-a-string",
+        "answer-mixed-fetch-raises",
+        "Part 1's status becomes the number 7, and the fetch goes.",
+        "A part whose status is not a string raises ContractError contract_violation at "
+        "/parts/1/status, where an unknown string status is an unknown gap.",
+        _search_ends(_status_a_number, "contract_violation"),
+    ),
+    Synthetic(
+        "answer-definition-spec-id-mismatch",
+        "answer-definite-fetch",
+        f"Part 0's spec definition names spec_id {UNKNOWN_SPEC_ID}, and the fetch goes.",
+        "A Search spec whose definition.spec_id differs from its spec_id raises ContractError "
+        "contract_violation, in a Search response as in a ref.",
+        _search_ends(_definition_spec_id_differs, "contract_violation"),
+    ),
+    Synthetic(
+        "search-no-json-body",
+        "search-place-ambiguous",
+        "The search answers 200 with an empty text/html body.",
+        "A 2xx Search response with no JSON body raises ContractError unexpected_response.",
+        _search_ends(_without_json, "unexpected_response"),
+    ),
+    Synthetic(
+        "choose-option-without-data-query",
+        "choose-place-one-part",
+        "The no_data part's first option loses its data_query.",
+        "Choosing an option with no data_query in a one-part answer raises ContractError "
+        "contract_violation with no request, as in a several-part answer.",
+        _choice_without_data_query,
+    ),
+    Synthetic(
+        "fetch-spec-empty-narrowing",
+        "fetch-spec-known-sentence",
+        "The fetch names entities {} and facets {}.",
+        "An empty entities or facets map narrows nothing, so the build posts no scope, as a "
+        "fetch that names neither does.",
+        _empty_narrowing,
     ),
     Synthetic(
         "answer-unknown-part-status",
@@ -2718,16 +3080,12 @@ def write_record(
 
 
 def _refuse_local_host(record: dict[str, Any], base_url: str) -> None:
-    """Refuses a record whose signed download or `location` header names the
-    base URL's host: a client fetches those cross-origin, without its key."""
-    local = urlsplit(base_url).netloc
-    for exchange in record["exchanges"]:
-        urls = [
-            exchange["request"].get("url"),
-            exchange["response"].get("headers", {}).get("location"),
-        ]
-        if any(url and urlsplit(url).netloc == local for url in urls):
-            raise SystemExit(f"{record['name']}: a signed URL still names {local}")
+    """Refuses a record holding an absolute URL other than a redacted signed
+    URL on the storage host, or a `location` under `base_url`, as
+    `absolute_url_problems` finds them: a local app's host, under any name
+    or port, is one no deployed client can fetch."""
+    if problems := absolute_url_problems(record, base_url):
+        raise SystemExit("\n".join(problems))
 
 
 def record_recorded(definition: Recorded, ctx: Context, directory: Path) -> None:
@@ -2768,7 +3126,7 @@ def record_synthetic(definition: Synthetic, ctx: Context, directory: Path) -> No
         "edit": definition.edit,
     }
     record = _record(definition.name, definition.description, origin, derived)
-    _refuse_local_host(record, ctx.base_url)
+    _refuse_local_host(record, parent["origin"]["base_url"])
     write_record(directory, record, derived.bodies)
 
 

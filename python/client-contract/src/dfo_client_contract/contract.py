@@ -79,6 +79,26 @@ def client_codes_schema() -> dict[str, Any]:
     return _load("client-codes.schema.json")
 
 
+def proxy_codes() -> dict[str, Any]:
+    """`proxy-codes.json`: the codes of the website proxy's own refusals."""
+    return _load("proxy-codes.json")
+
+
+def proxy_codes_schema() -> dict[str, Any]:
+    """`proxy-codes.schema.json`: the shape of `proxy-codes.json`."""
+    return _load("proxy-codes.schema.json")
+
+
+def warning_codes() -> dict[str, Any]:
+    """`warning-codes.json`: the code of each warning a client issues itself."""
+    return _load("warning-codes.json")
+
+
+def warning_codes_schema() -> dict[str, Any]:
+    """`warning-codes.schema.json`: the shape of `warning-codes.json`."""
+    return _load("warning-codes.schema.json")
+
+
 def scenario_schema() -> dict[str, Any]:
     """`scenario.schema.json`: the shape of one scenario record."""
     return _load("scenario.schema.json")

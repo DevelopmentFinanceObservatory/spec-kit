@@ -105,6 +105,25 @@
       "file": "key = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n",
       "source": "environment",
       "key": "dfo_k_environment"
+    },
+    {
+      "name": "empty-argument-raises",
+      "api_key": "",
+      "env": {
+        "DFO_API_KEY": "dfo_k_environment"
+      },
+      "file": "[default]\nkey = \"dfo_k_4f8Kq2ZtR7mWx1NcB9vLp3YhD6sGa0Ue2wanxe\"\n",
+      "error": {
+        "reason": "key_empty"
+      }
+    },
+    {
+      "name": "empty-profile-key-raises",
+      "env": {},
+      "file": "[default]\nkey = \"\"\n",
+      "error": {
+        "reason": "profile_without_key"
+      }
     }
   ]
 }

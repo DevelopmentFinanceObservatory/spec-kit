@@ -1,7 +1,7 @@
 {
   "format_version": 1,
   "name": "fetch-retry-after-504",
-  "description": "A synchronous build cut off at the server's limit answers a retryable 504 timeout; the client builds once more and reaches the same dataset.",
+  "description": "A synchronous build cut off at the server's limit answers a retryable 504 timeout; the client waits the first backoff, 0.5 seconds, builds once more and reaches the same dataset.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "answer-definite-fetch",
@@ -4630,7 +4630,10 @@
           }
         ],
         "missing": [],
-        "search_warning": false
+        "search_warning": false,
+        "retry_waits": [
+          0.5
+        ]
       }
     }
   ]

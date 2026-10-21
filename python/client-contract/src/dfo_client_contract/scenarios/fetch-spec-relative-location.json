@@ -1,0 +1,927 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-relative-location",
+  "description": "A relative Location resolves against the files route's URL, not the base URL's origin, and the client fetches the file there, on the API's origin, reaching the same dataset.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "fetch-spec-known-sentence",
+    "edit": "The files route's Location becomes the relative URL 'bytes', and the file comes from the path it resolves to."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+          "identity": {
+            "shape": {
+              "kind": "statvar_schema",
+              "stat_type": "measuredValue",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "binding": {
+                  "state": "unbound"
+                },
+                "property": "crsCooperationModality"
+              },
+              {
+                "binding": {
+                  "ref": "CRSPurposeCode12220",
+                  "state": "value"
+                },
+                "property": "crsPurpose"
+              },
+              {
+                "binding": {
+                  "state": "unbound"
+                },
+                "property": "crsTypeOfFinance"
+              },
+              {
+                "binding": {
+                  "ref": "CRSTypeOfFlow10",
+                  "state": "value"
+                },
+                "property": "crsTypeOfFlow"
+              },
+              {
+                "binding": {
+                  "ref": "Disbursement",
+                  "state": "value"
+                },
+                "property": "financialFlowType"
+              },
+              {
+                "binding": {
+                  "ref": "Gross",
+                  "state": "value"
+                },
+                "property": "nettingBasis"
+              }
+            ],
+            "entities": {
+              "origin": [
+                "country/DEU"
+              ],
+              "destination": [
+                "country/NGA"
+              ]
+            },
+            "identity_version": "spec1",
+            "requested_window": {
+              "kind": "range",
+              "end_year": 2023,
+              "start_year": 2020
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS)."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsCooperationModality"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSPurposeCode12220",
+                      "state": "value"
+                    },
+                    "property": "crsPurpose"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsTypeOfFinance"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSTypeOfFlow10",
+                      "state": "value"
+                    },
+                    "property": "crsTypeOfFlow"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Disbursement",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Gross",
+                      "state": "value"
+                    },
+                    "property": "nettingBasis"
+                  }
+                ],
+                "entities": {
+                  "origin": [
+                    "country/DEU"
+                  ],
+                  "destination": [
+                    "country/NGA"
+                  ]
+                },
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "range",
+                  "end_year": 2023,
+                  "start_year": 2020
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "schema_version": 1,
+          "definition": {
+            "schema_version": 1,
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "identity": {
+              "shape": {
+                "kind": "statvar_schema",
+                "stat_type": "measuredValue",
+                "population_type": "FinancialFlow",
+                "measured_property": "amount",
+                "measurement_qualifier": "Nominal"
+              },
+              "slots": [
+                {
+                  "binding": {
+                    "state": "unbound"
+                  },
+                  "property": "crsCooperationModality"
+                },
+                {
+                  "binding": {
+                    "ref": "CRSPurposeCode12220",
+                    "state": "value"
+                  },
+                  "property": "crsPurpose"
+                },
+                {
+                  "binding": {
+                    "state": "unbound"
+                  },
+                  "property": "crsTypeOfFinance"
+                },
+                {
+                  "binding": {
+                    "ref": "CRSTypeOfFlow10",
+                    "state": "value"
+                  },
+                  "property": "crsTypeOfFlow"
+                },
+                {
+                  "binding": {
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
+                },
+                {
+                  "binding": {
+                    "ref": "Gross",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
+                }
+              ],
+              "entities": {
+                "origin": [
+                  "country/DEU"
+                ],
+                "destination": [
+                  "country/NGA"
+                ]
+              },
+              "identity_version": "spec1",
+              "requested_window": {
+                "kind": "range",
+                "end_year": 2023,
+                "start_year": 2020
+              }
+            }
+          },
+          "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
+          "prepared_at": "2026-10-21T08:57:50Z",
+          "coverage": {
+            "rows": 4,
+            "dimensions": [
+              {
+                "label": "financingProvider",
+                "count": 1,
+                "axis": "origin",
+                "noun": {
+                  "singular": "provider",
+                  "plural": "providers"
+                }
+              },
+              {
+                "label": "financingRecipient",
+                "count": 1,
+                "axis": "destination",
+                "noun": {
+                  "singular": "recipient",
+                  "plural": "recipients"
+                }
+              },
+              {
+                "label": "years",
+                "count": 4
+              }
+            ],
+            "window": {
+              "kind": "range",
+              "origin": "query",
+              "end_year": 2023,
+              "start_year": 2020
+            }
+          },
+          "citation": {
+            "text": "OECD Creditor Reporting System (CRS) (2026), via the Development Finance Observatory",
+            "sources": [
+              {
+                "ref": "provenance/OECDCreditorReportingSystem",
+                "label": "OECD Creditor Reporting System (CRS)",
+                "license": "OECD Terms and Conditions",
+                "license_type": "OECDTermsAndConditions",
+                "license_url": "https://www.oecd.org/en/about/terms-conditions.html",
+                "url": "https://data-explorer.oecd.org/vis?tm=crs&pg=0&snb=30&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_CRS%40DF_CRS&df[ag]=OECD.DCD.FSD&df[vs]=1.6&isAvailabilityDisabled=false&page=0",
+                "source": {
+                  "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
+                  "label": "Organisation for Economic Co-operation and Development (OECD)"
+                },
+                "data_commons": {
+                  "id": "dfo",
+                  "label": "Development Finance Observatory"
+                },
+                "documentation": {
+                  "publisher": "Organisation for Economic Co-operation and Development (OECD)",
+                  "description": "The Creditor Reporting System (CRS) is the OECD Development Assistance Committee's activity-level database of development finance. Each record is a project, programme or contribution reported by a bilateral provider, a multilateral organisation or a private foundation, with its recipient, sector and purpose, channel of delivery, aid type, and commitment and disbursement amounts. It covers ODA, other official flows, private sector instruments and private philanthropy, and is the source for any breakdown by sector, channel or project.",
+                  "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet",
+                  "attribution": "OECD (2026), Creditor Reporting System (CRS), OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet (accessed on 2026-10-15)",
+                  "update_cadence": "Quarterly",
+                  "last_update": "2026-10-15",
+                  "years_covered": "1973-2024",
+                  "granularity": "Annual, by provider and recipient",
+                  "currencies": [
+                    "USD"
+                  ],
+                  "transformation_log": [
+                    {
+                      "transformation": "Download the source data",
+                      "description": "The complete CRS file is downloaded from the OECD each time the pipeline runs, and replaces the previous copy, so the data reflects the OECD's latest release."
+                    },
+                    {
+                      "transformation": "Exclude the partial preliminary year",
+                      "description": "Before each full release, the OECD publishes preliminary data for the year that release covers, as reporters submit it. Until then, that year is partial, so the pipeline excludes it. Support for partial years is in development. Partial years will be marked incomplete, so they don't lead to incorrect or confusing analyses."
+                    },
+                    {
+                      "transformation": "Exclude donor core contributions to multilaterals",
+                      "description": "The OECD instructs that donor core contributions to multilateral organisations, reported as ordinary CRS rows flagged `bi_multi = 2`, are excluded to compute bilateral flows. These contributions are already reported in Members' Total Use of the Multilateral System, so keeping them would double count."
+                    },
+                    {
+                      "transformation": "Standardise providers and recipients",
+                      "description": "Provider and recipient codes are standardised to Data Commons IDs used across the platform, so data can be compared across datasets."
+                    },
+                    {
+                      "transformation": "Select dimensions",
+                      "description": "Every figure is reported against the year, the provider and the recipient, and four dimensions from the CRS: type of flow, co-operation modality, type of finance and purpose code. The CRS describes each activity in far more detail than this, including project titles, descriptions, channels and policy markers, none of which is carried through."
+                    },
+                    {
+                      "transformation": "Aggregate totals",
+                      "description": "Activities sharing the same year, provider, recipient and dimensions are summed. Commitments, disbursements, net disbursements and grant equivalents are each aggregated as separate measures. Every figure is reported in US dollars at current prices."
+                    }
+                  ],
+                  "version_history": [
+                    {
+                      "date": "2026-10-15",
+                      "title": "Partial preliminary year excluded",
+                      "changes": [
+                        {
+                          "kind": "changed",
+                          "note": "The partial preliminary year published ahead of the next full release is excluded."
+                        }
+                      ]
+                    },
+                    {
+                      "date": "2026-10-14",
+                      "title": "First release",
+                      "changes": [
+                        {
+                          "kind": "added",
+                          "note": "Commitments, gross and net disbursements, and grant equivalents by donor, recipient, flow type, finance type, modality and purpose, at current US dollar prices. Covers ODA, other official flows, private development finance and private sector instruments."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "trace": {
+            "facets": [
+              {
+                "ref": "provenance/OECDCreditorReportingSystem",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868",
+                "default_policy_version": "1"
+              }
+            ],
+            "applied_window": {
+              "kind": "range",
+              "origin": "query",
+              "end_year": 2023,
+              "start_year": 2020
+            },
+            "graph_revision": null,
+            "normalisations": [],
+            "code_index_stamp": {
+              "exported_at": "2026-10-20T19:50:14Z",
+              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
+              "graph_endpoint": "graph_release"
+            },
+            "source_revisions": [
+              {
+                "source": "provenance/OECDCreditorReportingSystem",
+                "revision": "2026-10-15"
+              }
+            ],
+            "capability_version": "dset_88fecfec3c5b89d1",
+            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "resolved_stat_vars": [
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 4
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB031_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB032_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB033_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB03_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB04_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityD01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityD02_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityE01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityE02_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityG01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance210_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSCooperationModalityA01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance421_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance510_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              },
+              {
+                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance520_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal",
+                "roles": [
+                  "financingProvider",
+                  "financingRecipient"
+                ],
+                "observation_count": 0
+              }
+            ],
+            "family_member_count": 21,
+            "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
+            "frame_grammar_version": "1.1.0",
+            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
+            "served_from": "head",
+            "confirmed_at": "2026-10-21T08:57:50.475926+00:00"
+          },
+          "warnings": [
+            {
+              "code": "coverage_below_scope",
+              "severity": "warn",
+              "message": "The served coverage falls short of the requested scope. No observations were served for dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityB03_CRSPurposeCode12220_Nominal, dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityC01_CRSPurposeCode12220_Nominal, dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityD02_CRSPurposeCode12220_Nominal, dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSPurposeCode12220_Nominal, which hold none at the observation period the other members serve in the requested years."
+            }
+          ],
+          "diagnostics": [
+            {
+              "code": "processing_level_undeclared",
+              "severity": "info",
+              "message": "A source StatVar lacks a processing-level declaration; the citation credits the source and omits the processing qualifier."
+            }
+          ],
+          "artifacts": [
+            {
+              "artifact_digest": "sha256:e9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70",
+              "rendering": {
+                "bundle": false,
+                "format": "parquet",
+                "layout": 3
+              },
+              "bytes": 9541,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-21T08:57:50.451120+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:e9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70"
+            },
+            {
+              "artifact_digest": "sha256:d3a506bc9b95188583b5764592d2f1897c0665add660106b7f77c3e501000bb4",
+              "rendering": {
+                "statistics": "series"
+              },
+              "bytes": 5741,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-21T08:57:50.451120+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:d3a506bc9b95188583b5764592d2f1897c0665add660106b7f77c3e501000bb4"
+            }
+          ],
+          "series_count": 1,
+          "output_options": {
+            "capability_version": "dset_88fecfec3c5b89d1",
+            "columns": [
+              {
+                "name": "stat_var",
+                "kind": "grain",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "financingProvider",
+                "kind": "role",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "financingRecipient",
+                "kind": "role",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "time_period",
+                "kind": "grain",
+                "droppable": false,
+                "distinct": 4
+              },
+              {
+                "name": "value",
+                "kind": "value",
+                "droppable": true
+              },
+              {
+                "name": "unit",
+                "kind": "unit",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "measurementMethod",
+                "kind": "facet",
+                "droppable": true,
+                "distinct": 1
+              },
+              {
+                "name": "provenance",
+                "kind": "facet",
+                "droppable": false,
+                "distinct": 1
+              },
+              {
+                "name": "status",
+                "kind": "status",
+                "droppable": true
+              }
+            ],
+            "formats": [
+              {
+                "name": "csv",
+                "state": "available"
+              },
+              {
+                "name": "xlsx",
+                "state": "available"
+              },
+              {
+                "name": "parquet",
+                "state": "available"
+              }
+            ],
+            "bundle": {
+              "state": "available"
+            },
+            "enrichments": [
+              {
+                "column": "financingProvider",
+                "field": "iso3",
+                "token": "financingProvider_iso3",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "iso2",
+                "token": "financingProvider_iso2",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "label",
+                "token": "financingProvider_label",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "type",
+                "token": "financingProvider_type",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "party_kind",
+                "token": "financingProvider_party_kind",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "iso3",
+                "token": "financingRecipient_iso3",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "iso2",
+                "token": "financingRecipient_iso2",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "label",
+                "token": "financingRecipient_label",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "type",
+                "token": "financingRecipient_type",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_kind",
+                "token": "financingRecipient_party_kind",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              }
+            ],
+            "long_layout_defaults": [
+              "financingProvider_label",
+              "financingProvider_party_kind",
+              "financingRecipient_label",
+              "financingRecipient_party_kind"
+            ],
+            "long_layout_totals": [],
+            "pivots": [],
+            "groupby": {
+              "state": "available",
+              "axes": [
+                {
+                  "name": "crsCooperationModality"
+                },
+                {
+                  "name": "crsPurpose"
+                },
+                {
+                  "name": "crsTypeOfFinance"
+                },
+                {
+                  "name": "crsTypeOfFlow"
+                }
+              ]
+            }
+          },
+          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "retention": {
+            "pinned": false,
+            "held_until": "2026-11-20T08:57:50.451687Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "origin_path": "/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:e9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70"
+      },
+      "response": {
+        "status": 302,
+        "headers": {
+          "location": "bytes"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "origin_path": "/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/bytes"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/vnd.apache.parquet"
+        },
+        "body_file": "fetch-spec-known-sentence.parquet"
+      }
+    }
+  ],
+  "expect": [
+    {
+      "dataset": {
+        "rows": 4,
+        "columns": [
+          "stat_var",
+          "financingProvider",
+          "financingProvider_label",
+          "financingProvider_party_kind",
+          "financingRecipient",
+          "financingRecipient_label",
+          "financingRecipient_party_kind",
+          "crsCooperationModality",
+          "crsCooperationModality_label",
+          "crsPurpose",
+          "crsPurpose_label",
+          "crsTypeOfFinance",
+          "crsTypeOfFinance_label",
+          "crsTypeOfFlow",
+          "crsTypeOfFlow_label",
+          "time_period",
+          "value",
+          "unit",
+          "unit_label",
+          "currency",
+          "price_basis",
+          "base_year",
+          "measurementMethod",
+          "measurementMethod_label",
+          "provenance",
+          "provenance_label"
+        ],
+        "complete": true,
+        "members": [
+          {
+            "parts": [],
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
+            "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS)."
+          }
+        ],
+        "missing": []
+      }
+    }
+  ]
+}

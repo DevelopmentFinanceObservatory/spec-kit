@@ -159,10 +159,24 @@ def test_every_absolute_url_loses_its_query(url: str, expected: str) -> None:
     ("location", "refused"),
     [
         ("http://127.0.0.1:19493/__e2e__/blob/b/o?X-Goog-Signature=redacted", True),
+        ("http://localhost:19493/b/o?X-Goog-Signature=redacted", True),
+        ("http://127.0.0.1:4443/b/o?X-Goog-Signature=redacted", True),
+        ("http://127.0.0.1/b/o?X-Goog-Signature=redacted", True),
+        ("http://storage.googleapis.com/b/o?X-Goog-Signature=redacted", True),
         ("https://storage.googleapis.com/b/o?X-Goog-Signature=redacted", False),
+        ("http://127.0.0.1:19493/api/datasets/operations/op_1", False),
         ("/api/datasets/operations/op_1", False),
     ],
-    ids=["local-signed-url", "storage-url", "root-relative"],
+    ids=[
+        "local-signed-url",
+        "localhost-alias",
+        "other-port",
+        "no-port",
+        "storage-over-http",
+        "storage-url",
+        "api-route-under-the-base-url",
+        "root-relative",
+    ],
 )
 def test_a_record_whose_signed_url_names_the_local_host_is_refused(
     location: str, refused: bool
@@ -174,7 +188,7 @@ def test_a_record_whose_signed_url_names_the_local_host_is_refused(
     record = {"name": "s", "exchanges": [exchange]}
     base_url = "http://127.0.0.1:19493/api"
     if refused:
-        with pytest.raises(SystemExit, match=r"still names 127\.0\.0\.1:19493"):
+        with pytest.raises(SystemExit, match="where a record's absolute URL names"):
             capture._refuse_local_host(record, base_url)
     else:
         capture._refuse_local_host(record, base_url)

@@ -172,7 +172,8 @@ def _refused_without_code(status: int) -> Callable[[Any], None]:
 def _resubmit_answers_built(doc: Any) -> None:
     """Search answers the identity resubmit with the built spec_id."""
     built = doc["exchanges"][0]["response"]["json"]["definition"]["spec_id"]
-    doc["exchanges"][1]["response"]["json"]["parts"][0]["spec"]["spec_id"] = built
+    spec = doc["exchanges"][1]["response"]["json"]["parts"][0]["spec"]
+    spec["spec_id"] = spec["definition"]["spec_id"] = built
 
 
 def _posted_entities(change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -263,6 +264,65 @@ def _versions_forbidden(response: Any) -> None:
             "retryable": False,
         },
     )
+
+
+def _keep_exchanges(count: int) -> Callable[[Any], None]:
+    return lambda doc: doc.update(exchanges=doc["exchanges"][:count])
+
+
+def _never_retried(doc: Any) -> None:
+    """The 503 ends the record, and the search raises it unretried."""
+    doc["exchanges"] = doc["exchanges"][:1]
+    doc["expect"] = [{"error": {"class": "ServerError", "code": "service_unavailable"}}]
+
+
+def _proxy_code(code: str) -> Callable[[Any], None]:
+    def change(doc: Any) -> None:
+        for exchange in doc["exchanges"]:
+            exchange["response"]["json"]["error"] = code
+        doc["expect"][0]["error"]["code"] = code
+
+    return change
+
+
+def _search_posts(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return lambda doc: change(doc["exchanges"][0]["request"]["json"])
+
+
+def _redirect_to(url: str) -> Callable[[Any], None]:
+    """fetch-spec-known-sentence's files route names `url`, and the client
+    fetches it."""
+
+    def change(doc: Any) -> None:
+        doc["exchanges"][1]["response"]["headers"]["location"] = url
+        doc["exchanges"][2]["request"]["url"] = url
+
+    return change
+
+
+def _posted_scope(scope: Any) -> Callable[[Any], None]:
+    return lambda doc: doc["exchanges"][0]["request"]["json"]["input"].update(
+        scope=scope
+    )
+
+
+def _without_data_query(doc: Any) -> None:
+    del doc["exchanges"][0]["response"]["json"]["parts"][0]["no_data"]["options"][0][
+        "data_query"
+    ]
+
+
+def _second_fetch_served(doc: Any) -> None:
+    """The second signed fetch serves the stored file."""
+    doc["exchanges"][-1]["response"] = {
+        "status": 200,
+        "headers": {"content-type": "application/vnd.apache.parquet"},
+        "body_file": "fetch-ref.parquet",
+    }
+
+
+_SUNSET = "scenarios/search-sunset-warning.json"
+_FOREIGN = "https://downloads.example.com/b/o?X-Goog-Signature=redacted"
 
 
 @pytest.mark.parametrize(
@@ -655,7 +715,12 @@ def _versions_forbidden(response: Any) -> None:
         (
             "client-codes.json",
             _add_action(
-                {"code": "spec_not_found", "class": "NotFoundError", "condition": "x"}
+                {
+                    "code": "spec_not_found",
+                    "class": "NotFoundError",
+                    "retryable": False,
+                    "condition": "x",
+                }
             ),
             "'spec_not_found' is also a code in actions.json",
         ),
@@ -665,6 +730,7 @@ def _versions_forbidden(response: Any) -> None:
                 {
                     "code": "alternates_unevaluated",
                     "class": "ServerError",
+                    "retryable": False,
                     "condition": "x",
                 }
             ),
@@ -900,6 +966,176 @@ def _versions_forbidden(response: Any) -> None:
             _set_step(0, window=[2020, 2023]),
             "scenarios/mint-async-build.json: schema: call/0",
         ),
+        (
+            "scenarios/search-proxy-unavailable.json",
+            _keep_exchanges(2),
+            "is a retryable refusal with retries left",
+        ),
+        (_RETRY_503, _never_retried, "is a retryable refusal with retries left"),
+        (
+            _SEARCH,
+            _search_posts(lambda body: body.update(response_options=None)),
+            "where the rules post",
+        ),
+        (
+            _SEARCH,
+            _search_posts(lambda body: body.pop("schema_version")),
+            "where the rules post",
+        ),
+        (
+            "scenarios/mint-async-build.json",
+            _set_step(1, timeout=0.001),
+            "scenarios/mint-async-build.json: schema: call/1",
+        ),
+        (
+            "scenarios/search-proxy-unavailable.json",
+            _proxy_code("made_up_code"),
+            "proxy code 'made_up_code' is not a code proxy-codes.json lists",
+        ),
+        (
+            "scenarios/search-proxy-unavailable.json",
+            _proxy_code("rate_limited"),
+            "lists with status 502",
+        ),
+        (
+            "proxy-codes.json",
+            _add_action({"code": "spec_not_found", "status": 404, "condition": "x"}),
+            "'spec_not_found' is also a code in registries/codes.json",
+        ),
+        (
+            "warning-codes.json",
+            _drop_action("route_deprecated"),
+            "no row for 'route_deprecated'",
+        ),
+        (
+            "warning-codes.json",
+            _add_action(
+                {"code": "key_too_long", "class": "DfoWarning", "condition": "x"}
+            ),
+            "'key_too_long' is a warning no rule issues",
+        ),
+        (
+            "warning-codes.json",
+            _add_action({"code": "offline", "class": "DfoWarning", "condition": "x"}),
+            "'offline' is also a code in client-codes.json",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            lambda doc: doc["exchanges"][1]["response"]["headers"].update(
+                location="http://localhost:19493/b/o?X-Goog-Signature=redacted"
+            ),
+            "names localhost:19493, where a record's absolute URL names",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            lambda doc: doc["exchanges"][2]["request"].update(
+                url="http://127.0.0.1:4443/b/o?X-Goog-Signature=redacted"
+            ),
+            "names 127.0.0.1:4443, where a record's absolute URL names",
+        ),
+        (_FETCH, _redirect_to(_FOREIGN), "names downloads.example.com"),
+        (_FETCH, _redirect_to(_FOREIGN), "the steps never make exchanges 2 to 2"),
+        (
+            "scenarios/fetch-spec-relative-location.json",
+            lambda doc: doc["exchanges"][2]["request"].update(origin_path="/bytes"),
+            "where the steps make a GET /api/datasets/",
+        ),
+        (
+            "scenarios/fetch-spec-empty-narrowing.json",
+            _posted_scope({"facets": {}}),
+            "where the rules post",
+        ),
+        (
+            "scenarios/fetch-spec-empty-narrowing.json",
+            _posted_scope({"entities": {}}),
+            "where the rules post",
+        ),
+        (
+            _SEARCH,
+            lambda doc: doc["exchanges"][0]["response"].pop("json"),
+            "step 0 expects",
+        ),
+        (
+            _SEARCH,
+            lambda doc: doc["origin"].update(dfo_commit="f" * 40),
+            "is not served/SOURCE.json's commit",
+        ),
+        (
+            "scenarios/fetch-ref-signed-url-refused-twice.json",
+            _second_fetch_served,
+            "step 0 expects",
+        ),
+        (
+            "scenarios/operation-failed-without-error.json",
+            _error_code(1, "refusal_without_code"),
+            "step 1 expects",
+        ),
+        (
+            "client-codes.json",
+            _set_action("offline", retryable=None),
+            "'retryable' is a required property",
+        ),
+        (
+            "client-codes.json",
+            _set_action("offline", retryable="by_status"),
+            "'offline' takes its retryable flag by_status",
+        ),
+        (
+            "scenarios/newest-version-unreadable-page.json",
+            lambda doc: doc["expect"].__setitem__(
+                0, {"newest_version": {"content_version": None}}
+            ),
+            "step 0 expects",
+        ),
+        (
+            _RETRY_503,
+            _set_outcome(0, lambda o: o["answer"].update(retry_waits=[0.5])),
+            "step 0 expects",
+        ),
+        (
+            "scenarios/fetch-spec-504-retry-after.json",
+            _set_outcome(0, lambda o: o["dataset"].update(retry_waits=[0.5])),
+            "step 0 expects",
+        ),
+        (
+            _SUNSET,
+            _set_outcome(0, lambda o: o["answer"].pop("warnings")),
+            "step 0 expects",
+        ),
+        (
+            _SUNSET,
+            _set_outcome(
+                1, lambda o: o["answer"].update(warnings=["route_deprecated"])
+            ),
+            "step 1 expects",
+        ),
+        (
+            "scenarios/answer-unknown-part-status.json",
+            _set_body(0, lambda body: body["parts"][1].update(status=7)),
+            "the step follows no answer",
+        ),
+        (
+            "scenarios/answer-definite-fetch.json",
+            _set_body(
+                0,
+                lambda body: body["parts"][0]["spec"]["definition"].update(
+                    spec_id="spec_" + "0" * 32
+                ),
+            ),
+            "the step follows no answer",
+        ),
+        (
+            "scenarios/choose-place-one-part.json",
+            _without_data_query,
+            "the steps never make exchanges 1 to 1",
+        ),
+        (
+            "scenarios/fetch-spec-member-not-resolvable.json",
+            lambda doc: doc["exchanges"][0]["response"]["headers"].update(
+                {"content-type": "text/html"}
+            ),
+            "step 0 expects",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -1022,6 +1258,39 @@ def _versions_forbidden(response: Any) -> None:
         "served-document-with-skills",
         "newest-version-not-the-listed-one",
         "mint-step-narrowed",
+        "retry-short-of-the-budget",
+        "retryable-refusal-never-retried",
+        "search-posts-an-extra-member",
+        "search-without-schema-version",
+        "step-timeout",
+        "proxy-code-unlisted",
+        "proxy-code-wrong-status",
+        "proxy-code-is-a-registry-code",
+        "warning-code-missing",
+        "warning-code-no-rule-issues",
+        "warning-code-is-a-client-code",
+        "location-localhost-alias",
+        "signed-url-other-port",
+        "location-foreign-origin-recorded",
+        "location-foreign-origin-raises",
+        "relative-location-against-the-origin",
+        "empty-facets-posts-scope",
+        "empty-entities-posts-scope",
+        "search-200-without-body",
+        "dfo-commit-not-the-served-commit",
+        "second-signed-fetch-served",
+        "failed-operation-without-error-uncoded",
+        "client-code-without-retryable",
+        "client-code-retryable-by-status",
+        "unreadable-versions-page-reads-as-none",
+        "retry-waits-backoff-over-retry-after",
+        "build-retry-waits-backoff-over-retry-after",
+        "sunset-warning-missing",
+        "sunset-warning-repeated",
+        "part-status-not-a-string",
+        "definition-spec-id-mismatch",
+        "one-part-option-without-data-query",
+        "refusal-in-another-content-type",
     ],
 )
 def test_a_broken_contract_is_reported(

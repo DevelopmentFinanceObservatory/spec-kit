@@ -266,10 +266,6 @@
         "question": {
           "type": "string",
           "minLength": 1
-        },
-        "timeout": {
-          "type": "number",
-          "exclusiveMinimum": 0
         }
       }
     },
@@ -330,10 +326,6 @@
         },
         "strict": {
           "type": "boolean"
-        },
-        "timeout": {
-          "type": "number",
-          "exclusiveMinimum": 0
         }
       }
     },
@@ -358,10 +350,6 @@
         "strict": {
           "type": "boolean"
         },
-        "timeout": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
         "window": true,
         "entities": true,
         "facets": true
@@ -381,10 +369,6 @@
         },
         "ref": {
           "$ref": "dataset-ref.schema.json"
-        },
-        "timeout": {
-          "type": "number",
-          "exclusiveMinimum": 0
         }
       }
     },
@@ -455,10 +439,6 @@
       "properties": {
         "op": {
           "const": "result"
-        },
-        "timeout": {
-          "type": "number",
-          "exclusiveMinimum": 0
         }
       }
     },
@@ -719,6 +699,12 @@
               }
             }
           }
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
         }
       }
     },
@@ -829,6 +815,12 @@
         },
         "long_builds": {
           "$ref": "#/$defs/long_builds"
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
         }
       }
     },
@@ -850,6 +842,12 @@
             "done",
             "failed"
           ]
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
         }
       }
     },
@@ -870,6 +868,12 @@
               "type": "null"
             }
           ]
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
         }
       }
     },
@@ -920,6 +924,12 @@
         },
         "long_builds": {
           "$ref": "#/$defs/long_builds"
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
         }
       },
       "if": {
@@ -974,6 +984,28 @@
           }
         }
       }
+    },
+    "retry_waits": {
+      "description": "The seconds a step waited before each retry of a refused request, in order: the refusal's Retry-After, else a backoff that doubles from 0.5 to 8 seconds. Given only when the step retried.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "warnings": {
+      "description": "The codes, from warning-codes.json and in order, of the warnings the step's API responses issued. Given only when they issued any.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/name_code"
+      }
+    },
+    "name_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "$ref": "#/$defs/one_line"
     }
   }
 }

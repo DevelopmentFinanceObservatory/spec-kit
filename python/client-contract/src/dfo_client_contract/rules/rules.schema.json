@@ -309,11 +309,10 @@
                 "$ref": "#/$defs/name"
               },
               "api_key": {
-                "description": "The api_key argument: a key string, or false to force anonymous use. Absent when the caller passes none.",
+                "description": "The api_key argument: a key string, the empty string a client refuses, or false to force anonymous use. Absent when the caller passes none.",
                 "oneOf": [
                   {
-                    "type": "string",
-                    "minLength": 1
+                    "type": "string"
                   },
                   {
                     "const": false
@@ -353,6 +352,7 @@
                 "properties": {
                   "reason": {
                     "enum": [
+                      "key_empty",
                       "profile_not_found",
                       "profile_without_key",
                       "credentials_file_invalid"

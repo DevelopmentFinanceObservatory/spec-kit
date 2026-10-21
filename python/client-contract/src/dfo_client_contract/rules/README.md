@@ -26,19 +26,19 @@ A name is one or more of `A-Z`, `a-z`, `0-9`, `_` and `-`. A value holds no `"`,
 
 A client resolves its key when it is built, and again after a 401. The first source found wins:
 
-1. the `api_key` argument: a key, or `false` to force anonymous use;
+1. the `api_key` argument: a key, or `false` to force anonymous use; an empty string raises `key_empty`;
 1. `DFO_API_KEY`;
 1. the credentials file at the credentials path, profile `$DFO_PROFILE`, else `default`;
 1. inside Colab, a notebook secret named `DFO_API_KEY`;
 1. otherwise, anonymous.
 
-A missing file goes on to the next source, and so does a missing `default` profile. A file that fails to parse raises `credentials_file_invalid`, a profile named by `DFO_PROFILE` that the file lacks raises `profile_not_found`, and a chosen profile with no `key` raises `profile_without_key`. The file is read only when no earlier source wins. The argument may also be a callable or a key object, called or unwrapped when the client resolves the key; vectors pass strings, and the Colab source has none.
+A missing file goes on to the next source, and so does a missing `default` profile. A file that fails to parse raises `credentials_file_invalid`, a profile named by `DFO_PROFILE` that the file lacks raises `profile_not_found`, and a chosen profile with no `key`, or an empty one, raises `profile_without_key`. The file is read only when no earlier source wins. The argument may also be a callable or a key object, called or unwrapped when the client resolves the key; vectors pass strings, and the Colab source has none.
 
 ## Key format (`key-format`)
 
 A secret key is `dfo_k_`, then a base62 body, then a 6-character checksum; `dfo_p_` marks a browser-safe key. Base62 is `0-9A-Za-z` in that order. The checksum is the CRC32 (ISO-HDLC, as zlib computes it) of the body's ASCII bytes, written in base62 and left-padded with `0` to six characters. Issued keys have a 32-character body, 44 characters in all, but the check ignores length: the last six characters after the prefix are the checksum and the rest is the body.
 
-The check runs in order and reports the first failure: `unknown_prefix` when the key starts with neither prefix, `not_base62` when a character after the prefix is outside base62, and `checksum_mismatch` when the body is empty or its checksum differs. A failure warns and the client sends the key anyway, so a change of key format forces no upgrade.
+The check runs in order and reports the first failure: `unknown_prefix` when the key starts with neither prefix, `not_base62` when a character after the prefix is outside base62, and `checksum_mismatch` when the body is empty or its checksum differs. A failure warns with the code `key_<reason>` from `warning-codes.json`, such as `key_checksum_mismatch`, and the client sends the key anyway, so a change of key format forces no upgrade.
 
 ## Cache directory (`cache-dir`)
 

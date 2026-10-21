@@ -100,6 +100,8 @@ def look_up_key(vector: dict[str, Any]) -> tuple[str, str | None]:
     api_key = vector.get("api_key")
     if api_key is False:
         return "anonymous", None
+    if api_key == "":
+        raise RuleError("key_empty")
     if api_key is not None:
         return "argument", api_key
     if from_env := _set(env, "DFO_API_KEY"):
@@ -116,7 +118,7 @@ def look_up_key(vector: dict[str, Any]) -> tuple[str, str | None]:
         if named:
             raise RuleError("profile_not_found")
         return "anonymous", None
-    if "key" not in profile:
+    if not profile.get("key"):
         raise RuleError("profile_without_key")
     return "credentials_file", profile["key"]
 

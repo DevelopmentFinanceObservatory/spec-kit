@@ -1,0 +1,90 @@
+{
+  "format_version": 1,
+  "name": "operation-failed-without-error",
+  "description": "A failed operation whose resource carries no error raises ServerError with the code operation_failed; a resumed operation holds no build request, so nothing is posted again.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "operation-resume",
+    "edit": "The resumed operation's first poll answers it failed with no error member."
+  },
+  "call": [
+    {
+      "op": "operation",
+      "operation_id": "op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445"
+    },
+    {
+      "op": "result"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445",
+            "retry_after_ms": 1500,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 123015
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445",
+            "status": "failed",
+            "poll": "/api/datasets/operations/op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445",
+            "retry_after_ms": 1500
+          }
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "operation": {
+        "operation_id": "op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445",
+        "status": "pending"
+      }
+    },
+    {
+      "error": {
+        "class": "ServerError",
+        "code": "operation_failed",
+        "long_builds": [
+          {
+            "operation_id": "op_33dee3c9711dcc7f5f4f12d8b76c44f96c6be64f38521f5d5724e844495a5445",
+            "poll_waits": [
+              1.5
+            ],
+            "resubmissions": 0
+          }
+        ]
+      }
+    }
+  ]
+}
