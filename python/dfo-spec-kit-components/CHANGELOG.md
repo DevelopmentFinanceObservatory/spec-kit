@@ -108,7 +108,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   descriptions suite's card-revision vector. `manifest.json` carries the
   refreshed digests of the fixture and of `description.schema.json`.
 
-- The catalogue fixtures cite as dfo-apis composes citations: the
+- The catalogue fixtures cite as the `apis` repo composes citations: the
   original sources and the year, then "via the Development Finance
   Observatory" ("OECD DAC (2026), via the Development Finance
   Observatory"). The note fixture reads "Development Finance Observatory
@@ -179,4 +179,4 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `x_axis` and `y_axis`. `schema_version` stays 1; a consuming service's own
   migration rewrites its stored `bar_chart` payloads to the new key names.
 
-[unreleased]: https://github.com/ONEcampaign/dfo-spec-kit/commits/main/python
+[unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python

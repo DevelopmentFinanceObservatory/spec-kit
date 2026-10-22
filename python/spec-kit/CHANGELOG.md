@@ -55,9 +55,25 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that shares its StatVar with other codes of the same source, where the graph
   does not record what separates them, raises the third, naming the codes
   that share the variable. The retired `code_ambiguous` is unchanged.
+- Code `whole_total_available` in `registries/codes.json` and its bundled
+  mirror: a `search.resolve` warning on the raw_text, parsed and
+  dataset_resubmit doors. It flags an answer that lists each member of a flow
+  side whose dataset publishes the total of that side's whole population for
+  the answer's years ("Official Donors, Total" in DAC2a and DAC2b, "All
+  Recipients, Total" in DAC2a from 1984), so a sum of the listed members can
+  differ from the published figure. Its params name the total (`total`,
+  `total_label`) and the party classes it covers (`whole_of`: `official`,
+  `private` or `residual`, comma-joined).
 
 ### Changed
 
+- The `$id` of `schemas/registry/code-registry.schema.json`,
+  `schemas/registry/unit-registry.schema.json`,
+  `schemas/vectors/identity-vector.schema.json` and
+  `schemas/vectors/unit-vector.schema.json` now sits under
+  `https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/`,
+  with each file's path unchanged. The previous prefix named a private
+  repository and did not resolve.
 - On `presentation.write`, codes `binding_invalid`, `constraint_violation`
   and `resource_exhausted` map at 400, `frame_unavailable` at 404 and
   `release_mismatch` at 503, the statuses the Presentation write routes
@@ -378,4 +394,4 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `invalid_unit_request` rather than passing validation. This deliberately
   corrects the reference implementation this package was extracted from.
 
-[unreleased]: https://github.com/ONEcampaign/dfo-spec-kit/commits/main/python
+[unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python

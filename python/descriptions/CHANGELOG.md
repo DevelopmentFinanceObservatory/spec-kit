@@ -137,4 +137,4 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   measure. The card-revision and live-rendering vectors carry the measure,
   fixed values and drawn values with graph definitions.
 
-[unreleased]: https://github.com/ONEcampaign/dfo-spec-kit/commits/main/python
+[unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python
