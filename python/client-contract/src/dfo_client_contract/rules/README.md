@@ -58,4 +58,4 @@ Inside the cache directory:
 - a downloaded artifact is `files/sha256/<hex>`, keyed by its digest;
 - a manifest is `manifests/<spec_id>/<content_version>/<rendering>.json`, where `<rendering>` is the format, then `-bundle` for a bundle, then `-frame` for the frame layout: `parquet`, `parquet-frame`, `csv-bundle`.
 
-A client writes an entry to a temporary name in the same directory and renames it into place, so a reader never sees a partial entry, and concurrent writers of one entry write identical bytes. A read re-hashes an artifact, and a mismatch counts as a miss.
+A client writes an entry to a temporary name in the same directory and renames it into place, so a reader sees a complete entry. Concurrent writers of one content-addressed artifact write identical bytes. Manifest updates can replace another complete manifest and lose a cache candidate, so cache availability is best-effort. A read re-hashes an artifact, and a mismatch counts as a miss.
