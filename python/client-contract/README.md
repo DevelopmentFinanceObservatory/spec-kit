@@ -1,6 +1,6 @@
 # dfo-spec-kit-client-contract (Python)
 
-This package holds the contract the DFO clients are built to: the Python client `development-finance` and the TypeScript client `@developmentfinance/client`. The clients generate their wire types, strict checks and error maps from these files and replay the scenarios. dfo-apis CI checks its app against the same files, so a server change that breaks a client fails there first. The files below are normative; where this README and the files disagree, the files win and the disagreement is a bug. See the [repo README](../../README.md) for how this package fits with the rest of `dfo-spec-kit`.
+This package holds the contract the DFO clients are built to: the Python client `development-finance` and the TypeScript client `@developmentfinance/client`. The clients generate their wire types, strict checks and error maps from these files and replay the scenarios. dfo-apis CI validates the recorded exchanges against the app's current OpenAPI document, strict fields and code registry. The SDK's scheduled live journeys check deployed server behavior; a change that preserves the schema can pass the API gate. The files below are normative; where this README and the files disagree, the files win and the disagreement is a bug. See the [repo README](../../README.md) for how this package fits with the rest of `dfo-spec-kit`.
 
 The import name is `dfo_client_contract`. It depends on the standard library only.
 
@@ -183,7 +183,7 @@ The records also fix these client rules:
 - A `request(method, path)` whose `path` is not a path on the base URL, because it starts with `//` or names a scheme, raises `InvalidRequestError` `invalid_argument` before any request. No scenario step makes such a request.
 - A 2xx response of a JSON route with no JSON body raises `ContractError` `unexpected_response`. `search-no-json-body` pins it for Search.
 - A `Deprecation` or `Sunset` header on an API response, either alone, issues `route_deprecated` once per process per distinct pair of their values, and an `x-dfo-warning` header issues `server_warning` once per process per message. A signed fetch's headers issue nothing. `search-sunset-warning` pins a Sunset header alone, issued once over two responses that carry the same value, and `search-server-warning` pins a repeated `x-dfo-warning` message issued once, a new message issued again, and a Deprecation beside the same Sunset issued as a new pair.
-- Timeouts follow the clients' design and are not replayed, since the replay advances the clock only by the waits the client asks for: the client's `timeout`, 30 s by default, bounds one request attempt; `search(timeout=60)` bounds the whole search, each attempt reading until that deadline, and None means no limit; `fetch(timeout=1800)` bounds the whole fetch, each download getting the time left on the fetch's deadline; a synchronous build POST, and mint's POST, read for up to 150 s within any outer deadline; `result(timeout=1800)` bounds the wait, and None means no limit. A poll attempt that hangs past the per-attempt timeout spends a retry, and a deadline that passes during a body read raises `DfoTimeoutError` `deadline_exceeded`. In TypeScript an infinite remaining time arms no timer, and a finite one above 2^31-1 ms is clamped. No scenario step takes a timeout.
+- Python synchronous platform name resolution can exceed the following timeout and deadline limits. Asynchronous name resolution is cancellable. Timeouts follow the clients' design and are not replayed, since the replay advances the clock only by the waits the client asks for: the client's `timeout`, 30 s by default, bounds one request attempt; `search(timeout=60)` bounds the whole search, each attempt reading until that deadline, and None means no limit; `fetch(timeout=1800)` bounds the whole fetch, each download getting the time left on the fetch's deadline; a synchronous build POST, and mint's POST, read for up to 150 s within any outer deadline; `result(timeout=1800)` bounds the wait, and None means no limit. A poll attempt that hangs past the per-attempt timeout spends a retry, and a deadline that passes during a body read raises `DfoTimeoutError` `deadline_exceeded`. In TypeScript an infinite remaining time arms no timer, and a finite one above 2^31-1 ms is clamped. No scenario step takes a timeout.
 
 ## Recording
 
@@ -214,7 +214,7 @@ A record's `origin.base_url` is the base URL the run was given, a local app's in
 
 ## Rules
 
-`rules/README.md` states the rules every client implements the same way: the credentials path and file format, the key lookup order, the key format check, and the cache directory and layout. Each rule's vectors are in `rules/<rule>.json`.
+`rules/README.md` states the shared rules for credentials, key lookup and format, and disk caching. A rule applies where the client and runtime implement its capability. Python implements disk caching; TypeScript currently keeps no disk cache, so `cache-dir` and `cache-layout` apply to Python. Credentials-file rules apply to runtimes with local credentials support. Each rule's vectors are in `rules/<rule>.json`.
 
 ## Validation
 

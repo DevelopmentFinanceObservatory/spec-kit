@@ -1,6 +1,6 @@
 # Client rules
 
-Every DFO client implements these rules the same way, so a key, a credentials file and a cache directory work across languages. Each rule's vectors are in `<rule>.json`, validated by `rules.schema.json`. In a vector, `env` lists the environment variables set, and an empty value counts as unset everywhere below.
+Clients implement these rules for the capabilities available in their runtime. Python implements every rule. TypeScript implements the key and credentials rules in Node; browser runtimes use the key sources available there. TypeScript currently keeps no disk cache, so `cache-dir` and `cache-layout` apply to Python. Clients implementing the same capability use the same rules and formats. Each rule's vectors are in `<rule>.json`, validated by `rules.schema.json`. In a vector, `env` lists the environment variables set, and an empty value counts as unset everywhere below.
 
 ## Credentials path (`credentials-path`)
 
@@ -49,7 +49,7 @@ The cache root is the first of, as readerkit's `resolve_cache_dir(app="dfo", ...
 1. `BBLOCKS_CACHE_DIR`;
 1. the platform cache directory for `readerkit`: on Linux `$XDG_CACHE_HOME/readerkit`, else `~/.cache/readerkit`; on macOS `~/Library/Caches/readerkit`; on Windows `<Local AppData>\readerkit\Cache`, which the vectors give as `LOCALAPPDATA`.
 
-A leading `~` expands to the home directory. The cache directory is `<root>/v1/dfo/cache1`: `v1` is readerkit's own layout version, `dfo` the app, and `cache1` the client cache's layout version, shared by every client and every client release.
+A leading `~` expands to the home directory. The cache directory is `<root>/v1/dfo/cache1`: `v1` is readerkit's own layout version, `dfo` the app, and `cache1` the client cache's layout version. Clients and releases implementing `cache1` share this layout.
 
 ## Cache layout (`cache-layout`)
 
