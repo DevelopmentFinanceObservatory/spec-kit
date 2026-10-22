@@ -64,6 +64,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   serve. `presentation.render` keeps 422 for the first two and 409 for the
   rest. `frame_unavailable` covers a frame that is not held in a readable
   state. A frame store that fails to answer is `service_unavailable`.
+- Code `edit_conflict` maps to `presentation.render` at 409, for a render
+  of a component that has no current revision, and its definition names
+  that case.
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.

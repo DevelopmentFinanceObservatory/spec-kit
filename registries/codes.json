@@ -905,13 +905,18 @@
     {
       "code": "edit_conflict",
       "classification": "refusal",
-      "definition": "A revise_component request targets a revision that is no longer the component's current one.",
+      "definition": "The component's current revision is not the one the request reads or targets: a revise_component request names a revision that is no longer current, or the component has no current revision.",
       "owning_contract": "presentation",
       "owner": "platform",
       "introduced_in": "v1",
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
         }
