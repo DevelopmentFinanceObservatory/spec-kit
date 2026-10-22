@@ -180,7 +180,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 422
+          "http_status": 400
         },
         {
           "endpoint": "presentation.render",
@@ -557,7 +557,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 422
+          "http_status": 400
         },
         {
           "endpoint": "presentation.render",
@@ -1447,7 +1447,7 @@
     {
       "code": "frame_unavailable",
       "classification": "refusal",
-      "definition": "The frame the intent's frame_ref names cannot be read at request time.",
+      "definition": "The frame a request names is not held in a readable state: it was never stored, it has expired or been revoked, or its stored artifact is missing, quarantined, or fails its digest check.",
       "owning_contract": "presentation",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1455,7 +1455,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 409
+          "http_status": 404
         },
         {
           "endpoint": "presentation.render",
@@ -3107,7 +3107,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 409
+          "http_status": 503
         },
         {
           "endpoint": "presentation.render",
@@ -3318,7 +3318,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 409
+          "http_status": 400
         },
         {
           "endpoint": "presentation.render",

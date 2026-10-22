@@ -58,6 +58,12 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- On `presentation.write`, codes `binding_invalid`, `constraint_violation`
+  and `resource_exhausted` map at 400, `frame_unavailable` at 404 and
+  `release_mismatch` at 503, the statuses the Presentation write routes
+  serve. `presentation.render` keeps 422 for the first two and 409 for the
+  rest. `frame_unavailable` covers a frame that is not held in a readable
+  state. A frame store that fails to answer is `service_unavailable`.
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.
