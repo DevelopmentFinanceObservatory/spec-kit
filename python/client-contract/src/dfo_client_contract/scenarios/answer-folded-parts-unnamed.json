@@ -33,7 +33,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "3a6b3215c1d04aa1b2a1a0efe865c589"
+          "x-dfo-trace-id": "6d68317966c44c48a0701ff661a5e655"
         },
         "json": {
           "schema_version": 1,
@@ -41,23 +41,26 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya",
             "normalized_query": "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
-            "trace_id": "3a6b3215c1d04aa1b2a1a0efe865c589",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "6d68317966c44c48a0701ff661a5e655",
             "warnings": [],
             "timing_ms": {
-              "total": 7,
+              "total": 4868,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1143,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2237,
+              "output_tokens": 215,
+              "cached_tokens": 842,
+              "jev_input_tokens": 25205,
+              "jev_output_tokens": 5698
             },
             "timed_out": false
           },
@@ -66,30 +69,30 @@
             {
               "warnings": [],
               "timing_ms": {
-                "total": 8356,
+                "total": 3437,
                 "by_step": {
-                  "recall": 4756,
+                  "recall": 538,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 154,
-                  "shape_probe_coverage": 5,
-                  "shape_probe": 168,
-                  "shape_groups": 122,
-                  "shape_labels": 22,
+                  "shape_arcs": 85,
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 426,
+                  "shape_groups": 43,
+                  "shape_labels": 9,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 974,
+                  "shape": 1403,
                   "phase_prune_and_rank": 0,
-                  "bind": 231,
-                  "phase_bind": 800,
-                  "phase_settle": 69,
-                  "phase_place_bindings": 117,
+                  "bind": 228,
+                  "phase_bind": 458,
+                  "phase_settle": 103,
+                  "phase_place_bindings": 23,
                   "phase_facet_requests": 0,
-                  "materialise": 673,
-                  "phase_materialise": 0,
-                  "answer": 28,
-                  "options": 543,
-                  "phase_outcome": 165
+                  "materialise": 385,
+                  "phase_materialise": 1,
+                  "answer": 18,
+                  "options": 174,
+                  "phase_outcome": 106
                 }
               },
               "restatement": {
@@ -574,6 +577,12 @@
                     ]
                   },
                   "facets": {
+                    "unit": {
+                      "basis": "fallback",
+                      "ref": "CurrencyUSD",
+                      "label": "US Dollar",
+                      "currency": "USD"
+                    },
                     "provenance": {
                       "basis": "fallback",
                       "ref": "provenance/OECDCreditorReportingSystem",
@@ -588,12 +597,6 @@
                       },
                       "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem",
                       "account": "provider"
-                    },
-                    "unit": {
-                      "basis": "fallback",
-                      "ref": "CurrencyUSD",
-                      "label": "US Dollar",
-                      "currency": "USD"
                     }
                   },
                   "slot_options": [
@@ -3747,30 +3750,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 8468,
+                "total": 3091,
                 "by_step": {
-                  "recall": 4598,
+                  "recall": 450,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 83,
-                  "shape_probe_coverage": 10,
-                  "shape_probe": 375,
-                  "shape_groups": 119,
-                  "shape_labels": 14,
+                  "shape_arcs": 93,
+                  "shape_probe_coverage": 2,
+                  "shape_probe": 98,
+                  "shape_groups": 44,
+                  "shape_labels": 9,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 737,
+                  "shape": 374,
                   "phase_prune_and_rank": 0,
-                  "bind": 1181,
-                  "phase_bind": 319,
-                  "phase_settle": 86,
-                  "phase_place_bindings": 47,
+                  "bind": 223,
+                  "phase_bind": 160,
+                  "phase_settle": 51,
+                  "phase_place_bindings": 27,
                   "phase_facet_requests": 0,
-                  "materialise": 883,
+                  "materialise": 1197,
                   "phase_materialise": 0,
-                  "answer": 31,
-                  "options": 415,
-                  "phase_outcome": 171
+                  "answer": 20,
+                  "options": 455,
+                  "phase_outcome": 134
                 }
               },
               "restatement": {
@@ -4255,6 +4258,12 @@
                     ]
                   },
                   "facets": {
+                    "unit": {
+                      "basis": "fallback",
+                      "ref": "CurrencyUSD",
+                      "label": "US Dollar",
+                      "currency": "USD"
+                    },
                     "provenance": {
                       "basis": "fallback",
                       "ref": "provenance/OECDCreditorReportingSystem",
@@ -4269,12 +4278,6 @@
                       },
                       "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem",
                       "account": "provider"
-                    },
-                    "unit": {
-                      "basis": "fallback",
-                      "ref": "CurrencyUSD",
-                      "label": "US Dollar",
-                      "currency": "USD"
                     }
                   },
                   "slot_options": [
@@ -7433,30 +7436,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 3772,
+                "total": 707,
                 "by_step": {
-                  "recall": 1374,
+                  "recall": 3,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 7,
-                  "shape_probe_coverage": 5,
-                  "shape_probe": 672,
-                  "shape_groups": 73,
-                  "shape_labels": 13,
-                  "shape_admission": 0,
+                  "shape_arcs": 3,
+                  "shape_probe_coverage": 6,
+                  "shape_probe": 146,
+                  "shape_groups": 48,
+                  "shape_labels": 9,
+                  "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 883,
+                  "shape": 316,
                   "phase_prune_and_rank": 0,
-                  "bind": 166,
-                  "phase_bind": 2,
-                  "phase_settle": 11,
-                  "phase_place_bindings": 812,
+                  "bind": 143,
+                  "phase_bind": 4,
+                  "phase_settle": 16,
+                  "phase_place_bindings": 7,
                   "phase_facet_requests": 0,
-                  "materialise": 133,
-                  "phase_materialise": 0,
-                  "answer": 136,
-                  "options": 247,
-                  "phase_outcome": 8
+                  "materialise": 98,
+                  "phase_materialise": 1,
+                  "answer": 6,
+                  "options": 108,
+                  "phase_outcome": 5
                 }
               },
               "restatement": {
@@ -9993,7 +9996,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "374abd74bb0345a99d42c51d745bf5f4"
+          "x-dfo-trace-id": "a13e0dc54c8e45028d75f8588accdaff"
         },
         "json": {
           "schema_version": 1,
@@ -14593,7 +14596,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
             "served_from": "head",
-            "confirmed_at": "2026-10-23T17:34:04.603704+00:00"
+            "confirmed_at": "2026-10-23T18:37:07.941117+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -14915,7 +14918,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "47508e85241d0cfbadc9c239b010de67631a75acdcc5b0d8c84b42c961f688cf",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-19T15:55:47.734809Z"
@@ -14933,7 +14936,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa189b171faab41729ddc1317add46add9b5eefb5fcac62a98cb735cb5f20f0f8?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "c4212c495cc14659a01d576c4130e13b"
+          "x-dfo-trace-id": "98ab007ae74543b6ba88210aaea181bb"
         }
       }
     },
@@ -15026,7 +15029,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a30366c9bf8042369d83ada6a7e38362"
+          "x-dfo-trace-id": "0a0ec8988f20490a80444b30363ade09"
         },
         "json": {
           "schema_version": 1,
@@ -15203,7 +15206,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
             "served_from": "head",
-            "confirmed_at": "2026-10-23T17:34:06.116139+00:00"
+            "confirmed_at": "2026-10-23T18:37:09.348368+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -15395,7 +15398,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "47508e85241d0cfbadc9c239b010de67631a75acdcc5b0d8c84b42c961f688cf",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-19T15:55:49.978519Z"
@@ -15413,7 +15416,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A9ff8d7d0df398e2b298b22f54828fb187c705888db1816d223137c950d037839?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "a4c172a97013428f8f23db90022d8197"
+          "x-dfo-trace-id": "9bd6e2b9ac8b4778b2cd39f9aca71a71"
         }
       }
     },

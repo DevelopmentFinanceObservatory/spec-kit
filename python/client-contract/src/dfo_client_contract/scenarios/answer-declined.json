@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
-    "recorded_at": "2026-10-23T17:40:24Z"
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:39:09Z"
   },
   "call": [
     {
@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "77dddf2cc7ef44109a95713db085e3f3"
+          "x-dfo-trace-id": "b0408d5777d8455dbb1147f8ad74ed96"
         },
         "json": {
           "schema_version": 1,
@@ -42,23 +42,25 @@
             "entry_path": "raw_text",
             "raw_query": "should donors give more aid to Kenya?",
             "normalized_query": "should donors give more aid to Kenya?",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
-            "trace_id": "77dddf2cc7ef44109a95713db085e3f3",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "b0408d5777d8455dbb1147f8ad74ed96",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 900,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 898,
+                "entity_check": 1,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2229,
+              "output_tokens": 64,
+              "cached_tokens": 840
             },
             "timed_out": false
           },
@@ -88,7 +90,7 @@
       "error": {
         "class": "DeclinedError",
         "code": "answer_declined",
-        "trace_id": "77dddf2cc7ef44109a95713db085e3f3"
+        "trace_id": "b0408d5777d8455dbb1147f8ad74ed96"
       }
     }
   ]

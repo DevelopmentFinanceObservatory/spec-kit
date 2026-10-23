@@ -41,8 +41,9 @@ outside a `location` under the base URL, is refused. The long builds need
 two specs the server has not built, so a local recording starts on a fresh
 datasets database. `--scenarios-dir` writes outside the package,
 unvalidated. The run ends by validating the whole contract with
-`tools/validate_client_contract.py`, and fails when it reports a problem or
-the binary bodies pass 5 MB.
+`tools/validate_client_contract.py`, and fails when it reports a problem,
+when the binary bodies pass 5 MB, or when the records and bodies together pass
+`SCENARIOS_BUDGET`, 16 MB.
 
 The outcome rules, error classes, gap kinds and long-build pacing come
 from `tools/validate_client_contract.py`, so a record's `expect` is written
@@ -80,6 +81,7 @@ from validate_client_contract import (
     POLL_BACKOFF_CAP,
     POLL_BACKOFF_FIRST,
     POLL_PATH,
+    SCENARIOS_BUDGET,
     SIGNED_FETCH_STATUS,
     STORAGE_ORIGIN,
     TRACE_HEADER,
@@ -118,6 +120,7 @@ from validate_client_contract import (
     rendering_for,
     resubmitted_sentence,
     retry_wait,
+    scenarios_size,
     search_body,
     search_warning_code,
     search_warns,
@@ -1204,10 +1207,14 @@ CANDIDATES_BESIDE_ASSUMED = (
 # for the operation another process started: a version the server has built
 # answers inline, so each long build needs a spec the server has not built.
 # A flow side the question leaves unnamed reads as its source's whole total, so
-# the rows come from the sector breakdown, about 90,000 a year.
-ASYNC = "ODA disbursements to every recipient country by sector from 2016 to 2017"
+# both sides name groups read as their members: about 3,700 donor and
+# recipient pairs of one variable over 60 years. A variable broken down by
+# sector would list thousands of variables in the done manifest.
+ASYNC = (
+    "ODA disbursements from the DAC countries to the G77 countries from 1963 to 2024"
+)
 ASYNC_RESUMED = (
-    "ODA disbursements to every recipient country by sector from 2014 to 2015"
+    "ODA disbursements from the OECD countries to the G77 countries from 1966 to 2024"
 )
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
@@ -4459,11 +4466,21 @@ def run_record(args: argparse.Namespace) -> int:
             record_synthetic(synthetic, ctx, directory)
             count += 1
     total = binary_total(directory)
-    print(f"{count} scenario(s) written; binary bodies {total:,} bytes")
+    size = scenarios_size(directory)
+    print(
+        f"{count} scenario(s) written; binary bodies {total:,} bytes, "
+        f"records and bodies {size:,} bytes"
+    )
     if count == 0:
         return 1
     if total > BINARY_BUDGET:
         print(f"binary bodies pass the {BINARY_BUDGET:,}-byte budget", file=sys.stderr)
+        return 1
+    if size > SCENARIOS_BUDGET:
+        print(
+            f"records and bodies pass the {SCENARIOS_BUDGET:,}-byte budget",
+            file=sys.stderr,
+        )
         return 1
     if args.scenarios_dir is not None:
         return 0

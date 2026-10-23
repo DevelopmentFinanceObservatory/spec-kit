@@ -35,7 +35,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "1d5f176b05c94ba0b55bacb3316cc3b5"
+          "x-dfo-trace-id": "88156a0c48754c7fb0d5c5a544daed09"
         },
         "json": {
           "schema_version": 1,
@@ -43,23 +43,24 @@
             "entry_path": "raw_text",
             "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
             "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
-            "trace_id": "1d5f176b05c94ba0b55bacb3316cc3b5",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "88156a0c48754c7fb0d5c5a544daed09",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 1686,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1680,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2234,
+              "output_tokens": 207,
+              "cached_tokens": 841
             },
             "timed_out": false
           },
@@ -69,11 +70,11 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 2,
+                "total": 1,
                 "by_step": {
                   "recall": 1,
                   "phase_resolve_places": 0,
-                  "phase_check_entities": 1
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -226,9 +227,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 2,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 2,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0
                 }
