@@ -1,0 +1,95 @@
+{
+  "format_version": 1,
+  "name": "answer-declined",
+  "description": "A question that asks for analysis answers declined, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T13:06:43Z"
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "should donors give more aid to Kenya?"
+    },
+    {
+      "op": "fetch"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "should donors give more aid to Kenya?"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "e61600f8e689429293ea320f5079509e"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "should donors give more aid to Kenya?",
+            "normalized_query": "should donors give more aid to Kenya?",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "e61600f8e689429293ea320f5079509e",
+            "warnings": [],
+            "timing_ms": {
+              "total": 2060,
+              "by_step": {
+                "coverage": 0,
+                "extract": 2058
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 2251,
+              "output_tokens": 97,
+              "cached_tokens": 859
+            },
+            "timed_out": false
+          },
+          "kind": "declined",
+          "reason": "requires_analysis",
+          "scope": {
+            "place": {
+              "ref": "country/KEN",
+              "label": "Kenya"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "declined",
+        "sentence": null,
+        "complete": false,
+        "specs": [],
+        "gaps": []
+      }
+    },
+    {
+      "error": {
+        "class": "DeclinedError",
+        "code": "answer_declined",
+        "trace_id": "e61600f8e689429293ea320f5079509e"
+      }
+    }
+  ]
+}

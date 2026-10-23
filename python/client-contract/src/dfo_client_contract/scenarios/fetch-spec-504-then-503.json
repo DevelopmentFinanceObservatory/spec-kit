@@ -1,0 +1,306 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-504-then-503",
+  "description": "After a 504 cut-off the build is posted once more only, so the 503 that answers that post raises its ServerError although one retry of the two is left.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "fetch-spec-known-sentence",
+    "edit": "A 504 timeout answers the build, and a 503 service_unavailable its one retry."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+          "identity": {
+            "shape": {
+              "kind": "statvar_schema",
+              "stat_type": "measuredValue",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "binding": {
+                  "state": "unbound"
+                },
+                "property": "crsCooperationModality"
+              },
+              {
+                "binding": {
+                  "ref": "CRSPurposeCode12220",
+                  "state": "value"
+                },
+                "property": "crsPurpose"
+              },
+              {
+                "binding": {
+                  "state": "unbound"
+                },
+                "property": "crsTypeOfFinance"
+              },
+              {
+                "binding": {
+                  "ref": "CRSTypeOfFlow10",
+                  "state": "value"
+                },
+                "property": "crsTypeOfFlow"
+              },
+              {
+                "binding": {
+                  "ref": "Disbursement",
+                  "state": "value"
+                },
+                "property": "financialFlowType"
+              },
+              {
+                "binding": {
+                  "ref": "Gross",
+                  "state": "value"
+                },
+                "property": "nettingBasis"
+              }
+            ],
+            "entities": {
+              "origin": [
+                "country/DEU"
+              ],
+              "destination": [
+                "country/NGA"
+              ]
+            },
+            "identity_version": "spec1",
+            "requested_window": {
+              "kind": "range",
+              "end_year": 2023,
+              "start_year": 2020
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS)."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsCooperationModality"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSPurposeCode12220",
+                      "state": "value"
+                    },
+                    "property": "crsPurpose"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsTypeOfFinance"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSTypeOfFlow10",
+                      "state": "value"
+                    },
+                    "property": "crsTypeOfFlow"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Disbursement",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Gross",
+                      "state": "value"
+                    },
+                    "property": "nettingBasis"
+                  }
+                ],
+                "entities": {
+                  "origin": [
+                    "country/DEU"
+                  ],
+                  "destination": [
+                    "country/NGA"
+                  ]
+                },
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "range",
+                  "end_year": 2023,
+                  "start_year": 2020
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 504,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/timeout",
+          "title": "Gateway Timeout",
+          "status": 504,
+          "detail": "The build passed its 120 s limit.",
+          "code": "timeout",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsCooperationModality"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSPurposeCode12220",
+                      "state": "value"
+                    },
+                    "property": "crsPurpose"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "crsTypeOfFinance"
+                  },
+                  {
+                    "binding": {
+                      "ref": "CRSTypeOfFlow10",
+                      "state": "value"
+                    },
+                    "property": "crsTypeOfFlow"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Disbursement",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Gross",
+                      "state": "value"
+                    },
+                    "property": "nettingBasis"
+                  }
+                ],
+                "entities": {
+                  "origin": [
+                    "country/DEU"
+                  ],
+                  "destination": [
+                    "country/NGA"
+                  ]
+                },
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "range",
+                  "end_year": 2023,
+                  "start_year": 2020
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 503,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/service_unavailable",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "The service is busy.",
+          "code": "service_unavailable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": true
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ServerError",
+        "code": "service_unavailable",
+        "trace_id": "00000000000000000000000000000000",
+        "retry_waits": [
+          0.5
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1289 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-poll-refused",
+  "description": "A retryable refused poll other than a 429 spends one of the two retries, and a poll that answers restores them, so two 503s in a row after an answered poll are polled again too. A refused poll changes no pacing: the poll after it waits what the refused one waited.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "mint-async-build",
+    "edit": "As fetch-spec-async-build, with a 503 service_unavailable answering the first poll, and two answering the third."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+          "identity": {
+            "identity_version": "spec1",
+            "shape": {
+              "kind": "statvar_schema",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "stat_type": "measuredValue",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "property": "dac2aAidType",
+                "binding": {
+                  "state": "value",
+                  "ref": "DAC2aAidType206"
+                }
+              },
+              {
+                "property": "dacTypeOfFinance",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "financialFlowType",
+                "binding": {
+                  "state": "value",
+                  "ref": "Disbursement"
+                }
+              },
+              {
+                "property": "nettingBasis",
+                "binding": {
+                  "state": "value",
+                  "ref": "Gross"
+                }
+              }
+            ],
+            "entities": {},
+            "requested_window": {
+              "kind": "range",
+              "start_year": 2018,
+              "end_year": 2024
+            },
+            "facets": {
+              "provenance": {
+                "state": "value",
+                "ref": "provenance/OECDDAC2A"
+              }
+            }
+          }
+        },
+        "sentence": "Gross disbursements to 238 recipients from 172 providers for official development assistance, 2018 to 2024. Current US dollars · OECD DAC2a."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+              "identity": {
+                "identity_version": "spec1",
+                "shape": {
+                  "kind": "statvar_schema",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "stat_type": "measuredValue",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "property": "dac2aAidType",
+                    "binding": {
+                      "state": "value",
+                      "ref": "DAC2aAidType206"
+                    }
+                  },
+                  {
+                    "property": "dacTypeOfFinance",
+                    "binding": {
+                      "state": "unbound"
+                    }
+                  },
+                  {
+                    "property": "financialFlowType",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Disbursement"
+                    }
+                  },
+                  {
+                    "property": "nettingBasis",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Gross"
+                    }
+                  }
+                ],
+                "entities": {},
+                "requested_window": {
+                  "kind": "range",
+                  "start_year": 2018,
+                  "end_year": 2024
+                },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/OECDDAC2A"
+                  }
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 202,
+        "headers": {
+          "content-type": "application/json",
+          "location": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+          "retry-after": "2",
+          "x-dfo-trace-id": "bbf5965c737145669a9a88d04867b830"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1500
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 503,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/service_unavailable",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "The service is busy.",
+          "code": "service_unavailable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2",
+          "x-dfo-trace-id": "621bdcc038e34f44bec226434f3f7378"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1500,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2",
+          "x-dfo-trace-id": "1df7b03572044eedaa412f6d2ad6b91f"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1500,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 503,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/service_unavailable",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "The service is busy.",
+          "code": "service_unavailable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 503,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/service_unavailable",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "The service is busy.",
+          "code": "service_unavailable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2",
+          "x-dfo-trace-id": "b5b2e2d98a4047be98aea852117381c7"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1500,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2",
+          "x-dfo-trace-id": "686111d592f3451e8c55691d91a66663"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1517,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "2",
+          "x-dfo-trace-id": "9acc0caab7e143d38b3ecbfbcd225707"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1900,
+            "progress": {
+              "rows_written": 16734,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "3",
+          "x-dfo-trace-id": "22c08bbaa1384833bd92f8dd9cc6312d"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 2377,
+            "progress": {
+              "rows_written": 64341,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "3",
+          "x-dfo-trace-id": "227de800033b4185ae9b958d3fa2cec7"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 2973,
+            "progress": {
+              "rows_written": 106324,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "4",
+          "x-dfo-trace-id": "3197d4d8b5094857afb9bbd14c49fcb0"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 3719,
+            "progress": {
+              "rows_written": 108798,
+              "estimate_rows": 108798
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "29f271852cc04f1a8b287274f53105b6"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "done"
+          },
+          "manifest": {
+            "schema_version": 1,
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "ref": "DAC2aAidType206",
+                      "state": "value"
+                    },
+                    "property": "dac2aAidType"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "dacTypeOfFinance"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Disbursement",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "ref": "Gross",
+                      "state": "value"
+                    },
+                    "property": "nettingBasis"
+                  }
+                ],
+                "facets": {
+                  "provenance": {
+                    "ref": "provenance/OECDDAC2A",
+                    "state": "value"
+                  }
+                },
+                "entities": {},
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "range",
+                  "end_year": 2024,
+                  "start_year": 2018
+                }
+              }
+            },
+            "content_version": "cv_d0316e8762f5b852a55e328777d17b6b",
+            "prepared_at": "2026-10-21T13:06:08Z",
+            "coverage": {
+              "rows": 108798,
+              "dimensions": [
+                {
+                  "label": "financingProvider",
+                  "count": 172,
+                  "axis": "origin",
+                  "noun": {
+                    "singular": "provider",
+                    "plural": "providers"
+                  }
+                },
+                {
+                  "label": "financingRecipient",
+                  "count": 238,
+                  "axis": "destination",
+                  "noun": {
+                    "singular": "recipient",
+                    "plural": "recipients"
+                  }
+                },
+                {
+                  "label": "years",
+                  "count": 7
+                }
+              ],
+              "window": {
+                "kind": "range",
+                "origin": "query",
+                "end_year": 2024,
+                "start_year": 2018
+              }
+            },
+            "citation": {
+              "text": "OECD DAC2A (2026), via the Development Finance Observatory",
+              "sources": [
+                {
+                  "ref": "provenance/OECDDAC2A",
+                  "label": "OECD DAC2A",
+                  "license": "OECD Terms and Conditions",
+                  "license_type": "OECDTermsAndConditions",
+                  "license_url": "https://www.oecd.org/en/about/terms-conditions.html",
+                  "url": "https://data-explorer.oecd.org/vis?tm=dac2a&pg=0&snb=1&df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_DAC2%40DF_DAC2A&df[ag]=OECD.DCD.FSD&df[vs]=1.6&dq=.DPGC.206.USD.Q&lom=LASTNPERIODS&lo=5&to[TIME_PERIOD]=false&isAvailabilityDisabled=false&page=0",
+                  "source": {
+                    "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
+                    "label": "Organisation for Economic Co-operation and Development (OECD)"
+                  },
+                  "data_commons": {
+                    "id": "dfo",
+                    "label": "Development Finance Observatory"
+                  },
+                  "documentation": {
+                    "publisher": "Organisation for Economic Co-operation and Development (OECD)",
+                    "description": "DAC2A is the OECD Development Assistance Committee's table of ODA disbursements by donor and recipient country or region. It covers bilateral donors and multilateral agencies reporting their own outflows, and includes the OECD's estimate of each donor's core multilateral contributions attributed to recipients.",
+                    "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip",
+                    "attribution": "OECD (2026), OECD DAC2A, OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip (accessed on 2026-10-12)",
+                    "update_cadence": "Quarterly",
+                    "last_update": "2026-10-15",
+                    "years_covered": "1960-2024",
+                    "granularity": "Annual, by provider and recipient",
+                    "currencies": [
+                      "USD"
+                    ],
+                    "transformation_log": [
+                      {
+                        "transformation": "Download the source data",
+                        "description": "The OECD publishes DAC2A in April, June, September and December. The complete table is downloaded from the OECD each time it is republished, and replaces the previous copy, so the data reflects the OECD's latest release."
+                      },
+                      {
+                        "transformation": "Exclude the partial preliminary year",
+                        "description": "Before each full release, the OECD publishes preliminary data for the year that release covers, as reporters submit it. Until then, that year is partial, so the pipeline excludes it. Support for partial years is in development. Partial years will be marked incomplete, so they don't lead to incorrect or confusing analyses."
+                      },
+                      {
+                        "transformation": "Standardise providers and recipients",
+                        "description": "Provider and recipient codes are standardised to Data Commons IDs used across the platform, so data can be compared across datasets. The totals DAC2A reports for groups of providers, such as all DAC countries, and for groups of recipients, such as regions and income groups, are included as providers and recipients of their own. Where two provider codes name the same organisation and report the same figures, the figures are counted once. Where two recipient codes name the same organisation, such as IDA and IDA's Multilateral Debt Relief Initiative, their flows are added."
+                      },
+                      {
+                        "transformation": "Select figures",
+                        "description": "Only figures in current US dollars are included, not constant US dollars. Only flows to recipients on Part I of the DAC List are included: the developing countries, and the multilateral organisations DAC2A reports as recipients, such as development banks and UN agencies. Flows to Part II recipients, the countries in transition, are excluded."
+                      },
+                      {
+                        "transformation": "Convert to whole units",
+                        "description": "DAC2A reports amounts in millions, which are converted to whole units. ODA per person and ODA as a share of GNI are kept as reported."
+                      },
+                      {
+                        "transformation": "Select dimensions",
+                        "description": "Each figure is reported by year, provider, recipient and type of aid, such as grants, repayments, interest received, or debt forgiven or rescheduled. DAC2A is a table of disbursements, so every figure, repayments and interest included, is recorded as a disbursement. Figures are marked as gross or net, except where DAC2A does not say which, and as grants or non-grants where the type of aid is wholly one or the other. Imputed multilateral ODA, the OECD's estimate of each provider's share of multilateral organisations' ODA, is marked as modelled. ODA as a share of GNI records the recipient's GNI as its denominator, and ODA per person records the recipient's population."
+                      }
+                    ],
+                    "version_history": [
+                      {
+                        "date": "2026-10-15",
+                        "title": "Partial preliminary year excluded",
+                        "changes": [
+                          {
+                            "kind": "changed",
+                            "note": "The partial preliminary year published ahead of the next full release is excluded."
+                          }
+                        ]
+                      },
+                      {
+                        "date": "2026-10-14",
+                        "title": "First release",
+                        "changes": [
+                          {
+                            "kind": "added",
+                            "note": "ODA disbursements by donor and recipient country or region, including the OECD's imputed multilateral contributions, and ODA per person and as a share of recipient GNI."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "trace": {
+              "facets": [
+                {
+                  "ref": "provenance/OECDDAC2A",
+                  "axis": "provenance",
+                  "basis": "bound",
+                  "default_policy": null,
+                  "selection_reason": null,
+                  "dispatch_facet_id": "1962969911839422253",
+                  "default_policy_version": null
+                },
+                {
+                  "ref": null,
+                  "axis": "measurementMethod",
+                  "basis": "deployment_fallback",
+                  "default_policy": "dfo/facet-policy/most-observations",
+                  "selection_reason": "absent_on_selected_facet",
+                  "dispatch_facet_id": "1962969911839422253",
+                  "default_policy_version": "1"
+                },
+                {
+                  "ref": "CurrencyUSD",
+                  "axis": "unit",
+                  "basis": "deployment_fallback",
+                  "default_policy": "dfo/facet-policy/most-observations",
+                  "selection_reason": "sole_candidate",
+                  "dispatch_facet_id": "1962969911839422253",
+                  "default_policy_version": "1"
+                }
+              ],
+              "applied_window": {
+                "kind": "range",
+                "origin": "query",
+                "end_year": 2024,
+                "start_year": 2018
+              },
+              "graph_revision": null,
+              "normalisations": [],
+              "code_index_stamp": {
+                "exported_at": "2026-10-20T19:50:14Z",
+                "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
+                "graph_endpoint": "graph_release"
+              },
+              "source_revisions": [
+                {
+                  "source": "provenance/OECDDAC2A",
+                  "revision": "2026-10-15"
+                }
+              ],
+              "capability_version": "dset_88fecfec3c5b89d1",
+              "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+              "resolved_stat_vars": [
+                {
+                  "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal",
+                  "roles": [
+                    "financingProvider",
+                    "financingRecipient"
+                  ],
+                  "observation_count": 108798
+                }
+              ],
+              "family_member_count": 1,
+              "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+              "frame_grammar_version": "1.1.0",
+              "origin_catalogue_build_id": "20261021T070020Z-7262111e",
+              "served_from": "materialise",
+              "confirmed_at": "2026-10-21T13:06:09.616741+00:00"
+            },
+            "warnings": [],
+            "diagnostics": [
+              {
+                "code": "processing_level_undeclared",
+                "severity": "info",
+                "message": "A source StatVar lacks a processing-level declaration; the citation credits the source and omits the processing qualifier."
+              }
+            ],
+            "artifacts": [
+              {
+                "artifact_digest": "sha256:e8f06f7ca71d7d941c11389e66c94e1db1675c4839ec602d4569b049bf4d4dad",
+                "rendering": {
+                  "bundle": false,
+                  "format": "parquet",
+                  "layout": 3
+                },
+                "bytes": 913395,
+                "media_type": "application/vnd.apache.parquet",
+                "created_at": "2026-10-21T13:06:09.573990+00:00",
+                "tier": "working",
+                "url": "/api/datasets/spec_6c6a169745fa827d302436a068eaf569/cv_d0316e8762f5b852a55e328777d17b6b/files/sha256:e8f06f7ca71d7d941c11389e66c94e1db1675c4839ec602d4569b049bf4d4dad"
+              },
+              {
+                "artifact_digest": "sha256:172165ba17975b34fbcce2a7c4e322fac292151f004b58c817039ec41a45ca93",
+                "rendering": {
+                  "statistics": "series"
+                },
+                "bytes": 967921,
+                "media_type": "application/vnd.apache.parquet",
+                "created_at": "2026-10-21T13:06:09.573990+00:00",
+                "tier": "working",
+                "url": "/api/datasets/spec_6c6a169745fa827d302436a068eaf569/cv_d0316e8762f5b852a55e328777d17b6b/files/sha256:172165ba17975b34fbcce2a7c4e322fac292151f004b58c817039ec41a45ca93"
+              }
+            ],
+            "series_count": 21017,
+            "output_options": {
+              "capability_version": "dset_88fecfec3c5b89d1",
+              "columns": [
+                {
+                  "name": "stat_var",
+                  "kind": "grain",
+                  "droppable": false,
+                  "distinct": 1
+                },
+                {
+                  "name": "financingProvider",
+                  "kind": "role",
+                  "droppable": false,
+                  "distinct": 172
+                },
+                {
+                  "name": "financingRecipient",
+                  "kind": "role",
+                  "droppable": false,
+                  "distinct": 238
+                },
+                {
+                  "name": "time_period",
+                  "kind": "grain",
+                  "droppable": false,
+                  "distinct": 7
+                },
+                {
+                  "name": "value",
+                  "kind": "value",
+                  "droppable": true
+                },
+                {
+                  "name": "unit",
+                  "kind": "unit",
+                  "droppable": false,
+                  "distinct": 1
+                },
+                {
+                  "name": "measurementMethod",
+                  "kind": "facet",
+                  "droppable": true,
+                  "distinct": 1
+                },
+                {
+                  "name": "provenance",
+                  "kind": "facet",
+                  "droppable": false,
+                  "distinct": 1
+                },
+                {
+                  "name": "status",
+                  "kind": "status",
+                  "droppable": true
+                }
+              ],
+              "formats": [
+                {
+                  "name": "csv",
+                  "state": "available"
+                },
+                {
+                  "name": "xlsx",
+                  "state": "available"
+                },
+                {
+                  "name": "parquet",
+                  "state": "available"
+                }
+              ],
+              "bundle": {
+                "state": "available"
+              },
+              "enrichments": [
+                {
+                  "column": "financingProvider",
+                  "field": "iso3",
+                  "token": "financingProvider_iso3",
+                  "state": "partial",
+                  "reason": "enrichment_unavailable",
+                  "coverage": {
+                    "entities": 172,
+                    "covered": 50
+                  },
+                  "missing": [
+                    {
+                      "ref": "AdaptationFund",
+                      "label": "Adaptation Fund"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentBank",
+                      "label": "African Development Bank"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentBankGroup",
+                      "label": "African Development Bank Group"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentFund",
+                      "label": "African Development Fund"
+                    },
+                    {
+                      "ref": "AndrewCarnegieFoundation",
+                      "label": "Andrew Carnegie Foundation"
+                    },
+                    {
+                      "ref": "ArabFundForEconomicAndSocialDevelopment",
+                      "label": "Arab Fund for Economic and Social Development"
+                    },
+                    {
+                      "ref": "Arcadia",
+                      "label": "Arcadia"
+                    },
+                    {
+                      "ref": "ArcusFoundation",
+                      "label": "Arcus Foundation"
+                    },
+                    {
+                      "ref": "AsianDevelopmentBank",
+                      "label": "Asian Development Bank"
+                    },
+                    {
+                      "ref": "AsianInfrastructureInvestmentBank",
+                      "label": "Asian Infrastructure Investment Bank"
+                    }
+                  ],
+                  "truncated": true
+                },
+                {
+                  "column": "financingProvider",
+                  "field": "iso2",
+                  "token": "financingProvider_iso2",
+                  "state": "partial",
+                  "reason": "enrichment_unavailable",
+                  "coverage": {
+                    "entities": 172,
+                    "covered": 50
+                  },
+                  "missing": [
+                    {
+                      "ref": "AdaptationFund",
+                      "label": "Adaptation Fund"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentBank",
+                      "label": "African Development Bank"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentBankGroup",
+                      "label": "African Development Bank Group"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentFund",
+                      "label": "African Development Fund"
+                    },
+                    {
+                      "ref": "AndrewCarnegieFoundation",
+                      "label": "Andrew Carnegie Foundation"
+                    },
+                    {
+                      "ref": "ArabFundForEconomicAndSocialDevelopment",
+                      "label": "Arab Fund for Economic and Social Development"
+                    },
+                    {
+                      "ref": "Arcadia",
+                      "label": "Arcadia"
+                    },
+                    {
+                      "ref": "ArcusFoundation",
+                      "label": "Arcus Foundation"
+                    },
+                    {
+                      "ref": "AsianDevelopmentBank",
+                      "label": "Asian Development Bank"
+                    },
+                    {
+                      "ref": "AsianInfrastructureInvestmentBank",
+                      "label": "Asian Infrastructure Investment Bank"
+                    }
+                  ],
+                  "truncated": true
+                },
+                {
+                  "column": "financingProvider",
+                  "field": "label",
+                  "token": "financingProvider_label",
+                  "state": "available",
+                  "coverage": {
+                    "entities": 172,
+                    "covered": 172
+                  },
+                  "missing": [],
+                  "truncated": false
+                },
+                {
+                  "column": "financingProvider",
+                  "field": "type",
+                  "token": "financingProvider_type",
+                  "state": "available",
+                  "coverage": {
+                    "entities": 172,
+                    "covered": 172
+                  },
+                  "missing": [],
+                  "truncated": false
+                },
+                {
+                  "column": "financingProvider",
+                  "field": "party_kind",
+                  "token": "financingProvider_party_kind",
+                  "state": "available",
+                  "coverage": {
+                    "entities": 172,
+                    "covered": 172
+                  },
+                  "missing": [],
+                  "truncated": false
+                },
+                {
+                  "column": "financingRecipient",
+                  "field": "iso3",
+                  "token": "financingRecipient_iso3",
+                  "state": "partial",
+                  "reason": "enrichment_unavailable",
+                  "coverage": {
+                    "entities": 238,
+                    "covered": 143
+                  },
+                  "missing": [
+                    {
+                      "ref": "AfricanDevelopmentBank",
+                      "label": "African Development Bank"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentFund",
+                      "label": "African Development Fund"
+                    },
+                    {
+                      "ref": "AsianDevelopmentBank",
+                      "label": "Asian Development Bank"
+                    },
+                    {
+                      "ref": "AsianDevelopmentBankSpecialFunds",
+                      "label": "Asian Development Bank Special Funds"
+                    },
+                    {
+                      "ref": "CaribbeanDevelopmentBank",
+                      "label": "Caribbean Development Bank"
+                    },
+                    {
+                      "ref": "CentralAmericanBankForEconomicIntegration",
+                      "label": "Central American Bank for Economic Integration"
+                    },
+                    {
+                      "ref": "DACACPCountries",
+                      "label": "ACP countries (DAC)"
+                    },
+                    {
+                      "ref": "DACAfrica",
+                      "label": "Africa (DAC)"
+                    },
+                    {
+                      "ref": "DACAfricaUnallocated",
+                      "label": "Africa, unallocated by country (DAC)"
+                    },
+                    {
+                      "ref": "DACAllMultilateralRecipients",
+                      "label": "all multilateral recipients (DAC)"
+                    }
+                  ],
+                  "truncated": true
+                },
+                {
+                  "column": "financingRecipient",
+                  "field": "iso2",
+                  "token": "financingRecipient_iso2",
+                  "state": "partial",
+                  "reason": "enrichment_unavailable",
+                  "coverage": {
+                    "entities": 238,
+                    "covered": 141
+                  },
+                  "missing": [
+                    {
+                      "ref": "AfricanDevelopmentBank",
+                      "label": "African Development Bank"
+                    },
+                    {
+                      "ref": "AfricanDevelopmentFund",
+                      "label": "African Development Fund"
+                    },
+                    {
+                      "ref": "AsianDevelopmentBank",
+                      "label": "Asian Development Bank"
+                    },
+                    {
+                      "ref": "AsianDevelopmentBankSpecialFunds",
+                      "label": "Asian Development Bank Special Funds"
+                    },
+                    {
+                      "ref": "CaribbeanDevelopmentBank",
+                      "label": "Caribbean Development Bank"
+                    },
+                    {
+                      "ref": "CentralAmericanBankForEconomicIntegration",
+                      "label": "Central American Bank for Economic Integration"
+                    },
+                    {
+                      "ref": "DACACPCountries",
+                      "label": "ACP countries (DAC)"
+                    },
+                    {
+                      "ref": "DACAfrica",
+                      "label": "Africa (DAC)"
+                    },
+                    {
+                      "ref": "DACAfricaUnallocated",
+                      "label": "Africa, unallocated by country (DAC)"
+                    },
+                    {
+                      "ref": "DACAllMultilateralRecipients",
+                      "label": "all multilateral recipients (DAC)"
+                    }
+                  ],
+                  "truncated": true
+                },
+                {
+                  "column": "financingRecipient",
+                  "field": "label",
+                  "token": "financingRecipient_label",
+                  "state": "available",
+                  "coverage": {
+                    "entities": 238,
+                    "covered": 238
+                  },
+                  "missing": [],
+                  "truncated": false
+                },
+                {
+                  "column": "financingRecipient",
+                  "field": "type",
+                  "token": "financingRecipient_type",
+                  "state": "available",
+                  "coverage": {
+                    "entities": 238,
+                    "covered": 238
+                  },
+                  "missing": [],
+                  "truncated": false
+                },
+                {
+                  "column": "financingRecipient",
+                  "field": "party_kind",
+                  "token": "financingRecipient_party_kind",
+                  "state": "available",
+                  "coverage": {
+                    "entities": 238,
+                    "covered": 238
+                  },
+                  "missing": [],
+                  "truncated": false
+                }
+              ],
+              "long_layout_defaults": [
+                "financingProvider_label",
+                "financingProvider_party_kind",
+                "financingRecipient_label",
+                "financingRecipient_party_kind"
+              ],
+              "long_layout_totals": [],
+              "pivots": [
+                {
+                  "index": "financingProvider",
+                  "columns": "financingRecipient",
+                  "state": "unavailable",
+                  "reason": "pivot_not_unique",
+                  "varying": [
+                    {
+                      "column": "time_period",
+                      "distinct": 7
+                    }
+                  ]
+                },
+                {
+                  "index": "financingProvider",
+                  "columns": "time_period",
+                  "state": "unavailable",
+                  "reason": "pivot_not_unique",
+                  "varying": [
+                    {
+                      "column": "financingRecipient",
+                      "distinct": 238
+                    }
+                  ]
+                },
+                {
+                  "index": "financingRecipient",
+                  "columns": "financingProvider",
+                  "state": "unavailable",
+                  "reason": "pivot_not_unique",
+                  "varying": [
+                    {
+                      "column": "time_period",
+                      "distinct": 7
+                    }
+                  ]
+                },
+                {
+                  "index": "financingRecipient",
+                  "columns": "time_period",
+                  "state": "unavailable",
+                  "reason": "pivot_not_unique",
+                  "varying": [
+                    {
+                      "column": "financingProvider",
+                      "distinct": 172
+                    }
+                  ]
+                },
+                {
+                  "index": "time_period",
+                  "columns": "financingProvider",
+                  "state": "unavailable",
+                  "reason": "pivot_not_unique",
+                  "varying": [
+                    {
+                      "column": "financingRecipient",
+                      "distinct": 238
+                    }
+                  ]
+                },
+                {
+                  "index": "time_period",
+                  "columns": "financingRecipient",
+                  "state": "unavailable",
+                  "reason": "pivot_not_unique",
+                  "varying": [
+                    {
+                      "column": "financingProvider",
+                      "distinct": 172
+                    }
+                  ]
+                }
+              ],
+              "groupby": {
+                "state": "available",
+                "axes": [
+                  {
+                    "name": "crsCooperationModality"
+                  },
+                  {
+                    "name": "crsPurpose"
+                  },
+                  {
+                    "name": "crsTypeOfFinance"
+                  },
+                  {
+                    "name": "crsTypeOfFlow"
+                  }
+                ]
+              }
+            },
+            "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+            "retention": {
+              "pinned": false,
+              "held_until": "2026-11-20T13:06:09.573841Z"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "origin_path": "/api/datasets/spec_6c6a169745fa827d302436a068eaf569/cv_d0316e8762f5b852a55e328777d17b6b/files/sha256:e8f06f7ca71d7d941c11389e66c94e1db1675c4839ec602d4569b049bf4d4dad"
+      },
+      "response": {
+        "status": 302,
+        "headers": {
+          "location": "https://storage.googleapis.com/e2e-working/sha256%3Ae8f06f7ca71d7d941c11389e66c94e1db1675c4839ec602d4569b049bf4d4dad?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "155fa981459c464482aea52657f99e8b"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://storage.googleapis.com/e2e-working/sha256%3Ae8f06f7ca71d7d941c11389e66c94e1db1675c4839ec602d4569b049bf4d4dad?X-Goog-Signature=redacted"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/vnd.apache.parquet",
+          "x-dfo-trace-id": "228feaabf1f3473cad055088084dc378"
+        },
+        "body_file": "mint-async-build.parquet"
+      }
+    }
+  ],
+  "expect": [
+    {
+      "dataset": {
+        "rows": 108798,
+        "columns": [
+          "stat_var",
+          "financingProvider",
+          "financingProvider_label",
+          "financingProvider_party_kind",
+          "financingRecipient",
+          "financingRecipient_label",
+          "financingRecipient_party_kind",
+          "dac2aAidType",
+          "dac2aAidType_label",
+          "time_period",
+          "value",
+          "unit",
+          "unit_label",
+          "currency",
+          "price_basis",
+          "base_year",
+          "measurementMethod",
+          "measurementMethod_label",
+          "provenance",
+          "provenance_label"
+        ],
+        "complete": true,
+        "members": [
+          {
+            "parts": [],
+            "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+            "content_version": "cv_d0316e8762f5b852a55e328777d17b6b",
+            "sentence": "Gross disbursements to 238 recipients from 172 providers for official development assistance, 2018 to 2024. Current US dollars · OECD DAC2a."
+          }
+        ],
+        "missing": [],
+        "long_builds": [
+          {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "poll_waits": [
+              1.5,
+              1.5,
+              1.5,
+              1.5,
+              1.5,
+              1.5,
+              1.5,
+              1.517,
+              1.9,
+              2.377,
+              2.973,
+              3.719
+            ],
+            "resubmissions": 0
+          }
+        ]
+      }
+    }
+  ]
+}

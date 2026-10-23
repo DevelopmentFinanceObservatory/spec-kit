@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/strict-fields.schema.json",
+  "title": "Strict fields",
+  "description": "The response members the DFO clients act on. Each pointer names one property of one component schema in served/openapi.json. A required entry stays required and non-nullable; an enum entry keeps every listed value.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "required",
+    "enums"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "required": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pointer"
+        ],
+        "properties": {
+          "pointer": {
+            "$ref": "#/$defs/pointer"
+          }
+        }
+      }
+    },
+    "enums": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pointer",
+          "values"
+        ],
+        "properties": {
+          "pointer": {
+            "$ref": "#/$defs/pointer"
+          },
+          "values": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "pointer": {
+      "description": "An RFC 6901 pointer into served/openapi.json naming one property of one component schema.",
+      "type": "string",
+      "pattern": "^/components/schemas/[A-Za-z0-9_.-]+/properties/[A-Za-z0-9_]+$"
+    }
+  }
+}

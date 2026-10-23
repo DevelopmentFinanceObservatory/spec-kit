@@ -29,6 +29,8 @@ jobs:
             module: dfo_provenance_docs
           - package: python/descriptions
             module: dfo_descriptions
+          - package: python/client-contract
+            module: dfo_client_contract
     defaults:
       run:
         working-directory: ${{ matrix.package }}
@@ -74,6 +76,7 @@ jobs:
             python/dfo-spec-kit-components,
             python/provenance-docs,
             python/descriptions,
+            python/client-contract,
           ]
         python-version: ["3.12", "3.13"]
     defaults:
@@ -141,3 +144,6 @@ jobs:
 
       - name: Validate step and description vectors
         run: uv run tools/validate_descriptions_vectors.py
+
+      - name: Validate the client contract
+        run: uv run tools/validate_client_contract.py

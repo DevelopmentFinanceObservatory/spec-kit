@@ -1,0 +1,199 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-capability-unavailable",
+  "description": "A well-formed build that asks for a rendering this deployment does not enable refuses 501 capability_unavailable, which raises InvalidRequestError, since the caller asks for another rendering, and makes no further request.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "fetch-spec-frame-layout",
+    "edit": "A 501 capability_unavailable answers the build."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "identity": {
+            "identity_version": "spec1",
+            "shape": {
+              "kind": "statvar_schema",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "stat_type": "measuredValue",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "property": "crsCooperationModality",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsPurpose",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSPurposeCode12220"
+                }
+              },
+              {
+                "property": "crsTypeOfFinance",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsTypeOfFlow",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSTypeOfFlow10"
+                }
+              },
+              {
+                "property": "financialFlowType",
+                "binding": {
+                  "state": "value",
+                  "ref": "Disbursement"
+                }
+              },
+              {
+                "property": "nettingBasis",
+                "binding": {
+                  "state": "value",
+                  "ref": "Gross"
+                }
+              }
+            ],
+            "entities": {
+              "destination": [
+                "country/NGA"
+              ],
+              "origin": [
+                "country/DEU"
+              ]
+            },
+            "requested_window": {
+              "kind": "all"
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS)."
+      },
+      "layout": "frame"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+              "identity": {
+                "identity_version": "spec1",
+                "shape": {
+                  "kind": "statvar_schema",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "stat_type": "measuredValue",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "property": "crsCooperationModality",
+                    "binding": {
+                      "state": "unbound"
+                    }
+                  },
+                  {
+                    "property": "crsPurpose",
+                    "binding": {
+                      "state": "value",
+                      "ref": "CRSPurposeCode12220"
+                    }
+                  },
+                  {
+                    "property": "crsTypeOfFinance",
+                    "binding": {
+                      "state": "unbound"
+                    }
+                  },
+                  {
+                    "property": "crsTypeOfFlow",
+                    "binding": {
+                      "state": "value",
+                      "ref": "CRSTypeOfFlow10"
+                    }
+                  },
+                  {
+                    "property": "financialFlowType",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Disbursement"
+                    }
+                  },
+                  {
+                    "property": "nettingBasis",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Gross"
+                    }
+                  }
+                ],
+                "entities": {
+                  "destination": [
+                    "country/NGA"
+                  ],
+                  "origin": [
+                    "country/DEU"
+                  ]
+                },
+                "requested_window": {
+                  "kind": "all"
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false,
+            "layout": "frame"
+          }
+        }
+      },
+      "response": {
+        "status": 501,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/capability_unavailable",
+          "title": "Not Implemented",
+          "status": 501,
+          "detail": "This deployment does not enable the frame layout.",
+          "code": "capability_unavailable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "capability_unavailable",
+        "trace_id": "00000000000000000000000000000000"
+      }
+    }
+  ]
+}

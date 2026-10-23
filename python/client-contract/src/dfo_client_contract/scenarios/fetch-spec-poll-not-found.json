@@ -1,0 +1,205 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-poll-not-found",
+  "description": "A refused poll that is not retryable raises its error at once, with the one poll made in long_builds.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "mint-async-build",
+    "edit": "As fetch-spec-async-build, with a 404 operation_not_found answering the first poll, and the exchanges after it go."
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+          "identity": {
+            "identity_version": "spec1",
+            "shape": {
+              "kind": "statvar_schema",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "stat_type": "measuredValue",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "property": "dac2aAidType",
+                "binding": {
+                  "state": "value",
+                  "ref": "DAC2aAidType206"
+                }
+              },
+              {
+                "property": "dacTypeOfFinance",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "financialFlowType",
+                "binding": {
+                  "state": "value",
+                  "ref": "Disbursement"
+                }
+              },
+              {
+                "property": "nettingBasis",
+                "binding": {
+                  "state": "value",
+                  "ref": "Gross"
+                }
+              }
+            ],
+            "entities": {},
+            "requested_window": {
+              "kind": "range",
+              "start_year": 2018,
+              "end_year": 2024
+            },
+            "facets": {
+              "provenance": {
+                "state": "value",
+                "ref": "provenance/OECDDAC2A"
+              }
+            }
+          }
+        },
+        "sentence": "Gross disbursements to 238 recipients from 172 providers for official development assistance, 2018 to 2024. Current US dollars · OECD DAC2a."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_6c6a169745fa827d302436a068eaf569",
+              "identity": {
+                "identity_version": "spec1",
+                "shape": {
+                  "kind": "statvar_schema",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "stat_type": "measuredValue",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "property": "dac2aAidType",
+                    "binding": {
+                      "state": "value",
+                      "ref": "DAC2aAidType206"
+                    }
+                  },
+                  {
+                    "property": "dacTypeOfFinance",
+                    "binding": {
+                      "state": "unbound"
+                    }
+                  },
+                  {
+                    "property": "financialFlowType",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Disbursement"
+                    }
+                  },
+                  {
+                    "property": "nettingBasis",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Gross"
+                    }
+                  }
+                ],
+                "entities": {},
+                "requested_window": {
+                  "kind": "range",
+                  "start_year": 2018,
+                  "end_year": 2024
+                },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/OECDDAC2A"
+                  }
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 202,
+        "headers": {
+          "content-type": "application/json",
+          "location": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+          "retry-after": "2",
+          "x-dfo-trace-id": "bbf5965c737145669a9a88d04867b830"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "retry_after_ms": 1500
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "application/problem+json"
+        },
+        "json": {
+          "type": "/codes/operation_not_found",
+          "title": "Not Found",
+          "status": 404,
+          "detail": "No operation has this id.",
+          "code": "operation_not_found",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "NotFoundError",
+        "code": "operation_not_found",
+        "trace_id": "00000000000000000000000000000000",
+        "long_builds": [
+          {
+            "operation_id": "op_991e4d2ceba89db9a36fa573e3935572a030d57902d5077eb85f566e98cb5173",
+            "poll_waits": [
+              1.5
+            ],
+            "resubmissions": 0
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "format_version": 1,
+  "codes": [
+    {
+      "code": "answer_declined",
+      "class": "DeclinedError",
+      "retryable": false,
+      "condition": "Fetching an answer Search declined or answered with the catalogue."
+    },
+    {
+      "code": "answer_incomplete",
+      "class": "IncompleteAnswerError",
+      "retryable": false,
+      "condition": "Fetching an answer with a part that has no reading, when the fetch is not partial or no part has a reading."
+    },
+    {
+      "code": "choice_invalid",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A choice whose part or option names no gap, several gaps or no option, or a choice that cannot post back a part."
+    },
+    {
+      "code": "contract_violation",
+      "class": "ContractError",
+      "retryable": false,
+      "condition": "A response lacks a member the client acts on, or holds one that contradicts the request."
+    },
+    {
+      "code": "credentials_file_invalid",
+      "class": "AuthenticationError",
+      "retryable": false,
+      "condition": "The credentials file breaks the credentials-file rule."
+    },
+    {
+      "code": "deadline_exceeded",
+      "class": "DfoTimeoutError",
+      "retryable": true,
+      "condition": "The call's deadline passed before it finished."
+    },
+    {
+      "code": "digest_mismatch",
+      "class": "ServerError",
+      "retryable": false,
+      "condition": "A downloaded file does not hash to the digest its manifest names, after the files route was asked once more."
+    },
+    {
+      "code": "download_failed",
+      "class": "ServerError",
+      "retryable": true,
+      "condition": "The signed URL a files route names refused, or its fetch failed, after the route was asked once more."
+    },
+    {
+      "code": "invalid_argument",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A call's arguments break a rule the client checks before any request."
+    },
+    {
+      "code": "key_empty",
+      "class": "AuthenticationError",
+      "retryable": false,
+      "condition": "The api_key argument is an empty string."
+    },
+    {
+      "code": "network_error",
+      "class": "NetworkError",
+      "retryable": true,
+      "condition": "The connection failed before a response arrived."
+    },
+    {
+      "code": "offline",
+      "class": "NetworkError",
+      "retryable": false,
+      "condition": "DFO_OFFLINE=1 is set, and the call needs the server."
+    },
+    {
+      "code": "profile_not_found",
+      "class": "AuthenticationError",
+      "retryable": false,
+      "condition": "DFO_PROFILE names a profile the credentials file lacks."
+    },
+    {
+      "code": "profile_without_key",
+      "class": "AuthenticationError",
+      "retryable": false,
+      "condition": "The chosen profile in the credentials file has no key."
+    },
+    {
+      "code": "refusal_without_code",
+      "class": "by_status",
+      "retryable": "by_status",
+      "condition": "A refusal whose body carries no code: neither a problem document nor the website proxy's own body."
+    },
+    {
+      "code": "unexpected_response",
+      "class": "ContractError",
+      "retryable": false,
+      "condition": "A response of a status or form the call does not act on: a redirect it does not follow, a body that is not JSON, or a status the route does not answer."
+    },
+    {
+      "code": "version_unavailable",
+      "class": "VersionUnavailableError",
+      "retryable": false,
+      "condition": "A stored version can no longer be fetched, and no refusal names why."
+    }
+  ]
+}

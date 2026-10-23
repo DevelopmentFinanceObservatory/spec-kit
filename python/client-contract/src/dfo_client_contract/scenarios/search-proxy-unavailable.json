@@ -1,0 +1,103 @@
+{
+  "format_version": 1,
+  "name": "search-proxy-unavailable",
+  "description": "The proxy's 502 body is retryable through its retry member and has no Retry-After, so the client backs off and retries twice, then raises ServerError with the error member, transient_unavailable, as its code.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "The website proxy's own 502 {error, retry, detail} answers the search and both retries."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo"
+          }
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "error": "transient_unavailable",
+          "retry": "retry_after_delay",
+          "detail": "The Search API is unreachable."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo"
+          }
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "error": "transient_unavailable",
+          "retry": "retry_after_delay",
+          "detail": "The Search API is unreachable."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo"
+          }
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "json": {
+          "error": "transient_unavailable",
+          "retry": "retry_after_delay",
+          "detail": "The Search API is unreachable."
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ServerError",
+        "code": "transient_unavailable",
+        "trace_id": null,
+        "retry_waits": [
+          0.5,
+          1.0
+        ]
+      }
+    }
+  ]
+}

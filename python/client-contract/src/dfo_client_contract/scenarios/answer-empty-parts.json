@@ -1,0 +1,106 @@
+{
+  "format_version": 1,
+  "name": "answer-empty-parts",
+  "description": "A resolution with no parts, which the served schema gives at least one, raises ContractError contract_violation at /parts.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "The answer's parts become []."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "95b872cf11e44fffb92260b2bb583f0d"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "ODA disbursements from Germany to Congo",
+            "normalized_query": "ODA disbursements from Germany to Congo",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "95b872cf11e44fffb92260b2bb583f0d",
+            "warnings": [],
+            "timing_ms": {
+              "total": 1697,
+              "by_step": {
+                "coverage": 0,
+                "extract": 982
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 2249,
+              "output_tokens": 154,
+              "cached_tokens": 859
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [],
+          "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "\"",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "Congo",
+              "axis": "where",
+              "segment": "heading",
+              "role": "destination",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            }
+          ],
+          "status": "no_data"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "contract_violation",
+        "trace_id": "95b872cf11e44fffb92260b2bb583f0d"
+      }
+    }
+  ]
+}

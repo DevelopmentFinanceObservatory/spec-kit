@@ -1,0 +1,123 @@
+{
+  "format_version": 1,
+  "name": "fetch-ref-newest-version",
+  "description": "The newest stored version of a spec is the one the versions route lists first, so the client asks for it alone with limit=1. The route needs no key.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T13:07:25Z"
+  },
+  "call": [
+    {
+      "op": "newest_version",
+      "spec": {
+        "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "identity": {
+            "identity_version": "spec1",
+            "shape": {
+              "kind": "statvar_schema",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "stat_type": "measuredValue",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "property": "crsCooperationModality",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsPurpose",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSPurposeCode12220"
+                }
+              },
+              {
+                "property": "crsTypeOfFinance",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsTypeOfFlow",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSTypeOfFlow10"
+                }
+              },
+              {
+                "property": "financialFlowType",
+                "binding": {
+                  "state": "value",
+                  "ref": "Disbursement"
+                }
+              },
+              {
+                "property": "nettingBasis",
+                "binding": {
+                  "state": "value",
+                  "ref": "Gross"
+                }
+              }
+            ],
+            "entities": {
+              "destination": [
+                "country/NGA"
+              ],
+              "origin": [
+                "country/DEU"
+              ]
+            },
+            "requested_window": {
+              "kind": "all"
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS)."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/versions?limit=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "e5ff992e18a94c18866838012ff15862"
+        },
+        "json": {
+          "schema_version": 1,
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "versions": [
+            {
+              "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
+              "base_content_version": null,
+              "rendering": "plain",
+              "groupby": null
+            }
+          ],
+          "next_cursor": null,
+          "complete": true
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "newest_version": {
+        "content_version": "cv_b92d94774702c7f05f2075d0b03dd756"
+      }
+    }
+  ]
+}

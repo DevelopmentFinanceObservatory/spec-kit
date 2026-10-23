@@ -1,0 +1,89 @@
+{
+  "format_version": 1,
+  "name": "answer-catalogue",
+  "description": "A question about what data exists answers catalogue, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "http://127.0.0.1:19493/api",
+    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
+    "recorded_at": "2026-10-21T13:06:45Z"
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "what data do you have?"
+    },
+    {
+      "op": "fetch"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "what data do you have?"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "3b78bd49dd0a4d24b3dfd8daa70035a3"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "what data do you have?",
+            "normalized_query": "what data do you have?",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "trace_id": "3b78bd49dd0a4d24b3dfd8daa70035a3",
+            "warnings": [],
+            "timing_ms": {
+              "total": 802,
+              "by_step": {
+                "coverage": 0,
+                "extract": 802
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 2249,
+              "output_tokens": 45,
+              "cached_tokens": 859
+            },
+            "timed_out": false
+          },
+          "kind": "catalogue",
+          "scope": {}
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "catalogue",
+        "sentence": null,
+        "complete": false,
+        "specs": [],
+        "gaps": []
+      }
+    },
+    {
+      "error": {
+        "class": "DeclinedError",
+        "code": "answer_declined",
+        "trace_id": "3b78bd49dd0a4d24b3dfd8daa70035a3"
+      }
+    }
+  ]
+}
