@@ -14,6 +14,12 @@
       "condition": "Fetching an answer with a part that has no reading, when the fetch is not partial or no part has a reading."
     },
     {
+      "code": "base_url_invalid",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A base URL is empty, is not an absolute http or https URL, or carries userinfo."
+    },
+    {
       "code": "choice_invalid",
       "class": "InvalidRequestError",
       "retryable": false,
@@ -30,6 +36,12 @@
       "class": "AuthenticationError",
       "retryable": false,
       "condition": "The credentials file breaks the credentials-file rule."
+    },
+    {
+      "code": "credentials_file_unreadable",
+      "class": "AuthenticationError",
+      "retryable": false,
+      "condition": "The credentials file exists but cannot be read."
     },
     {
       "code": "deadline_exceeded",
@@ -50,6 +62,18 @@
       "condition": "The signed URL a files route names refused, or its fetch failed, after the route was asked once more."
     },
     {
+      "code": "header_invalid",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A header value holds a control character."
+    },
+    {
+      "code": "insecure_transport",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A key would travel over plain http to a host that is not loopback."
+    },
+    {
       "code": "invalid_argument",
       "class": "InvalidRequestError",
       "retryable": false,
@@ -60,6 +84,12 @@
       "class": "AuthenticationError",
       "retryable": false,
       "condition": "The api_key argument is an empty string."
+    },
+    {
+      "code": "key_invalid",
+      "class": "AuthenticationError",
+      "retryable": false,
+      "condition": "The api_key holds a character outside visible ASCII."
     },
     {
       "code": "network_error",
@@ -90,6 +120,12 @@
       "class": "by_status",
       "retryable": "by_status",
       "condition": "A refusal whose body carries no code: neither a problem document nor the website proxy's own body."
+    },
+    {
+      "code": "response_too_large",
+      "class": "ServerError",
+      "retryable": false,
+      "condition": "A decoded response body passes its size cap."
     },
     {
       "code": "unexpected_response",
