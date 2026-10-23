@@ -2037,13 +2037,61 @@ def _candidate(**resolved: Any) -> dict[str, Any]:
     ],
     ids=["candidate", "no-data-option"],
 )
-@pytest.mark.parametrize("option", [True, False])
-def test_a_boolean_option_is_neither_an_index_nor_a_label(
-    part: dict[str, Any], option: bool
+@pytest.mark.parametrize(
+    ("key", "option"),
+    [(0, True), (0, False), (True, 0), (False, 0)],
+    ids=["option-true", "option-false", "part-true", "part-false"],
+)
+def test_a_boolean_part_or_option_is_neither_an_index_nor_a_label(
+    part: dict[str, Any], key: int | bool, option: int | bool
 ) -> None:
+    """Each boolean would name a gap or option as 0 or 1 if read as an index."""
     with pytest.raises(validator.ClientError) as raised:
-        validator.choice_for(_answer(part), {}, 0, option)
+        validator.choice_for(_answer(part, part), {}, key, option)
     assert raised.value.code == "choice_invalid"
+
+
+@pytest.mark.parametrize(
+    ("value", "kind"),
+    [(1, "integer"), (1.0, "integer"), (1.5, "number"), (True, "boolean")],
+    ids=["integer", "whole-float", "fractional", "boolean"],
+)
+def test_a_number_with_no_fractional_part_is_an_integer(value: Any, kind: str) -> None:
+    assert validator.json_type(value) == kind
+
+
+@pytest.mark.parametrize(
+    ("schema_version", "gaps"),
+    [
+        (1, []),
+        (1.0, []),
+        (1.5, ["/definition/schema_version"]),
+        (True, ["/definition/schema_version"]),
+    ],
+    ids=["integer", "whole-float", "fractional", "boolean"],
+)
+def test_a_manifest_schema_version_is_an_integer(
+    schema_version: Any, gaps: list[str]
+) -> None:
+    """The oracle's strict check and the ref schema agree on what an integer
+    `schema_version` is."""
+    package = validator.PACKAGE_DIR
+    openapi = json.loads((package / "served" / "openapi.json").read_text("utf-8"))
+    strict = json.loads((package / "strict-fields.json").read_text("utf-8"))
+    record = json.loads((package / _FETCH).read_text("utf-8"))
+    manifest = copy.deepcopy(record["exchanges"][0]["response"]["json"])
+    manifest["definition"]["schema_version"] = schema_version
+    members = validator._strict_members(strict)
+    schema = {"$ref": "#/components/schemas/Manifest"}
+    assert validator.strict_gaps(openapi, members, schema, manifest) == gaps
+
+    ref = json.loads((package / "refs" / "ref-one-member.json").read_text("utf-8"))
+    ref["ref"]["members"][0]["spec"]["definition"]["schema_version"] = schema_version
+    ref_schema = json.loads((package / "dataset-ref.schema.json").read_text("utf-8"))
+    accepted = validator.jsonschema.Draft202012Validator(ref_schema).is_valid(
+        ref["ref"]
+    )
+    assert accepted == (not gaps)
 
 
 @pytest.mark.parametrize(

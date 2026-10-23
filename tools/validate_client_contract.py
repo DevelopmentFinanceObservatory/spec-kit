@@ -1221,8 +1221,10 @@ def choice_for(
     candidates part's options are its candidates, chosen by index or by
     `candidate_label`. Any other gap's are its no_data options, chosen by
     index or label, a label scoped to the options that mention the word the
-    part was named by. A label must match exactly one option, and a boolean
-    option is neither an index nor a label."""
+    part was named by. A label must match exactly one option. A boolean part
+    or option is neither an index nor a label."""
+    if isinstance(part, bool) or isinstance(option, bool):
+        raise _refuse()
     gaps = answer_gaps(answer, kinds)
     gap_parts = {gap["part"] for gap in gaps}
     mention = None
@@ -1249,7 +1251,7 @@ def choice_for(
         if len(named) != 1:
             raise _refuse()
         index = named[0]
-    if index not in gap_parts or isinstance(option, bool):
+    if index not in gap_parts:
         raise _refuse()
 
     chosen = answer.parts[index]
@@ -1597,10 +1599,12 @@ def _strict_members(strict: dict[str, Any]) -> dict[str, list[str]]:
 
 
 def json_type(value: Any) -> str:
-    """The JSON type of a parsed value, an integer's as `integer`."""
+    """The JSON type of a parsed value, a number with no fractional part as
+    `integer`, as JSON Schema reads it, so `1.0` is an integer, as it is to a
+    client whose JSON parser keeps no separate integer type."""
     if isinstance(value, bool):
         return "boolean"
-    if isinstance(value, int):
+    if isinstance(value, int) or (isinstance(value, float) and value.is_integer()):
         return "integer"
     for kind, name in ((dict, "object"), (list, "array"), (str, "string")):
         if isinstance(value, kind):
