@@ -80,7 +80,6 @@ from validate_client_contract import (
     POLL_BACKOFF_CAP,
     POLL_BACKOFF_FIRST,
     POLL_PATH,
-    REBUILD_REFUSED,
     SIGNED_FETCH_STATUS,
     STORAGE_ORIGIN,
     TRACE_HEADER,
@@ -125,6 +124,7 @@ from validate_client_contract import (
     selector_path,
     sentence_entry,
     shared_cacheable,
+    stored_version,
     surface_problems,
     trace_id,
     untraced,
@@ -1040,54 +1040,43 @@ class Session:
 
     def _stored(self, member: dict[str, Any]) -> Member:
         """One version a ref names, through the lookup order
-        `validate_client_contract._Replay.stored_version` states."""
+        `validate_client_contract.stored_version` states."""
         spec = member["spec"]
         spec_id, version = spec["spec_id"], member["content_version"]
         rendering = member["artifact"]["rendering"]
         held = Spec(spec_id, spec["definition"], member["sentence"])
-        refusal: ClientError | None = None
-        manifest = None
-        try:
-            manifest = self._acted(self._api("GET", f"/datasets/{spec_id}/{version}"))
-        except ClientError as error:
-            if error.code != FILE_EXPIRED:
-                raise
-            refusal = error
-        if manifest is not None:
-            built = (manifest["definition"]["spec_id"], manifest["content_version"])
-            if built != (spec_id, version):
-                raise ClientError("contract_violation")
+
+        def stored_file(
+            manifest: dict[str, Any],
+        ) -> tuple[Member | None, ClientError | None]:
             data, refusal = self._stored_file(member, manifest)
-            if data is not None:
-                rows, columns = self.read_shape(data)
-                return Member(
-                    member["parts"],
-                    spec["definition"],
-                    version,
-                    member["sentence"],
-                    member["artifact"]["digest"],
-                    rows,
-                    columns,
-                    dict(rendering),
-                )
-        try:
-            manifest = self._built(_build_body(held, None, rendering))
-        except ClientError as error:
-            if error.error_class(self.client_codes) not in REBUILD_REFUSED:
-                raise
-            refusal = refusal if refusal is not None else error
-            newest = self._newest(spec_id)
-        else:
-            if manifest["definition"]["spec_id"] != spec_id:
-                raise ClientError("contract_violation")
-            if manifest["content_version"] == version:
-                return self._member(member["parts"], held, manifest, rendering, False)
-            newest = manifest["content_version"]
-        raise ClientError(
-            refusal.code if refusal is not None else "version_unavailable",
-            error=VERSION_UNAVAILABLE,
-            newest_version=newest,
-            trace_id=refusal.trace_id if refusal is not None else None,
+            if data is None:
+                return None, refusal
+            rows, columns = self.read_shape(data)
+            stored = Member(
+                member["parts"],
+                spec["definition"],
+                version,
+                member["sentence"],
+                member["artifact"]["digest"],
+                rows,
+                columns,
+                dict(rendering),
+            )
+            return stored, None
+
+        return stored_version(
+            member,
+            self.client_codes,
+            snapshot=lambda: self._acted(
+                self._api("GET", f"/datasets/{spec_id}/{version}")
+            ),
+            stored_file=stored_file,
+            rebuild=lambda: self._built(_build_body(held, None, rendering)),
+            rebuilt=lambda manifest: self._member(
+                member["parts"], held, manifest, rendering, False
+            ),
+            newest=lambda: self._newest(spec_id),
         )
 
     def _stored_file(
@@ -3307,16 +3296,22 @@ def _spec_without(member: str) -> Callable[[dict[str, Any]], None]:
     return change
 
 
-def _manifest_without_identity(parent: dict[str, Any], ctx: Context) -> Derived:
-    index = _build_index(parent)
-    exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
-    del exchanges[index]["response"]["json"]["definition"]["identity"]
-    error = ctx.raised("contract_violation", exchanges[index]["response"])
-    return Derived(
-        copy.deepcopy(parent["call"]),
-        exchanges,
-        [*copy.deepcopy(parent["expect"][:-1]), error],
-    )
+def _manifest_without(member: str) -> Callable[[dict[str, Any], Context], Derived]:
+    """The build's manifest definition loses `member`, a strict one, so the
+    build raises contract_violation and the exchanges after it go."""
+
+    def derive(parent: dict[str, Any], ctx: Context) -> Derived:
+        index = _build_index(parent)
+        exchanges = copy.deepcopy(parent["exchanges"][: index + 1])
+        del exchanges[index]["response"]["json"]["definition"][member]
+        error = ctx.raised("contract_violation", exchanges[index]["response"])
+        return Derived(
+            copy.deepcopy(parent["call"]),
+            exchanges,
+            [*copy.deepcopy(parent["expect"][:-1]), error],
+        )
+
+    return derive
 
 
 def _nested_specs_unchecked(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -3734,7 +3729,17 @@ SYNTHETIC = (
         "The build's manifest definition loses identity, and the exchanges after it go.",
         "A manifest whose definition has no identity, a strict member, raises ContractError "
         "contract_violation on the build response, before any download.",
-        _manifest_without_identity,
+        _manifest_without("identity"),
+    ),
+    Synthetic(
+        "fetch-spec-manifest-without-schema-version",
+        "fetch-spec-known-sentence",
+        "The build's manifest definition loses schema_version, and the exchanges after it "
+        "go.",
+        "A manifest whose definition has no schema_version, a strict member, raises "
+        "ContractError contract_violation on the build response, before any download, so "
+        "a ref never holds a definition without one.",
+        _manifest_without("schema_version"),
     ),
     Synthetic(
         "operation-failed-without-error",
@@ -4312,7 +4317,13 @@ class Served:
         if "json" in response:
             data = json.dumps(response["json"]).encode()
         elif "body_file" in response:
-            data = body_path(self.body_dir, response["body_file"]).read_bytes()
+            # A refused body file is the record's fault, which recording live
+            # would not mend, so it ends the run past `drive`'s advice.
+            try:
+                path = body_path(self.body_dir, response["body_file"])
+            except ValueError as exc:
+                raise SystemExit(f"{self.name}: {exc}") from exc
+            data = path.read_bytes()
         else:
             data = b""
         return Response(response["status"], dict(response.get("headers", {})), data)
@@ -4374,12 +4385,6 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
     if not path.exists():
         raise SystemExit(f"{name}: no record to derive from; record it live")
     record = json.loads(path.read_text(encoding="utf-8"))
-    for exchange in record["exchanges"]:
-        if "body_file" in exchange["response"]:
-            try:
-                body_path(directory, exchange["response"]["body_file"])
-            except ValueError as exc:
-                raise SystemExit(f"{name}: {exc}") from exc
     served = Served(record, directory)
     session = Session(
         Recorder(name, served.base_url, served),

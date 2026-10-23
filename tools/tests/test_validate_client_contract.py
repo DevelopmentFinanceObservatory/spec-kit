@@ -1921,7 +1921,7 @@ _ASSUMED = {"kind": "place_scope", "binding_ref": "where:", "text": "every place
     ("item", "read"),
     [
         (_ASSUMED, _ASSUMED),
-        ({**_ASSUMED, "refs": ["a", 1, None, "b"]}, {**_ASSUMED, "refs": ["a", "b"]}),
+        ({**_ASSUMED, "refs": ["a", 1, None]}, {**_ASSUMED, "refs": ["a"]}),
         ({**_ASSUMED, "refs": "a"}, _ASSUMED),
         ({**_ASSUMED, "refs": None}, _ASSUMED),
         ({**_ASSUMED, "note": "x"}, _ASSUMED),
@@ -1990,6 +1990,91 @@ def test_an_assumptions_list_with_no_item_read_echoes_empty() -> None:
     part = {"status": "definite", "assumptions": [7, {**_ASSUMED, "kind": 1}]}
     assert validator.reading_echo(part, spec) == []
     assert validator.reading_echo({"status": "definite"}, spec) is None
+
+
+def _answer(*parts: dict[str, Any]) -> Any:
+    return validator.answer_from_body({"kind": "resolution", "parts": list(parts)})
+
+
+@pytest.mark.parametrize(
+    ("operations", "hints"),
+    [
+        ([_RANK], {'Not done: rank ("top 5 donors")': "rank"}),
+        (
+            [{**_RANK, "phrase": "aide au Sénégal"}],
+            {'Not done: rank ("aide au Sénégal")': "rank"},
+        ),
+        ([{**_RANK, "phrase": 5}, "rank"], {}),
+    ],
+    ids=["ascii-phrase", "non-ascii-phrase", "operation-not-read"],
+)
+def test_an_operation_not_done_is_one_hint(
+    operations: list[Any], hints: dict[str, str]
+) -> None:
+    """The phrase is quoted as JSON with its characters kept, as both clients
+    quote it, and an operation that does not read gives no hint."""
+    spec = {"spec_id": "spec_a", "definition": {"spec_id": "spec_a"}}
+    answer = _answer({"status": "definite", "spec": spec, "operations": operations})
+    assert validator.reading_hints(answer) == hints
+
+
+def _candidate(**resolved: Any) -> dict[str, Any]:
+    return {
+        "spec_id": "spec_a",
+        "definition": {"spec_id": "spec_a"},
+        "resolved": resolved,
+    }
+
+
+@pytest.mark.parametrize(
+    "part",
+    [
+        {"status": "candidates", "candidates": {"specs": [_candidate()] * 2}},
+        {
+            "status": "no_data",
+            "no_data": {"reason": "r", "options": [{"label": "a"}, {"label": "b"}]},
+        },
+    ],
+    ids=["candidate", "no-data-option"],
+)
+@pytest.mark.parametrize("option", [True, False])
+def test_a_boolean_option_is_neither_an_index_nor_a_label(
+    part: dict[str, Any], option: bool
+) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.choice_for(_answer(part), {}, 0, option)
+    assert raised.value.code == "choice_invalid"
+
+
+@pytest.mark.parametrize(
+    ("resolved", "label"),
+    [
+        (
+            {
+                "sentence_plan": [
+                    {"segment": "heading", "text": " Aid "},
+                    {"text": "to Kenya "},
+                    {"segment": "assumptions", "text": "every donor"},
+                ],
+                "rendered_sentence": "Aid to Kenya, every donor.",
+            },
+            "Aid to Kenya",
+        ),
+        (
+            {
+                "sentence_plan": [{"segment": "assumptions", "text": "every donor"}],
+                "rendered_sentence": "Aid to Kenya, every donor.",
+            },
+            "Aid to Kenya, every donor.",
+        ),
+        ({}, None),
+    ],
+    ids=["segment-less-token-in-heading", "rendered-sentence-fallback", "neither"],
+)
+def test_a_candidate_label_is_its_heading_or_its_sentence(
+    resolved: dict[str, Any], label: str | None
+) -> None:
+    assert validator.candidate_label(_candidate(**resolved)) == label
 
 
 def test_a_required_member_that_admits_null_stays_required() -> None:

@@ -1221,7 +1221,8 @@ def choice_for(
     candidates part's options are its candidates, chosen by index or by
     `candidate_label`. Any other gap's are its no_data options, chosen by
     index or label, a label scoped to the options that mention the word the
-    part was named by. A label must match exactly one option."""
+    part was named by. A label must match exactly one option, and a boolean
+    option is neither an index nor a label."""
     gaps = answer_gaps(answer, kinds)
     gap_parts = {gap["part"] for gap in gaps}
     mention = None
@@ -1248,7 +1249,7 @@ def choice_for(
         if len(named) != 1:
             raise _refuse()
         index = named[0]
-    if index not in gap_parts:
+    if index not in gap_parts or isinstance(option, bool):
         raise _refuse()
 
     chosen = answer.parts[index]
@@ -1455,7 +1456,7 @@ def reading_hints(answer: Answer) -> dict[str, str | None]:
             continue
         for operation in read_items(part, "operations", read_operation):
             if verb := operation["verb"]:
-                phrase = json.dumps(operation["phrase"])
+                phrase = json.dumps(operation["phrase"], ensure_ascii=False)
                 hints.setdefault(f"Not done: {verb} ({phrase})", verb)
         for departure in read_objects(part, "departures"):
             if text := read_string(departure, "text"):
@@ -1790,6 +1791,68 @@ def newest_listed(body: Any) -> str | None:
     ):
         raise ClientError("contract_violation")
     return versions[0]["content_version"] if versions else None
+
+
+def stored_version[T](
+    member: Mapping[str, Any],
+    client_codes: Mapping[str, Any],
+    *,
+    snapshot: Callable[[], Any],
+    stored_file: Callable[[Any], tuple[T | None, ClientError | None]],
+    rebuild: Callable[[], Any],
+    rebuilt: Callable[[Any], T],
+    newest: Callable[[], str | None],
+) -> T:
+    """One version a ref names, through the lookup order: the snapshot
+    route and the files route at the stored digest, then the file
+    selector, then a build that must answer the same version. A snapshot
+    or build that answers another spec_id raises ContractError, as a
+    snapshot of another version does. A snapshot refusal other than
+    artifact_expired ends the lookup. Otherwise a lookup that finds no file
+    raises VersionUnavailableError with the first refusal's code, or
+    version_unavailable, and the newest version, either the one the build
+    answered or the versions route's first.
+
+    The callers make the requests: `snapshot` asks the snapshot route,
+    `stored_file` gives what the files route or the selector served for a
+    snapshot manifest, or None and the refusal it met, `rebuild` builds the
+    member's spec, `rebuilt` gives what a build of the stored version
+    serves, and `newest` asks the versions route."""
+    spec_id, version = member["spec"]["spec_id"], member["content_version"]
+    refusal: ClientError | None = None
+    manifest = None
+    try:
+        manifest = snapshot()
+    except ClientError as error:
+        if error.code != FILE_EXPIRED:
+            raise
+        refusal = error
+    if manifest is not None:
+        built = (manifest["definition"]["spec_id"], manifest["content_version"])
+        if built != (spec_id, version):
+            raise ClientError("contract_violation")
+        found, refusal = stored_file(manifest)
+        if found is not None:
+            return found
+    try:
+        manifest = rebuild()
+    except ClientError as error:
+        if error.error_class(client_codes) not in REBUILD_REFUSED:
+            raise
+        refusal = refusal if refusal is not None else error
+        newest_version = newest()
+    else:
+        if manifest["definition"]["spec_id"] != spec_id:
+            raise ClientError("contract_violation")
+        if manifest["content_version"] == version:
+            return rebuilt(manifest)
+        newest_version = manifest["content_version"]
+    raise ClientError(
+        refusal.code if refusal is not None else "version_unavailable",
+        error=VERSION_UNAVAILABLE,
+        newest_version=newest_version,
+        trace_id=refusal.trace_id if refusal is not None else None,
+    )
 
 
 def build_body(
@@ -2389,15 +2452,8 @@ class _Replay:
     # -- stored versions --
 
     def stored_version(self, member: dict[str, Any]) -> dict[str, Any]:
-        """One version a ref names, through the lookup order: the snapshot
-        route and the files route at the stored digest, then the file
-        selector, then a build that must answer the same version. A snapshot
-        or build that answers another spec_id raises ContractError, as a
-        snapshot of another version does. A snapshot refusal other than
-        artifact_expired ends the lookup. Otherwise a
-        lookup that finds no file raises VersionUnavailableError with the
-        first refusal's code, or version_unavailable, and the newest version,
-        either the one the build answered or the versions route's first."""
+        """One version a ref names, through the lookup order
+        `stored_version` states."""
         spec = member["spec"]
         spec_id, version = spec["spec_id"], member["content_version"]
         rendering = member["artifact"]["rendering"]
@@ -2407,40 +2463,27 @@ class _Replay:
             "content_version": version,
             "sentence": member["sentence"],
         }
-        refusal: ClientError | None = None
-        try:
-            manifest = self.acted_on(self.call("GET", f"/datasets/{spec_id}/{version}"))
-        except ClientError as error:
-            if error.code != FILE_EXPIRED:
-                raise
-            refusal, manifest = error, None
-        if manifest is not None:
-            built = (manifest["definition"]["spec_id"], manifest["content_version"])
-            if built != (spec_id, version):
-                raise ClientError("contract_violation")
-            found, refusal = self.stored_file(member, manifest)
-            if found:
-                return stored
 
-        try:
-            manifest = self.build(spec, rendering)
-        except ClientError as error:
-            if error.error_class(self.client_codes) not in REBUILD_REFUSED:
-                raise
-            refusal = refusal if refusal is not None else error
-            newest = self.newest(spec_id)
-        else:
-            if manifest["definition"]["spec_id"] != spec_id:
-                raise ClientError("contract_violation")
-            if manifest["content_version"] == version:
-                held = {**spec, "sentence": member["sentence"]}
-                return self.member(member["parts"], held, manifest, rendering, False)
-            newest = manifest["content_version"]
-        raise ClientError(
-            refusal.code if refusal is not None else "version_unavailable",
-            error=VERSION_UNAVAILABLE,
-            newest_version=newest,
-            trace_id=refusal.trace_id if refusal is not None else None,
+        def stored_file(
+            manifest: dict[str, Any],
+        ) -> tuple[dict[str, Any] | None, ClientError | None]:
+            served, refusal = self.stored_file(member, manifest)
+            return (stored if served else None), refusal
+
+        def rebuilt(manifest: dict[str, Any]) -> dict[str, Any]:
+            held = {**spec, "sentence": member["sentence"]}
+            return self.member(member["parts"], held, manifest, rendering, False)
+
+        return stored_version(
+            member,
+            self.client_codes,
+            snapshot=lambda: self.acted_on(
+                self.call("GET", f"/datasets/{spec_id}/{version}")
+            ),
+            stored_file=stored_file,
+            rebuild=lambda: self.build(spec, rendering),
+            rebuilt=rebuilt,
+            newest=lambda: self.newest(spec_id),
         )
 
     def stored_file(
@@ -2726,9 +2769,13 @@ def relocated(
     ]
 
 
-# A body file's name as `scenario.schema.json`'s `body_file` pattern states
-# it: a bare file name, so it is never absolute and never leaves its directory.
-BODY_FILE_NAME = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*\.[a-z0-9]+")
+# A body file's name, `scenario.schema.json`'s `body_file` pattern: a bare
+# file name, so it is never absolute and never leaves its directory.
+BODY_FILE_NAME = re.compile(
+    _load(PACKAGE_DIR / "scenario.schema.json")["$defs"]["response"]["properties"][
+        "body_file"
+    ]["pattern"]
+)
 
 
 def body_path(directory: Path, body_file: str) -> Path:

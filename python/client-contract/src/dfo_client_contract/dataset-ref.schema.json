@@ -58,8 +58,9 @@
               "$ref": "#/$defs/spec_id"
             },
             "definition": {
-              "description": "The server's definition for spec_id, unmodified. It holds the members the served CanonicalDefinition requires, so a rebuild can post it as it is.",
+              "description": "The server's definition for spec_id, unmodified. It holds the members the served CanonicalDefinition admits, each it requires and no other, so a rebuild can post it as it is.",
               "type": "object",
+              "additionalProperties": false,
               "required": [
                 "schema_version",
                 "spec_id",
@@ -67,7 +68,7 @@
               ],
               "properties": {
                 "schema_version": {
-                  "const": 1
+                  "type": "integer"
                 },
                 "spec_id": {
                   "$ref": "#/$defs/spec_id"

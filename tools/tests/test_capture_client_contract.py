@@ -289,8 +289,11 @@ def test_an_offline_rederivation_refuses_a_body_file_outside_its_directory(
     ctx = capture.Context(
         capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES, read_shape=_shape
     )
-    with pytest.raises(SystemExit, match="body file"):
+    with pytest.raises(SystemExit) as refused:
         capture.rederive_recorded(name, ctx, scenarios)
+    message = str(refused.value)
+    assert f"body file {body_file!r}" in message
+    assert "record it live" not in message
     assert json.loads(record.read_text(encoding="utf-8")) == stale
     assert body.is_symlink() == (named == "symlink")
 
