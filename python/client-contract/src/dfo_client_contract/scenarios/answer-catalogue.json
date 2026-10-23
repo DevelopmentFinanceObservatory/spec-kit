@@ -4,9 +4,9 @@
   "description": "A question about what data exists answers catalogue, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:06:45Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
+    "recorded_at": "2026-10-23T17:40:24Z"
   },
   "call": [
     {
@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "3b78bd49dd0a4d24b3dfd8daa70035a3"
+          "x-dfo-trace-id": "f115483eff0b4f56b18c37eb281da164"
         },
         "json": {
           "schema_version": 1,
@@ -42,23 +42,23 @@
             "entry_path": "raw_text",
             "raw_query": "what data do you have?",
             "normalized_query": "what data do you have?",
-            "extract_skipped": false
+            "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "3b78bd49dd0a4d24b3dfd8daa70035a3",
+            "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
+            "trace_id": "f115483eff0b4f56b18c37eb281da164",
             "warnings": [],
             "timing_ms": {
-              "total": 802,
+              "total": 1,
               "by_step": {
                 "coverage": 0,
-                "extract": 802
+                "response_cache_layer1": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 2249,
-              "output_tokens": 45,
-              "cached_tokens": 859
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
             },
             "timed_out": false
           },
@@ -82,7 +82,7 @@
       "error": {
         "class": "DeclinedError",
         "code": "answer_declined",
-        "trace_id": "3b78bd49dd0a4d24b3dfd8daa70035a3"
+        "trace_id": "f115483eff0b4f56b18c37eb281da164"
       }
     }
   ]

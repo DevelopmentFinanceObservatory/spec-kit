@@ -10,7 +10,7 @@
   "call": [
     {
       "op": "search",
-      "question": "ODA disbursements from Germany to Congo"
+      "question": "ODA disbursements from Germany to Congo in 2018"
     }
   ],
   "exchanges": [
@@ -22,7 +22,7 @@
           "schema_version": 1,
           "input": {
             "kind": "raw_text",
-            "query": "ODA disbursements from Germany to Congo"
+            "query": "ODA disbursements from Germany to Congo in 2018"
           }
         }
       },
@@ -30,32 +30,33 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "95b872cf11e44fffb92260b2bb583f0d"
+          "x-dfo-trace-id": "4b1104f1a65048fdb7d9af4d2630b990"
         },
         "json": [
           {
             "schema_version": 1,
             "query_echo": {
               "entry_path": "raw_text",
-              "raw_query": "ODA disbursements from Germany to Congo",
-              "normalized_query": "ODA disbursements from Germany to Congo",
+              "raw_query": "ODA disbursements from Germany to Congo in 2018",
+              "normalized_query": "ODA disbursements from Germany to Congo in 2018",
               "extract_skipped": false
             },
             "diagnostics": {
-              "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-              "trace_id": "95b872cf11e44fffb92260b2bb583f0d",
+              "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
+              "trace_id": "4b1104f1a65048fdb7d9af4d2630b990",
               "warnings": [],
               "timing_ms": {
-                "total": 1697,
+                "total": 1149,
                 "by_step": {
                   "coverage": 0,
-                  "extract": 982
+                  "extract": 1138,
+                  "cache_lookup": 1
                 }
               },
               "llm_usage": {
-                "input_tokens": 2249,
-                "output_tokens": 154,
-                "cached_tokens": 859
+                "input_tokens": 2233,
+                "output_tokens": 193,
+                "cached_tokens": 841
               },
               "timed_out": false
             },
@@ -65,9 +66,11 @@
                 "variable_text": "ODA disbursements",
                 "warnings": [],
                 "timing_ms": {
-                  "total": 715,
+                  "total": 0,
                   "by_step": {
-                    "recall": 715
+                    "recall": 0,
+                    "phase_resolve_places": 0,
+                    "phase_check_entities": 0
                   }
                 },
                 "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -108,6 +111,7 @@
                       "role_text": "to"
                     }
                   ],
+                  "time_text": "2018",
                   "sources": [],
                   "operations": []
                 },
@@ -165,6 +169,7 @@
                                 "dcid": "country/COD"
                               }
                             ],
+                            "time_text": "2018",
                             "sources": [],
                             "operations": []
                           }
@@ -193,6 +198,7 @@
                                 "dcid": "country/COG"
                               }
                             ],
+                            "time_text": "2018",
                             "sources": [],
                             "operations": []
                           }
@@ -243,7 +249,7 @@
       "error": {
         "class": "ContractError",
         "code": "contract_violation",
-        "trace_id": "95b872cf11e44fffb92260b2bb583f0d"
+        "trace_id": "4b1104f1a65048fdb7d9af4d2630b990"
       }
     }
   ]

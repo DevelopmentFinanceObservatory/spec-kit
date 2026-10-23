@@ -98,7 +98,7 @@ from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 
 import jsonschema
 from referencing import Registry, Resource
@@ -1773,10 +1773,15 @@ def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
     return scope or None
 
 
-def versions_path(spec_id: str) -> str:
-    """The versions route asked for the newest stored version alone. The
-    route lists versions newest first, so `limit=1` returns just it."""
-    return f"/datasets/{spec_id}/versions?limit=1"
+# The versions a client asks the versions route for on each page.
+VERSIONS_PAGE = 100
+
+
+def versions_path(spec_id: str, cursor: str | None = None) -> str:
+    """One page of the versions route, VERSIONS_PAGE versions newest first,
+    continuing after `cursor` when one is given."""
+    path = f"/datasets/{spec_id}/versions?limit={VERSIONS_PAGE}"
+    return path if cursor is None else f"{path}&cursor={quote(cursor, safe='')}"
 
 
 def search_body(input_: Mapping[str, Any]) -> dict[str, Any]:
@@ -1784,17 +1789,38 @@ def search_body(input_: Mapping[str, Any]) -> dict[str, Any]:
     return {"schema_version": 1, "input": input_}
 
 
-def newest_listed(body: Any) -> str | None:
-    """The newest version a versions page lists, its first, or None when it
-    lists none. A body whose `versions` is not a list of versions, each with
-    a `content_version`, raises ContractError."""
-    versions = body.get("versions") if isinstance(body, dict) else None
-    if not isinstance(versions, list) or not all(
-        isinstance(v, dict) and isinstance(v.get("content_version"), str)
-        for v in versions
-    ):
-        raise ClientError("contract_violation")
-    return versions[0]["content_version"] if versions else None
+def _listed_version(version: Any) -> bool:
+    return (
+        isinstance(version, dict)
+        and isinstance(version.get("content_version"), str)
+        and "base_content_version" in version
+        and isinstance(version["base_content_version"], str | None)
+    )
+
+
+def newest_plain(page: Callable[[str | None], Any]) -> str | None:
+    """The newest stored version, the first the versions route lists with no
+    `base_content_version`, a plain build and never a version derived from
+    one, or None when the list ends without one. `page` answers the page
+    after a cursor, the first for None, and the walk follows `next_cursor`
+    until it is null. A page whose `versions` is not a list of versions,
+    each with a `content_version` and a `base_content_version` that is a
+    string or null, or whose `next_cursor` is neither a string nor null,
+    raises ContractError."""
+    cursor: str | None = None
+    while True:
+        body = page(cursor)
+        versions = body.get("versions") if isinstance(body, dict) else None
+        if not isinstance(versions, list) or not all(map(_listed_version, versions)):
+            raise ClientError("contract_violation")
+        for version in versions:
+            if version["base_content_version"] is None:
+                return version["content_version"]
+        cursor = body.get("next_cursor")
+        if cursor is None:
+            return None
+        if not isinstance(cursor, str):
+            raise ClientError("contract_violation")
 
 
 def stored_version[T](
@@ -2528,16 +2554,18 @@ class _Replay:
         return True, None
 
     def newest(self, spec_id: str) -> str | None:
-        """The newest stored version, the one the versions route lists first,
-        or None when it lists none or refuses the spec as unknown. A page
-        that lists no versions in the form `newest_listed` reads raises."""
+        """The newest stored version, as `newest_plain` reads the versions
+        route, or None when the route refuses the spec as unknown."""
         try:
-            body = self.acted_on(self.call("GET", versions_path(spec_id)))
+            return newest_plain(
+                lambda cursor: self.acted_on(
+                    self.call("GET", versions_path(spec_id, cursor))
+                )
+            )
         except ClientError as error:
             if error.error_class(self.client_codes) in NO_VERSIONS:
                 return None
             raise
-        return newest_listed(body)
 
     # -- steps --
 

@@ -107,7 +107,7 @@ from validate_client_contract import (
     header_warnings,
     held_spec,
     may_retry,
-    newest_listed,
+    newest_plain,
     owns_body_file,
     part_label,
     pick_artifact,
@@ -1111,12 +1111,15 @@ class Session:
 
     def _newest(self, spec_id: str) -> str | None:
         try:
-            body = self._acted(self._api("GET", versions_path(spec_id)))
+            return newest_plain(
+                lambda cursor: self._acted(
+                    self._api("GET", versions_path(spec_id, cursor))
+                )
+            )
         except ClientError as error:
             if error.error_class(self.client_codes) in NO_VERSIONS:
                 return None
             raise
-        return newest_listed(body)
 
     def _acted(self, response: Response) -> Any:
         """The JSON body of a success. A refusal raises its error, and a
@@ -1171,32 +1174,41 @@ def _build_body(
 # --- scenarios --------------------------------------------------------------
 
 DEFINITE = "ODA disbursements from Germany to Nigeria for basic health care"
-CANDIDATES = "GNI of Germany from 2015 to 2022"
+CANDIDATES = "mortality in Kenya from 2013 to 2022"
 MIXED = "debt service of Kenya and the price of tea in Kenya"
 FOLDED = "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya"
-PLACE = "ODA disbursements from Germany to Congo"
+PLACE = "ODA disbursements from Germany to Congo in 2018"
 TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
 TOP5 = "top 5 donors to Ethiopia in 2022"
 PLACE_LABELS = ["Congo [DRC]", "Congo [Republic]"]
 CANDIDATES_BESIDE_GROUP = (
-    "GNI of Germany from 2015 to 2022, and ODA disbursements from Germany to "
-    "sub-Saharan Africa"
+    "mortality in Kenya from 2013 to 2022, and GDP of sub-Saharan Africa"
 )
-TWO_CANDIDATES = "GNI of Germany and tax revenue of Kenya from 2015 to 2022"
-CANDIDATES_BESIDE_UNRESTATED = "GNI of Germany and debt of Kenya from 2015 to 2022"
+TWO_CANDIDATES = "mortality in Kenya and emissions in Kenya from 2013 to 2022"
+CANDIDATES_BESIDE_UNRESTATED = (
+    "mortality in Kenya and savings of Kenya from 2013 to 2022"
+)
 GROUP_DEFINITE = "GDP of the least developed countries"
-# A definite part whose places are a named group, beside a part whose
-# direction the question leaves open, which offers one option per direction.
-GROUP_BESIDE_OPTIONS = "GDP of sub-Saharan Africa, and debt of Kenya"
+# A definite part whose places are a named group, beside a flow part whose
+# direction the question leaves open, which offers one option per way to set
+# the places on the flow's two sides. Search reads the flow's places into the
+# group part too, so they are members of the group, which keeps it one group.
+GROUP_BESIDE_OPTIONS = "GDP of the G20 in 2015, and Germany India ODA"
 GROUPED_FLOW = "Germany's ODA to the least developed countries"
-CANDIDATES_BESIDE_ASSUMED = "GNI of Germany and aid flows to Kenya"
+CANDIDATES_BESIDE_ASSUMED = (
+    "mortality in Kenya and aid flows to Kenya from 2013 to 2022"
+)
 # Two specs just above the 100,000-row sync budget, one for the mint and one
 # for the operation another process started: a version the server has built
 # answers inline, so each long build needs a spec the server has not built.
-ASYNC = "ODA received by every recipient country from every provider (DAC2a) from 2018 to 2024"
-ASYNC_RESUMED = "ODA received by every recipient country from every provider (DAC2a) from 2017 to 2024"
+# A flow side the question leaves unnamed reads as its source's whole total, so
+# the rows come from the sector breakdown, about 90,000 a year.
+ASYNC = "ODA disbursements to every recipient country by sector from 2016 to 2017"
+ASYNC_RESUMED = (
+    "ODA disbursements to every recipient country by sector from 2014 to 2015"
+)
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
 SYNC_ROWS = 100_000
@@ -1576,6 +1588,11 @@ def _fetch_ref_newest_version(s: Session, ctx: Context) -> None:
     spec = ctx.definite_spec(DEFINITE)
     newest = s.newest_version(spec)
     require(newest == member["content_version"], "the stored version is the newest")
+    listed = s.recorder.exchanges[-1]["response"]["json"]["versions"]
+    require(
+        listed[0]["base_content_version"] is not None,
+        "a version derived from the stored one is listed before it",
+    )
 
 
 def _resubmit_placeholder(s: Session, ctx: Context) -> None:
@@ -1600,7 +1617,7 @@ RECORDED = (
     ),
     Recorded(
         "answer-candidates-choose-fetch",
-        "A question with three readings answers one candidates part, a choice gap with three "
+        "A question with two readings answers one candidates part, a choice gap with two "
         "options. Choosing option 0 posts that candidate's identity to Search as the one "
         "dataset_resubmit identity entry, echoing the part's reading_assumptions under its "
         "spec_id as assumptions. Search answers that reading definite with its own sentence, "
@@ -1795,13 +1812,15 @@ RECORDED = (
         "open, beside a definite part whose places are a named group posts dataset_resubmit "
         "with the definite part's identity, entity_groups and assumptions as an identity "
         "entry, and the chosen option's data_query part as a parsed entry. Part 0 answers "
-        "definite again, and part 1 answers the debt read in the chosen direction.",
+        "definite again, and part 1 answers the ODA read in the chosen direction.",
         _choose_option_beside_definite,
     ),
     Recorded(
         "fetch-ref-newest-version",
-        "The newest stored version of a spec is the one the versions route lists first, so "
-        "the client asks for it alone with limit=1. The route needs no key.",
+        "The newest stored version of a spec is the first version the versions route lists "
+        "with no base_content_version, the newest plain build, so a version derived from it "
+        "and listed first is skipped. The client reads the route a page of 100 versions at a "
+        "time, following next_cursor until a plain version is listed. The route needs no key.",
         _fetch_ref_newest_version,
     ),
     Recorded(
@@ -3532,7 +3551,7 @@ SYNTHETIC = (
         "whose snapshot refuses 410 artifact_expired and whose rebuild refuses 422 "
         "member_not_resolvable, comes before the parent's versions exchange.",
         "When the stored version has expired and the build is refused, the client asks the "
-        "versions route for the newest version alone with limit=1, and raises "
+        "versions route for the newest plain version, and raises "
         "VersionUnavailableError with the snapshot's artifact_expired code and that version "
         "as the newest.",
         _expired_not_reproducible,

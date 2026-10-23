@@ -346,6 +346,14 @@ _CUT_OFF_THEN_BUSY = "scenarios/fetch-spec-504-then-503.json"
 _BUSY_THEN_CUT_OFF = "scenarios/fetch-spec-503-then-504.json"
 
 
+def _recorded_origin(name: str) -> str:
+    """The origin of the API the recorded scenario `name` was recorded against."""
+    path = validator.PACKAGE_DIR / "scenarios" / f"{name}.json"
+    base_url = json.loads(path.read_text(encoding="utf-8"))["origin"]["base_url"]
+    parts = urlsplit(base_url)
+    return f"{parts.scheme}://{parts.netloc}"
+
+
 def _artifact_urls(origin: str) -> Callable[[Any], None]:
     """The build's artifact urls become absolute on `origin`."""
 
@@ -682,7 +690,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             "scenarios/choose-refused-option-out-of-range.json",
-            _set_step(1, option=2),
+            _set_step(1, option=1),
             "the steps make a POST /search/resolve the record lacks",
         ),
         (
@@ -1020,7 +1028,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (
             _NOT_REPRODUCIBLE,
             lambda doc: doc["exchanges"][-1]["request"].update(
-                path=doc["exchanges"][-1]["request"]["path"].removesuffix("?limit=1")
+                path=doc["exchanges"][-1]["request"]["path"].partition("?")[0]
             ),
             "where the steps make a GET",
         ),
@@ -1277,7 +1285,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             _FOREIGN_ARTIFACT,
-            _artifact_urls("http://127.0.0.1:19493"),
+            _artifact_urls(_recorded_origin("fetch-spec-known-sentence")),
             "the steps make a GET /api/datasets/",
         ),
         (
@@ -1294,7 +1302,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (_SERVER_WARNING, _warned(2, ["route_deprecated"]), "step 2 expects"),
         (_SERVER_WARNING, _warned(2, ["server_warning"]), "step 2 expects"),
-        (_POLL_REFUSED, _repeat(4, 1), "the steps never make exchanges 7 to 15"),
+        (_POLL_REFUSED, _repeat(4, 1), "the steps never make exchanges 7 to"),
         (
             _POLL_REFUSED,
             _set_outcome(
@@ -2125,12 +2133,65 @@ def test_a_candidate_label_is_its_heading_or_its_sentence(
     assert validator.candidate_label(_candidate(**resolved)) == label
 
 
+_PLAIN = {"content_version": "cv_plain", "base_content_version": None}
+_DERIVED = {"content_version": "cv_derived", "base_content_version": "cv_plain"}
+
+
+@pytest.mark.parametrize(
+    ("pages", "newest"),
+    [
+        ([{"versions": [_PLAIN], "next_cursor": None}], "cv_plain"),
+        ([{"versions": [_DERIVED, _PLAIN], "next_cursor": None}], "cv_plain"),
+        (
+            [
+                {"versions": [_DERIVED], "next_cursor": "c1"},
+                {"versions": [_PLAIN], "next_cursor": None},
+            ],
+            "cv_plain",
+        ),
+        ([{"versions": [_DERIVED], "next_cursor": None}], None),
+        ([{"versions": [], "next_cursor": None}], None),
+    ],
+)
+def test_the_newest_version_is_the_first_plain_one_listed(
+    pages: list[dict[str, Any]], newest: str | None
+) -> None:
+    cursors: list[str | None] = []
+
+    def page(cursor: str | None) -> dict[str, Any]:
+        cursors.append(cursor)
+        return pages[len(cursors) - 1]
+
+    assert validator.newest_plain(page) == newest
+    assert cursors == [None, *(p["next_cursor"] for p in pages[:-1])]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"items": [_PLAIN], "next_cursor": None},
+        {"versions": [{"content_version": "cv_plain"}], "next_cursor": None},
+        {"versions": [{**_PLAIN, "base_content_version": 1}], "next_cursor": None},
+        {"versions": [_DERIVED], "next_cursor": 1},
+    ],
+)
+def test_an_unreadable_versions_page_raises(body: dict[str, Any]) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.newest_plain(lambda _: body)
+    assert raised.value.code == "contract_violation"
+
+
 def test_a_required_member_that_admits_null_stays_required() -> None:
     """A recorded body must carry a required member, null or not."""
     served = validator.PACKAGE_DIR / "served" / "openapi.json"
     routes = validator._Routes(json.loads(served.read_text(encoding="utf-8")))
     page = "/components/schemas/DatasetVersionsPage"
-    body = {"spec_id": "spec_" + "0" * 32, "versions": [], "complete": True}
+    body = {
+        "spec_id": "spec_" + "0" * 32,
+        "enrichment_stamp": "0" * 64,
+        "versions": [],
+        "complete": True,
+    }
     assert routes.validate(page, {**body, "next_cursor": None}) == []
     problems = routes.validate(page, body)
     assert any("'next_cursor' is a required property" in p for p in problems)

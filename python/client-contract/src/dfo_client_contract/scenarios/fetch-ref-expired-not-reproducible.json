@@ -1,7 +1,7 @@
 {
   "format_version": 1,
   "name": "fetch-ref-expired-not-reproducible",
-  "description": "When the stored version has expired and the build is refused, the client asks the versions route for the newest version alone with limit=1, and raises VersionUnavailableError with the snapshot's artifact_expired code and that version as the newest.",
+  "description": "When the stored version has expired and the build is refused, the client asks the versions route for the newest plain version, and raises VersionUnavailableError with the snapshot's artifact_expired code and that version as the newest.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "fetch-ref-newest-version",
@@ -225,23 +225,51 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/versions?limit=1"
+        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/versions?limit=100"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "e5ff992e18a94c18866838012ff15862"
+          "x-dfo-trace-id": "b6341005077d4c4c974c26a403766c66"
         },
         "json": {
           "schema_version": 1,
           "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0",
           "versions": [
+            {
+              "content_version": "cv_25fa336da15247db708dd220b2d933a2",
+              "base_content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
+              "rendering": "groupby",
+              "groupby": {
+                "by": [
+                  "crsTypeOfFlow"
+                ],
+                "op": "sum"
+              },
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
+            },
             {
               "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
               "base_content_version": null,
               "rendering": "plain",
-              "groupby": null
+              "groupby": null,
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
+            },
+            {
+              "content_version": "cv_9417c96e4e09dd36053fc395c5b0f92c",
+              "base_content_version": null,
+              "rendering": "plain",
+              "groupby": null,
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
+            },
+            {
+              "content_version": "cv_e7f6ed9ddc5ca69902f92a8866f93ef7",
+              "base_content_version": null,
+              "rendering": "plain",
+              "groupby": null,
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
             }
           ],
           "next_cursor": null,

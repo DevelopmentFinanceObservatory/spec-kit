@@ -35,7 +35,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4a421114e5a2429284f5bb99860796e7"
+          "x-dfo-trace-id": "1d5f176b05c94ba0b55bacb3316cc3b5"
         },
         "json": {
           "schema_version": 1,
@@ -43,23 +43,23 @@
             "entry_path": "raw_text",
             "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
             "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "extract_skipped": false
+            "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "4a421114e5a2429284f5bb99860796e7",
+            "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
+            "trace_id": "1d5f176b05c94ba0b55bacb3316cc3b5",
             "warnings": [],
             "timing_ms": {
-              "total": 1225,
+              "total": 1,
               "by_step": {
                 "coverage": 0,
-                "extract": 1221
+                "response_cache_layer1": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 2256,
-              "output_tokens": 207,
-              "cached_tokens": 861
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
             },
             "timed_out": false
           },
@@ -69,9 +69,11 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 2,
                 "by_step": {
-                  "recall": 1
+                  "recall": 1,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 1
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -226,7 +228,9 @@
               "timing_ms": {
                 "total": 1,
                 "by_step": {
-                  "recall": 1
+                  "recall": 1,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",

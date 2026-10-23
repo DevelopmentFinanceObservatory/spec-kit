@@ -4,9 +4,9 @@
   "description": "A question that asks for analysis answers declined, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:06:43Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
+    "recorded_at": "2026-10-23T17:40:24Z"
   },
   "call": [
     {
@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "e61600f8e689429293ea320f5079509e"
+          "x-dfo-trace-id": "77dddf2cc7ef44109a95713db085e3f3"
         },
         "json": {
           "schema_version": 1,
@@ -42,23 +42,23 @@
             "entry_path": "raw_text",
             "raw_query": "should donors give more aid to Kenya?",
             "normalized_query": "should donors give more aid to Kenya?",
-            "extract_skipped": false
+            "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "e61600f8e689429293ea320f5079509e",
+            "engine_build": "c7543c9d64fb0dbeea028b04da6c59c997e50fbc",
+            "trace_id": "77dddf2cc7ef44109a95713db085e3f3",
             "warnings": [],
             "timing_ms": {
-              "total": 2060,
+              "total": 1,
               "by_step": {
                 "coverage": 0,
-                "extract": 2058
+                "response_cache_layer1": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 2251,
-              "output_tokens": 97,
-              "cached_tokens": 859
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
             },
             "timed_out": false
           },
@@ -88,7 +88,7 @@
       "error": {
         "class": "DeclinedError",
         "code": "answer_declined",
-        "trace_id": "e61600f8e689429293ea320f5079509e"
+        "trace_id": "77dddf2cc7ef44109a95713db085e3f3"
       }
     }
   ]
