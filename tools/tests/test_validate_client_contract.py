@@ -1186,6 +1186,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             "warning-codes.json",
+            _drop_action("ref_digest_changed"),
+            "no row for 'ref_digest_changed'",
+        ),
+        (
+            "warning-codes.json",
             _drop_action("route_deprecated"),
             "no row for 'route_deprecated'",
         ),
@@ -1742,6 +1747,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "proxy-code-unlisted",
         "proxy-code-wrong-status",
         "proxy-code-is-a-registry-code",
+        "warning-code-ref-digest-changed-missing",
         "warning-code-missing",
         "warning-code-no-rule-issues",
         "warning-code-is-a-client-code",
