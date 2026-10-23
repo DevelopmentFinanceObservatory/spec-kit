@@ -175,7 +175,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "72492035a830492dba11a29fa89ded8c"
+          "x-dfo-trace-id": "e1bfd7e1ab67428e9dc923e28d07d4f9"
         },
         "json": {
           "schema_version": 1,
@@ -249,7 +249,7 @@
             }
           },
           "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
-          "prepared_at": "2026-10-21T13:05:35Z",
+          "prepared_at": "2026-10-20T13:59:17Z",
           "coverage": {
             "rows": 4,
             "dimensions": [
@@ -395,7 +395,7 @@
             "graph_revision": null,
             "normalisations": [],
             "code_index_stamp": {
-              "exported_at": "2026-10-20T19:50:14Z",
+              "exported_at": "2026-10-20T13:18:18Z",
               "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
               "graph_endpoint": "graph_release"
             },
@@ -405,8 +405,8 @@
                 "revision": "2026-10-15"
               }
             ],
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "8408f1f95c622223f8fa6e9ba55826ee8e22a852",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
@@ -580,9 +580,9 @@
             "family_member_count": 21,
             "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
             "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
+            "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
             "served_from": "head",
-            "confirmed_at": "2026-10-21T13:05:35.077517+00:00"
+            "confirmed_at": "2026-10-23T18:37:10.942106+00:00"
           },
           "warnings": [
             {
@@ -600,17 +600,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:e9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70",
+              "artifact_digest": "sha256:c44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 3
+                "layout": 4
               },
-              "bytes": 9541,
+              "bytes": 9599,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:35.038218+00:00",
+              "created_at": "2026-10-23T16:58:47.734759+00:00",
               "tier": "working",
-              "url": "https://downloads.example.com/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:e9980972bce1cec82584a996b6e3f7f2e3b37ab1eb2e5226a40d37f7efe31c70"
+              "url": "https://downloads.example.com/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:c44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170",
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
             },
             {
               "artifact_digest": "sha256:d3a506bc9b95188583b5764592d2f1897c0665add660106b7f77c3e501000bb4",
@@ -619,14 +620,14 @@
               },
               "bytes": 5741,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:35.038218+00:00",
+              "created_at": "2026-10-20T13:59:18.050980+00:00",
               "tier": "working",
               "url": "https://downloads.example.com/api/datasets/spec_cb5baa4161de718f18583060674dbca6/cv_bf242138f8d0a892c97da9373d1626f4/files/sha256:d3a506bc9b95188583b5764592d2f1897c0665add660106b7f77c3e501000bb4"
             }
           ],
           "series_count": 1,
           "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
+            "capability_version": "dset_cc753cefa9199881",
             "columns": [
               {
                 "name": "stat_var",
@@ -760,6 +761,30 @@
                 "truncated": false
               },
               {
+                "column": "financingProvider",
+                "field": "party_class",
+                "token": "financingProvider_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "party_whole",
+                "token": "financingProvider_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
                 "column": "financingRecipient",
                 "field": "iso3",
                 "token": "financingRecipient_iso3",
@@ -818,13 +843,37 @@
                 },
                 "missing": [],
                 "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_class",
+                "token": "financingRecipient_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_whole",
+                "token": "financingRecipient_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
               }
             ],
             "long_layout_defaults": [
               "financingProvider_label",
-              "financingProvider_party_kind",
+              "financingProvider_kind",
               "financingRecipient_label",
-              "financingRecipient_party_kind"
+              "financingRecipient_kind"
             ],
             "long_layout_totals": [],
             "pivots": [],
@@ -846,10 +895,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-20T13:05:35.038284Z"
+            "held_until": "2026-11-19T13:59:18.051742Z"
           }
         }
       }
@@ -860,7 +909,7 @@
       "error": {
         "class": "ContractError",
         "code": "contract_violation",
-        "trace_id": "72492035a830492dba11a29fa89ded8c"
+        "trace_id": "e1bfd7e1ab67428e9dc923e28d07d4f9"
       }
     }
   ]

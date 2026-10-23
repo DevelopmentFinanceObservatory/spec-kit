@@ -4,9 +4,9 @@
   "description": "Choosing \"Congo [DRC]\" on part 1 of a two-part answer posts dataset_resubmit with one entry per part in part order: the chosen option's data_query part as a parsed entry, and part 0, still a refusal, as a parsed entry of its restatement. Part 1 answers definite.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:06:56Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:39:16Z"
   },
   "call": [
     {
@@ -36,7 +36,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "69c09616094044ed89eaae3a5ddb6bf3"
+          "x-dfo-trace-id": "54bfcfb9a52b47bab15cedbc04e2cb8e"
         },
         "json": {
           "schema_version": 1,
@@ -44,23 +44,23 @@
             "entry_path": "raw_text",
             "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
             "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "extract_skipped": false
+            "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "69c09616094044ed89eaae3a5ddb6bf3",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "54bfcfb9a52b47bab15cedbc04e2cb8e",
             "warnings": [],
             "timing_ms": {
-              "total": 1185,
+              "total": 1,
               "by_step": {
                 "coverage": 0,
-                "extract": 1183
+                "response_cache_layer1": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 2256,
-              "output_tokens": 207,
-              "cached_tokens": 861
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
             },
             "timed_out": false
           },
@@ -70,9 +70,11 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 1,
                 "by_step": {
-                  "recall": 0
+                  "recall": 1,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -225,9 +227,11 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 2,
                 "by_step": {
-                  "recall": 0
+                  "recall": 2,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -471,7 +475,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "e7ec0fb964854583aff78b27d1df099a"
+          "x-dfo-trace-id": "c58a661a7d274384aa44d978ba85987e"
         },
         "json": {
           "schema_version": 1,
@@ -480,19 +484,21 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "e7ec0fb964854583aff78b27d1df099a",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "c58a661a7d274384aa44d978ba85987e",
             "warnings": [],
             "timing_ms": {
-              "total": 2313,
+              "total": 1053,
               "by_step": {
                 "coverage": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 4244,
-              "output_tokens": 202,
-              "cached_tokens": 0
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0,
+              "jev_input_tokens": 7367,
+              "jev_output_tokens": 1646
             },
             "timed_out": false
           },
@@ -510,7 +516,9 @@
               "timing_ms": {
                 "total": 1,
                 "by_step": {
-                  "recall": 1
+                  "recall": 1,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -674,20 +682,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 2186,
+                "total": 1049,
                 "by_step": {
-                  "recall": 0,
-                  "shape_arcs": 0,
-                  "shape_probe_coverage": 2,
-                  "shape_probe": 385,
-                  "shape_groups": 22,
+                  "recall": 1,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 6,
+                  "shape_probe": 113,
+                  "shape_groups": 53,
                   "shape_labels": 1,
                   "shape_admission": 0,
-                  "shape": 1267,
-                  "bind": 907,
-                  "materialise": 6,
-                  "answer": 4,
-                  "options": 2
+                  "phase_derive_shapes": 0,
+                  "shape": 455,
+                  "phase_prune_and_rank": 0,
+                  "bind": 139,
+                  "phase_bind": 226,
+                  "phase_settle": 9,
+                  "phase_place_bindings": 68,
+                  "phase_facet_requests": 0,
+                  "materialise": 13,
+                  "phase_materialise": 0,
+                  "answer": 8,
+                  "options": 5,
+                  "phase_outcome": 125
                 }
               },
               "restatement": {
@@ -1080,7 +1098,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+                  "coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1553,7 +1571,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_347a470e04c97eec",
+                    "capability_version": "cap_94e25737d859392c",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []

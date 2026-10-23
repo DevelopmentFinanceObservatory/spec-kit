@@ -4,9 +4,9 @@
   "description": "Fetching the mixed answer with partial=True builds only the answered part and returns a dataset that is not complete, with part 1's not_understood gap in missing.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:05:16Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:37:00Z"
   },
   "call": [
     {
@@ -35,7 +35,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "8571f47c3ca8460f8e9a594da2fc942b"
+          "x-dfo-trace-id": "b78bde3ba929452aab7d7cdd34bad909"
         },
         "json": {
           "schema_version": 1,
@@ -46,20 +46,23 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "8571f47c3ca8460f8e9a594da2fc942b",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "b78bde3ba929452aab7d7cdd34bad909",
             "warnings": [],
             "timing_ms": {
-              "total": 3603,
+              "total": 377,
               "by_step": {
                 "coverage": 0,
-                "extract": 839
+                "extract": 1,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 5885,
-              "output_tokens": 606,
-              "cached_tokens": 2304
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0,
+              "jev_input_tokens": 5250,
+              "jev_output_tokens": 1104
             },
             "timed_out": false
           },
@@ -69,20 +72,30 @@
               "variable_text": "debt service",
               "warnings": [],
               "timing_ms": {
-                "total": 2725,
+                "total": 372,
                 "by_step": {
                   "recall": 1,
-                  "shape_arcs": 1,
-                  "shape_probe_coverage": 12,
-                  "shape_probe": 13,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 2,
+                  "shape_probe_coverage": 14,
+                  "shape_probe": 14,
                   "shape_groups": 5,
-                  "shape_labels": 8,
+                  "shape_labels": 10,
                   "shape_admission": 0,
-                  "shape": 788,
-                  "bind": 1929,
-                  "materialise": 4,
-                  "answer": 0,
-                  "options": 3
+                  "phase_derive_shapes": 0,
+                  "shape": 128,
+                  "phase_prune_and_rank": 0,
+                  "bind": 144,
+                  "phase_bind": 10,
+                  "phase_settle": 12,
+                  "phase_place_bindings": 11,
+                  "phase_facet_requests": 0,
+                  "materialise": 9,
+                  "phase_materialise": 0,
+                  "answer": 1,
+                  "options": 7,
+                  "phase_outcome": 49
                 }
               },
               "restatement": {
@@ -469,7 +482,8 @@
                     "source_codes": [
                       {
                         "provenance": "provenance/WorldBankInternationalDebtStatistics",
-                        "code": "DT.TDS.DECT.CD"
+                        "code": "DT.TDS.DECT.CD",
+                        "exact": true
                       }
                     ]
                   },
@@ -548,7 +562,7 @@
                       "label": "Creative Commons Attribution License"
                     }
                   },
-                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+                  "coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1266,7 +1280,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_347a470e04c97eec",
+                    "capability_version": "cap_94e25737d859392c",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3251,15 +3265,19 @@
               "variable_text": "price of tea",
               "warnings": [],
               "timing_ms": {
-                "total": 12,
+                "total": 13,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 0,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
                   "shape_arcs": 1,
-                  "shape_probe": 5,
-                  "shape_groups": 0,
+                  "shape_probe": 4,
+                  "shape_groups": 1,
                   "shape_labels": 0,
-                  "shape_admission": 1,
-                  "shape": 11
+                  "shape_admission": 0,
+                  "phase_derive_shapes": 0,
+                  "shape": 13,
+                  "phase_prune_and_rank": 0
                 }
               },
               "rendered_sentence": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
@@ -3696,7 +3714,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "afabd49505e34d9d91854d77caca574d"
+          "x-dfo-trace-id": "a0264860a3af4be098e96eefef69bf74"
         },
         "json": {
           "schema_version": 1,
@@ -3774,7 +3792,7 @@
             }
           },
           "content_version": "cv_2c981b422e8f8bdf5dee6067837cff13",
-          "prepared_at": "2026-10-21T13:05:20Z",
+          "prepared_at": "2026-10-12T03:03:22Z",
           "coverage": {
             "rows": 55,
             "dimensions": [
@@ -3794,13 +3812,13 @@
             ],
             "window": {
               "kind": "all",
-              "start_year": 1970,
+              "origin": "default",
               "end_year": 2024,
-              "origin": "default"
+              "start_year": 1970
             }
           },
           "citation": {
-            "text": "World Bank International Debt Statistics (IDS) (2026), via the Development Finance Observatory",
+            "text": "World Bank International Debt Statistics (IDS)",
             "sources": [
               {
                 "ref": "provenance/WorldBankInternationalDebtStatistics",
@@ -3823,7 +3841,7 @@
                   "source_data_url": "https://datacatalogfiles.worldbank.org/ddh-published/0038015/DR0092201/A_D.xlsx,https://datacatalogfiles.worldbank.org/ddh-published/0038015/DR0092202/E_K.xlsx,https://datacatalogfiles.worldbank.org/ddh-published/0038015/DR0092203/L_M.xlsx,https://datacatalogfiles.worldbank.org/ddh-published/0038015/DR0093225/N_Q.xlsx,https://datacatalogfiles.worldbank.org/ddh-published/0038015/DR0092204/R_U.xlsx,https://datacatalogfiles.worldbank.org/ddh-published/0038015/DR0092205/V_Z.xlsx",
                   "attribution": "International Debt Statistics by the World Bank, https://datacatalog.worldbank.org/search/dataset/0038015/international-debt-statistics, licensed under CC BY 4.0. Modified by The ONE Campaign.",
                   "update_cadence": "Annual",
-                  "last_update": "2026-10-13",
+                  "last_update": "2026-09-29",
                   "years_covered": "1970-2032",
                   "granularity": "Annual, by provider and recipient",
                   "currencies": [
@@ -3857,12 +3875,12 @@
                   ],
                   "version_history": [
                     {
-                      "date": "2026-10-14",
+                      "date": "2026-09-29",
                       "title": "First release",
                       "changes": [
                         {
                           "kind": "added",
-                          "note": "External debt stocks, flows and debt service of low- and middle-income countries by borrower and creditor, with related ratios and gross national income."
+                          "note": "Dataset added to the graph."
                         }
                       ]
                     }
@@ -3872,25 +3890,56 @@
             ]
           },
           "trace": {
+            "facets": [
+              {
+                "ref": "provenance/WorldBankInternationalDebtStatistics",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "most_observations",
+                "dispatch_facet_id": "2052749850102211920",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": null,
+                "axis": "measurementMethod",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "2052749850102211920",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "most_observations",
+                "dispatch_facet_id": "2052749850102211920",
+                "default_policy_version": "1"
+              }
+            ],
             "applied_window": {
               "kind": "all",
-              "start_year": 1970,
+              "origin": "default",
               "end_year": 2024,
-              "origin": "default"
+              "start_year": 1970
             },
-            "graph_revision": null,
+            "graph_revision": "dfo-dev-dc-datacommons-service-00228-ntw",
+            "normalisations": [],
             "code_index_stamp": {
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
-              "exported_at": "2026-10-20T19:50:14Z",
-              "graph_endpoint": "graph_release"
+              "exported_at": "2026-10-10T10:52:17Z",
+              "content_hash": "6650f0e76fc1f91e6e056b29495dc17dc0182d091d67496926a1710ce1999c50",
+              "graph_endpoint": "https://dfo-dev-dc-datacommons-service-zms5lj4zhq-nn.a.run.app"
             },
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/WorldBankInternationalDebtStatistics",
-                "revision": "2026-10-13"
+                "revision": "2026-09-29"
               }
             ],
+            "capability_version": "dset_ac879dbf49857907",
+            "materialiser_build": "3c49570945bd107f0484c1a16044d714410b1e25",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_ServicingPayment_Nominal",
@@ -3900,45 +3949,20 @@
                 "observation_count": 55
               }
             ],
-            "family_member_digest": "b66541c53125ee32113e51b4f52a3a428043b5506e15f96277f37b89547fc1c4",
             "family_member_count": 65,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/WorldBankInternationalDebtStatistics",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "most_observations",
-                "dispatch_facet_id": "2052749850102211920"
-              },
-              {
-                "axis": "measurementMethod",
-                "ref": null,
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "absent_on_selected_facet",
-                "dispatch_facet_id": "2052749850102211920"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "most_observations",
-                "dispatch_facet_id": "2052749850102211920"
-              }
-            ],
-            "normalisations": [],
+            "family_member_digest": "ef0365e0d7395767fee6210ec02c809839d0e28516031bf225d2cef2acc5e6d5",
             "frame_grammar_version": "1.1.0",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "served_from": "materialise",
-            "confirmed_at": "2026-10-21T13:05:20.852361+00:00"
+            "origin_catalogue_build_id": "20261012T000033Z-84777283",
+            "served_from": "head",
+            "confirmed_at": "2026-10-23T18:37:01.252594+00:00"
           },
-          "warnings": [],
+          "warnings": [
+            {
+              "code": "processing_level_undeclared",
+              "severity": "info",
+              "message": "A source StatVar lacks a processing-level declaration; the citation credits the source and omits the processing qualifier."
+            }
+          ],
           "diagnostics": [
             {
               "code": "processing_level_undeclared",
@@ -3948,17 +3972,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:674d9a4ab33eabc631aba510ed88f9d45ddeef43d11d2aee7b267bd1e3546143",
+              "artifact_digest": "sha256:ab0bfec276a23aaefea6dbc3f1b57854ea520b3a7ae5feeade202f292446ed2c",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 3
+                "layout": 4
               },
-              "bytes": 6025,
+              "bytes": 6095,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:20.814206+00:00",
+              "created_at": "2026-10-23T16:58:25.889079+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_78d04fefc3b3f1ef71acd622957e4995/cv_2c981b422e8f8bdf5dee6067837cff13/files/sha256:674d9a4ab33eabc631aba510ed88f9d45ddeef43d11d2aee7b267bd1e3546143"
+              "url": "/api/datasets/spec_78d04fefc3b3f1ef71acd622957e4995/cv_2c981b422e8f8bdf5dee6067837cff13/files/sha256:ab0bfec276a23aaefea6dbc3f1b57854ea520b3a7ae5feeade202f292446ed2c",
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
             },
             {
               "artifact_digest": "sha256:8da8a5b081cc06acba677ac2c668e4bcafb796bf040bede5de00740acda9c9ee",
@@ -3967,14 +3992,14 @@
               },
               "bytes": 5343,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:20.814206+00:00",
+              "created_at": "2026-10-05T21:15:15.844014+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_78d04fefc3b3f1ef71acd622957e4995/cv_2c981b422e8f8bdf5dee6067837cff13/files/sha256:8da8a5b081cc06acba677ac2c668e4bcafb796bf040bede5de00740acda9c9ee"
             }
           ],
           "series_count": 1,
           "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
+            "capability_version": "dset_cc753cefa9199881",
             "columns": [
               {
                 "name": "stat_var",
@@ -4100,11 +4125,35 @@
                 },
                 "missing": [],
                 "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_class",
+                "token": "financingRecipient_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_whole",
+                "token": "financingRecipient_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
               }
             ],
             "long_layout_defaults": [
               "financingRecipient_label",
-              "financingRecipient_party_kind"
+              "financingRecipient_kind"
             ],
             "long_layout_totals": [],
             "pivots": [],
@@ -4126,10 +4175,9 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
-            "pinned": false,
-            "held_until": "2026-11-20T13:05:20.813993Z"
+            "pinned": true
           }
         }
       }
@@ -4137,26 +4185,26 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_78d04fefc3b3f1ef71acd622957e4995/cv_2c981b422e8f8bdf5dee6067837cff13/files/sha256:674d9a4ab33eabc631aba510ed88f9d45ddeef43d11d2aee7b267bd1e3546143"
+        "origin_path": "/api/datasets/spec_78d04fefc3b3f1ef71acd622957e4995/cv_2c981b422e8f8bdf5dee6067837cff13/files/sha256:ab0bfec276a23aaefea6dbc3f1b57854ea520b3a7ae5feeade202f292446ed2c"
       },
       "response": {
         "status": 302,
         "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3A674d9a4ab33eabc631aba510ed88f9d45ddeef43d11d2aee7b267bd1e3546143?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "f4cc6b35ba294a0380ca97496ec86733"
+          "content-type": "text/html",
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aab0bfec276a23aaefea6dbc3f1b57854ea520b3a7ae5feeade202f292446ed2c?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "6d3da0693a134de395cfe22836258dd3"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/e2e-working/sha256%3A674d9a4ab33eabc631aba510ed88f9d45ddeef43d11d2aee7b267bd1e3546143?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aab0bfec276a23aaefea6dbc3f1b57854ea520b3a7ae5feeade202f292446ed2c?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/vnd.apache.parquet",
-          "x-dfo-trace-id": "7ffed6c80e5f484c9a566956adb5c5c0"
+          "content-type": "application/vnd.apache.parquet"
         },
         "body_file": "answer-mixed-fetch-partial.parquet"
       }
@@ -4189,7 +4237,7 @@
           "stat_var_label",
           "financingRecipient",
           "financingRecipient_label",
-          "financingRecipient_party_kind",
+          "financingRecipient_kind",
           "time_period",
           "value",
           "unit",

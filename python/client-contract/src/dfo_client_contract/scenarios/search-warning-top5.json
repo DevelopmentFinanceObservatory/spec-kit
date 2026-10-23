@@ -4,9 +4,9 @@
   "description": "A question asking for a ranking answers one definite part that does not run the rank, with a departure and two warn-severity warnings. A strict fetch raises SearchWarning before any build; a fetch that is not strict builds the dataset and issues one SearchWarning for all of them.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:06:59Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:39:17Z"
   },
   "call": [
     {
@@ -38,7 +38,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "2b349555f60d4b9aa5c17d3f59541531"
+          "x-dfo-trace-id": "9574dd6f16974328a119e8d83e6e7818"
         },
         "json": {
           "schema_version": 1,
@@ -49,20 +49,23 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "2b349555f60d4b9aa5c17d3f59541531",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "9574dd6f16974328a119e8d83e6e7818",
             "warnings": [],
             "timing_ms": {
-              "total": 4816,
+              "total": 2030,
               "by_step": {
                 "coverage": 0,
-                "extract": 1848
+                "extract": 1077,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 6103,
-              "output_tokens": 381,
-              "cached_tokens": 860
+              "input_tokens": 2233,
+              "output_tokens": 188,
+              "cached_tokens": 841,
+              "jev_input_tokens": 4485,
+              "jev_output_tokens": 849
             },
             "timed_out": false
           },
@@ -74,29 +77,50 @@
                 {
                   "code": "slot_defaulted",
                   "severity": "warn",
-                  "message": "No aid type was named, so the answer covers official development assistance."
+                  "message": "The answer covers official development assistance of every aid type."
                 },
                 {
                   "code": "role_scope_defaulted",
                   "severity": "warn",
                   "message": "no provider was named; the answer was resolved across every provider with data."
+                },
+                {
+                  "code": "whole_total_available",
+                  "severity": "info",
+                  "message": "The source publishes the total of every official donor as official donors (DAC); a sum of the listed donors includes private donors and differs from it.",
+                  "spec_id": "spec_7778beed72f8433bb7fde4293acfd175",
+                  "params": {
+                    "total": "DACOfficialDonors",
+                    "total_label": "official donors (DAC)",
+                    "whole_of": "official"
+                  }
                 }
               ],
               "timing_ms": {
-                "total": 2929,
+                "total": 947,
                 "by_step": {
-                  "recall": 819,
-                  "shape_arcs": 2,
-                  "shape_probe_coverage": 2,
-                  "shape_probe": 201,
-                  "shape_groups": 2,
+                  "recall": 391,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 3,
+                  "shape_probe_coverage": 5,
+                  "shape_probe": 154,
+                  "shape_groups": 4,
                   "shape_labels": 0,
                   "shape_admission": 1,
-                  "shape": 935,
-                  "bind": 1152,
-                  "materialise": 12,
-                  "answer": 8,
-                  "options": 3
+                  "phase_derive_shapes": 0,
+                  "shape": 309,
+                  "phase_prune_and_rank": 0,
+                  "bind": 112,
+                  "phase_bind": 14,
+                  "phase_settle": 7,
+                  "phase_place_bindings": 1,
+                  "phase_facet_requests": 0,
+                  "materialise": 31,
+                  "phase_materialise": 0,
+                  "answer": 14,
+                  "options": 8,
+                  "phase_outcome": 60
                 }
               },
               "restatement": {
@@ -501,7 +525,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+                  "coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -950,7 +974,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_347a470e04c97eec",
+                    "capability_version": "cap_94e25737d859392c",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3369,7 +3393,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "f0557d404d0d4f34aa2ad0fd2784dfac"
+          "x-dfo-trace-id": "204cdb090cb6492b829defbe74a5dfbf"
         },
         "json": {
           "schema_version": 1,
@@ -3430,7 +3454,7 @@
             }
           },
           "content_version": "cv_534dd4c2bf9bdafc837d51a3ba4bcf3e",
-          "prepared_at": "2026-10-21T13:07:05Z",
+          "prepared_at": "2026-10-20T16:52:43Z",
           "coverage": {
             "rows": 110,
             "dimensions": [
@@ -3459,9 +3483,9 @@
             ],
             "window": {
               "kind": "range",
-              "start_year": 2022,
+              "origin": "query",
               "end_year": 2022,
-              "origin": "query"
+              "start_year": 2022
             }
           },
           "citation": {
@@ -3547,25 +3571,56 @@
             ]
           },
           "trace": {
+            "facets": [
+              {
+                "ref": "provenance/OECDDAC2A",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": null,
+                "axis": "measurementMethod",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              }
+            ],
             "applied_window": {
               "kind": "range",
-              "start_year": 2022,
+              "origin": "query",
               "end_year": 2022,
-              "origin": "query"
+              "start_year": 2022
             },
-            "graph_revision": null,
+            "graph_revision": "dfo-dev-dc-datacommons-service-00259-rpx",
+            "normalisations": [],
             "code_index_stamp": {
+              "exported_at": "2026-10-20T13:18:18Z",
               "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
-              "exported_at": "2026-10-20T19:50:14Z",
               "graph_endpoint": "graph_release"
             },
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
                 "revision": "2026-10-15"
               }
             ],
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "7175fe98eec005479f1397936dc011ad120092d5",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal",
@@ -3576,43 +3631,12 @@
                 "observation_count": 110
               }
             ],
-            "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
             "family_member_count": 1,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/OECDDAC2A",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "measurementMethod",
-                "ref": null,
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "absent_on_selected_facet",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              }
-            ],
-            "normalisations": [],
+            "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
             "frame_grammar_version": "1.1.0",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "served_from": "materialise",
-            "confirmed_at": "2026-10-21T13:07:05.722653+00:00"
+            "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
+            "served_from": "head",
+            "confirmed_at": "2026-10-23T18:39:20.385608+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -3624,17 +3648,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f",
+              "artifact_digest": "sha256:f0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 3
+                "layout": 4
               },
-              "bytes": 10828,
+              "bytes": 10927,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:07:05.693889+00:00",
+              "created_at": "2026-10-23T16:59:51.176407+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f"
+              "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:f0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a",
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
             },
             {
               "artifact_digest": "sha256:5b508be6b46ce8e01315f9c89a1837e17ed7b49d7d2554011cfdba9f32203084",
@@ -3643,14 +3668,14 @@
               },
               "bytes": 10167,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:07:05.693889+00:00",
+              "created_at": "2026-10-20T16:52:44.112078+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:5b508be6b46ce8e01315f9c89a1837e17ed7b49d7d2554011cfdba9f32203084"
             }
           ],
           "series_count": 110,
           "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
+            "capability_version": "dset_cc753cefa9199881",
             "columns": [
               {
                 "name": "stat_var",
@@ -3868,6 +3893,30 @@
                 "truncated": false
               },
               {
+                "column": "financingProvider",
+                "field": "party_class",
+                "token": "financingProvider_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 110,
+                  "covered": 110
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "party_whole",
+                "token": "financingProvider_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 110,
+                  "covered": 110
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
                 "column": "financingRecipient",
                 "field": "iso3",
                 "token": "financingRecipient_iso3",
@@ -3926,13 +3975,37 @@
                 },
                 "missing": [],
                 "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_class",
+                "token": "financingRecipient_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_whole",
+                "token": "financingRecipient_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
               }
             ],
             "long_layout_defaults": [
               "financingProvider_label",
-              "financingProvider_party_kind",
+              "financingProvider_kind",
               "financingRecipient_label",
-              "financingRecipient_party_kind"
+              "financingRecipient_kind"
             ],
             "long_layout_totals": [
               "financingProvider"
@@ -3956,10 +4029,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-20T13:07:05.693915Z"
+            "held_until": "2026-11-19T16:52:44.112184Z"
           }
         }
       }
@@ -3967,26 +4040,26 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f"
+        "origin_path": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:f0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a"
       },
       "response": {
         "status": 302,
         "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3A7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "5b1ffba527ed4c2b9ae59df39ceb3482"
+          "content-type": "text/html",
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Af0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "6ea497e67fff4becbcee2656441d0dac"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/e2e-working/sha256%3A7ca72626eed07dafebc7eaa78713c1c5a36ef05a19d8da96b723dec80d50317f?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Af0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/vnd.apache.parquet",
-          "x-dfo-trace-id": "b1b959d03f9943679a50cfe0f8e1ad5d"
+          "content-type": "application/vnd.apache.parquet"
         },
         "body_file": "search-warning-top5.parquet"
       }
@@ -4009,7 +4082,7 @@
       "error": {
         "class": "SearchWarning",
         "code": null,
-        "trace_id": "2b349555f60d4b9aa5c17d3f59541531"
+        "trace_id": "9574dd6f16974328a119e8d83e6e7818"
       }
     },
     {
@@ -4019,10 +4092,10 @@
           "stat_var",
           "financingProvider",
           "financingProvider_label",
-          "financingProvider_party_kind",
+          "financingProvider_kind",
           "financingRecipient",
           "financingRecipient_label",
-          "financingRecipient_party_kind",
+          "financingRecipient_kind",
           "dac2aAidType",
           "dac2aAidType_label",
           "time_period",

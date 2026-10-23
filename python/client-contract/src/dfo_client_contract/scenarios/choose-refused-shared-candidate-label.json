@@ -10,11 +10,11 @@
   "call": [
     {
       "op": "search",
-      "question": "GNI of Germany from 2015 to 2022"
+      "question": "mortality in Kenya from 2013 to 2022"
     },
     {
       "op": "choose",
-      "option": "Germany's primary income for gross of fixed capital consumption, 2015 to 2022."
+      "option": "Kenya's deaths rate per capita, 2013 to 2022."
     }
   ],
   "exchanges": [
@@ -26,7 +26,7 @@
           "schema_version": 1,
           "input": {
             "kind": "raw_text",
-            "query": "GNI of Germany from 2015 to 2022"
+            "query": "mortality in Kenya from 2013 to 2022"
           }
         }
       },
@@ -34,60 +34,72 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "d107dd88e50147378d54464bcdaf9695"
+          "x-dfo-trace-id": "2fefffc9aac84b4fae2eb1888a1d3b74"
         },
         "json": {
           "schema_version": 1,
           "query_echo": {
             "entry_path": "raw_text",
-            "raw_query": "GNI of Germany from 2015 to 2022",
-            "normalized_query": "GNI of Germany from 2015 to 2022",
+            "raw_query": "mortality in Kenya from 2013 to 2022",
+            "normalized_query": "mortality in Kenya from 2013 to 2022",
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "d107dd88e50147378d54464bcdaf9695",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "2fefffc9aac84b4fae2eb1888a1d3b74",
             "warnings": [],
             "timing_ms": {
-              "total": 4075,
+              "total": 2300,
               "by_step": {
                 "coverage": 0,
-                "extract": 1004
+                "extract": 1022,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 7300,
-              "output_tokens": 300,
-              "cached_tokens": 861
+              "input_tokens": 2237,
+              "output_tokens": 143,
+              "cached_tokens": 842,
+              "jev_input_tokens": 13358,
+              "jev_output_tokens": 2855
             },
             "timed_out": false
           },
           "kind": "resolution",
           "parts": [
             {
-              "variable_text": "GNI",
+              "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 2799,
+                "total": 1274,
                 "by_step": {
-                  "recall": 381,
-                  "shape_arcs": 2,
-                  "shape_probe_coverage": 1,
-                  "shape_probe": 203,
-                  "shape_groups": 18,
-                  "shape_labels": 5,
-                  "shape_admission": 0,
-                  "shape": 1186,
-                  "bind": 829,
-                  "materialise": 217,
-                  "answer": 186
+                  "recall": 0,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 4,
+                  "shape_probe": 112,
+                  "shape_groups": 5,
+                  "shape_labels": 1,
+                  "shape_admission": 1,
+                  "phase_derive_shapes": 0,
+                  "shape": 237,
+                  "phase_prune_and_rank": 0,
+                  "bind": 214,
+                  "phase_bind": 3,
+                  "phase_settle": 7,
+                  "phase_place_bindings": 27,
+                  "phase_facet_requests": 0,
+                  "materialise": 124,
+                  "phase_materialise": 1,
+                  "answer": 25,
+                  "phase_outcome": 636
                 }
               },
-              "rendered_sentence": "3 readings. Germany's primary income for gross of fixed capital consumption. OECD DAC1 · 2015 to 2022 · Current US dollars. Germany's gross national income based on purchasing power parity in international dollars. World Development Indicators · 2015 to 2022. Germany's gross national income based on purchasing power parity per capita in international dollars. World Development Indicators · 2015 to 2022.",
+              "rendered_sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
               "sentence_plan": [
                 {
                   "kind": "text",
-                  "text": "3 readings.",
+                  "text": "2 readings.",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -101,7 +113,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "Germany",
+                  "text": "Kenya",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -122,98 +134,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "primary income",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " for ",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "gross of fixed capital consumption",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": ".",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " ",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "OECD DAC1",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " · ",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "2015 to 2022",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " · ",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "Current US dollars",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": ".",
-                  "segment": "byline",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " ",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "Germany",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "'s",
+                  "text": "deaths rate",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -227,21 +148,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "gross national income based on purchasing power parity",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " ",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "in international dollars",
+                  "text": "per capita",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -276,7 +183,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "2015 to 2022",
+                  "text": "2013 to 2022",
                   "segment": "byline",
                   "entity_refs": [],
                   "states": []
@@ -297,7 +204,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "Germany",
+                  "text": "Kenya",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -318,21 +225,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "gross national income based on purchasing power parity per capita",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": " ",
-                  "segment": "heading",
-                  "entity_refs": [],
-                  "states": []
-                },
-                {
-                  "kind": "text",
-                  "text": "in international dollars",
+                  "text": "number of deaths",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -353,7 +246,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "World Development Indicators",
+                  "text": "Kenya Census",
                   "segment": "byline",
                   "entity_refs": [],
                   "states": []
@@ -367,7 +260,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "2015 to 2022",
+                  "text": "2018 to 2022",
                   "segment": "byline",
                   "entity_refs": [],
                   "states": []
@@ -381,13 +274,13 @@
                 }
               ],
               "restatement": {
-                "variable_text": "GNI",
+                "variable_text": "mortality",
                 "entities": [
                   {
-                    "text": "Germany"
+                    "text": "Kenya"
                   }
                 ],
-                "time_text": "2015 to 2022",
+                "time_text": "2013 to 2022",
                 "sources": [],
                 "operations": []
               },
@@ -400,69 +293,70 @@
                 "max_candidates": 6,
                 "specs": [
                   {
-                    "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+                    "spec_id": "spec_10bf62f9687154286b463d206f03a086",
                     "definition": {
                       "schema_version": 1,
-                      "spec_id": "spec_c0f61f3ca3558aac184973441a67601e",
+                      "spec_id": "spec_10bf62f9687154286b463d206f03a086",
                       "identity": {
                         "identity_version": "spec1",
                         "shape": {
                           "kind": "statvar_schema",
-                          "population_type": "EconomicUnit",
-                          "measured_property": "primaryIncome",
+                          "population_type": "MortalityEvent",
+                          "measured_property": "count",
                           "stat_type": "measuredValue",
-                          "measurement_qualifier": "Nominal"
+                          "measurement_denominator": {
+                            "ref": "Count_Person"
+                          }
                         },
                         "slots": [
                           {
-                            "property": "fixedCapitalConsumptionBasis",
+                            "property": "causeOfDeath",
                             "binding": {
-                              "state": "value",
-                              "ref": "GrossOfFixedCapitalConsumption"
+                              "state": "unbound"
                             }
                           }
                         ],
                         "entities": {
                           "observationAbout": [
-                            "country/DEU"
+                            "country/KEN"
                           ]
                         },
                         "requested_window": {
                           "kind": "range",
-                          "start_year": 2015,
+                          "start_year": 2013,
                           "end_year": 2022
                         }
                       }
                     },
                     "resolved": {
                       "shape": {
-                        "shape_id": "economicunit_primaryincome_measuredvalue_nominal",
-                        "label": "Gross national income",
+                        "shape_id": "mortalityevent_count_measuredvalue_per_count_person",
+                        "label": "Deaths Rate",
                         "population_type": {
-                          "ref": "EconomicUnit",
-                          "label": "economic unit"
+                          "ref": "MortalityEvent",
+                          "label": "MortalityEvent"
                         },
                         "measured_property": {
-                          "ref": "primaryIncome",
-                          "label": "primary income"
+                          "ref": "count",
+                          "label": "count"
                         },
                         "stat_type": {
                           "ref": "measuredValue",
                           "label": "measuredValue"
                         },
-                        "measurement_qualifier": {
-                          "ref": "Nominal",
-                          "label": "Nominal"
+                        "measurement_denominator": {
+                          "ref": "Count_Person",
+                          "label": "Total population"
                         },
                         "measurement_denominator_unresolved": false,
                         "slot_keys": [
                           {
                             "axis": "how",
                             "property": {
-                              "ref": "fixedCapitalConsumptionBasis",
-                              "label": "fixed capital consumption basis"
+                              "ref": "causeOfDeath",
+                              "label": "causeOfDeath"
                             },
-                            "label": "fixed capital consumption basis"
+                            "label": "cause of death"
                           },
                           {
                             "axis": "where",
@@ -477,13 +371,13 @@
                             "label": "data source"
                           }
                         ],
-                        "member_count": 1,
-                        "member_digest": "e118bc2c1c5ac817a6d4a269c5276b7d2c74f3033dde9cad5925de58239c55b4",
-                        "refine_supported": true,
+                        "member_count": 133,
+                        "member_digest": "c090b56d31a596a8be16dafb518382db666c6b100a80534c3cb81dbfe3111c5d",
+                        "refine_supported": false,
                         "data_commons": [
                           {
-                            "id": "dfo",
-                            "label": "Development Finance Observatory"
+                            "id": "base",
+                            "label": "Data Commons by Google"
                           }
                         ]
                       },
@@ -492,20 +386,13 @@
                           "key": {
                             "axis": "how",
                             "property": {
-                              "ref": "fixedCapitalConsumptionBasis",
-                              "label": "fixed capital consumption basis"
+                              "ref": "causeOfDeath",
+                              "label": "causeOfDeath"
                             },
-                            "label": "fixed capital consumption basis"
+                            "label": "cause of death"
                           },
                           "binding": {
-                            "kind": "value",
-                            "value": {
-                              "ref": {
-                                "ref": "GrossOfFixedCapitalConsumption",
-                                "label": "gross of fixed capital consumption"
-                              },
-                              "value_kind": "enum_value"
-                            }
+                            "kind": "unbound"
                           },
                           "summable": false
                         },
@@ -518,8 +405,8 @@
                             "kind": "value",
                             "value": {
                               "ref": {
-                                "ref": "country/DEU",
-                                "label": "Germany"
+                                "ref": "country/KEN",
+                                "label": "Kenya"
                               },
                               "value_kind": "entity"
                             }
@@ -536,7 +423,7 @@
                             "value": {
                               "value_kind": "time_window",
                               "time_window": {
-                                "start_year": 2015,
+                                "start_year": 2013,
                                 "end_year": 2022
                               }
                             }
@@ -554,21 +441,23 @@
                           "summable": false
                         }
                       ],
-                      "inapplicable_slots": [],
+                      "inapplicable_slots": [
+                        "causeOfDeath"
+                      ],
                       "unresolved_slots": [],
                       "stat_vars": {
-                        "member_count": 1,
+                        "member_count": 2,
                         "member_count_exact": false,
                         "served_count": 1,
                         "data_date_range": {
-                          "start": "2015",
+                          "start": "2013",
                           "end": "2022"
                         }
                       },
                       "entities": [
                         {
-                          "ref": "country/DEU",
-                          "label": "Germany",
+                          "ref": "country/KEN",
+                          "label": "Kenya",
                           "entity_type": "Country",
                           "role": "observationAbout"
                         }
@@ -576,7 +465,7 @@
                       "coverage": {
                         "kind": "exact",
                         "has_data": true,
-                        "observation_count": 8,
+                        "observation_count": 10,
                         "evidence": "facet_metadata",
                         "dimensions": [
                           {
@@ -585,7 +474,7 @@
                           },
                           {
                             "label": "observations",
-                            "count": 8
+                            "count": 10
                           },
                           {
                             "label": "variables",
@@ -593,561 +482,16 @@
                           }
                         ],
                         "window": {
-                          "start_year": 2015,
+                          "start_year": 2013,
                           "end_year": 2022
                         }
                       },
                       "download": {
-                        "rows": 8,
+                        "rows": 10,
                         "rows_exact": true,
                         "series": 1,
                         "window": {
-                          "start_year": 2015,
-                          "end_year": 2022
-                        },
-                        "licence": {
-                          "label": "OECD Terms and Conditions"
-                        }
-                      },
-                      "facets": {
-                        "provenance": {
-                          "basis": "fallback",
-                          "ref": "provenance/OECDDAC1",
-                          "label": "OECD DAC1",
-                          "source": {
-                            "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
-                            "label": "Organisation for Economic Co-operation and Development (OECD)"
-                          },
-                          "data_commons": {
-                            "id": "dfo",
-                            "label": "Development Finance Observatory"
-                          },
-                          "documentation": "/api/graph/documentation/provenance/OECDDAC1",
-                          "account": "provider"
-                        },
-                        "unit": {
-                          "basis": "fallback",
-                          "ref": "CurrencyUSD",
-                          "label": "US Dollar",
-                          "currency": "USD"
-                        }
-                      },
-                      "slot_options": [
-                        {
-                          "key": {
-                            "axis": "how",
-                            "property": {
-                              "ref": "fixedCapitalConsumptionBasis",
-                              "label": "fixed capital consumption basis"
-                            },
-                            "label": "fixed capital consumption basis"
-                          },
-                          "options": [
-                            {
-                              "value": {
-                                "ref": {
-                                  "ref": "GrossOfFixedCapitalConsumption",
-                                  "label": "gross of fixed capital consumption"
-                                },
-                                "value_kind": "enum_value"
-                              }
-                            }
-                          ],
-                          "truncated": true,
-                          "source": "observed"
-                        }
-                      ],
-                      "entity_options": [],
-                      "facet_options": [
-                        {
-                          "axis": "provenance",
-                          "options": [
-                            {
-                              "value": {
-                                "ref": {
-                                  "ref": "provenance/OECDDAC1",
-                                  "label": "OECD DAC1"
-                                },
-                                "value_kind": "source"
-                              }
-                            }
-                          ],
-                          "truncated": false,
-                          "source": "observed"
-                        },
-                        {
-                          "axis": "unit",
-                          "options": [
-                            {
-                              "value": {
-                                "ref": {
-                                  "ref": "CurrencyUSD",
-                                  "label": "US Dollar"
-                                },
-                                "value_kind": "enum_value"
-                              }
-                            }
-                          ],
-                          "truncated": false,
-                          "source": "observed"
-                        }
-                      ],
-                      "rendered_sentence": "Germany's primary income for gross of fixed capital consumption, 2015 to 2022. Current US dollars · OECD DAC1.",
-                      "sentence_plan": [
-                        {
-                          "kind": "slot",
-                          "text": "Germany",
-                          "axis": "where",
-                          "segment": "heading",
-                          "binding_ref": "where:",
-                          "entity_refs": [],
-                          "states": [
-                            "where:"
-                          ]
-                        },
-                        {
-                          "kind": "text",
-                          "text": "'s",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "text",
-                          "text": " ",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "primary income",
-                          "axis": "what",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": [],
-                          "distinguishes": true
-                        },
-                        {
-                          "kind": "text",
-                          "text": " for ",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "gross of fixed capital consumption",
-                          "axis": "how",
-                          "segment": "heading",
-                          "property_dcid": "fixedCapitalConsumptionBasis",
-                          "binding_ref": "how:fixedCapitalConsumptionBasis",
-                          "entity_refs": [],
-                          "states": [
-                            "how:fixedCapitalConsumptionBasis"
-                          ],
-                          "distinguishes": true
-                        },
-                        {
-                          "kind": "text",
-                          "text": ", ",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "2015 to 2022",
-                          "axis": "when",
-                          "segment": "heading",
-                          "binding_ref": "when:",
-                          "entity_refs": [],
-                          "states": [
-                            "when:"
-                          ]
-                        },
-                        {
-                          "kind": "text",
-                          "text": ".",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "text",
-                          "text": " ",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "Current US dollars",
-                          "axis": "unit",
-                          "segment": "byline",
-                          "binding_ref": "unit:",
-                          "entity_refs": [],
-                          "states": [
-                            "unit:",
-                            "axis:measurementQualifier"
-                          ]
-                        },
-                        {
-                          "kind": "text",
-                          "text": " · ",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "OECD DAC1",
-                          "axis": "source",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": [
-                            "source:"
-                          ],
-                          "distinguishes": true
-                        },
-                        {
-                          "kind": "text",
-                          "text": ".",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": []
-                        }
-                      ],
-                      "trace": {
-                        "resolved_entities": [
-                          {
-                            "ref": "country/DEU",
-                            "label": "Germany"
-                          }
-                        ],
-                        "resolved_sources": [
-                          {
-                            "ref": "provenance/OECDDAC1",
-                            "label": "OECD DAC1",
-                            "source": {
-                              "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
-                              "label": "Organisation for Economic Co-operation and Development (OECD)"
-                            },
-                            "data_commons": {
-                              "id": "dfo",
-                              "label": "Development Finance Observatory"
-                            },
-                            "documentation": "/api/graph/documentation/provenance/OECDDAC1"
-                          }
-                        ],
-                        "slot_filters": [
-                          {
-                            "key": {
-                              "axis": "how",
-                              "property": {
-                                "ref": "fixedCapitalConsumptionBasis",
-                                "label": "fixed capital consumption basis"
-                              },
-                              "label": "fixed capital consumption basis"
-                            },
-                            "binding_kind": "value",
-                            "refs": [
-                              {
-                                "ref": "GrossOfFixedCapitalConsumption",
-                                "label": "gross of fixed capital consumption"
-                              }
-                            ],
-                            "provenance": "binder"
-                          },
-                          {
-                            "key": {
-                              "axis": "where",
-                              "label": "place"
-                            },
-                            "binding_kind": "value",
-                            "refs": [
-                              {
-                                "ref": "country/DEU",
-                                "label": "Germany"
-                              }
-                            ],
-                            "provenance": "binder"
-                          },
-                          {
-                            "key": {
-                              "axis": "when",
-                              "label": "time window"
-                            },
-                            "binding_kind": "value",
-                            "refs": [],
-                            "provenance": "binder"
-                          },
-                          {
-                            "key": {
-                              "axis": "source",
-                              "label": "data source"
-                            },
-                            "binding_kind": "unbound",
-                            "refs": [],
-                            "provenance": "binder"
-                          }
-                        ],
-                        "query_qualifiers": [],
-                        "requested_window": {
-                          "start_year": 2015,
-                          "end_year": 2022
-                        },
-                        "capability_version": "cap_347a470e04c97eec",
-                        "default_reading": {
-                          "applied": true,
-                          "removed_stat_vars": [
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSHealthCareSocialAssistance_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
-                            "InflationAdjustedGDP",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
-                            "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
-                            "dc/qt7ewllmt3826"
-                          ]
-                        }
-                      },
-                      "confidence": "high",
-                      "available_at_place": true,
-                      "measure_label_axes": [],
-                      "measure_axis_values": []
-                    }
-                  },
-                  {
-                    "spec_id": "spec_403a96317ee8b97f1d8569c71015e5ce",
-                    "definition": {
-                      "schema_version": 1,
-                      "spec_id": "spec_403a96317ee8b97f1d8569c71015e5ce",
-                      "identity": {
-                        "identity_version": "spec1",
-                        "shape": {
-                          "kind": "statvar_schema",
-                          "population_type": "EconomicActivity",
-                          "measured_property": "amount",
-                          "stat_type": "measuredValue",
-                          "measurement_qualifier": "PurchasingPowerParity"
-                        },
-                        "slots": [
-                          {
-                            "property": "activitySource",
-                            "binding": {
-                              "state": "value",
-                              "ref": "GrossNationalIncome"
-                            }
-                          }
-                        ],
-                        "entities": {
-                          "observationAbout": [
-                            "country/DEU"
-                          ]
-                        },
-                        "requested_window": {
-                          "kind": "range",
-                          "start_year": 2015,
-                          "end_year": 2022
-                        }
-                      }
-                    },
-                    "resolved": {
-                      "shape": {
-                        "shape_id": "economicactivity_amount_measuredvalue_purchasingpowerparity",
-                        "label": "Gross National Income Based on Purchasing Power Parity",
-                        "population_type": {
-                          "ref": "EconomicActivity",
-                          "label": "EconomicActivity"
-                        },
-                        "measured_property": {
-                          "ref": "amount",
-                          "label": "amount"
-                        },
-                        "stat_type": {
-                          "ref": "measuredValue",
-                          "label": "measuredValue"
-                        },
-                        "measurement_qualifier": {
-                          "ref": "PurchasingPowerParity",
-                          "label": "PurchasingPowerParity"
-                        },
-                        "measurement_denominator_unresolved": false,
-                        "slot_keys": [
-                          {
-                            "axis": "how",
-                            "property": {
-                              "ref": "activitySource",
-                              "label": "activitySource"
-                            },
-                            "label": "activity source"
-                          },
-                          {
-                            "axis": "where",
-                            "label": "place"
-                          },
-                          {
-                            "axis": "when",
-                            "label": "time window"
-                          },
-                          {
-                            "axis": "source",
-                            "label": "data source"
-                          }
-                        ],
-                        "member_count": 1,
-                        "member_digest": "833b9da89613fa6c1775652daac2388f38204c6c9f9929ca113deed9a0d08369",
-                        "refine_supported": true,
-                        "data_commons": [
-                          {
-                            "id": "base",
-                            "label": "Data Commons by Google"
-                          }
-                        ],
-                        "upstream": {
-                          "source": {
-                            "ref": "dc/s/WorldBank",
-                            "label": "World Bank"
-                          },
-                          "data_commons": {
-                            "id": "base",
-                            "label": "Data Commons by Google"
-                          }
-                        }
-                      },
-                      "slots": [
-                        {
-                          "key": {
-                            "axis": "how",
-                            "property": {
-                              "ref": "activitySource",
-                              "label": "activitySource"
-                            },
-                            "label": "activity source"
-                          },
-                          "binding": {
-                            "kind": "value",
-                            "value": {
-                              "ref": {
-                                "ref": "GrossNationalIncome",
-                                "label": "GrossNationalIncome"
-                              },
-                              "value_kind": "enum_value"
-                            }
-                          },
-                          "summable": false
-                        },
-                        {
-                          "key": {
-                            "axis": "where",
-                            "label": "place"
-                          },
-                          "binding": {
-                            "kind": "value",
-                            "value": {
-                              "ref": {
-                                "ref": "country/DEU",
-                                "label": "Germany"
-                              },
-                              "value_kind": "entity"
-                            }
-                          },
-                          "summable": false
-                        },
-                        {
-                          "key": {
-                            "axis": "when",
-                            "label": "time window"
-                          },
-                          "binding": {
-                            "kind": "value",
-                            "value": {
-                              "value_kind": "time_window",
-                              "time_window": {
-                                "start_year": 2015,
-                                "end_year": 2022
-                              }
-                            }
-                          },
-                          "summable": false
-                        },
-                        {
-                          "key": {
-                            "axis": "source",
-                            "label": "data source"
-                          },
-                          "binding": {
-                            "kind": "unbound"
-                          },
-                          "summable": false
-                        }
-                      ],
-                      "inapplicable_slots": [],
-                      "unresolved_slots": [],
-                      "stat_vars": {
-                        "member_count": 1,
-                        "member_count_exact": false,
-                        "served_count": 1,
-                        "data_date_range": {
-                          "start": "2015",
-                          "end": "2022"
-                        }
-                      },
-                      "entities": [
-                        {
-                          "ref": "country/DEU",
-                          "label": "Germany",
-                          "entity_type": "Country",
-                          "role": "observationAbout"
-                        }
-                      ],
-                      "coverage": {
-                        "kind": "exact",
-                        "has_data": true,
-                        "observation_count": 8,
-                        "evidence": "facet_metadata",
-                        "dimensions": [
-                          {
-                            "label": "sources",
-                            "count": 1
-                          },
-                          {
-                            "label": "observations",
-                            "count": 8
-                          },
-                          {
-                            "label": "variables",
-                            "count": 1
-                          }
-                        ],
-                        "window": {
-                          "start_year": 2015,
-                          "end_year": 2022
-                        }
-                      },
-                      "download": {
-                        "rows": 8,
-                        "rows_exact": true,
-                        "series": 1,
-                        "window": {
-                          "start_year": 2015,
+                          "start_year": 2013,
                           "end_year": 2022
                         },
                         "licence": {
@@ -1169,10 +513,15 @@
                           },
                           "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
                         },
+                        "measurementMethod": {
+                          "basis": "fallback",
+                          "ref": "WorldBankWeightedAverage",
+                          "label": "World Bank Weighted Average"
+                        },
                         "unit": {
                           "basis": "fallback",
-                          "ref": "InternationalDollar",
-                          "label": "InternationalDollar"
+                          "ref": "Per1000Persons",
+                          "label": "Per 1000 people"
                         }
                       },
                       "slot_options": [
@@ -1180,17 +529,17 @@
                           "key": {
                             "axis": "how",
                             "property": {
-                              "ref": "activitySource",
-                              "label": "activitySource"
+                              "ref": "causeOfDeath",
+                              "label": "causeOfDeath"
                             },
-                            "label": "activity source"
+                            "label": "cause of death"
                           },
                           "options": [
                             {
                               "value": {
                                 "ref": {
-                                  "ref": "GrossNationalIncome",
-                                  "label": "GrossNationalIncome"
+                                  "ref": "ICD10/X60-X84",
+                                  "label": "X60-X84 (Intentional self-harm)"
                                 },
                                 "value_kind": "enum_value"
                               }
@@ -1213,554 +562,12 @@
                                 },
                                 "value_kind": "source"
                               }
-                            }
-                          ],
-                          "truncated": false,
-                          "source": "observed"
-                        },
-                        {
-                          "axis": "unit",
-                          "options": [
+                            },
                             {
                               "value": {
                                 "ref": {
-                                  "ref": "InternationalDollar",
-                                  "label": "InternationalDollar"
-                                },
-                                "value_kind": "enum_value"
-                              }
-                            }
-                          ],
-                          "truncated": false,
-                          "source": "observed"
-                        }
-                      ],
-                      "rendered_sentence": "Germany's gross national income based on purchasing power parity in international dollars, 2015 to 2022. World Development Indicators.",
-                      "sentence_plan": [
-                        {
-                          "kind": "slot",
-                          "text": "Germany",
-                          "axis": "where",
-                          "segment": "heading",
-                          "binding_ref": "where:",
-                          "entity_refs": [],
-                          "states": [
-                            "where:"
-                          ]
-                        },
-                        {
-                          "kind": "text",
-                          "text": "'s",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "text",
-                          "text": " ",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "primary income",
-                          "axis": "what",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": [],
-                          "distinguishes": true
-                        },
-                        {
-                          "kind": "text",
-                          "text": " for ",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "gross of fixed capital consumption",
-                          "axis": "how",
-                          "segment": "heading",
-                          "property_dcid": "fixedCapitalConsumptionBasis",
-                          "binding_ref": "how:fixedCapitalConsumptionBasis",
-                          "entity_refs": [],
-                          "states": [
-                            "how:fixedCapitalConsumptionBasis"
-                          ],
-                          "distinguishes": true
-                        },
-                        {
-                          "kind": "text",
-                          "text": ", ",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "2015 to 2022",
-                          "axis": "when",
-                          "segment": "heading",
-                          "binding_ref": "when:",
-                          "entity_refs": [],
-                          "states": [
-                            "when:"
-                          ]
-                        },
-                        {
-                          "kind": "text",
-                          "text": ".",
-                          "segment": "heading",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "text",
-                          "text": " ",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "Current US dollars",
-                          "axis": "unit",
-                          "segment": "byline",
-                          "binding_ref": "unit:",
-                          "entity_refs": [],
-                          "states": [
-                            "unit:",
-                            "axis:measurementQualifier"
-                          ]
-                        },
-                        {
-                          "kind": "text",
-                          "text": " · ",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": []
-                        },
-                        {
-                          "kind": "slot",
-                          "text": "OECD DAC1",
-                          "axis": "source",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": [
-                            "source:"
-                          ],
-                          "distinguishes": true
-                        },
-                        {
-                          "kind": "text",
-                          "text": ".",
-                          "segment": "byline",
-                          "entity_refs": [],
-                          "states": []
-                        }
-                      ],
-                      "trace": {
-                        "resolved_entities": [
-                          {
-                            "ref": "country/DEU",
-                            "label": "Germany"
-                          }
-                        ],
-                        "resolved_sources": [
-                          {
-                            "ref": "dc/base/WorldDevelopmentIndicators",
-                            "label": "World Development Indicators",
-                            "source": {
-                              "ref": "dc/s/WorldBank",
-                              "label": "World Bank"
-                            },
-                            "data_commons": {
-                              "id": "base",
-                              "label": "Data Commons by Google"
-                            },
-                            "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
-                          }
-                        ],
-                        "slot_filters": [
-                          {
-                            "key": {
-                              "axis": "how",
-                              "property": {
-                                "ref": "activitySource",
-                                "label": "activitySource"
-                              },
-                              "label": "activity source"
-                            },
-                            "binding_kind": "value",
-                            "refs": [
-                              {
-                                "ref": "GrossNationalIncome",
-                                "label": "GrossNationalIncome"
-                              }
-                            ],
-                            "provenance": "binder"
-                          },
-                          {
-                            "key": {
-                              "axis": "where",
-                              "label": "place"
-                            },
-                            "binding_kind": "value",
-                            "refs": [
-                              {
-                                "ref": "country/DEU",
-                                "label": "Germany"
-                              }
-                            ],
-                            "provenance": "binder"
-                          },
-                          {
-                            "key": {
-                              "axis": "when",
-                              "label": "time window"
-                            },
-                            "binding_kind": "value",
-                            "refs": [],
-                            "provenance": "binder"
-                          },
-                          {
-                            "key": {
-                              "axis": "source",
-                              "label": "data source"
-                            },
-                            "binding_kind": "unbound",
-                            "refs": [],
-                            "provenance": "binder"
-                          }
-                        ],
-                        "query_qualifiers": [],
-                        "requested_window": {
-                          "start_year": 2015,
-                          "end_year": 2022
-                        },
-                        "capability_version": "cap_347a470e04c97eec",
-                        "default_reading": {
-                          "applied": true,
-                          "removed_stat_vars": [
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSHealthCareSocialAssistance_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
-                            "InflationAdjustedGDP",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
-                            "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
-                            "dc/qt7ewllmt3826"
-                          ]
-                        }
-                      },
-                      "confidence": "high",
-                      "basis": "nominated",
-                      "available_at_place": true,
-                      "measure_label_axes": [],
-                      "measure_axis_values": []
-                    }
-                  },
-                  {
-                    "spec_id": "spec_d94656e5d53b7b6c6b0c683145a1cd98",
-                    "definition": {
-                      "schema_version": 1,
-                      "spec_id": "spec_d94656e5d53b7b6c6b0c683145a1cd98",
-                      "identity": {
-                        "identity_version": "spec1",
-                        "shape": {
-                          "kind": "statvar_schema",
-                          "population_type": "EconomicActivity",
-                          "measured_property": "amount",
-                          "stat_type": "measuredValue",
-                          "measurement_qualifier": "PurchasingPowerParity",
-                          "measurement_denominator": {
-                            "unresolved": true
-                          }
-                        },
-                        "slots": [
-                          {
-                            "property": "activitySource",
-                            "binding": {
-                              "state": "value",
-                              "ref": "GrossNationalIncome"
-                            }
-                          }
-                        ],
-                        "entities": {
-                          "observationAbout": [
-                            "country/DEU"
-                          ]
-                        },
-                        "requested_window": {
-                          "kind": "range",
-                          "start_year": 2015,
-                          "end_year": 2022
-                        }
-                      }
-                    },
-                    "resolved": {
-                      "shape": {
-                        "shape_id": "economicactivity_amount_measuredvalue_purchasingpowerparity_per_unresolved",
-                        "label": "Gross National Income Based on Purchasing Power Parity Per Capita",
-                        "population_type": {
-                          "ref": "EconomicActivity",
-                          "label": "EconomicActivity"
-                        },
-                        "measured_property": {
-                          "ref": "amount",
-                          "label": "amount"
-                        },
-                        "stat_type": {
-                          "ref": "measuredValue",
-                          "label": "measuredValue"
-                        },
-                        "measurement_qualifier": {
-                          "ref": "PurchasingPowerParity",
-                          "label": "PurchasingPowerParity"
-                        },
-                        "measurement_denominator": {
-                          "ref": "PerCapita",
-                          "label": "PerCapita"
-                        },
-                        "measurement_denominator_unresolved": true,
-                        "slot_keys": [
-                          {
-                            "axis": "how",
-                            "property": {
-                              "ref": "activitySource",
-                              "label": "activitySource"
-                            },
-                            "label": "activity source"
-                          },
-                          {
-                            "axis": "where",
-                            "label": "place"
-                          },
-                          {
-                            "axis": "when",
-                            "label": "time window"
-                          },
-                          {
-                            "axis": "source",
-                            "label": "data source"
-                          }
-                        ],
-                        "member_count": 1,
-                        "member_digest": "7b2d5b0fc09cfc0215c8d7c6c21a5195fa21e79f2a148a6bca9ce6c3af8bbb9f",
-                        "refine_supported": true,
-                        "data_commons": [
-                          {
-                            "id": "base",
-                            "label": "Data Commons by Google"
-                          }
-                        ],
-                        "upstream": {
-                          "source": {
-                            "ref": "dc/s/WorldBank",
-                            "label": "World Bank"
-                          },
-                          "data_commons": {
-                            "id": "base",
-                            "label": "Data Commons by Google"
-                          }
-                        }
-                      },
-                      "slots": [
-                        {
-                          "key": {
-                            "axis": "how",
-                            "property": {
-                              "ref": "activitySource",
-                              "label": "activitySource"
-                            },
-                            "label": "activity source"
-                          },
-                          "binding": {
-                            "kind": "value",
-                            "value": {
-                              "ref": {
-                                "ref": "GrossNationalIncome",
-                                "label": "GrossNationalIncome"
-                              },
-                              "value_kind": "enum_value"
-                            }
-                          },
-                          "summable": false
-                        },
-                        {
-                          "key": {
-                            "axis": "where",
-                            "label": "place"
-                          },
-                          "binding": {
-                            "kind": "value",
-                            "value": {
-                              "ref": {
-                                "ref": "country/DEU",
-                                "label": "Germany"
-                              },
-                              "value_kind": "entity"
-                            }
-                          },
-                          "summable": false
-                        },
-                        {
-                          "key": {
-                            "axis": "when",
-                            "label": "time window"
-                          },
-                          "binding": {
-                            "kind": "value",
-                            "value": {
-                              "value_kind": "time_window",
-                              "time_window": {
-                                "start_year": 2015,
-                                "end_year": 2022
-                              }
-                            }
-                          },
-                          "summable": false
-                        },
-                        {
-                          "key": {
-                            "axis": "source",
-                            "label": "data source"
-                          },
-                          "binding": {
-                            "kind": "unbound"
-                          },
-                          "summable": false
-                        }
-                      ],
-                      "inapplicable_slots": [],
-                      "unresolved_slots": [],
-                      "stat_vars": {
-                        "member_count": 1,
-                        "member_count_exact": false,
-                        "served_count": 1,
-                        "data_date_range": {
-                          "start": "2015",
-                          "end": "2022"
-                        }
-                      },
-                      "entities": [
-                        {
-                          "ref": "country/DEU",
-                          "label": "Germany",
-                          "entity_type": "Country",
-                          "role": "observationAbout"
-                        }
-                      ],
-                      "coverage": {
-                        "kind": "exact",
-                        "has_data": true,
-                        "observation_count": 8,
-                        "evidence": "facet_metadata",
-                        "dimensions": [
-                          {
-                            "label": "sources",
-                            "count": 1
-                          },
-                          {
-                            "label": "observations",
-                            "count": 8
-                          },
-                          {
-                            "label": "variables",
-                            "count": 1
-                          }
-                        ],
-                        "window": {
-                          "start_year": 2015,
-                          "end_year": 2022
-                        }
-                      },
-                      "download": {
-                        "rows": 8,
-                        "rows_exact": true,
-                        "series": 1,
-                        "window": {
-                          "start_year": 2015,
-                          "end_year": 2022
-                        },
-                        "licence": {
-                          "label": "Creative Commons Attribution License"
-                        }
-                      },
-                      "facets": {
-                        "provenance": {
-                          "basis": "fallback",
-                          "ref": "dc/base/WorldDevelopmentIndicators",
-                          "label": "World Development Indicators",
-                          "source": {
-                            "ref": "dc/s/WorldBank",
-                            "label": "World Bank"
-                          },
-                          "data_commons": {
-                            "id": "base",
-                            "label": "Data Commons by Google"
-                          },
-                          "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
-                        },
-                        "unit": {
-                          "basis": "fallback",
-                          "ref": "InternationalDollar",
-                          "label": "InternationalDollar"
-                        }
-                      },
-                      "slot_options": [
-                        {
-                          "key": {
-                            "axis": "how",
-                            "property": {
-                              "ref": "activitySource",
-                              "label": "activitySource"
-                            },
-                            "label": "activity source"
-                          },
-                          "options": [
-                            {
-                              "value": {
-                                "ref": {
-                                  "ref": "GrossNationalIncome",
-                                  "label": "GrossNationalIncome"
-                                },
-                                "value_kind": "enum_value"
-                              }
-                            }
-                          ],
-                          "truncated": true,
-                          "source": "observed"
-                        }
-                      ],
-                      "entity_options": [],
-                      "facet_options": [
-                        {
-                          "axis": "provenance",
-                          "options": [
-                            {
-                              "value": {
-                                "ref": {
-                                  "ref": "dc/base/WorldDevelopmentIndicators",
-                                  "label": "World Development Indicators"
+                                  "ref": "dc/base/Kenya_Census",
+                                  "label": "Kenya Census"
                                 },
                                 "value_kind": "source"
                               }
@@ -1770,14 +577,40 @@
                           "source": "observed"
                         },
                         {
+                          "axis": "measurementMethod",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "WorldBankWeightedAverage",
+                                  "label": "World Bank Weighted Average"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        },
+                        {
                           "axis": "unit",
                           "options": [
                             {
                               "value": {
                                 "ref": {
-                                  "ref": "InternationalDollar",
-                                  "label": "InternationalDollar"
+                                  "ref": "Per1000Persons",
+                                  "label": "Per 1000 people"
                                 },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
                                 "value_kind": "enum_value"
                               }
                             }
@@ -1786,11 +619,11 @@
                           "source": "observed"
                         }
                       ],
-                      "rendered_sentence": "Germany's gross national income based on purchasing power parity per capita in international dollars, 2015 to 2022. World Development Indicators.",
+                      "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
                       "sentence_plan": [
                         {
                           "kind": "slot",
-                          "text": "Germany",
+                          "text": "Kenya",
                           "axis": "where",
                           "segment": "heading",
                           "binding_ref": "where:",
@@ -1815,13 +648,11 @@
                         },
                         {
                           "kind": "slot",
-                          "text": "gross national income based on purchasing power parity per capita",
+                          "text": "deaths rate",
                           "axis": "what",
                           "segment": "heading",
                           "entity_refs": [],
-                          "states": [
-                            "how:activitySource"
-                          ],
+                          "states": [],
                           "distinguishes": true
                         },
                         {
@@ -1833,22 +664,19 @@
                         },
                         {
                           "kind": "slot",
-                          "text": "in international dollars",
+                          "text": "per capita",
                           "axis": "unit",
                           "segment": "heading",
-                          "binding_ref": "unit:",
                           "entity_refs": [],
-                          "states": [
-                            "unit:"
-                          ]
+                          "states": []
                         },
                         {
                           "kind": "slot",
                           "text": "",
                           "axis": "how",
                           "segment": "heading",
-                          "property_dcid": "activitySource",
-                          "binding_ref": "how:activitySource",
+                          "property_dcid": "causeOfDeath",
+                          "binding_ref": "how:causeOfDeath",
                           "entity_refs": [],
                           "states": []
                         },
@@ -1861,14 +689,15 @@
                         },
                         {
                           "kind": "slot",
-                          "text": "2015 to 2022",
+                          "text": "2013 to 2022",
                           "axis": "when",
                           "segment": "heading",
                           "binding_ref": "when:",
                           "entity_refs": [],
                           "states": [
                             "when:"
-                          ]
+                          ],
+                          "distinguishes": true
                         },
                         {
                           "kind": "text",
@@ -1906,8 +735,8 @@
                       "trace": {
                         "resolved_entities": [
                           {
-                            "ref": "country/DEU",
-                            "label": "Germany"
+                            "ref": "country/KEN",
+                            "label": "Kenya"
                           }
                         ],
                         "resolved_sources": [
@@ -1930,18 +759,13 @@
                             "key": {
                               "axis": "how",
                               "property": {
-                                "ref": "activitySource",
-                                "label": "activitySource"
+                                "ref": "causeOfDeath",
+                                "label": "causeOfDeath"
                               },
-                              "label": "activity source"
+                              "label": "cause of death"
                             },
-                            "binding_kind": "value",
-                            "refs": [
-                              {
-                                "ref": "GrossNationalIncome",
-                                "label": "GrossNationalIncome"
-                              }
-                            ],
+                            "binding_kind": "unbound",
+                            "refs": [],
                             "provenance": "binder"
                           },
                           {
@@ -1952,8 +776,8 @@
                             "binding_kind": "value",
                             "refs": [
                               {
-                                "ref": "country/DEU",
-                                "label": "Germany"
+                                "ref": "country/KEN",
+                                "label": "Kenya"
                               }
                             ],
                             "provenance": "binder"
@@ -1979,42 +803,1496 @@
                         ],
                         "query_qualifiers": [],
                         "requested_window": {
-                          "start_year": 2015,
+                          "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_347a470e04c97eec",
+                        "capability_version": "cap_94e25737d859392c",
                         "default_reading": {
                           "applied": true,
-                          "removed_stat_vars": [
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSHealthCareSocialAssistance_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
-                            "Amount_EconomicActivity_GrossDomesticProduction_RealValue",
-                            "InflationAdjustedGDP",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_AgricultureForestryFishingSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ConstructionSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ElectricityGasSteamAirConditionSupply",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_FinanceService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MOSPIOtherService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_ManufacturingSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_MiningQuarrying",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_PublicAdministrationAndDefenceOrMOSPIOtherService",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSector",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
-                            "RealValue_Amount_EconomicActivity_GrossValueAdded_TransportStorageSectorOrPublishingBroadcastingInformationActivities",
-                            "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
-                            "dc/qt7ewllmt3826"
-                          ]
+                          "removed_stat_vars": []
                         }
                       },
                       "confidence": "high",
-                      "basis": "nominated",
+                      "available_at_place": true,
+                      "measure_label_axes": [],
+                      "measure_axis_values": []
+                    }
+                  },
+                  {
+                    "spec_id": "spec_7923e67e0706d6d9738c78cb374ee8fb",
+                    "definition": {
+                      "schema_version": 1,
+                      "spec_id": "spec_7923e67e0706d6d9738c78cb374ee8fb",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "MortalityEvent",
+                          "measured_property": "count",
+                          "stat_type": "measuredValue"
+                        },
+                        "slots": [
+                          {
+                            "property": "age",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "ageGroupClassification",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "causeOfDeath",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "ethnicity",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "gender",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "incidentType",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "race",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "residentStatus",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "observationAbout": [
+                            "country/KEN"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "range",
+                          "start_year": 2013,
+                          "end_year": 2022
+                        }
+                      }
+                    },
+                    "resolved": {
+                      "shape": {
+                        "shape_id": "mortalityevent_count_measuredvalue",
+                        "label": "Number of Deaths",
+                        "population_type": {
+                          "ref": "MortalityEvent",
+                          "label": "MortalityEvent"
+                        },
+                        "measured_property": {
+                          "ref": "count",
+                          "label": "count"
+                        },
+                        "stat_type": {
+                          "ref": "measuredValue",
+                          "label": "measuredValue"
+                        },
+                        "measurement_denominator_unresolved": false,
+                        "slot_keys": [
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "causeOfDeath",
+                              "label": "causeOfDeath"
+                            },
+                            "label": "cause of death"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "gender",
+                              "label": "gender"
+                            },
+                            "label": "gender"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "age",
+                              "label": "age"
+                            },
+                            "label": "age"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "race",
+                              "label": "race"
+                            },
+                            "label": "race"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "incidentType",
+                              "label": "incidentType"
+                            },
+                            "label": "incident type"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "ethnicity",
+                              "label": "ethnicity"
+                            },
+                            "label": "ethnicity"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "residentStatus",
+                              "label": "residentStatus"
+                            },
+                            "label": "resident status"
+                          },
+                          {
+                            "axis": "how",
+                            "property": {
+                              "ref": "ageGroupClassification",
+                              "label": "ageGroupClassification"
+                            },
+                            "label": "age group classification"
+                          },
+                          {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          {
+                            "axis": "source",
+                            "label": "data source"
+                          }
+                        ],
+                        "member_count": 2978,
+                        "refine_supported": true,
+                        "data_commons": [
+                          {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          }
+                        ]
+                      },
+                      "slots": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "causeOfDeath",
+                              "label": "causeOfDeath"
+                            },
+                            "label": "cause of death"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "gender",
+                              "label": "gender"
+                            },
+                            "label": "gender"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "age",
+                              "label": "age"
+                            },
+                            "label": "age"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "race",
+                              "label": "race"
+                            },
+                            "label": "race"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "incidentType",
+                              "label": "incidentType"
+                            },
+                            "label": "incident type"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "ethnicity",
+                              "label": "ethnicity"
+                            },
+                            "label": "ethnicity"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "residentStatus",
+                              "label": "residentStatus"
+                            },
+                            "label": "resident status"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "ageGroupClassification",
+                              "label": "ageGroupClassification"
+                            },
+                            "label": "age group classification"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "where",
+                            "label": "place"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "ref": {
+                                "ref": "country/KEN",
+                                "label": "Kenya"
+                              },
+                              "value_kind": "entity"
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "when",
+                            "label": "time window"
+                          },
+                          "binding": {
+                            "kind": "value",
+                            "value": {
+                              "value_kind": "time_window",
+                              "time_window": {
+                                "start_year": 2018,
+                                "end_year": 2022
+                              }
+                            }
+                          },
+                          "summable": false
+                        },
+                        {
+                          "key": {
+                            "axis": "source",
+                            "label": "data source"
+                          },
+                          "binding": {
+                            "kind": "unbound"
+                          },
+                          "summable": false
+                        }
+                      ],
+                      "inapplicable_slots": [
+                        "causeOfDeath",
+                        "gender",
+                        "age",
+                        "race",
+                        "incidentType",
+                        "ethnicity",
+                        "residentStatus",
+                        "ageGroupClassification"
+                      ],
+                      "unresolved_slots": [],
+                      "stat_vars": {
+                        "member_count": 37,
+                        "member_count_exact": false,
+                        "served_count": 1,
+                        "data_date_range": {
+                          "start": "2018",
+                          "end": "2022"
+                        }
+                      },
+                      "entities": [
+                        {
+                          "ref": "country/KEN",
+                          "label": "Kenya",
+                          "entity_type": "Country",
+                          "role": "observationAbout"
+                        }
+                      ],
+                      "coverage": {
+                        "kind": "exact",
+                        "has_data": true,
+                        "observation_count": 5,
+                        "evidence": "facet_metadata",
+                        "dimensions": [
+                          {
+                            "label": "sources",
+                            "count": 1
+                          },
+                          {
+                            "label": "observations",
+                            "count": 5
+                          },
+                          {
+                            "label": "variables",
+                            "count": 1
+                          }
+                        ],
+                        "window": {
+                          "start_year": 2018,
+                          "end_year": 2022
+                        }
+                      },
+                      "download": {
+                        "rows": 5,
+                        "rows_exact": true,
+                        "series": 1,
+                        "window": {
+                          "start_year": 2018,
+                          "end_year": 2022
+                        },
+                        "licence": {
+                          "label": "Creative Commons Attribution License"
+                        }
+                      },
+                      "facets": {
+                        "provenance": {
+                          "basis": "fallback",
+                          "ref": "dc/base/Kenya_Census",
+                          "label": "Kenya Census",
+                          "source": {
+                            "ref": "dc/s/OpenDataForAfrica",
+                            "label": "Open Data for Africa"
+                          },
+                          "data_commons": {
+                            "id": "base",
+                            "label": "Data Commons by Google"
+                          },
+                          "documentation": "/api/graph/documentation/dc/base/Kenya_Census"
+                        }
+                      },
+                      "slot_options": [
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "causeOfDeath",
+                              "label": "causeOfDeath"
+                            },
+                            "label": "cause of death"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/A00-B99",
+                                  "label": "A00-B99 (Certain infectious and parasitic diseases)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/D50-D89",
+                                  "label": "D50-D89 (Diseases of the blood and blood-forming organs and certain disorders involving the immune mechanism)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/I00-I99",
+                                  "label": "I00-I99 (Diseases of the circulatory system)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/K00-K92",
+                                  "label": "K00-K92 (Diseases of the digestive system)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/N00-N98",
+                                  "label": "N00-N98 (Diseases of the genitourinary system)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/M00-M99",
+                                  "label": "M00-M99 (Diseases of the musculoskeletal system and connective tissue)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/G00-G98",
+                                  "label": "G00-G98 (Diseases of the nervous system)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/J00-J98",
+                                  "label": "J00-J98 (Diseases of the respiratory system)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/L00-L98",
+                                  "label": "L00-L98 (Diseases of the skin and subcutaneous tissue)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/E00-E88",
+                                  "label": "E00-E88 (Endocrine, nutritional and metabolic diseases)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/F01-F99",
+                                  "label": "F01-F99 (Mental and behavioural disorders)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/O00-O99",
+                                  "label": "O00-O99 (Pregnancy, childbirth and the puerperium)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/U00-U99",
+                                  "label": "U00-U99 (Codes for special purposes)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Diabetes",
+                                  "label": "Diabetes"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Suicide",
+                                  "label": "Suicide"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/V01-Y89",
+                                  "label": "V01-Y89 (External causes of morbidity and mortality)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/C00-D48",
+                                  "label": "C00-D48 (Neoplasms)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/P00-P96",
+                                  "label": "P00-P96 (Certain conditions originating in the perinatal period)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "ICD10/Q00-Q99",
+                                  "label": "Q00-Q99 (Congenital malformations, deformations and chromosomal abnormalities)"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "CerebrovascularDiseases",
+                                  "label": "CerebrovascularDiseases"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "CongenitalAnomalies",
+                                  "label": "CongenitalAnomalies"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "CongenitalHeartAnomalies",
+                                  "label": "CongenitalHeartAnomalies"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "GenitourinaryDiseases",
+                                  "label": "GenitourinaryDiseases"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "HypertensiveHeartDisease",
+                                  "label": "HypertensiveHeartDisease"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "MalignantNeoplasms",
+                                  "label": "MalignantNeoplasms"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Neoplasms",
+                                  "label": "Neoplasms"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "PerinatalInfection",
+                                  "label": "Perinatal Infection"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Pneumonia",
+                                  "label": "Pneumonia"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "SGP_OtherDiseasesAndCauses",
+                                  "label": "SGP_OtherDiseasesAndCauses"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "TransportAccidents",
+                                  "label": "TransportAccidents"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Tuberculosis",
+                                  "label": "Tuberculosis"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "gender",
+                              "label": "gender"
+                            },
+                            "label": "gender"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Female",
+                                  "label": "Female"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Male",
+                                  "label": "Male"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "age",
+                              "label": "age"
+                            },
+                            "label": "age"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years0To1",
+                                  "label": "Years 0 To 1"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Day0To27",
+                                  "label": "Day 0 To 27"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years10To14",
+                                  "label": "Years 10 To 14"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years15To19",
+                                  "label": "Years 15 To 19"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years15To24",
+                                  "label": "Years 15 To 24"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years1To4",
+                                  "label": "Years 1 To 4"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years20To24",
+                                  "label": "Years 20 To 24"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years25To29",
+                                  "label": "Years 25 To 29"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years25To34",
+                                  "label": "Years 25 To 34"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years30To34",
+                                  "label": "Years 30 To 34"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years35To39",
+                                  "label": "Years 35 To 39"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years35To44",
+                                  "label": "Years 35 To 44"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years40To44",
+                                  "label": "Years 40 To 44"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years45To49",
+                                  "label": "Years 45 To 49"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years45To54",
+                                  "label": "Years 45 To 54"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years50To54",
+                                  "label": "Years 50 To 54"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years55To59",
+                                  "label": "Years 55 To 59"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years55To64",
+                                  "label": "Years 55 To 64"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years5To9",
+                                  "label": "Years 5 To 9"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years60To64",
+                                  "label": "Years 60 To 64"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years65To69",
+                                  "label": "Years 65 To 69"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years65To74",
+                                  "label": "Years 65 To 74"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years70To74",
+                                  "label": "Years 70 To 74"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years75To79",
+                                  "label": "Years 75 To 79"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years75To84",
+                                  "label": "Years 75 To 84"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years80To84",
+                                  "label": "Years 80 To 84"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "USC_AgeNotStated",
+                                  "label": "USC_AgeNotStated"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Years0To4",
+                                  "label": "Years 0 To 4"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "race",
+                              "label": "race"
+                            },
+                            "label": "race"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "CDC_AmericanIndianAndAlaskaNativeAlone",
+                                  "label": "American Indian and Alaska native alone"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "incidentType",
+                              "label": "incidentType"
+                            },
+                            "label": "incident type"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "COVID_19",
+                                  "label": "COVID-19"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "ethnicity",
+                              "label": "ethnicity"
+                            },
+                            "label": "ethnicity"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Chinese",
+                                  "label": "Chinese"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Indian",
+                                  "label": "Indian"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Malay",
+                                  "label": "Malay"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "SGP_OtherEthnicity",
+                                  "label": "SGP_OtherEthnicity"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "residentStatus",
+                              "label": "residentStatus"
+                            },
+                            "label": "resident status"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Citizen",
+                                  "label": "Citizen"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Resident",
+                                  "label": "Resident"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        },
+                        {
+                          "key": {
+                            "axis": "how",
+                            "property": {
+                              "ref": "ageGroupClassification",
+                              "label": "ageGroupClassification"
+                            },
+                            "label": "age group classification"
+                          },
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Infant",
+                                  "label": "Infant"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "Newborn",
+                                  "label": "Newborn"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            }
+                          ],
+                          "truncated": true,
+                          "source": "observed"
+                        }
+                      ],
+                      "entity_options": [],
+                      "facet_options": [
+                        {
+                          "axis": "provenance",
+                          "options": [
+                            {
+                              "value": {
+                                "ref": {
+                                  "ref": "dc/base/Kenya_Census",
+                                  "label": "Kenya Census"
+                                },
+                                "value_kind": "source"
+                              }
+                            }
+                          ],
+                          "truncated": false,
+                          "source": "observed"
+                        }
+                      ],
+                      "rendered_sentence": "Kenya's number of deaths, 2018 to 2022. Kenya Census.",
+                      "sentence_plan": [
+                        {
+                          "kind": "slot",
+                          "text": "Kenya",
+                          "axis": "where",
+                          "segment": "heading",
+                          "binding_ref": "where:",
+                          "entity_refs": [],
+                          "states": [
+                            "where:"
+                          ]
+                        },
+                        {
+                          "kind": "text",
+                          "text": "'s",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "deaths rate",
+                          "axis": "what",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": [],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "per capita",
+                          "axis": "unit",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "",
+                          "axis": "how",
+                          "segment": "heading",
+                          "property_dcid": "causeOfDeath",
+                          "binding_ref": "how:causeOfDeath",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": ", ",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "2013 to 2022",
+                          "axis": "when",
+                          "segment": "heading",
+                          "binding_ref": "when:",
+                          "entity_refs": [],
+                          "states": [
+                            "when:"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "heading",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "text",
+                          "text": " ",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        },
+                        {
+                          "kind": "slot",
+                          "text": "World Development Indicators",
+                          "axis": "source",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": [
+                            "source:"
+                          ],
+                          "distinguishes": true
+                        },
+                        {
+                          "kind": "text",
+                          "text": ".",
+                          "segment": "byline",
+                          "entity_refs": [],
+                          "states": []
+                        }
+                      ],
+                      "trace": {
+                        "resolved_entities": [
+                          {
+                            "ref": "country/KEN",
+                            "label": "Kenya"
+                          }
+                        ],
+                        "resolved_sources": [
+                          {
+                            "ref": "dc/base/Kenya_Census",
+                            "label": "Kenya Census",
+                            "source": {
+                              "ref": "dc/s/OpenDataForAfrica",
+                              "label": "Open Data for Africa"
+                            },
+                            "data_commons": {
+                              "id": "base",
+                              "label": "Data Commons by Google"
+                            },
+                            "documentation": "/api/graph/documentation/dc/base/Kenya_Census"
+                          }
+                        ],
+                        "slot_filters": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "causeOfDeath",
+                                "label": "causeOfDeath"
+                              },
+                              "label": "cause of death"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "gender",
+                                "label": "gender"
+                              },
+                              "label": "gender"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "age",
+                                "label": "age"
+                              },
+                              "label": "age"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "race",
+                                "label": "race"
+                              },
+                              "label": "race"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "incidentType",
+                                "label": "incidentType"
+                              },
+                              "label": "incident type"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "ethnicity",
+                                "label": "ethnicity"
+                              },
+                              "label": "ethnicity"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "residentStatus",
+                                "label": "residentStatus"
+                              },
+                              "label": "resident status"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "ageGroupClassification",
+                                "label": "ageGroupClassification"
+                              },
+                              "label": "age group classification"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            "binding_kind": "value",
+                            "refs": [
+                              {
+                                "ref": "country/KEN",
+                                "label": "Kenya"
+                              }
+                            ],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            "binding_kind": "value",
+                            "refs": [],
+                            "provenance": "binder"
+                          },
+                          {
+                            "key": {
+                              "axis": "source",
+                              "label": "data source"
+                            },
+                            "binding_kind": "unbound",
+                            "refs": [],
+                            "provenance": "binder"
+                          }
+                        ],
+                        "query_qualifiers": [],
+                        "requested_window": {
+                          "start_year": 2013,
+                          "end_year": 2022
+                        },
+                        "capability_version": "cap_94e25737d859392c",
+                        "default_reading": {
+                          "applied": true,
+                          "removed_stat_vars": []
+                        }
+                      },
+                      "confidence": "low",
+                      "basis": "structural",
                       "available_at_place": true,
                       "measure_label_axes": [],
                       "measure_axis_values": []
@@ -2024,17 +2302,16 @@
                 "truncated": false
               },
               "reading_assumptions": {
-                "spec_c0f61f3ca3558aac184973441a67601e": [],
-                "spec_403a96317ee8b97f1d8569c71015e5ce": [],
-                "spec_d94656e5d53b7b6c6b0c683145a1cd98": []
+                "spec_10bf62f9687154286b463d206f03a086": [],
+                "spec_7923e67e0706d6d9738c78cb374ee8fb": []
               }
             }
           ],
-          "rendered_sentence": "3 readings. Germany's primary income for gross of fixed capital consumption. OECD DAC1 · 2015 to 2022 · Current US dollars. Germany's gross national income based on purchasing power parity in international dollars. World Development Indicators · 2015 to 2022. Germany's gross national income based on purchasing power parity per capita in international dollars. World Development Indicators · 2015 to 2022.",
+          "rendered_sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
           "sentence_plan": [
             {
               "kind": "text",
-              "text": "3 readings.",
+              "text": "2 readings.",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2050,7 +2327,7 @@
             },
             {
               "kind": "text",
-              "text": "Germany",
+              "text": "Kenya",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2074,111 +2351,7 @@
             },
             {
               "kind": "text",
-              "text": "primary income",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " for ",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "gross of fixed capital consumption",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": ".",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " ",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "OECD DAC1",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " · ",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "2015 to 2022",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " · ",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "Current US dollars",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": ".",
-              "segment": "byline",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " ",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "Germany",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "'s",
+              "text": "deaths rate",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2194,23 +2367,7 @@
             },
             {
               "kind": "text",
-              "text": "gross national income based on purchasing power parity",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " ",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "in international dollars",
+              "text": "per capita",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2250,7 +2407,7 @@
             },
             {
               "kind": "text",
-              "text": "2015 to 2022",
+              "text": "2013 to 2022",
               "segment": "byline",
               "entity_refs": [],
               "states": [],
@@ -2274,7 +2431,7 @@
             },
             {
               "kind": "text",
-              "text": "Germany",
+              "text": "Kenya",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2298,23 +2455,7 @@
             },
             {
               "kind": "text",
-              "text": "gross national income based on purchasing power parity per capita",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": " ",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 0
-            },
-            {
-              "kind": "text",
-              "text": "in international dollars",
+              "text": "number of deaths",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2338,7 +2479,7 @@
             },
             {
               "kind": "text",
-              "text": "World Development Indicators",
+              "text": "Kenya Census",
               "segment": "byline",
               "entity_refs": [],
               "states": [],
@@ -2354,7 +2495,7 @@
             },
             {
               "kind": "text",
-              "text": "2015 to 2022",
+              "text": "2018 to 2022",
               "segment": "byline",
               "entity_refs": [],
               "states": [],
@@ -2379,14 +2520,14 @@
       "answer": {
         "kind": "resolution",
         "status": "candidates",
-        "sentence": "3 readings. Germany's primary income for gross of fixed capital consumption. OECD DAC1 · 2015 to 2022 · Current US dollars. Germany's gross national income based on purchasing power parity in international dollars. World Development Indicators · 2015 to 2022. Germany's gross national income based on purchasing power parity per capita in international dollars. World Development Indicators · 2015 to 2022.",
+        "sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
         "complete": false,
         "specs": [],
         "gaps": [
           {
             "part": 0,
             "kind": "choice",
-            "options": 3
+            "options": 2
           }
         ]
       }

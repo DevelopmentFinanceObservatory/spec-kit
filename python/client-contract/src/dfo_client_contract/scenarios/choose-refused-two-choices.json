@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4a421114e5a2429284f5bb99860796e7"
+          "x-dfo-trace-id": "88156a0c48754c7fb0d5c5a544daed09"
         },
         "json": {
           "schema_version": 1,
@@ -45,20 +45,21 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "4a421114e5a2429284f5bb99860796e7",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "88156a0c48754c7fb0d5c5a544daed09",
             "warnings": [],
             "timing_ms": {
-              "total": 1225,
+              "total": 1686,
               "by_step": {
                 "coverage": 0,
-                "extract": 1221
+                "extract": 1680,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2256,
+              "input_tokens": 2234,
               "output_tokens": 207,
-              "cached_tokens": 861
+              "cached_tokens": 841
             },
             "timed_out": false
           },
@@ -70,7 +71,9 @@
               "timing_ms": {
                 "total": 1,
                 "by_step": {
-                  "recall": 1
+                  "recall": 1,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
@@ -223,9 +226,11 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 2,
                 "by_step": {
-                  "recall": 1
+                  "recall": 2,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
                 }
               },
               "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",

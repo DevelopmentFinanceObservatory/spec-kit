@@ -4,9 +4,9 @@
   "description": "Fetching a spec of Germany's flows to the least developed countries group with entities naming only origin rebinds origin to France. The identity entry that asks Search for the built sentence carries the destination's group, whose binding the build kept, and the sentence names the group.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:05:48Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:37:23Z"
   },
   "call": [
     {
@@ -296,7 +296,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4f36947ae53548928cf48b3ef6375841"
+          "x-dfo-trace-id": "c13351d375404401a8266f1009cb72a5"
         },
         "json": {
           "schema_version": 1,
@@ -304,7 +304,46 @@
             "schema_version": 1,
             "spec_id": "spec_c2f21170dfa9f31705e47ed60c8fa305",
             "identity": {
+              "shape": {
+                "kind": "statvar_schema",
+                "stat_type": "measuredValue",
+                "population_type": "FinancialFlow",
+                "measured_property": "amount",
+                "measurement_qualifier": "Nominal"
+              },
+              "slots": [
+                {
+                  "binding": {
+                    "ref": "DAC2aAidType206",
+                    "state": "value"
+                  },
+                  "property": "dac2aAidType"
+                },
+                {
+                  "binding": {
+                    "state": "unbound"
+                  },
+                  "property": "dacTypeOfFinance"
+                },
+                {
+                  "binding": {
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
+                },
+                {
+                  "binding": {
+                    "ref": "Gross",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
+                }
+              ],
               "entities": {
+                "origin": [
+                  "country/FRA"
+                ],
                 "destination": [
                   "country/AFG",
                   "country/AGO",
@@ -350,55 +389,16 @@
                   "country/UGA",
                   "country/YEM",
                   "country/ZMB"
-                ],
-                "origin": [
-                  "country/FRA"
                 ]
               },
               "identity_version": "spec1",
               "requested_window": {
                 "kind": "all"
-              },
-              "shape": {
-                "kind": "statvar_schema",
-                "measured_property": "amount",
-                "measurement_qualifier": "Nominal",
-                "population_type": "FinancialFlow",
-                "stat_type": "measuredValue"
-              },
-              "slots": [
-                {
-                  "binding": {
-                    "ref": "DAC2aAidType206",
-                    "state": "value"
-                  },
-                  "property": "dac2aAidType"
-                },
-                {
-                  "binding": {
-                    "state": "unbound"
-                  },
-                  "property": "dacTypeOfFinance"
-                },
-                {
-                  "binding": {
-                    "ref": "Disbursement",
-                    "state": "value"
-                  },
-                  "property": "financialFlowType"
-                },
-                {
-                  "binding": {
-                    "ref": "Gross",
-                    "state": "value"
-                  },
-                  "property": "nettingBasis"
-                }
-              ]
+              }
             }
           },
           "content_version": "cv_66a0a4a0331d59b519aa1629dade3d99",
-          "prepared_at": "2026-10-21T13:05:48Z",
+          "prepared_at": "2026-10-21T07:08:52Z",
           "coverage": {
             "rows": 2114,
             "dimensions": [
@@ -427,9 +427,9 @@
             ],
             "window": {
               "kind": "all",
-              "start_year": 1960,
+              "origin": "default",
               "end_year": 2024,
-              "origin": "default"
+              "start_year": 1960
             }
           },
           "citation": {
@@ -515,25 +515,56 @@
             ]
           },
           "trace": {
+            "facets": [
+              {
+                "ref": "provenance/OECDDAC2A",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": null,
+                "axis": "measurementMethod",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              }
+            ],
             "applied_window": {
               "kind": "all",
-              "start_year": 1960,
+              "origin": "default",
               "end_year": 2024,
-              "origin": "default"
+              "start_year": 1960
             },
-            "graph_revision": null,
+            "graph_revision": "dfo-dev-dc-datacommons-service-00260-6xk",
+            "normalisations": [],
             "code_index_stamp": {
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
               "exported_at": "2026-10-20T19:50:14Z",
+              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
               "graph_endpoint": "graph_release"
             },
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
                 "revision": "2026-10-15"
               }
             ],
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "36b9f48d83282bcd5d99cb8f67b83e57a00216fd",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal",
@@ -544,43 +575,12 @@
                 "observation_count": 2114
               }
             ],
-            "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
             "family_member_count": 1,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/OECDDAC2A",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "measurementMethod",
-                "ref": null,
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "absent_on_selected_facet",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              }
-            ],
-            "normalisations": [],
+            "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
             "frame_grammar_version": "1.1.0",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "served_from": "materialise",
-            "confirmed_at": "2026-10-21T13:05:48.882315+00:00"
+            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
+            "served_from": "head",
+            "confirmed_at": "2026-10-23T18:37:23.648030+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -592,17 +592,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:1ea84fd402e660f640baf08b43a6ef4ed031c01b7dc8a781237c1c3006a3f934",
+              "artifact_digest": "sha256:a382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 3
+                "layout": 4
               },
-              "bytes": 21027,
+              "bytes": 21088,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:48.852766+00:00",
+              "created_at": "2026-10-23T16:59:11.517434+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:1ea84fd402e660f640baf08b43a6ef4ed031c01b7dc8a781237c1c3006a3f934"
+              "url": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:a382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993",
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
             },
             {
               "artifact_digest": "sha256:b1f80f2d3df16b6cda3831730ee4749b13e1eb3fff82cdf2f479e71f087bfe2b",
@@ -611,14 +612,14 @@
               },
               "bytes": 8093,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:48.852766+00:00",
+              "created_at": "2026-10-21T07:08:52.857494+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:b1f80f2d3df16b6cda3831730ee4749b13e1eb3fff82cdf2f479e71f087bfe2b"
             }
           ],
           "series_count": 44,
           "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
+            "capability_version": "dset_cc753cefa9199881",
             "columns": [
               {
                 "name": "stat_var",
@@ -752,6 +753,30 @@
                 "truncated": false
               },
               {
+                "column": "financingProvider",
+                "field": "party_class",
+                "token": "financingProvider_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "party_whole",
+                "token": "financingProvider_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
                 "column": "financingRecipient",
                 "field": "iso3",
                 "token": "financingRecipient_iso3",
@@ -816,13 +841,37 @@
                 },
                 "missing": [],
                 "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_class",
+                "token": "financingRecipient_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 44,
+                  "covered": 44
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_whole",
+                "token": "financingRecipient_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 44,
+                  "covered": 44
+                },
+                "missing": [],
+                "truncated": false
               }
             ],
             "long_layout_defaults": [
               "financingProvider_label",
-              "financingProvider_party_kind",
+              "financingProvider_kind",
               "financingRecipient_label",
-              "financingRecipient_party_kind"
+              "financingRecipient_kind"
             ],
             "long_layout_totals": [],
             "pivots": [
@@ -859,10 +908,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-20T13:05:48.852599Z"
+            "held_until": "2026-11-20T07:08:52.858156Z"
           }
         }
       }
@@ -880,7 +929,46 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
+                  "shape": {
+                    "kind": "statvar_schema",
+                    "stat_type": "measuredValue",
+                    "population_type": "FinancialFlow",
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal"
+                  },
+                  "slots": [
+                    {
+                      "binding": {
+                        "ref": "DAC2aAidType206",
+                        "state": "value"
+                      },
+                      "property": "dac2aAidType"
+                    },
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "dacTypeOfFinance"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Disbursement",
+                        "state": "value"
+                      },
+                      "property": "financialFlowType"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Gross",
+                        "state": "value"
+                      },
+                      "property": "nettingBasis"
+                    }
+                  ],
                   "entities": {
+                    "origin": [
+                      "country/FRA"
+                    ],
                     "destination": [
                       "country/AFG",
                       "country/AGO",
@@ -926,51 +1014,12 @@
                       "country/UGA",
                       "country/YEM",
                       "country/ZMB"
-                    ],
-                    "origin": [
-                      "country/FRA"
                     ]
                   },
                   "identity_version": "spec1",
                   "requested_window": {
                     "kind": "all"
-                  },
-                  "shape": {
-                    "kind": "statvar_schema",
-                    "measured_property": "amount",
-                    "measurement_qualifier": "Nominal",
-                    "population_type": "FinancialFlow",
-                    "stat_type": "measuredValue"
-                  },
-                  "slots": [
-                    {
-                      "binding": {
-                        "ref": "DAC2aAidType206",
-                        "state": "value"
-                      },
-                      "property": "dac2aAidType"
-                    },
-                    {
-                      "binding": {
-                        "state": "unbound"
-                      },
-                      "property": "dacTypeOfFinance"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Disbursement",
-                        "state": "value"
-                      },
-                      "property": "financialFlowType"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Gross",
-                        "state": "value"
-                      },
-                      "property": "nettingBasis"
-                    }
-                  ]
+                  }
                 },
                 "entity_groups": {
                   "destination": {
@@ -987,7 +1036,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4f01e12f49de482f8674fe65b685601f"
+          "x-dfo-trace-id": "94e2938030144075b73ca71182f9377a"
         },
         "json": {
           "schema_version": 1,
@@ -996,11 +1045,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "4f01e12f49de482f8674fe65b685601f",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "94e2938030144075b73ca71182f9377a",
             "warnings": [],
             "timing_ms": {
-              "total": 957,
+              "total": 1785,
               "by_step": {
                 "coverage": 0
               }
@@ -1013,19 +1062,19 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 937,
+                "total": 1737,
                 "by_step": {
-                  "validate": 1,
-                  "walk": 5,
+                  "validate": 0,
+                  "walk": 10,
                   "reread_arcs": 0,
                   "detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 918,
+                  "shape": 1700,
                   "bind": 0,
-                  "where_places": 0,
-                  "materialise": 7,
-                  "answer": 5,
-                  "options": 1
+                  "where_places": 1,
+                  "materialise": 16,
+                  "answer": 8,
+                  "options": 2
                 }
               },
               "operations": [],
@@ -1995,7 +2044,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+                  "coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2833,7 +2882,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_347a470e04c97eec"
+                    "capability_version": "cap_94e25737d859392c"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5254,26 +5303,26 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:1ea84fd402e660f640baf08b43a6ef4ed031c01b7dc8a781237c1c3006a3f934"
+        "origin_path": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:a382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993"
       },
       "response": {
         "status": 302,
         "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3A1ea84fd402e660f640baf08b43a6ef4ed031c01b7dc8a781237c1c3006a3f934?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "f00d62be1abb42d9ae15319676c66876"
+          "content-type": "text/html",
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "40d3efef54434905ad56dd99d8835067"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/e2e-working/sha256%3A1ea84fd402e660f640baf08b43a6ef4ed031c01b7dc8a781237c1c3006a3f934?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/vnd.apache.parquet",
-          "x-dfo-trace-id": "2c16e3201afc4262a3a2219cafc506b4"
+          "content-type": "application/vnd.apache.parquet"
         },
         "body_file": "fetch-spec-group-origin-rebound.parquet"
       }
@@ -5287,10 +5336,10 @@
           "stat_var",
           "financingProvider",
           "financingProvider_label",
-          "financingProvider_party_kind",
+          "financingProvider_kind",
           "financingRecipient",
           "financingRecipient_label",
-          "financingRecipient_party_kind",
+          "financingRecipient_kind",
           "dac2aAidType",
           "dac2aAidType_label",
           "time_period",

@@ -15,7 +15,7 @@
         "members": [
           {
             "parts": [
-              "basic health care ODA disbursements"
+              "ODA disbursements for basic health care"
             ],
             "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
             "spec": {
@@ -90,7 +90,7 @@
             },
             "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
             "artifact": {
-              "digest": "sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde",
+              "digest": "sha256:421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db",
               "rendering": {
                 "format": "parquet",
                 "bundle": false
@@ -111,7 +111,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "62f3f94d818743f89b2e3047c3e737f6"
+          "x-dfo-trace-id": "f8dc4c6d0e4d4ce9882d862d2ed5b3ef"
         },
         "json": {
           "schema_version": 1,
@@ -183,7 +183,7 @@
             }
           },
           "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
-          "prepared_at": "2026-10-21T13:05:05Z",
+          "prepared_at": "2026-10-11T20:09:36Z",
           "coverage": {
             "rows": 30,
             "dimensions": [
@@ -218,7 +218,7 @@
             }
           },
           "citation": {
-            "text": "OECD Creditor Reporting System (CRS) (2026), via the Development Finance Observatory",
+            "text": "OECD Creditor Reporting System (CRS)",
             "sources": [
               {
                 "ref": "provenance/OECDCreditorReportingSystem",
@@ -239,9 +239,9 @@
                   "publisher": "Organisation for Economic Co-operation and Development (OECD)",
                   "description": "The Creditor Reporting System (CRS) is the OECD Development Assistance Committee's activity-level database of development finance. Each record is a project, programme or contribution reported by a bilateral provider, a multilateral organisation or a private foundation, with its recipient, sector and purpose, channel of delivery, aid type, and commitment and disbursement amounts. It covers ODA, other official flows, private sector instruments and private philanthropy, and is the source for any breakdown by sector, channel or project.",
                   "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet",
-                  "attribution": "OECD (2026), Creditor Reporting System (CRS), OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet (accessed on 2026-10-15)",
+                  "attribution": "OECD (2026), Creditor Reporting System (CRS), OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_CRS/CRS.parquet (accessed on 2026-10-08)",
                   "update_cadence": "Quarterly",
-                  "last_update": "2026-10-15",
+                  "last_update": "2026-10-08",
                   "years_covered": "1973-2024",
                   "granularity": "Annual, by provider and recipient",
                   "currencies": [
@@ -251,10 +251,6 @@
                     {
                       "transformation": "Download the source data",
                       "description": "The complete CRS file is downloaded from the OECD each time the pipeline runs, and replaces the previous copy, so the data reflects the OECD's latest release."
-                    },
-                    {
-                      "transformation": "Exclude the partial preliminary year",
-                      "description": "Before each full release, the OECD publishes preliminary data for the year that release covers, as reporters submit it. Until then, that year is partial, so the pipeline excludes it. Support for partial years is in development. Partial years will be marked incomplete, so they don't lead to incorrect or confusing analyses."
                     },
                     {
                       "transformation": "Exclude donor core contributions to multilaterals",
@@ -275,22 +271,22 @@
                   ],
                   "version_history": [
                     {
-                      "date": "2026-10-15",
-                      "title": "Partial preliminary year excluded",
+                      "date": "2026-09-22",
+                      "title": "Exclude donor core contributions",
                       "changes": [
                         {
                           "kind": "changed",
-                          "note": "The partial preliminary year published ahead of the next full release is excluded."
+                          "note": "Donor core contributions to multilateral organisations (`bi_multi = 2`) are excluded from bilateral flows, since they would otherwise double count."
                         }
                       ]
                     },
                     {
-                      "date": "2026-10-14",
+                      "date": "2026-08-20",
                       "title": "First release",
                       "changes": [
                         {
                           "kind": "added",
-                          "note": "Commitments, gross and net disbursements, and grant equivalents by donor, recipient, flow type, finance type, modality and purpose, at current US dollar prices. Covers ODA, other official flows, private development finance and private sector instruments."
+                          "note": "Dataset added to the graph."
                         }
                       ]
                     }
@@ -326,21 +322,21 @@
               "end_year": 2024,
               "start_year": 1995
             },
-            "graph_revision": null,
+            "graph_revision": "dfo-dev-dc-datacommons-service-00228-ntw",
             "normalisations": [],
             "code_index_stamp": {
-              "exported_at": "2026-10-20T19:50:14Z",
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
-              "graph_endpoint": "graph_release"
+              "exported_at": "2026-10-10T10:52:17Z",
+              "content_hash": "6650f0e76fc1f91e6e056b29495dc17dc0182d091d67496926a1710ce1999c50",
+              "graph_endpoint": "https://dfo-dev-dc-datacommons-service-zms5lj4zhq-nn.a.run.app"
             },
             "source_revisions": [
               {
                 "source": "provenance/OECDCreditorReportingSystem",
-                "revision": "2026-10-15"
+                "revision": "2026-10-08"
               }
             ],
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
+            "capability_version": "dset_ac879dbf49857907",
+            "materialiser_build": "1f6ed6307bea979d38cc35c4e38e0da896c431ad",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
@@ -514,9 +510,15 @@
             "family_member_count": 21,
             "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
             "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e"
+            "origin_catalogue_build_id": "20261011T194155Z-80081f08"
           },
-          "warnings": [],
+          "warnings": [
+            {
+              "code": "processing_level_undeclared",
+              "severity": "info",
+              "message": "A source StatVar lacks a processing-level declaration; the citation credits the source and omits the processing qualifier."
+            }
+          ],
           "diagnostics": [
             {
               "code": "processing_level_undeclared",
@@ -526,14 +528,105 @@
           ],
           "artifacts": [
             {
+              "artifact_digest": "sha256:f4026e80af4b8683d3bb86645ab3aca83dff75cd03fdd4c73ec54ba638922104",
+              "rendering": {
+                "bundle": false,
+                "format": "parquet",
+                "layout": "frame"
+              },
+              "bytes": 5627,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-20T20:44:10.228016+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:f4026e80af4b8683d3bb86645ab3aca83dff75cd03fdd4c73ec54ba638922104"
+            },
+            {
+              "artifact_digest": "sha256:2ff184d2ad022189c2b071f35cfd3a1119cd987cd883c5e84b2e61c9a68dc9cf",
+              "rendering": {
+                "bundle": false,
+                "format": "csv",
+                "layout": 2
+              },
+              "bytes": 14626,
+              "media_type": "text/csv",
+              "created_at": "2026-10-11T09:30:05.520251+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:2ff184d2ad022189c2b071f35cfd3a1119cd987cd883c5e84b2e61c9a68dc9cf"
+            },
+            {
+              "artifact_digest": "sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde",
+              "rendering": {
+                "bundle": false,
+                "format": "parquet",
+                "layout": 3
+              },
+              "bytes": 9785,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-19T10:58:01.080848+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde"
+            },
+            {
+              "artifact_digest": "sha256:6e6947dc05a82cf486d99563f5d33f72ac00ca787e70f71ce673de77e43c8550",
+              "rendering": {
+                "bundle": false,
+                "format": "parquet",
+                "layout": 2
+              },
+              "bytes": 9106,
+              "media_type": "application/vnd.apache.parquet",
+              "created_at": "2026-10-11T20:09:39.444643+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:6e6947dc05a82cf486d99563f5d33f72ac00ca787e70f71ce673de77e43c8550"
+            },
+            {
+              "artifact_digest": "sha256:81085991152fd08de3ea248e42ecddaf04668fc0d730b0ddfe079bf53a76e7be",
+              "rendering": {
+                "bundle": false,
+                "format": "xlsx",
+                "layout": 2
+              },
+              "bytes": 8195,
+              "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "created_at": "2026-10-11T20:09:38.525130+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:81085991152fd08de3ea248e42ecddaf04668fc0d730b0ddfe079bf53a76e7be"
+            },
+            {
+              "artifact_digest": "sha256:9759397ab0ee82ea2b2fd4a0daae7cadcd4a838ac23ce3e87c0b46ad501e6fc4",
+              "rendering": {
+                "bundle": true,
+                "format": "csv",
+                "rendition": "v2-fa20478fa7f3"
+              },
+              "bytes": 42512,
+              "media_type": "application/zip",
+              "created_at": "2026-10-11T20:09:36.814329+00:00",
+              "tier": "pinned",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:9759397ab0ee82ea2b2fd4a0daae7cadcd4a838ac23ce3e87c0b46ad501e6fc4"
+            },
+            {
+              "artifact_digest": "sha256:9b3560e6b247a8365ccf74af916285e383f9ce0f521ab256fdce30a14a6efe86",
+              "rendering": {
+                "bundle": false,
+                "format": "csv",
+                "layout": 3
+              },
+              "bytes": 15045,
+              "media_type": "text/csv",
+              "created_at": "2026-10-19T10:57:48.537709+00:00",
+              "tier": "working",
+              "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:9b3560e6b247a8365ccf74af916285e383f9ce0f521ab256fdce30a14a6efe86"
+            },
+            {
               "artifact_digest": "sha256:ac65501b1aef56a9caaadf063eb0390e8d816198384081e2c1645b04816693b8",
               "rendering": {
                 "format": "frame"
               },
               "bytes": 4764,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:06.298931+00:00",
-              "tier": "working",
+              "created_at": "2026-10-11T20:09:36.814329+00:00",
+              "tier": "pinned",
               "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:ac65501b1aef56a9caaadf063eb0390e8d816198384081e2c1645b04816693b8"
             },
             {
@@ -543,14 +636,14 @@
               },
               "bytes": 5981,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:06.298931+00:00",
+              "created_at": "2026-10-08T08:43:31.704442+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:07984a96eaf8ee637fe15bf13f2b0d9160a6378d3fa1efae2e71cf0e20115dff"
             }
           ],
           "series_count": 5,
           "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
+            "capability_version": "dset_cc753cefa9199881",
             "columns": [
               {
                 "name": "stat_var",
@@ -684,6 +777,30 @@
                 "truncated": false
               },
               {
+                "column": "financingProvider",
+                "field": "party_class",
+                "token": "financingProvider_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "party_whole",
+                "token": "financingProvider_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
                 "column": "financingRecipient",
                 "field": "iso3",
                 "token": "financingRecipient_iso3",
@@ -742,13 +859,37 @@
                 },
                 "missing": [],
                 "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_class",
+                "token": "financingRecipient_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_whole",
+                "token": "financingRecipient_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
               }
             ],
             "long_layout_defaults": [
               "financingProvider_label",
-              "financingProvider_party_kind",
+              "financingProvider_kind",
               "financingRecipient_label",
-              "financingRecipient_party_kind"
+              "financingRecipient_kind"
             ],
             "long_layout_totals": [],
             "pivots": [
@@ -785,10 +926,9 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "series_coverage_stamp": "75f0dd0656b52cc6014f68e85c4ee297",
           "retention": {
-            "pinned": false,
-            "held_until": "2026-11-20T13:05:06.298810Z"
+            "pinned": true
           }
         }
       }
@@ -801,21 +941,21 @@
       "response": {
         "status": 302,
         "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3A598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "7dbbbcc2a7bd4cc7a0c5d806e55cc20f"
+          "content-type": "text/html",
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "6bdc7a9de08e4bceb3e1e8eab34d4ad1"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/e2e-working/sha256%3A598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/vnd.apache.parquet",
-          "x-dfo-trace-id": "81e177c259cc4bca8e9ea1bceb977f3d"
+          "content-type": "application/vnd.apache.parquet"
         },
         "body_file": "fetch-ref.parquet"
       }
@@ -829,10 +969,10 @@
           "stat_var",
           "financingProvider",
           "financingProvider_label",
-          "financingProvider_party_kind",
+          "financingProvider_kind",
           "financingRecipient",
           "financingRecipient_label",
-          "financingRecipient_party_kind",
+          "financingRecipient_kind",
           "crsCooperationModality",
           "crsCooperationModality_label",
           "crsPurpose",
@@ -857,7 +997,7 @@
         "members": [
           {
             "parts": [
-              "basic health care ODA disbursements"
+              "ODA disbursements for basic health care"
             ],
             "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
             "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",

@@ -4,9 +4,9 @@
   "description": "Fetching a ref whose content_version the server never built ends at the snapshot route's 404 snapshot_not_found, which raises NotFoundError with no build: an unknown version is not an expired one.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:05:50Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:37:31Z"
   },
   "call": [
     {
@@ -16,7 +16,7 @@
         "members": [
           {
             "parts": [
-              "basic health care ODA disbursements"
+              "ODA disbursements for basic health care"
             ],
             "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
             "spec": {
@@ -91,7 +91,7 @@
             },
             "content_version": "cv_00000000000000000000000000000000",
             "artifact": {
-              "digest": "sha256:598ce1c1e63d53ab7326cec266aa9a523d9cc2f1acfba280fd2cf2f01649fbde",
+              "digest": "sha256:421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db",
               "rendering": {
                 "format": "parquet",
                 "bundle": false
@@ -112,7 +112,7 @@
         "status": 404,
         "headers": {
           "content-type": "application/problem+json",
-          "x-dfo-trace-id": "30da7e671a9246f8b1c399fe77e0ca9c"
+          "x-dfo-trace-id": "02a3a5e50f21446ea06f9f064086059b"
         },
         "json": {
           "type": "/codes/snapshot_not_found",
@@ -120,8 +120,8 @@
           "status": 404,
           "detail": "'spec_774d6c001a6250aa67ca676ab067895e' has no version at content_version 'cv_00000000000000000000000000000000'",
           "code": "snapshot_not_found",
-          "trace_id": "30da7e671a9246f8b1c399fe77e0ca9c",
-          "capability_version": "dset_88fecfec3c5b89d1",
+          "trace_id": "02a3a5e50f21446ea06f9f064086059b",
+          "capability_version": "dset_cc753cefa9199881",
           "retryable": false
         }
       }
@@ -132,7 +132,7 @@
       "error": {
         "class": "NotFoundError",
         "code": "snapshot_not_found",
-        "trace_id": "30da7e671a9246f8b1c399fe77e0ca9c"
+        "trace_id": "02a3a5e50f21446ea06f9f064086059b"
       }
     }
   ]

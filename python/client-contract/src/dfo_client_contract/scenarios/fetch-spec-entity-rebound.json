@@ -4,9 +4,9 @@
   "description": "Fetching a two-role spec with entities naming only origin posts input.scope.entities with origin replaced and destination kept from the spec's definition, because the server's scope.entities replaces the spec's whole entity binding. The build answers a new spec_id bound to both roles.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:05:35Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:37:12Z"
   },
   "call": [
     {
@@ -187,7 +187,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "c62c3fdb28e14a459e5111ba626dd898"
+          "x-dfo-trace-id": "58ed6d83ebac443ab3da3ef0a085c7f5"
         },
         "json": {
           "schema_version": 1,
@@ -195,24 +195,12 @@
             "schema_version": 1,
             "spec_id": "spec_1ee5f6648c9e46ddcc806fa0034bb6a8",
             "identity": {
-              "entities": {
-                "destination": [
-                  "country/NGA"
-                ],
-                "origin": [
-                  "country/FRA"
-                ]
-              },
-              "identity_version": "spec1",
-              "requested_window": {
-                "kind": "all"
-              },
               "shape": {
                 "kind": "statvar_schema",
-                "measured_property": "amount",
-                "measurement_qualifier": "Nominal",
+                "stat_type": "measuredValue",
                 "population_type": "FinancialFlow",
-                "stat_type": "measuredValue"
+                "measured_property": "amount",
+                "measurement_qualifier": "Nominal"
               },
               "slots": [
                 {
@@ -255,11 +243,23 @@
                   },
                   "property": "nettingBasis"
                 }
-              ]
+              ],
+              "entities": {
+                "origin": [
+                  "country/FRA"
+                ],
+                "destination": [
+                  "country/NGA"
+                ]
+              },
+              "identity_version": "spec1",
+              "requested_window": {
+                "kind": "all"
+              }
             }
           },
           "content_version": "cv_7947f7ed828c0b23b8df4c601d463c09",
-          "prepared_at": "2026-10-21T13:05:36Z",
+          "prepared_at": "2026-10-21T06:50:58Z",
           "coverage": {
             "rows": 2,
             "dimensions": [
@@ -288,9 +288,9 @@
             ],
             "window": {
               "kind": "all",
-              "start_year": 2019,
+              "origin": "default",
               "end_year": 2021,
-              "origin": "default"
+              "start_year": 2019
             }
           },
           "citation": {
@@ -376,25 +376,47 @@
             ]
           },
           "trace": {
+            "facets": [
+              {
+                "ref": "provenance/OECDCreditorReportingSystem",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "3734627990144800868",
+                "default_policy_version": "1"
+              }
+            ],
             "applied_window": {
               "kind": "all",
-              "start_year": 2019,
+              "origin": "default",
               "end_year": 2021,
-              "origin": "default"
+              "start_year": 2019
             },
-            "graph_revision": null,
+            "graph_revision": "dfo-dev-dc-datacommons-service-00260-6xk",
+            "normalisations": [],
             "code_index_stamp": {
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
               "exported_at": "2026-10-20T19:50:14Z",
+              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
               "graph_endpoint": "graph_release"
             },
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "source_revisions": [
               {
                 "source": "provenance/OECDCreditorReportingSystem",
                 "revision": "2026-10-15"
               }
             ],
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "687d48bf1bbeffce437765ae950a2ba755137b98",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_CRSTypeOfFlow10_CRSTypeOfFinance110_CRSCooperationModalityA02_CRSPurposeCode12220_Nominal",
@@ -565,34 +587,12 @@
                 "observation_count": 0
               }
             ],
-            "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
             "family_member_count": 21,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/OECDCreditorReportingSystem",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "3734627990144800868"
-              }
-            ],
-            "normalisations": [],
+            "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
             "frame_grammar_version": "1.1.0",
-            "materialiser_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "capability_version": "dset_88fecfec3c5b89d1",
-            "served_from": "materialise",
-            "confirmed_at": "2026-10-21T13:05:36.077679+00:00"
+            "origin_catalogue_build_id": "20261020T170016Z-691bf0da",
+            "served_from": "head",
+            "confirmed_at": "2026-10-23T18:37:13.103333+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -604,17 +604,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297",
+              "artifact_digest": "sha256:13a775f3b4811a104717ac226f173d614d685e533def09482b83c55e06505c4c",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 3
+                "layout": 4
               },
-              "bytes": 9059,
+              "bytes": 9116,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:36.037061+00:00",
+              "created_at": "2026-10-23T16:58:51.358637+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297"
+              "url": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:13a775f3b4811a104717ac226f173d614d685e533def09482b83c55e06505c4c",
+              "enrichment_stamp": "5821dc7ce2050dff29f86570ff50f0adfb78c3ed7c7596e4f24a024892583cb0"
             },
             {
               "artifact_digest": "sha256:36616ef68df33904cc9dfa37fb145d8fd1563b1b3701710dcd8d9e04ed50d79a",
@@ -623,14 +624,14 @@
               },
               "bytes": 5628,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T13:05:36.037061+00:00",
+              "created_at": "2026-10-21T06:50:59.083645+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:36616ef68df33904cc9dfa37fb145d8fd1563b1b3701710dcd8d9e04ed50d79a"
             }
           ],
           "series_count": 2,
           "output_options": {
-            "capability_version": "dset_88fecfec3c5b89d1",
+            "capability_version": "dset_cc753cefa9199881",
             "columns": [
               {
                 "name": "stat_var",
@@ -764,6 +765,30 @@
                 "truncated": false
               },
               {
+                "column": "financingProvider",
+                "field": "party_class",
+                "token": "financingProvider_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingProvider",
+                "field": "party_whole",
+                "token": "financingProvider_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
                 "column": "financingRecipient",
                 "field": "iso3",
                 "token": "financingRecipient_iso3",
@@ -822,13 +847,37 @@
                 },
                 "missing": [],
                 "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_class",
+                "token": "financingRecipient_party_class",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
+              },
+              {
+                "column": "financingRecipient",
+                "field": "party_whole",
+                "token": "financingRecipient_party_whole",
+                "state": "available",
+                "coverage": {
+                  "entities": 1,
+                  "covered": 1
+                },
+                "missing": [],
+                "truncated": false
               }
             ],
             "long_layout_defaults": [
               "financingProvider_label",
-              "financingProvider_party_kind",
+              "financingProvider_kind",
               "financingRecipient_label",
-              "financingRecipient_party_kind"
+              "financingRecipient_kind"
             ],
             "long_layout_totals": [],
             "pivots": [
@@ -865,10 +914,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+          "series_coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-20T13:05:36.037239Z"
+            "held_until": "2026-11-20T06:50:59.083841Z"
           }
         }
       }
@@ -886,24 +935,12 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
-                  "entities": {
-                    "destination": [
-                      "country/NGA"
-                    ],
-                    "origin": [
-                      "country/FRA"
-                    ]
-                  },
-                  "identity_version": "spec1",
-                  "requested_window": {
-                    "kind": "all"
-                  },
                   "shape": {
                     "kind": "statvar_schema",
-                    "measured_property": "amount",
-                    "measurement_qualifier": "Nominal",
+                    "stat_type": "measuredValue",
                     "population_type": "FinancialFlow",
-                    "stat_type": "measuredValue"
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal"
                   },
                   "slots": [
                     {
@@ -946,7 +983,19 @@
                       },
                       "property": "nettingBasis"
                     }
-                  ]
+                  ],
+                  "entities": {
+                    "origin": [
+                      "country/FRA"
+                    ],
+                    "destination": [
+                      "country/NGA"
+                    ]
+                  },
+                  "identity_version": "spec1",
+                  "requested_window": {
+                    "kind": "all"
+                  }
                 }
               }
             ]
@@ -957,7 +1006,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a59d23d595924f7695a10d939638112b"
+          "x-dfo-trace-id": "3ea2202f586b47b48906c83b42b9a4fe"
         },
         "json": {
           "schema_version": 1,
@@ -966,11 +1015,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "a59d23d595924f7695a10d939638112b",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "3ea2202f586b47b48906c83b42b9a4fe",
             "warnings": [],
             "timing_ms": {
-              "total": 674,
+              "total": 340,
               "by_step": {
                 "coverage": 0
               }
@@ -983,19 +1032,19 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 652,
+                "total": 288,
                 "by_step": {
-                  "validate": 2,
-                  "walk": 76,
-                  "reread_arcs": 1,
+                  "validate": 3,
+                  "walk": 225,
+                  "reread_arcs": 2,
                   "detect_edits": 0,
                   "resolve_survivors": 0,
                   "shape": 3,
                   "bind": 0,
-                  "where_places": 359,
-                  "materialise": 10,
-                  "answer": 200,
-                  "options": 1
+                  "where_places": 0,
+                  "materialise": 12,
+                  "answer": 41,
+                  "options": 2
                 }
               },
               "operations": [],
@@ -1408,7 +1457,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "5a4dd8009d09f5328e1439a71fc02ff8e2385aaed6310928fc34efb3a592fac4",
+                  "coverage_stamp": "0b8c9a18fcc5af19013b21e865c64481503b6a6542f7d2e6628999e6559a47de",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2007,7 +2056,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_347a470e04c97eec"
+                    "capability_version": "cap_94e25737d859392c"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4607,26 +4656,26 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297"
+        "origin_path": "/api/datasets/spec_1ee5f6648c9e46ddcc806fa0034bb6a8/cv_7947f7ed828c0b23b8df4c601d463c09/files/sha256:13a775f3b4811a104717ac226f173d614d685e533def09482b83c55e06505c4c"
       },
       "response": {
         "status": 302,
         "headers": {
-          "location": "https://storage.googleapis.com/e2e-working/sha256%3A3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "b94e3c7dd2fe45fdb401820e689a9098"
+          "content-type": "text/html",
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A13a775f3b4811a104717ac226f173d614d685e533def09482b83c55e06505c4c?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "037ba569f0d64fd7a230db5c74978c3f"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/e2e-working/sha256%3A3f42e71fd7f6c7dde3c7294e7eb1eb6525ab0748650d41948ba054114025b297?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A13a775f3b4811a104717ac226f173d614d685e533def09482b83c55e06505c4c?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
         "headers": {
-          "content-type": "application/vnd.apache.parquet",
-          "x-dfo-trace-id": "9e5771b287d64ab18a4a6c98c484570a"
+          "content-type": "application/vnd.apache.parquet"
         },
         "body_file": "fetch-spec-entity-rebound.parquet"
       }
@@ -4640,10 +4689,10 @@
           "stat_var",
           "financingProvider",
           "financingProvider_label",
-          "financingProvider_party_kind",
+          "financingProvider_kind",
           "financingRecipient",
           "financingRecipient_label",
-          "financingRecipient_party_kind",
+          "financingRecipient_kind",
           "crsCooperationModality",
           "crsCooperationModality_label",
           "crsPurpose",

@@ -75,10 +75,15 @@ document validates against its schema, then what the schemas cannot express:
   a record holds, a `url` request or a `location` header, is a signed URL on
   the storage host with the query `X-Goog-Signature=redacted`, or a
   `location` under the base URL.
+- `scenarios/`, records and body files together, holds at most
+  SCENARIOS_BUDGET bytes.
 - Each ref example's file name matches its `name` and gets the verdict it
   states: from `dataset-ref.schema.json`, then from the rules that each
   member's definition carries its own `spec_id` and that members hold
-  distinct `spec_id`s.
+  distinct `spec_id`s. A ref example whose ref holds members names the
+  recorded `scenario` that serves them, and each member's `spec_id`,
+  `content_version` and `sentence` are a dataset member's of that scenario,
+  and its artifact digest is the digest of a file the scenario downloads.
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once.
 
@@ -98,7 +103,7 @@ from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 
 import jsonschema
 from referencing import Registry, Resource
@@ -107,6 +112,9 @@ from referencing.jsonschema import DRAFT202012
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_DIR = REPO_ROOT / "python" / "client-contract" / "src" / "dfo_client_contract"
 REGISTRY_PATH = REPO_ROOT / "registries" / "codes.json"
+# The bytes `scenarios/` may hold, records and body files together. Each test
+# of this module copies the whole package, so the budget bounds their disk use.
+SCENARIOS_BUDGET = 16_000_000
 
 _OPENAPI_URI = "urn:dfo-client-contract:served-openapi"
 _ACTION_CHANNELS = {"problem_details", "no_data_reason"}
@@ -1773,10 +1781,15 @@ def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
     return scope or None
 
 
-def versions_path(spec_id: str) -> str:
-    """The versions route asked for the newest stored version alone. The
-    route lists versions newest first, so `limit=1` returns just it."""
-    return f"/datasets/{spec_id}/versions?limit=1"
+# The versions a client asks the versions route for on each page.
+VERSIONS_PAGE = 100
+
+
+def versions_path(spec_id: str, cursor: str | None = None) -> str:
+    """One page of the versions route, VERSIONS_PAGE versions newest first,
+    continuing after `cursor` when one is given."""
+    path = f"/datasets/{spec_id}/versions?limit={VERSIONS_PAGE}"
+    return path if cursor is None else f"{path}&cursor={quote(cursor, safe='')}"
 
 
 def search_body(input_: Mapping[str, Any]) -> dict[str, Any]:
@@ -1784,17 +1797,41 @@ def search_body(input_: Mapping[str, Any]) -> dict[str, Any]:
     return {"schema_version": 1, "input": input_}
 
 
-def newest_listed(body: Any) -> str | None:
-    """The newest version a versions page lists, its first, or None when it
-    lists none. A body whose `versions` is not a list of versions, each with
-    a `content_version`, raises ContractError."""
-    versions = body.get("versions") if isinstance(body, dict) else None
-    if not isinstance(versions, list) or not all(
-        isinstance(v, dict) and isinstance(v.get("content_version"), str)
-        for v in versions
-    ):
-        raise ClientError("contract_violation")
-    return versions[0]["content_version"] if versions else None
+def _listed_version(version: Any) -> bool:
+    return (
+        isinstance(version, dict)
+        and isinstance(version.get("content_version"), str)
+        and "base_content_version" in version
+        and isinstance(version["base_content_version"], str | None)
+    )
+
+
+def newest_plain(page: Callable[[str | None], Any]) -> str | None:
+    """The newest stored version, the first the versions route lists with no
+    `base_content_version`, a plain build and never a version derived from
+    one, or None when the list ends without one. `page` answers the page
+    after a cursor, the first for None, and the walk follows `next_cursor`
+    until it is null. Each page is read whole before any version on it is
+    taken: a page whose `versions` is not a list of versions, each with a
+    `content_version` and a `base_content_version` that is a string or
+    null, or whose `next_cursor` is neither a string nor null, raises
+    ContractError, even when it lists a plain version."""
+    cursor: str | None = None
+    while True:
+        body = page(cursor)
+        versions = body.get("versions") if isinstance(body, dict) else None
+        cursor = body.get("next_cursor") if isinstance(body, dict) else None
+        if (
+            not isinstance(versions, list)
+            or not all(map(_listed_version, versions))
+            or not isinstance(cursor, str | None)
+        ):
+            raise ClientError("contract_violation")
+        for version in versions:
+            if version["base_content_version"] is None:
+                return version["content_version"]
+        if cursor is None:
+            return None
 
 
 def stored_version[T](
@@ -2528,16 +2565,18 @@ class _Replay:
         return True, None
 
     def newest(self, spec_id: str) -> str | None:
-        """The newest stored version, the one the versions route lists first,
-        or None when it lists none or refuses the spec as unknown. A page
-        that lists no versions in the form `newest_listed` reads raises."""
+        """The newest stored version, as `newest_plain` reads the versions
+        route, or None when the route refuses the spec as unknown."""
         try:
-            body = self.acted_on(self.call("GET", versions_path(spec_id)))
+            return newest_plain(
+                lambda cursor: self.acted_on(
+                    self.call("GET", versions_path(spec_id, cursor))
+                )
+            )
         except ClientError as error:
             if error.error_class(self.client_codes) in NO_VERSIONS:
                 return None
             raise
-        return newest_listed(body)
 
     # -- steps --
 
@@ -3189,6 +3228,57 @@ def _ref_rule(ref: dict[str, Any]) -> str | None:
     return None
 
 
+def _served_by(label: str, record: dict[str, Any]) -> list[str]:
+    """Where a ref example's members differ from the members its `scenario`
+    serves: a `spec_id` no dataset member of it has, another
+    `content_version` or `sentence`, or an artifact digest that is not the
+    digest of a file the scenario downloads. A ref with no members names no
+    scenario."""
+    ref = record.get("ref")
+    members = ref.get("members") if isinstance(ref, dict) else None
+    if not isinstance(members, list) or not members:
+        return []
+    name = record.get("scenario")
+    directory = PACKAGE_DIR / "scenarios"
+    path = directory / f"{name}.json"
+    scenario = _load(path) if isinstance(name, str) and path.is_file() else None
+    if not isinstance(scenario, dict):
+        return [f"{label}: names no scenario that serves its members"]
+    served = {
+        member.get("spec_id"): member
+        for outcome in read_objects(scenario, "expect")
+        for member in read_objects(read_object(outcome, "dataset"), "members")
+    }
+    digests = set()
+    for exchange in read_objects(scenario, "exchanges"):
+        body_file = read_string(read_object(exchange, "response"), "body_file")
+        try:
+            path = body_path(directory, body_file) if body_file else None
+        except ValueError:
+            continue  # the scenario check reports a body file it cannot read
+        if path is not None and path.is_file():
+            digests.add(digest_of(path.read_bytes()))
+    problems = []
+    for index, member in enumerate(members):
+        spec = member.get("spec") if isinstance(member, dict) else None
+        found = served.get(spec.get("spec_id") if isinstance(spec, dict) else None)
+        if found is None:
+            problems.append(f"{label}: member {index} is no member {name} serves")
+            continue
+        problems.extend(
+            f"{label}: member {index} {key} is not {name}'s {found.get(key)!r}"
+            for key in ("content_version", "sentence")
+            if member.get(key) != found.get(key)
+        )
+        artifact = member.get("artifact")
+        digest = artifact.get("digest") if isinstance(artifact, dict) else None
+        if digest not in digests:
+            problems.append(
+                f"{label}: member {index} digest {digest} is no file {name} downloads"
+            )
+    return problems
+
+
 def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
     paths = sorted((PACKAGE_DIR / "refs").glob("*.json"))
     problems = [] if paths else ["refs: no ref examples found"]
@@ -3199,6 +3289,7 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
         if not isinstance(record, dict) or record.get("name") != path.stem:
             problems.append(f"{label}: name does not match the file name")
             continue
+        problems.extend(_served_by(label, record))
         error = record.get("error")
         if ("expect" in record) == isinstance(error, dict):
             problems.append(f"{label}: carries neither or both of expect and error")
@@ -3251,6 +3342,14 @@ def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
             for name in sorted({n for n in names if names.count(n) > 1})
         )
     return problems
+
+
+def scenarios_size(directory: Path) -> int:
+    """The bytes of every file in `directory`, records and body files, or 0
+    when it does not exist."""
+    if not directory.is_dir():
+        return 0
+    return sum(path.stat().st_size for path in directory.iterdir() if path.is_file())
 
 
 def validate() -> list[str]:
@@ -3332,6 +3431,11 @@ def validate() -> list[str]:
             served_commit=source.get("commit") if isinstance(source, dict) else None,
         )
     )
+    size = scenarios_size(PACKAGE_DIR / "scenarios")
+    if size > SCENARIOS_BUDGET:
+        problems.append(
+            f"scenarios: {size:,} bytes pass the {SCENARIOS_BUDGET:,}-byte budget"
+        )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
     return problems

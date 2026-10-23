@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "3ceef86d0eac49fa96380d3340878cf1"
+          "x-dfo-trace-id": "6d68317966c44c48a0701ff661a5e655"
         },
         "json": {
           "schema_version": 1,
@@ -45,47 +45,60 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "3ceef86d0eac49fa96380d3340878cf1",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "6d68317966c44c48a0701ff661a5e655",
             "warnings": [],
             "timing_ms": {
-              "total": 5613,
+              "total": 4868,
               "by_step": {
                 "coverage": 0,
-                "extract": 1020
+                "extract": 1143,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 15731,
-              "output_tokens": 1021,
-              "cached_tokens": 861
+              "input_tokens": 2237,
+              "output_tokens": 215,
+              "cached_tokens": 842,
+              "jev_input_tokens": 25205,
+              "jev_output_tokens": 5698
             },
             "timed_out": false
           },
           "kind": "resolution",
           "parts": [
             {
-              "variable_text": "ODA disbursements for health",
+              "variable_text": "health ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 3674,
+                "total": 3437,
                 "by_step": {
-                  "recall": 773,
-                  "shape_arcs": 0,
-                  "shape_probe_coverage": 11,
-                  "shape_probe": 224,
-                  "shape_groups": 26,
-                  "shape_labels": 8,
-                  "shape_admission": 0,
-                  "shape": 1251,
-                  "bind": 1411,
-                  "materialise": 115,
-                  "answer": 15,
-                  "options": 109
+                  "recall": 538,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 85,
+                  "shape_probe_coverage": 3,
+                  "shape_probe": 426,
+                  "shape_groups": 43,
+                  "shape_labels": 9,
+                  "shape_admission": 1,
+                  "phase_derive_shapes": 0,
+                  "shape": 1403,
+                  "phase_prune_and_rank": 0,
+                  "bind": 228,
+                  "phase_bind": 458,
+                  "phase_settle": 103,
+                  "phase_place_bindings": 23,
+                  "phase_facet_requests": 0,
+                  "materialise": 385,
+                  "phase_materialise": 1,
+                  "answer": 18,
+                  "options": 174,
+                  "phase_outcome": 106
                 }
               },
               "restatement": {
-                "variable_text": "ODA disbursements for health",
+                "variable_text": "health ODA disbursements",
                 "entities": [
                   {
                     "text": "Germany",
@@ -200,14 +213,6 @@
                       {
                         "axis": "how",
                         "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      {
-                        "axis": "how",
-                        "property": {
                           "ref": "crsPurpose",
                           "label": "CRS purpose"
                         },
@@ -246,6 +251,14 @@
                         "label": "netting basis"
                       },
                       {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      {
                         "axis": "where",
                         "label": "place"
                       },
@@ -269,20 +282,6 @@
                     ]
                   },
                   "slots": [
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "binding": {
-                        "kind": "unbound"
-                      },
-                      "summable": true
-                    },
                     {
                       "key": {
                         "axis": "how",
@@ -484,6 +483,20 @@
                     },
                     {
                       "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": true
+                    },
+                    {
+                      "key": {
                         "axis": "where",
                         "label": "place"
                       },
@@ -589,170 +602,6 @@
                     }
                   },
                   "slot_options": [
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB",
-                              "label": "core contribution and pooled programme and fund"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 104,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB03",
-                              "label": "contribution to specific-purpose programme and fund managed by an international organisation"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityB",
-                          "member_count": 1606,
-                          "served_rows": 21,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB01",
-                              "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityB",
-                          "member_count": 1331,
-                          "served_rows": 83,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityC",
-                              "label": "project-type intervention (group)"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 136,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityC01",
-                              "label": "project-type intervention"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityC",
-                          "member_count": 7005,
-                          "served_rows": 136,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD",
-                              "label": "expert and other technical assistance"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 111,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD02",
-                              "label": "other technical assistance"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityD",
-                          "member_count": 1600,
-                          "served_rows": 84,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD01",
-                              "label": "donor country personnel"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityD",
-                          "member_count": 976,
-                          "served_rows": 27,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityE",
-                              "label": "scholarship and student cost in donor country"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 38,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityE01",
-                              "label": "scholarship and training in donor country"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityE",
-                          "member_count": 819,
-                          "served_rows": 19,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityE02",
-                              "label": "imputed student cost"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityE",
-                          "member_count": 315,
-                          "served_rows": 19,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
                     {
                       "key": {
                         "axis": "how",
@@ -967,6 +816,170 @@
                           "relation": "root",
                           "member_count": 14098,
                           "served_rows": 512,
+                          "served_rows_exact": true
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityB",
+                              "label": "core contribution and pooled programme and fund"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 104,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityB03",
+                              "label": "contribution to specific-purpose programme and fund managed by an international organisation"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityB",
+                          "member_count": 1606,
+                          "served_rows": 21,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityB01",
+                              "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityB",
+                          "member_count": 1331,
+                          "served_rows": 83,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityC",
+                              "label": "project-type intervention (group)"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 136,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityC01",
+                              "label": "project-type intervention"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityC",
+                          "member_count": 7005,
+                          "served_rows": 136,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityD",
+                              "label": "expert and other technical assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 111,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityD02",
+                              "label": "other technical assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityD",
+                          "member_count": 1600,
+                          "served_rows": 84,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityD01",
+                              "label": "donor country personnel"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityD",
+                          "member_count": 976,
+                          "served_rows": 27,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityE",
+                              "label": "scholarship and student cost in donor country"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 38,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityE01",
+                              "label": "scholarship and training in donor country"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityE",
+                          "member_count": 819,
+                          "served_rows": 19,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityE02",
+                              "label": "imputed student cost"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityE",
+                          "member_count": 315,
+                          "served_rows": 19,
                           "served_rows_exact": true
                         }
                       ],
@@ -1242,19 +1255,6 @@
                         "key": {
                           "axis": "how",
                           "property": {
-                            "ref": "crsCooperationModality",
-                            "label": "CRS cooperation modality"
-                          },
-                          "label": "modality"
-                        },
-                        "binding_kind": "unbound",
-                        "refs": [],
-                        "provenance": "binder"
-                      },
-                      {
-                        "key": {
-                          "axis": "how",
-                          "property": {
                             "ref": "crsPurpose",
                             "label": "CRS purpose"
                           },
@@ -1342,6 +1342,19 @@
                       },
                       {
                         "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "crsCooperationModality",
+                            "label": "CRS cooperation modality"
+                          },
+                          "label": "modality"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
                           "axis": "where",
                           "label": "place"
                         },
@@ -1375,18 +1388,6 @@
                     ],
                     "query_qualifiers": [
                       {
-                        "text": "ODA",
-                        "named": [
-                          {
-                            "ref": "CRSTypeOfFlow10",
-                            "label": "official development assistance"
-                          }
-                        ],
-                        "slot": "crsTypeOfFlow",
-                        "disposition": "bound",
-                        "selected": []
-                      },
-                      {
                         "text": "health",
                         "named": [
                           {
@@ -1395,6 +1396,18 @@
                           }
                         ],
                         "slot": "crsPurpose",
+                        "disposition": "bound",
+                        "selected": []
+                      },
+                      {
+                        "text": "ODA",
+                        "named": [
+                          {
+                            "ref": "CRSTypeOfFlow10",
+                            "label": "official development assistance"
+                          }
+                        ],
+                        "slot": "crsTypeOfFlow",
                         "disposition": "bound",
                         "selected": []
                       },
@@ -1411,7 +1424,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_347a470e04c97eec",
+                    "capability_version": "cap_94e25737d859392c",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3730,33 +3743,43 @@
               }
             },
             {
-              "variable_text": "ODA disbursements for education",
+              "variable_text": "education ODA disbursements",
               "warnings": [
                 {
                   "code": "binding_folded",
                   "severity": "info",
-                  "message": "'ODA disbursements for education' resolved to the same shape as an earlier part; folded into that part's spec."
+                  "message": "'education ODA disbursements' resolved to the same shape as an earlier part; folded into that part's spec."
                 }
               ],
               "timing_ms": {
-                "total": 3542,
+                "total": 3091,
                 "by_step": {
-                  "recall": 791,
-                  "shape_arcs": 0,
+                  "recall": 450,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 93,
                   "shape_probe_coverage": 2,
-                  "shape_probe": 240,
-                  "shape_groups": 39,
-                  "shape_labels": 5,
+                  "shape_probe": 98,
+                  "shape_groups": 44,
+                  "shape_labels": 9,
                   "shape_admission": 1,
-                  "shape": 1008,
-                  "bind": 1505,
-                  "materialise": 146,
-                  "answer": 13,
-                  "options": 79
+                  "phase_derive_shapes": 0,
+                  "shape": 374,
+                  "phase_prune_and_rank": 0,
+                  "bind": 223,
+                  "phase_bind": 160,
+                  "phase_settle": 51,
+                  "phase_place_bindings": 27,
+                  "phase_facet_requests": 0,
+                  "materialise": 1197,
+                  "phase_materialise": 0,
+                  "answer": 20,
+                  "options": 455,
+                  "phase_outcome": 134
                 }
               },
               "restatement": {
-                "variable_text": "ODA disbursements for education",
+                "variable_text": "education ODA disbursements",
                 "entities": [
                   {
                     "text": "Germany",
@@ -3871,14 +3894,6 @@
                       {
                         "axis": "how",
                         "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      {
-                        "axis": "how",
-                        "property": {
                           "ref": "crsPurpose",
                           "label": "CRS purpose"
                         },
@@ -3917,6 +3932,14 @@
                         "label": "netting basis"
                       },
                       {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      {
                         "axis": "where",
                         "label": "place"
                       },
@@ -3940,20 +3963,6 @@
                     ]
                   },
                   "slots": [
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "binding": {
-                        "kind": "unbound"
-                      },
-                      "summable": true
-                    },
                     {
                       "key": {
                         "axis": "how",
@@ -4155,6 +4164,20 @@
                     },
                     {
                       "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": true
+                    },
+                    {
+                      "key": {
                         "axis": "where",
                         "label": "place"
                       },
@@ -4260,170 +4283,6 @@
                     }
                   },
                   "slot_options": [
-                    {
-                      "key": {
-                        "axis": "how",
-                        "property": {
-                          "ref": "crsCooperationModality",
-                          "label": "CRS cooperation modality"
-                        },
-                        "label": "modality"
-                      },
-                      "options": [
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB",
-                              "label": "core contribution and pooled programme and fund"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 104,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB03",
-                              "label": "contribution to specific-purpose programme and fund managed by an international organisation"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityB",
-                          "member_count": 1606,
-                          "served_rows": 21,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityB01",
-                              "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityB",
-                          "member_count": 1331,
-                          "served_rows": 83,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityC",
-                              "label": "project-type intervention (group)"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 136,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityC01",
-                              "label": "project-type intervention"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityC",
-                          "member_count": 7005,
-                          "served_rows": 136,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD",
-                              "label": "expert and other technical assistance"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 111,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD02",
-                              "label": "other technical assistance"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityD",
-                          "member_count": 1600,
-                          "served_rows": 84,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityD01",
-                              "label": "donor country personnel"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityD",
-                          "member_count": 976,
-                          "served_rows": 27,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityE",
-                              "label": "scholarship and student cost in donor country"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 0,
-                          "served_rows": 38,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityE01",
-                              "label": "scholarship and training in donor country"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityE",
-                          "member_count": 819,
-                          "served_rows": 19,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "CRSCooperationModalityE02",
-                              "label": "imputed student cost"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "child",
-                          "parent": "CRSCooperationModalityE",
-                          "member_count": 315,
-                          "served_rows": 19,
-                          "served_rows_exact": true
-                        }
-                      ],
-                      "truncated": false,
-                      "source": "observed"
-                    },
                     {
                       "key": {
                         "axis": "how",
@@ -4638,6 +4497,170 @@
                           "relation": "root",
                           "member_count": 14098,
                           "served_rows": 512,
+                          "served_rows_exact": true
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "crsCooperationModality",
+                          "label": "CRS cooperation modality"
+                        },
+                        "label": "modality"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityB",
+                              "label": "core contribution and pooled programme and fund"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 104,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityB03",
+                              "label": "contribution to specific-purpose programme and fund managed by an international organisation"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityB",
+                          "member_count": 1606,
+                          "served_rows": 21,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityB01",
+                              "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityB",
+                          "member_count": 1331,
+                          "served_rows": 83,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityC",
+                              "label": "project-type intervention (group)"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 136,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityC01",
+                              "label": "project-type intervention"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityC",
+                          "member_count": 7005,
+                          "served_rows": 136,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityD",
+                              "label": "expert and other technical assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 111,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityD02",
+                              "label": "other technical assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityD",
+                          "member_count": 1600,
+                          "served_rows": 84,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityD01",
+                              "label": "donor country personnel"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityD",
+                          "member_count": 976,
+                          "served_rows": 27,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityE",
+                              "label": "scholarship and student cost in donor country"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 0,
+                          "served_rows": 38,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityE01",
+                              "label": "scholarship and training in donor country"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityE",
+                          "member_count": 819,
+                          "served_rows": 19,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSCooperationModalityE02",
+                              "label": "imputed student cost"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSCooperationModalityE",
+                          "member_count": 315,
+                          "served_rows": 19,
                           "served_rows_exact": true
                         }
                       ],
@@ -4913,19 +4936,6 @@
                         "key": {
                           "axis": "how",
                           "property": {
-                            "ref": "crsCooperationModality",
-                            "label": "CRS cooperation modality"
-                          },
-                          "label": "modality"
-                        },
-                        "binding_kind": "unbound",
-                        "refs": [],
-                        "provenance": "binder"
-                      },
-                      {
-                        "key": {
-                          "axis": "how",
-                          "property": {
                             "ref": "crsPurpose",
                             "label": "CRS purpose"
                           },
@@ -5013,6 +5023,19 @@
                       },
                       {
                         "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "crsCooperationModality",
+                            "label": "CRS cooperation modality"
+                          },
+                          "label": "modality"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
                           "axis": "where",
                           "label": "place"
                         },
@@ -5046,18 +5069,6 @@
                     ],
                     "query_qualifiers": [
                       {
-                        "text": "ODA",
-                        "named": [
-                          {
-                            "ref": "CRSTypeOfFlow10",
-                            "label": "official development assistance"
-                          }
-                        ],
-                        "slot": "crsTypeOfFlow",
-                        "disposition": "bound",
-                        "selected": []
-                      },
-                      {
                         "text": "health",
                         "named": [
                           {
@@ -5066,6 +5077,18 @@
                           }
                         ],
                         "slot": "crsPurpose",
+                        "disposition": "bound",
+                        "selected": []
+                      },
+                      {
+                        "text": "ODA",
+                        "named": [
+                          {
+                            "ref": "CRSTypeOfFlow10",
+                            "label": "official development assistance"
+                          }
+                        ],
+                        "slot": "crsTypeOfFlow",
                         "disposition": "bound",
                         "selected": []
                       },
@@ -5082,7 +5105,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_347a470e04c97eec",
+                    "capability_version": "cap_94e25737d859392c",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -7415,20 +7438,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 3536,
+                "total": 707,
                 "by_step": {
-                  "recall": 778,
-                  "shape_arcs": 2,
-                  "shape_probe_coverage": 2,
-                  "shape_probe": 277,
-                  "shape_groups": 24,
-                  "shape_labels": 5,
+                  "recall": 3,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 3,
+                  "shape_probe_coverage": 6,
+                  "shape_probe": 146,
+                  "shape_groups": 48,
+                  "shape_labels": 9,
                   "shape_admission": 1,
-                  "shape": 973,
-                  "bind": 1109,
-                  "materialise": 1,
-                  "answer": 210,
-                  "options": 465
+                  "phase_derive_shapes": 0,
+                  "shape": 316,
+                  "phase_prune_and_rank": 0,
+                  "bind": 143,
+                  "phase_bind": 4,
+                  "phase_settle": 16,
+                  "phase_place_bindings": 7,
+                  "phase_facet_requests": 0,
+                  "materialise": 98,
+                  "phase_materialise": 1,
+                  "answer": 6,
+                  "options": 108,
+                  "phase_outcome": 5
                 }
               },
               "restatement": {
@@ -8851,7 +8884,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_347a470e04c97eec",
+                    "capability_version": "cap_94e25737d859392c",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": [
@@ -9384,7 +9417,7 @@
                             }
                           ],
                           "query_qualifiers": [],
-                          "capability_version": "cap_347a470e04c97eec",
+                          "capability_version": "cap_94e25737d859392c",
                           "default_reading": {
                             "applied": true,
                             "removed_stat_vars": [

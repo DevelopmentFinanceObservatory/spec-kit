@@ -8,7 +8,8 @@ files do not fit, an outcome its exchanges and actions.json do not give, an
 unredacted URL, and a ref example with the wrong verdict.
 
 Each case validates a whole copy of the contract, the served document's
-bodies included, which takes about a third of a second.
+bodies included, which takes about a third of a second. The copy hard-links
+the package's files, so it writes no data where the file system allows.
 
 Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
 """
@@ -18,6 +19,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import os
 import shutil
 import sys
 from collections.abc import Callable
@@ -59,11 +61,23 @@ def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
     )
 
 
+def _link_or_copy(source: str, target: str) -> None:
+    """Hard-links `source` at `target`, or copies it where the two paths are
+    on different file systems."""
+    try:
+        os.link(source, target)
+    except OSError:
+        shutil.copy2(source, target)
+
+
 @pytest.fixture
 def package_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """A copy of the real contract and registry the test may break."""
+    """A copy of the real contract and registry the test may break. The
+    package's files are hard links, so the copy writes no data; a test
+    changes a file only through `_edit`, which replaces it, or adds, renames
+    or removes files, none of which reaches the real package."""
     copy = tmp_path / "dfo_client_contract"
-    shutil.copytree(validator.PACKAGE_DIR, copy)
+    shutil.copytree(validator.PACKAGE_DIR, copy, copy_function=_link_or_copy)
     registry = tmp_path / "codes.json"
     shutil.copyfile(validator.REGISTRY_PATH, registry)
     monkeypatch.setattr(validator, "PACKAGE_DIR", copy)
@@ -74,6 +88,8 @@ def package_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def _edit(path: Path, change: Callable[[Any], None]) -> None:
     document = json.loads(path.read_text(encoding="utf-8"))
     change(document)
+    # A hard link written in place would change the real package's file.
+    path.unlink()
     path.write_text(json.dumps(document), encoding="utf-8")
 
 
@@ -344,6 +360,14 @@ _POLL_REFUSED = "scenarios/fetch-spec-poll-refused.json"
 _POLL_NOT_FOUND = "scenarios/fetch-spec-poll-not-found.json"
 _CUT_OFF_THEN_BUSY = "scenarios/fetch-spec-504-then-503.json"
 _BUSY_THEN_CUT_OFF = "scenarios/fetch-spec-503-then-504.json"
+
+
+def _recorded_origin(name: str) -> str:
+    """The origin of the API the recorded scenario `name` was recorded against."""
+    path = validator.PACKAGE_DIR / "scenarios" / f"{name}.json"
+    base_url = json.loads(path.read_text(encoding="utf-8"))["origin"]["base_url"]
+    parts = urlsplit(base_url)
+    return f"{parts.scheme}://{parts.netloc}"
 
 
 def _artifact_urls(origin: str) -> Callable[[Any], None]:
@@ -682,7 +706,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             "scenarios/choose-refused-option-out-of-range.json",
-            _set_step(1, option=2),
+            _set_step(1, option=1),
             "the steps make a POST /search/resolve the record lacks",
         ),
         (
@@ -824,6 +848,30 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "refs/ref-repeated-spec-id-rejected.json",
             lambda doc: doc["ref"]["members"].pop(),
             "breaks rule None, expected 'repeated_spec_id'",
+        ),
+        (
+            "refs/ref-one-member.json",
+            lambda doc: doc["ref"]["members"][0]["artifact"].update(
+                digest="sha256:" + "0" * 64
+            ),
+            f"member 0 digest sha256:{'0' * 64} is no file",
+        ),
+        (
+            "refs/ref-one-member.json",
+            lambda doc: doc["ref"]["members"][0].update(
+                content_version="cv_" + "0" * 32
+            ),
+            "member 0 content_version is not fetch-spec-known-sentence's",
+        ),
+        (
+            "refs/ref-one-member.json",
+            lambda doc: doc.update(scenario="fetch-spec-frame-layout"),
+            "member 0 is no member fetch-spec-frame-layout serves",
+        ),
+        (
+            "refs/ref-one-member.json",
+            lambda doc: doc.pop("scenario"),
+            "names no scenario that serves its members",
         ),
         (
             "rules/key-format.json",
@@ -1020,7 +1068,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (
             _NOT_REPRODUCIBLE,
             lambda doc: doc["exchanges"][-1]["request"].update(
-                path=doc["exchanges"][-1]["request"]["path"].removesuffix("?limit=1")
+                path=doc["exchanges"][-1]["request"]["path"].partition("?")[0]
             ),
             "where the steps make a GET",
         ),
@@ -1277,7 +1325,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             _FOREIGN_ARTIFACT,
-            _artifact_urls("http://127.0.0.1:19493"),
+            _artifact_urls(_recorded_origin("fetch-spec-known-sentence")),
             "the steps make a GET /api/datasets/",
         ),
         (
@@ -1294,7 +1342,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (_SERVER_WARNING, _warned(2, ["route_deprecated"]), "step 2 expects"),
         (_SERVER_WARNING, _warned(2, ["server_warning"]), "step 2 expects"),
-        (_POLL_REFUSED, _repeat(4, 1), "the steps never make exchanges 7 to 15"),
+        (_POLL_REFUSED, _repeat(4, 1), "the steps never make exchanges 7 to"),
         (
             _POLL_REFUSED,
             _set_outcome(
@@ -1631,6 +1679,10 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "body-file-misnamed",
         "ref-example-both-verdicts",
         "ref-example-wrong-verdict",
+        "ref-digest-stale",
+        "ref-content-version-stale",
+        "ref-member-not-served",
+        "ref-without-scenario",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",
@@ -2125,15 +2177,80 @@ def test_a_candidate_label_is_its_heading_or_its_sentence(
     assert validator.candidate_label(_candidate(**resolved)) == label
 
 
+_PLAIN = {"content_version": "cv_plain", "base_content_version": None}
+_DERIVED = {"content_version": "cv_derived", "base_content_version": "cv_plain"}
+
+
+@pytest.mark.parametrize(
+    ("pages", "newest"),
+    [
+        ([{"versions": [_PLAIN], "next_cursor": None}], "cv_plain"),
+        ([{"versions": [_DERIVED, _PLAIN], "next_cursor": None}], "cv_plain"),
+        (
+            [
+                {"versions": [_DERIVED], "next_cursor": "c1"},
+                {"versions": [_PLAIN], "next_cursor": None},
+            ],
+            "cv_plain",
+        ),
+        ([{"versions": [_DERIVED], "next_cursor": None}], None),
+        ([{"versions": [], "next_cursor": None}], None),
+    ],
+)
+def test_the_newest_version_is_the_first_plain_one_listed(
+    pages: list[dict[str, Any]], newest: str | None
+) -> None:
+    cursors: list[str | None] = []
+
+    def page(cursor: str | None) -> dict[str, Any]:
+        cursors.append(cursor)
+        return pages[len(cursors) - 1]
+
+    assert validator.newest_plain(page) == newest
+    assert cursors == [None, *(p["next_cursor"] for p in pages[:-1])]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"items": [_PLAIN], "next_cursor": None},
+        {"versions": [{"content_version": "cv_plain"}], "next_cursor": None},
+        {"versions": [{**_PLAIN, "base_content_version": 1}], "next_cursor": None},
+        {"versions": [_DERIVED], "next_cursor": 1},
+        {"versions": [_PLAIN], "next_cursor": 1},
+    ],
+)
+def test_an_unreadable_versions_page_raises(body: dict[str, Any]) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.newest_plain(lambda _: body)
+    assert raised.value.code == "contract_violation"
+
+
 def test_a_required_member_that_admits_null_stays_required() -> None:
     """A recorded body must carry a required member, null or not."""
     served = validator.PACKAGE_DIR / "served" / "openapi.json"
     routes = validator._Routes(json.loads(served.read_text(encoding="utf-8")))
     page = "/components/schemas/DatasetVersionsPage"
-    body = {"spec_id": "spec_" + "0" * 32, "versions": [], "complete": True}
+    body = {
+        "spec_id": "spec_" + "0" * 32,
+        "enrichment_stamp": "0" * 64,
+        "versions": [],
+        "complete": True,
+    }
     assert routes.validate(page, {**body, "next_cursor": None}) == []
     problems = routes.validate(page, body)
     assert any("'next_cursor' is a required property" in p for p in problems)
+
+
+def test_scenarios_past_their_budget_are_reported(
+    package_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    size = validator.scenarios_size(package_dir / "scenarios")
+    assert f"scenarios: {size:,} bytes pass" not in " ".join(validator.validate())
+    monkeypatch.setattr(validator, "SCENARIOS_BUDGET", size - 1)
+    assert f"scenarios: {size:,} bytes pass the {size - 1:,}-byte budget" in (
+        validator.validate()
+    )
 
 
 def test_no_scenarios_is_a_hard_failure(package_dir: Path) -> None:

@@ -4,9 +4,9 @@
   "description": "A question that asks for analysis answers declined, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
   "origin": {
     "kind": "recorded",
-    "base_url": "http://127.0.0.1:19493/api",
-    "dfo_commit": "635943e03a297f686ca5af32f6d027181d1971d4",
-    "recorded_at": "2026-10-21T13:06:43Z"
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+    "recorded_at": "2026-10-23T18:39:09Z"
   },
   "call": [
     {
@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "e61600f8e689429293ea320f5079509e"
+          "x-dfo-trace-id": "b0408d5777d8455dbb1147f8ad74ed96"
         },
         "json": {
           "schema_version": 1,
@@ -45,20 +45,22 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "635943e03a297f686ca5af32f6d027181d1971d4",
-            "trace_id": "e61600f8e689429293ea320f5079509e",
+            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
+            "trace_id": "b0408d5777d8455dbb1147f8ad74ed96",
             "warnings": [],
             "timing_ms": {
-              "total": 2060,
+              "total": 900,
               "by_step": {
                 "coverage": 0,
-                "extract": 2058
+                "extract": 898,
+                "entity_check": 1,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2251,
-              "output_tokens": 97,
-              "cached_tokens": 859
+              "input_tokens": 2229,
+              "output_tokens": 64,
+              "cached_tokens": 840
             },
             "timed_out": false
           },
@@ -88,7 +90,7 @@
       "error": {
         "class": "DeclinedError",
         "code": "answer_declined",
-        "trace_id": "e61600f8e689429293ea320f5079509e"
+        "trace_id": "b0408d5777d8455dbb1147f8ad74ed96"
       }
     }
   ]
