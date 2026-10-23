@@ -3187,32 +3187,77 @@ def _candidate_label_shared(parent: dict[str, Any], ctx: Context) -> Derived:
     return _choice_refused(label, edit=edit)(parent, ctx)
 
 
+# The malformed items `_malformed_echo_items` adds. A required member of
+# another type leaves an item unread; an optional member of another type, and a
+# member the schema does not name, read as absent.
+_OPERATION_BAD_VERB = {"verb": 7, "phrase": "top 5 donors"}
+_OPERATION_BAD_OVER = {
+    "verb": "rank",
+    "phrase": "top 5 donors",
+    "over": 3,
+    "target_year": True,
+}
+_ASSUMPTION_BAD_TEXT = {
+    "kind": "place_scope",
+    "binding_ref": "where:",
+    "text": None,
+}
+_ASSUMPTION_BAD_REFS = {
+    "kind": "declared_default",
+    "binding_ref": "how:dacTypeOfFinance",
+    "text": "grants",
+    "refs": ["DACTypeOfFinance110", 110],
+    "note": "unread",
+}
+_ASSUMPTION_REFS_READ = {
+    "kind": "declared_default",
+    "binding_ref": "how:dacTypeOfFinance",
+    "text": "grants",
+    "refs": ["DACTypeOfFinance110"],
+}
+
+
 def _malformed_echo_items(body: Any, ctx: Context) -> Any:
-    """The definite part's operations hold 42 before GROWTH and its
-    assumptions end with a string, and the chosen candidate's
-    reading_assumptions end with 7."""
+    """The definite part's operations hold 42, an operation whose verb is a
+    number and one whose over and target_year are not read before GROWTH, its
+    assumptions end with a string, one whose text is null and one with a
+    number among its refs and an unknown member, and the chosen candidate's
+    reading_assumptions, empty in the parent, hold 7 and an assumption whose
+    text is null, so none of them reads."""
     body = copy.deepcopy(body)
     candidates, definite = body["parts"]
     spec_id = candidates["candidates"]["specs"][0]["spec_id"]
-    candidates["reading_assumptions"][spec_id].append(7)
-    definite["operations"] = [42, dict(GROWTH)]
-    definite["assumptions"].append("assumed")
+    unread = [7, copy.deepcopy(_ASSUMPTION_BAD_TEXT)]
+    candidates["reading_assumptions"][spec_id] += unread
+    definite["operations"] = [
+        42,
+        dict(_OPERATION_BAD_VERB),
+        dict(_OPERATION_BAD_OVER),
+        dict(GROWTH),
+    ]
+    definite["assumptions"] += [
+        "assumed",
+        copy.deepcopy(_ASSUMPTION_BAD_TEXT),
+        copy.deepcopy(_ASSUMPTION_BAD_REFS),
+    ]
     return body
 
 
 def _echo_drops_malformed(parent: dict[str, Any], ctx: Context) -> Derived:
     """The parent's choice over `_malformed_echo_items`' answer, which posts
-    only the object items of each list it echoes."""
+    each echoed list's items in their read forms and leaves out the items
+    that do not read."""
     derived = _choice_posted(_malformed_echo_items)(parent, ctx)
     body = parent["exchanges"][0]["response"]["json"]
     candidates, definite = body["parts"]
     spec_id = candidates["candidates"]["specs"][0]["spec_id"]
     chosen, beside = derived.exchanges[1]["request"]["json"]["input"]["entries"]
     require(
-        chosen["assumptions"] == candidates["reading_assumptions"][spec_id]
-        and beside["operations"] == [GROWTH]
-        and beside["assumptions"] == definite["assumptions"],
-        "the echo drops each item that is not an object",
+        candidates["reading_assumptions"][spec_id] == []
+        and chosen["assumptions"] == []
+        and beside["operations"] == [{"verb": "rank", "phrase": "top 5 donors"}, GROWTH]
+        and beside["assumptions"] == [*definite["assumptions"], _ASSUMPTION_REFS_READ],
+        "the echo posts each list's read forms",
     )
     return derived
 
@@ -3848,11 +3893,17 @@ SYNTHETIC = (
     Synthetic(
         "choose-echo-drops-malformed-items",
         "choose-candidate-echoes-assumptions",
-        "The definite part's operations hold 42 before an operation and its assumptions "
-        "end with a string, and the chosen candidate's reading_assumptions end with 7.",
-        "An item that is not an object reads as absent, so each echoed operations and "
-        "assumptions list posts only its object items: the definite part's one operation "
-        "and its own assumptions, and the chosen candidate's empty list.",
+        "The definite part's operations hold 42, an operation whose verb is a number "
+        "and one whose over and target_year are not read, its assumptions gain a "
+        "string, an assumption whose text is null and one with a number among its refs "
+        "and an unknown member, and the chosen candidate's reading_assumptions hold 7 "
+        "and an assumption whose text is null.",
+        "An item that is not an object, or whose required members are not strings, "
+        "reads as absent, and an item reads as its schema's members of the types they "
+        "admit, so each echoed operations and assumptions list posts its read forms: "
+        "rank without over or target_year and the growth operation, the definite part's "
+        "own assumption and the grants assumption with its string ref alone, and the "
+        "chosen candidate's empty list, as none of its items reads.",
         _echo_drops_malformed,
     ),
     Synthetic(

@@ -93,7 +93,7 @@ import hashlib
 import json
 import re
 import sys
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path
@@ -1080,6 +1080,62 @@ def read_string(holder: Any, name: str) -> str | None:
     return value if isinstance(value, str) else None
 
 
+# An `assumptions`, `reading_assumptions` or `operations` item reads only when
+# it is an object whose required members are strings, and reads as the schema's
+# members alone: an optional member of another type, and an unknown member,
+# read as absent. A client posts these read forms back, in order.
+ASSUMPTION_REQUIRED = ("kind", "binding_ref", "text")
+OPERATION_REQUIRED = ("verb", "phrase")
+
+
+def _required_strings(item: Any, names: tuple[str, ...]) -> dict[str, Any] | None:
+    """`item`'s members `names` when it is an object holding each as a string,
+    else None."""
+    if not isinstance(item, dict) or not all(
+        isinstance(item.get(name), str) for name in names
+    ):
+        return None
+    return {name: item[name] for name in names}
+
+
+def read_assumption(item: Any) -> dict[str, Any] | None:
+    """An `Assumption` as a client reads it: kind, binding_ref and text, and
+    refs as its string items when it is a list. None when the item does not
+    read."""
+    read = _required_strings(item, ASSUMPTION_REQUIRED)
+    if read is not None and (refs := read_list(item, "refs")) is not None:
+        read["refs"] = [ref for ref in refs if isinstance(ref, str)]
+    return read
+
+
+def read_operation(item: Any) -> dict[str, Any] | None:
+    """An `Operation` as a client reads it: verb and phrase, over when it is a
+    string or null, and target_year when it is an integer or null. None when
+    the item does not read."""
+    read = _required_strings(item, OPERATION_REQUIRED)
+    if read is None:
+        return None
+    over = item.get("over")
+    if "over" in item and (over is None or isinstance(over, str)):
+        read["over"] = over
+    year = item.get("target_year")
+    if "target_year" in item and (
+        year is None or (isinstance(year, int) and not isinstance(year, bool))
+    ):
+        read["target_year"] = year
+    return read
+
+
+def read_items(
+    holder: Any, name: str, read: Callable[[Any], dict[str, Any] | None]
+) -> list[dict[str, Any]]:
+    """The items of `holder`'s list member `name` that `read` reads, in
+    order, each in its read form."""
+    return [
+        item for item in map(read, read_list(holder, name) or []) if item is not None
+    ]
+
+
 # The answer kinds a client reads. Any other kind raises ContractError.
 ANSWER_KINDS = ("resolution", "catalogue", "declined")
 RESOLUTION = "resolution"
@@ -1317,7 +1373,8 @@ def _option_part(option: Mapping[str, Any]) -> Any:
 def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
     """The assumptions a resubmitted reading of `part` echoes: a definite
     part's `assumptions`, or a candidates part's `reading_assumptions` under
-    the reading's spec_id, each item that is not an object read as absent.
+    the reading's spec_id, each in its read form and an item that does not
+    read left out.
     None, when the part carries no such list, posts no `assumptions`, and
     Search reads the reading as a fresh request does. `[]` states none."""
     if part.get("status") == "candidates":
@@ -1326,7 +1383,7 @@ def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
         holder, name = part, "assumptions"
     if read_list(holder, name) is None:
         return None
-    return read_objects(holder, name)
+    return read_items(holder, name, read_assumption)
 
 
 def _restated_entry(part: dict[str, Any]) -> dict[str, Any]:
@@ -1363,15 +1420,15 @@ def _identity(spec: dict[str, Any], assumptions: Any = None) -> dict[str, Any]:
 
 def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
     """An entry with the members every entry but a parsed one echoes from its
-    part: variable_text, separate when true, and operations when it has any
-    that are objects, an item of another type reading as absent."""
+    part: variable_text, separate when true, and operations when any item
+    reads, in its read form."""
     variable_text = read_string(part, "variable_text")
     if not variable_text:
         raise _refuse()
     entry: dict[str, Any] = {**members, "variable_text": variable_text}
     if part.get("separate") is True:
         entry["separate"] = True
-    if operations := read_objects(part, "operations"):
+    if operations := read_items(part, "operations", read_operation):
         entry["operations"] = operations
     return entry
 
@@ -1393,9 +1450,9 @@ def reading_hints(answer: Answer) -> dict[str, str | None]:
     for part in answer.parts:
         if part.get("status") != "definite":
             continue
-        for operation in read_objects(part, "operations"):
-            if verb := read_string(operation, "verb"):
-                phrase = json.dumps(operation.get("phrase"))
+        for operation in read_items(part, "operations", read_operation):
+            if verb := operation["verb"]:
+                phrase = json.dumps(operation["phrase"])
                 hints.setdefault(f"Not done: {verb} ({phrase})", verb)
         for departure in read_objects(part, "departures"):
             if text := read_string(departure, "text"):

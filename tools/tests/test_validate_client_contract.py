@@ -370,6 +370,7 @@ def _warned(index: int, codes: list[str]) -> Callable[[Any], None]:
 _ECHOES_SEPARATE = "scenarios/choose-echoes-separate-and-operations.json"
 _PLACEHOLDER = "scenarios/choose-posts-unsupported-placeholder.json"
 _CODELESS = "scenarios/search-refused-without-code.json"
+_ECHO_DROPS = "scenarios/choose-echo-drops-malformed-items.json"
 
 
 def _first_part(change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -1447,6 +1448,26 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "where the rules post",
         ),
         (
+            _ECHO_DROPS,
+            _posted(1, lambda entry: entry["operations"][0].update(over=3)),
+            "where the rules post",
+        ),
+        (
+            _ECHO_DROPS,
+            _posted(1, lambda entry: entry["assumptions"][1].update(note="unread")),
+            "where the rules post",
+        ),
+        (
+            _ECHO_DROPS,
+            _posted(1, lambda entry: entry["assumptions"][1]["refs"].append(110)),
+            "where the rules post",
+        ),
+        (
+            _ECHO_DROPS,
+            _posted(0, lambda entry: entry["assumptions"].append(7)),
+            "where the rules post",
+        ),
+        (
             _PLACEHOLDER,
             _first_entry(lambda entry: entry.update(code="scope_unsupported")),
             "where the rules post",
@@ -1744,6 +1765,10 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "separate-not-echoed",
         "separate-false-echoed",
         "operations-not-echoed",
+        "unread-operation-member-echoed",
+        "unknown-assumption-member-echoed",
+        "unread-ref-echoed",
+        "unread-assumption-echoed",
         "placeholder-of-another-code",
         "unknown-status-refusal-on-a-postable-part",
         "variable-text-refusal-on-a-named-part",
@@ -1887,6 +1912,81 @@ def test_an_orphan_body_file_is_reported(package_dir: Path) -> None:
     (package_dir / "scenarios" / "stray.parquet").write_bytes(b"")
     problems = validator.validate()
     assert any("no scenario names this body file" in p for p in problems), problems
+
+
+_ASSUMED = {"kind": "place_scope", "binding_ref": "where:", "text": "every place"}
+
+
+@pytest.mark.parametrize(
+    ("item", "read"),
+    [
+        (_ASSUMED, _ASSUMED),
+        ({**_ASSUMED, "refs": ["a", 1, None, "b"]}, {**_ASSUMED, "refs": ["a", "b"]}),
+        ({**_ASSUMED, "refs": "a"}, _ASSUMED),
+        ({**_ASSUMED, "refs": None}, _ASSUMED),
+        ({**_ASSUMED, "note": "x"}, _ASSUMED),
+        ({**_ASSUMED, "text": None}, None),
+        ({"kind": "place_scope", "text": "every place"}, None),
+        ("assumed", None),
+    ],
+    ids=[
+        "whole",
+        "refs-string-items",
+        "refs-not-a-list",
+        "refs-null",
+        "unknown-member",
+        "text-null",
+        "binding-ref-missing",
+        "not-an-object",
+    ],
+)
+def test_an_assumption_reads_as_its_schema_members(item: Any, read: Any) -> None:
+    assert validator.read_assumption(item) == read
+
+
+_RANK = {"verb": "rank", "phrase": "top 5 donors"}
+
+
+@pytest.mark.parametrize(
+    ("item", "read"),
+    [
+        (
+            {**_RANK, "over": "place", "target_year": 2020},
+            {**_RANK, "over": "place", "target_year": 2020},
+        ),
+        (
+            {**_RANK, "over": None, "target_year": None},
+            {**_RANK, "over": None, "target_year": None},
+        ),
+        ({**_RANK, "over": 3, "target_year": True}, _RANK),
+        ({**_RANK, "target_year": 2020.0}, _RANK),
+        ({**_RANK, "note": "x"}, _RANK),
+        ({"verb": 7, "phrase": "top 5 donors"}, None),
+        ({"verb": "rank"}, None),
+        (42, None),
+    ],
+    ids=[
+        "whole",
+        "optional-null",
+        "optional-of-another-type",
+        "target-year-a-float",
+        "unknown-member",
+        "verb-a-number",
+        "phrase-missing",
+        "not-an-object",
+    ],
+)
+def test_an_operation_reads_as_its_schema_members(item: Any, read: Any) -> None:
+    assert validator.read_operation(item) == read
+
+
+def test_an_assumptions_list_with_no_item_read_echoes_empty() -> None:
+    """A list none of whose items reads still states that the reading assumed
+    nothing, where a part with no list posts no assumptions."""
+    spec = {"spec_id": "spec_a"}
+    part = {"status": "definite", "assumptions": [7, {**_ASSUMED, "kind": 1}]}
+    assert validator.reading_echo(part, spec) == []
+    assert validator.reading_echo({"status": "definite"}, spec) is None
 
 
 def test_a_required_member_that_admits_null_stays_required() -> None:

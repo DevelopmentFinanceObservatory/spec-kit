@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "choose-echo-drops-malformed-items",
-  "description": "An item that is not an object reads as absent, so each echoed operations and assumptions list posts only its object items: the definite part's one operation and its own assumptions, and the chosen candidate's empty list.",
+  "description": "An item that is not an object, or whose required members are not strings, reads as absent, and an item reads as its schema's members of the types they admit, so each echoed operations and assumptions list posts its read forms: rank without over or target_year and the growth operation, the definite part's own assumption and the grants assumption with its string ref alone, and the chosen candidate's empty list, as none of its items reads.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "choose-candidate-echoes-assumptions",
-    "edit": "The definite part's operations hold 42 before an operation and its assumptions end with a string, and the chosen candidate's reading_assumptions end with 7."
+    "edit": "The definite part's operations hold 42, an operation whose verb is a number and one whose over and target_year are not read, its assumptions gain a string, an assumption whose text is null and one with a number among its refs and an unknown member, and the chosen candidate's reading_assumptions hold 7 and an assumption whose text is null."
   },
   "call": [
     {
@@ -1411,7 +1411,12 @@
               },
               "reading_assumptions": {
                 "spec_f0d0bb4841c0e55d6d4a353e45dcd52c": [
-                  7
+                  7,
+                  {
+                    "kind": "place_scope",
+                    "binding_ref": "where:",
+                    "text": null
+                  }
                 ],
                 "spec_c024875e07eee23ed7cb8d18b4436df1": []
               }
@@ -1464,6 +1469,16 @@
               "operations": [
                 42,
                 {
+                  "verb": 7,
+                  "phrase": "top 5 donors"
+                },
+                {
+                  "verb": "rank",
+                  "phrase": "top 5 donors",
+                  "over": 3,
+                  "target_year": true
+                },
+                {
                   "verb": "growth",
                   "phrase": "growth of GDP",
                   "over": "year"
@@ -1492,7 +1507,22 @@
                     "DAC2aAidType206"
                   ]
                 },
-                "assumed"
+                "assumed",
+                {
+                  "kind": "place_scope",
+                  "binding_ref": "where:",
+                  "text": null
+                },
+                {
+                  "kind": "declared_default",
+                  "binding_ref": "how:dacTypeOfFinance",
+                  "text": "grants",
+                  "refs": [
+                    "DACTypeOfFinance110",
+                    110
+                  ],
+                  "note": "unread"
+                }
               ],
               "status": "definite",
               "spec": {
@@ -5051,10 +5081,22 @@
                     "refs": [
                       "DAC2aAidType206"
                     ]
+                  },
+                  {
+                    "kind": "declared_default",
+                    "binding_ref": "how:dacTypeOfFinance",
+                    "text": "grants",
+                    "refs": [
+                      "DACTypeOfFinance110"
+                    ]
                   }
                 ],
                 "variable_text": "aid flows",
                 "operations": [
+                  {
+                    "verb": "rank",
+                    "phrase": "top 5 donors"
+                  },
                   {
                     "verb": "growth",
                     "phrase": "growth of GDP",
