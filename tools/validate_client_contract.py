@@ -34,8 +34,8 @@ document validates against its schema, then what the schemas cannot express:
   row of class `AuthenticationError`.
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
   none of them a code another table or `registries/codes.json` holds, and the
-  warning codes are those the client rules issue: `route_deprecated`,
-  `server_warning`, and one `key_<reason>` per key-format reason.
+  warning codes are those the client rules issue: `ref_digest_changed`,
+  `route_deprecated`, `server_warning`, and one `key_<reason>` per key-format reason.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
   one, a synthetic scenario derives from a recorded one, and every body file
@@ -490,11 +490,16 @@ def _check_warning_codes(
     key_reasons: Sequence[str],
 ) -> list[str]:
     """As `_check_other_codes`, and the codes are those a client's rules
-    issue: each header warning, and one `key_<reason>` warning per
-    key-format reason."""
+    issue: `ref_digest_changed`, each header warning, and one `key_<reason>`
+    warning per key-format reason."""
     codes = [row["code"] for row in document["codes"]]
     problems = _check_other_codes("warning-codes.json", codes, taken)
-    wanted = {ROUTE_DEPRECATED, SERVER_WARNING, *(f"key_{r}" for r in key_reasons)}
+    wanted = {
+        REF_DIGEST_CHANGED,
+        ROUTE_DEPRECATED,
+        SERVER_WARNING,
+        *(f"key_{r}" for r in key_reasons),
+    }
     problems.extend(
         f"warning-codes.json: no row for {code!r}, a warning a client issues"
         for code in sorted(wanted - set(codes))
@@ -835,6 +840,9 @@ def retry_wait(headers: Mapping[str, str], attempt: int) -> float:
         return wait
     return min(RETRY_BACKOFF_FIRST * 2**attempt, RETRY_BACKOFF_CAP)
 
+
+# The warning a client issues when a ref's file digest has changed.
+REF_DIGEST_CHANGED = "ref_digest_changed"
 
 # The headers a client warns on, and the warning-codes.json code of each.
 DEPRECATION_HEADERS = ("deprecation", "sunset")
