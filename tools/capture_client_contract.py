@@ -4055,7 +4055,7 @@ SYNTHETIC = (
     Synthetic(
         "choose-candidate-by-label",
         "answer-candidates-choose-fetch",
-        "The choice names candidate 0 by its label, and the fetch goes.",
+        "The choice names candidate 0 by its label.",
         "A candidate is chosen by its label, the heading of its sentence plan, as by its "
         "index: the choice posts the same identity entry and reaches the same answer.",
         _candidate_by_label,
