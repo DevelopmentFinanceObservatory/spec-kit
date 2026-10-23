@@ -260,6 +260,54 @@ def test_an_offline_rederivation_rewrites_only_the_expect(tmp_path: Path) -> Non
     assert fresh == (SCENARIOS / f"{name}.json").read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("named", ["symlink", "parent", "absolute"])
+def test_an_offline_rederivation_refuses_a_body_file_outside_its_directory(
+    tmp_path: Path, named: str
+) -> None:
+    """A body file that is a symlink, or a name that leaves the scenarios
+    directory, is refused before its bytes are read into a record."""
+    name = "answer-definite-fetch"
+    scenarios, outside = tmp_path / "scenarios", tmp_path / "outside.parquet"
+    scenarios.mkdir()
+    for path in SCENARIOS.glob(f"{name}.*"):
+        (scenarios / path.name).write_bytes(path.read_bytes())
+    body = scenarios / f"{name}.parquet"
+    body.rename(outside)
+    body_file = {
+        "symlink": body.name,
+        "parent": f"../{outside.name}",
+        "absolute": str(outside),
+    }[named]
+    if named == "symlink":
+        body.symlink_to(outside)
+    record = scenarios / f"{name}.json"
+    stale = json.loads(record.read_text(encoding="utf-8"))
+    for exchange in stale["exchanges"]:
+        if "body_file" in exchange["response"]:
+            exchange["response"]["body_file"] = body_file
+    record.write_text(json.dumps(stale), encoding="utf-8")
+    ctx = capture.Context(
+        capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES, read_shape=_shape
+    )
+    with pytest.raises(SystemExit, match="body file"):
+        capture.rederive_recorded(name, ctx, scenarios)
+    assert json.loads(record.read_text(encoding="utf-8")) == stale
+    assert body.is_symlink() == (named == "symlink")
+
+
+def test_a_writer_refuses_a_symlinked_body_file(tmp_path: Path) -> None:
+    outside = tmp_path / "outside.parquet"
+    outside.write_bytes(b"outside")
+    scenarios = tmp_path / "scenarios"
+    scenarios.mkdir()
+    (scenarios / "s.parquet").symlink_to(outside)
+    record = {"name": "s", "exchanges": [{"response": {"body_file": "s.parquet"}}]}
+    with pytest.raises(ValueError, match="symlink"):
+        capture.write_record(scenarios, record, {"s.parquet": b"new"})
+    assert outside.read_bytes() == b"outside"
+    assert sorted(p.name for p in scenarios.iterdir()) == ["s.parquet"]
+
+
 def test_a_recorder_refuses_a_request_that_is_not_the_next_canned_one() -> None:
     def transport(method: str, url: str, **kwargs: Any) -> Any:
         raise AssertionError(f"{method} {url} reached the network")

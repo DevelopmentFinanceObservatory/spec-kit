@@ -94,7 +94,9 @@ from validate_client_contract import (
     answer_members,
     answer_outcome,
     artifact_route,
+    body_path,
     build_body,
+    candidate_label,
     choice_for,
     choice_input,
     data_warning,
@@ -1076,6 +1078,8 @@ class Session:
             refusal = refusal if refusal is not None else error
             newest = self._newest(spec_id)
         else:
+            if manifest["definition"]["spec_id"] != spec_id:
+                raise ClientError("contract_violation")
             if manifest["content_version"] == version:
                 return self._member(member["parts"], held, manifest, rendering, False)
             newest = manifest["content_version"]
@@ -2007,6 +2011,8 @@ _OPERATION_FAILED = _problem(
 )
 # The content version a rebuild answers when the data moved on.
 NEWER_VERSION = "cv_" + "1" * 32
+# The spec_id a ref's rebuild answers in `fetch-ref-expired-rebuild-other-spec`.
+REBUILT_SPEC_ID = "spec_" + "2" * 32
 
 
 def _retry_after_504(
@@ -2228,6 +2234,22 @@ def _expired_newer(parent: dict[str, Any], ctx: Context) -> Derived:
         [_snapshot_expired(ref), build],
         [error.outcome(ctx.client_codes)],
     )
+
+
+def _expired_other_spec(parent: dict[str, Any], ctx: Context) -> Derived:
+    """As `_expired_rebuilt`, with the rebuild's manifest naming
+    REBUILT_SPEC_ID, which raises before any download."""
+    ref = _answer_ref(parent)
+    build = copy.deepcopy(parent["exchanges"][_build_index(parent)])
+    build["response"]["json"]["definition"]["spec_id"] = REBUILT_SPEC_ID
+    session = ctx.session("synthetic", canned=[_snapshot_expired(ref), build])
+    session.fetch_ref(ref)
+    require(not session.recorder.canned, "the lookup makes every exchange")
+    require(
+        _raises(session.expect[-1], "contract_violation", ctx),
+        "the rebuild of another spec_id raises ContractError",
+    )
+    return Derived(session.call, session.recorder.exchanges, session.expect)
 
 
 # The digest a ref names for a file the lookup never reaches.
@@ -3120,6 +3142,81 @@ def _labels_shared(body: Any, ctx: Context) -> Any:
     return body
 
 
+def _first_candidate_label(body: Any) -> str:
+    """The label of the first candidate of the answer's first part, which no
+    other candidate of that part shares."""
+    specs = body["parts"][0]["candidates"]["specs"]
+    labels = [candidate_label(spec) for spec in specs]
+    require(
+        labels[0] is not None and labels.count(labels[0]) == 1,
+        "the first candidate's label is its own",
+    )
+    assert labels[0] is not None
+    return labels[0]
+
+
+def _candidate_by_label(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's search and its choice of candidate 0, named by its label,
+    which posts what the index posts and reaches the same answer."""
+    search, choose = parent["call"][:2]
+    require(choose.get("option") == 0, "the parent chooses candidate 0")
+    label = _first_candidate_label(parent["exchanges"][0]["response"]["json"])
+    session = ctx.session("synthetic", canned=copy.deepcopy(parent["exchanges"][:2]))
+    answer = session.search(search["question"])
+    session.choose(answer, label, part=choose.get("part"))
+    require(not session.recorder.canned, "the choice makes the parent's request")
+    require(
+        session.expect == parent["expect"][:2],
+        "the label reaches the answer the index reaches",
+    )
+    return Derived(session.call, session.recorder.exchanges, session.expect)
+
+
+def _candidate_label_shared(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The second candidate takes the first one's sentence plan, so both have
+    the first one's label, and the choice names that label."""
+
+    def edit(body: Any, ctx: Context) -> Any:
+        body = copy.deepcopy(body)
+        first, second = body["parts"][0]["candidates"]["specs"][:2]
+        plan = first["resolved"]["sentence_plan"]
+        second["resolved"]["sentence_plan"] = copy.deepcopy(plan)
+        return body
+
+    label = _first_candidate_label(parent["exchanges"][0]["response"]["json"])
+    return _choice_refused(label, edit=edit)(parent, ctx)
+
+
+def _malformed_echo_items(body: Any, ctx: Context) -> Any:
+    """The definite part's operations hold 42 before GROWTH and its
+    assumptions end with a string, and the chosen candidate's
+    reading_assumptions end with 7."""
+    body = copy.deepcopy(body)
+    candidates, definite = body["parts"]
+    spec_id = candidates["candidates"]["specs"][0]["spec_id"]
+    candidates["reading_assumptions"][spec_id].append(7)
+    definite["operations"] = [42, dict(GROWTH)]
+    definite["assumptions"].append("assumed")
+    return body
+
+
+def _echo_drops_malformed(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's choice over `_malformed_echo_items`' answer, which posts
+    only the object items of each list it echoes."""
+    derived = _choice_posted(_malformed_echo_items)(parent, ctx)
+    body = parent["exchanges"][0]["response"]["json"]
+    candidates, definite = body["parts"]
+    spec_id = candidates["candidates"]["specs"][0]["spec_id"]
+    chosen, beside = derived.exchanges[1]["request"]["json"]["input"]["entries"]
+    require(
+        chosen["assumptions"] == candidates["reading_assumptions"][spec_id]
+        and beside["operations"] == [GROWTH]
+        and beside["assumptions"] == definite["assumptions"],
+        "the echo drops each item that is not an object",
+    )
+    return derived
+
+
 def _two_part_query(body: Any, ctx: Context) -> Any:
     """The first option's data_query holds its one part twice."""
     body = copy.deepcopy(body)
@@ -3377,6 +3474,16 @@ SYNTHETIC = (
         "client raises VersionUnavailableError with the snapshot's artifact_expired code and "
         "the rebuilt version as the newest, and downloads nothing.",
         _expired_newer,
+    ),
+    Synthetic(
+        "fetch-ref-expired-rebuild-other-spec",
+        "answer-definite-fetch",
+        f"As fetch-ref-expired-rebuild-same-version, with the rebuild's manifest naming {REBUILT_SPEC_ID}.",
+        "A rebuild of a ref's spec must answer the ref's spec_id as well as its "
+        "content_version: a manifest of another spec_id raises ContractError "
+        "contract_violation, as a snapshot of another spec_id does, and the client "
+        "downloads nothing.",
+        _expired_other_spec,
     ),
     Synthetic(
         "fetch-ref-expired-not-reproducible",
@@ -3739,6 +3846,16 @@ SYNTHETIC = (
         _choice_posted(_separate_with_operation),
     ),
     Synthetic(
+        "choose-echo-drops-malformed-items",
+        "choose-candidate-echoes-assumptions",
+        "The definite part's operations hold 42 before an operation and its assumptions "
+        "end with a string, and the chosen candidate's reading_assumptions end with 7.",
+        "An item that is not an object reads as absent, so each echoed operations and "
+        "assumptions list posts only its object items: the definite part's one operation "
+        "and its own assumptions, and the chosen candidate's empty list.",
+        _echo_drops_malformed,
+    ),
+    Synthetic(
         "choose-posts-unsupported-placeholder",
         "choose-option-beside-definite",
         "Part 0 becomes an unsupported part with code scope_too_broad and no restatement.",
@@ -3936,6 +4053,31 @@ SYNTHETIC = (
         _choice_refused("Congo [Nowhere]"),
     ),
     Synthetic(
+        "choose-candidate-by-label",
+        "answer-candidates-choose-fetch",
+        "The choice names candidate 0 by its label, and the fetch goes.",
+        "A candidate is chosen by its label, the heading of its sentence plan, as by its "
+        "index: the choice posts the same identity entry and reaches the same answer.",
+        _candidate_by_label,
+    ),
+    Synthetic(
+        "choose-refused-unknown-candidate-label",
+        "answer-candidates-choose-fetch",
+        'A choice of "Germany\'s net lending" follows the search.',
+        "Choosing a candidate by a label no candidate has raises InvalidRequestError "
+        "with no request.",
+        _choice_refused("Germany's net lending"),
+    ),
+    Synthetic(
+        "choose-refused-shared-candidate-label",
+        "answer-candidates-choose-fetch",
+        "Candidate 1 takes candidate 0's sentence plan, and the choice names their shared "
+        "label.",
+        "A label two candidates share matches several, so choosing by it raises "
+        "InvalidRequestError with no request.",
+        _candidate_label_shared,
+    ),
+    Synthetic(
         "choose-refused-answered-part",
         "answer-mixed-fetch-raises",
         "A choice of option 0 on part 0, which has a reading, follows the search.",
@@ -3988,16 +4130,21 @@ def write_record(
 ) -> None:
     """Writes `record` and its bodies, removing the body files of its own an
     earlier record of the same name named. A parent's body file it names
-    stays."""
+    stays. Every body file it removes or writes is checked by `body_path`
+    before any is touched, so a bad name or a symlink changes nothing."""
     path = directory / f"{record['name']}.json"
+    stale = []
     if path.exists():
         old = json.loads(path.read_text(encoding="utf-8"))
         for exchange in old["exchanges"]:
             body_file = exchange["response"].get("body_file")
             if body_file and owns_body_file(record["name"], body_file):
-                (directory / body_file).unlink(missing_ok=True)
-    for body_file, data in bodies.items():
-        (directory / body_file).write_bytes(data)
+                stale.append(body_path(directory, body_file))
+    written = {body_path(directory, name): data for name, data in bodies.items()}
+    for body in stale:
+        body.unlink(missing_ok=True)
+    for body, data in written.items():
+        body.write_bytes(data)
     _write_json(path, record)
 
 
@@ -4114,7 +4261,7 @@ class Served:
         if "json" in response:
             data = json.dumps(response["json"]).encode()
         elif "body_file" in response:
-            data = (self.body_dir / response["body_file"]).read_bytes()
+            data = body_path(self.body_dir, response["body_file"]).read_bytes()
         else:
             data = b""
         return Response(response["status"], dict(response.get("headers", {})), data)
@@ -4176,6 +4323,12 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
     if not path.exists():
         raise SystemExit(f"{name}: no record to derive from; record it live")
     record = json.loads(path.read_text(encoding="utf-8"))
+    for exchange in record["exchanges"]:
+        if "body_file" in exchange["response"]:
+            try:
+                body_path(directory, exchange["response"]["body_file"])
+            except ValueError as exc:
+                raise SystemExit(f"{name}: {exc}") from exc
     served = Served(record, directory)
     session = Session(
         Recorder(name, served.base_url, served),

@@ -1870,6 +1870,19 @@ def test_a_missing_body_file_is_reported(package_dir: Path) -> None:
     assert validator.main() == 1
 
 
+def test_a_symlinked_body_file_is_reported(package_dir: Path, tmp_path: Path) -> None:
+    body = package_dir / "scenarios" / "fetch-spec-known-sentence.parquet"
+    outside = tmp_path / "outside.parquet"
+    body.rename(outside)
+    body.symlink_to(outside)
+    problems = validator.validate()
+    assert any(
+        "'fetch-spec-known-sentence.parquet'" in p and "is a symlink" in p
+        for p in problems
+    ), problems
+    assert validator.main() == 1
+
+
 def test_an_orphan_body_file_is_reported(package_dir: Path) -> None:
     (package_dir / "scenarios" / "stray.parquet").write_bytes(b"")
     problems = validator.validate()

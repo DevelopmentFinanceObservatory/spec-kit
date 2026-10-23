@@ -1159,9 +1159,10 @@ def choice_for(
     With no part named, exactly one gap must await a choice: a `choice` gap,
     or any gap with options. A part is named by its index, its variable text,
     or a word that one gap's options mention, and must be a gap. A
-    candidates part's options are its candidates, chosen by index. Any other
-    gap's are its no_data options, chosen by index or label, a label scoped to
-    the options that mention the word the part was named by."""
+    candidates part's options are its candidates, chosen by index or by
+    `candidate_label`. Any other gap's are its no_data options, chosen by
+    index or label, a label scoped to the options that mention the word the
+    part was named by. A label must match exactly one option."""
     gaps = answer_gaps(answer, kinds)
     gap_parts = {gap["part"] for gap in gaps}
     mention = None
@@ -1194,11 +1195,13 @@ def choice_for(
     chosen = answer.parts[index]
     if chosen.get("status") == "candidates":
         specs = chosen["candidates"]["specs"]
-        if not isinstance(option, int):
-            raise _UnfitError("candidates are chosen by index")
-        if not 0 <= option < len(specs):
+        if isinstance(option, int):
+            picked = [specs[option]] if 0 <= option < len(specs) else []
+        else:
+            picked = [spec for spec in specs if candidate_label(spec) == option]
+        if len(picked) != 1:
             raise _refuse()
-        return Choice(index, candidate=specs[option])
+        return Choice(index, candidate=picked[0])
     options = _options(answer, index)
     if isinstance(option, int):
         found = [options[option]] if 0 <= option < len(options) else []
@@ -1212,6 +1215,20 @@ def choice_for(
     if len(found) != 1:
         raise _refuse()
     return Choice(index, option=found[0])
+
+
+def candidate_label(spec: Mapping[str, Any]) -> str | None:
+    """A candidate's label: the `text` of its spec's `resolved.sentence_plan`
+    tokens in the `heading` segment, a token whose `segment` is not a string
+    counted in it, joined and stripped of surrounding white space; else its
+    `resolved.rendered_sentence`; else None."""
+    resolved = read_object(spec, "resolved")
+    heading = "".join(
+        read_string(token, "text") or ""
+        for token in read_objects(resolved, "sentence_plan")
+        if read_string(token, "segment") in (None, "heading")
+    ).strip()
+    return heading or read_string(resolved, "rendered_sentence") or None
 
 
 def _options(answer: Answer, index: int) -> list[dict[str, Any]]:
@@ -1300,12 +1317,16 @@ def _option_part(option: Mapping[str, Any]) -> Any:
 def reading_echo(part: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
     """The assumptions a resubmitted reading of `part` echoes: a definite
     part's `assumptions`, or a candidates part's `reading_assumptions` under
-    the reading's spec_id. None, when the part carries no such member, posts
-    no `assumptions`, and Search reads the reading as a fresh request does.
-    `[]` states none."""
+    the reading's spec_id, each item that is not an object read as absent.
+    None, when the part carries no such list, posts no `assumptions`, and
+    Search reads the reading as a fresh request does. `[]` states none."""
     if part.get("status") == "candidates":
-        return read_list(read_object(part, "reading_assumptions"), spec["spec_id"])
-    return read_list(part, "assumptions")
+        holder, name = read_object(part, "reading_assumptions"), spec["spec_id"]
+    else:
+        holder, name = part, "assumptions"
+    if read_list(holder, name) is None:
+        return None
+    return read_objects(holder, name)
 
 
 def _restated_entry(part: dict[str, Any]) -> dict[str, Any]:
@@ -1342,14 +1363,15 @@ def _identity(spec: dict[str, Any], assumptions: Any = None) -> dict[str, Any]:
 
 def _echo(part: dict[str, Any], **members: Any) -> dict[str, Any]:
     """An entry with the members every entry but a parsed one echoes from its
-    part: variable_text, separate when true, and operations when any."""
+    part: variable_text, separate when true, and operations when it has any
+    that are objects, an item of another type reading as absent."""
     variable_text = read_string(part, "variable_text")
     if not variable_text:
         raise _refuse()
     entry: dict[str, Any] = {**members, "variable_text": variable_text}
     if part.get("separate") is True:
         entry["separate"] = True
-    if operations := read_list(part, "operations"):
+    if operations := read_objects(part, "operations"):
         entry["operations"] = operations
     return entry
 
@@ -2125,7 +2147,7 @@ class _Replay:
 
     def body(self, response: dict[str, Any]) -> bytes:
         if "body_file" in response:
-            path = self.body_dir / response["body_file"]
+            path = body_path(self.body_dir, response["body_file"])
             if not path.is_file():
                 raise _UnfitError(f"body file {response['body_file']!r} is missing")
             return path.read_bytes()
@@ -2310,7 +2332,9 @@ class _Replay:
         """One version a ref names, through the lookup order: the snapshot
         route and the files route at the stored digest, then the file
         selector, then a build that must answer the same version. A snapshot
-        refusal other than artifact_expired ends the lookup. Otherwise a
+        or build that answers another spec_id raises ContractError, as a
+        snapshot of another version does. A snapshot refusal other than
+        artifact_expired ends the lookup. Otherwise a
         lookup that finds no file raises VersionUnavailableError with the
         first refusal's code, or version_unavailable, and the newest version,
         either the one the build answered or the versions route's first."""
@@ -2346,6 +2370,8 @@ class _Replay:
             refusal = refusal if refusal is not None else error
             newest = self.newest(spec_id)
         else:
+            if manifest["definition"]["spec_id"] != spec_id:
+                raise ClientError("contract_violation")
             if manifest["content_version"] == version:
                 held = {**spec, "sentence": member["sentence"]}
                 return self.member(member["parts"], held, manifest, rendering, False)
@@ -2640,6 +2666,30 @@ def relocated(
     ]
 
 
+# A body file's name as `scenario.schema.json`'s `body_file` pattern states
+# it: a bare file name, so it is never absolute and never leaves its directory.
+BODY_FILE_NAME = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*\.[a-z0-9]+")
+
+
+def body_path(directory: Path, body_file: str) -> Path:
+    """The path of the body file `body_file` beside the records in
+    `directory`, checked before anything reads or writes it.
+
+    Raises:
+        ValueError: `body_file` is not a bare file name, so it could be
+            absolute or resolve outside `directory`, or it names a symlink,
+            which would read or write the file it points to.
+    """
+    if BODY_FILE_NAME.fullmatch(body_file) is None:
+        raise ValueError(
+            f"body file {body_file!r} is not a bare file name in {directory}"
+        )
+    path = directory / body_file
+    if path.is_symlink():
+        raise ValueError(f"body file {body_file!r} in {directory} is a symlink")
+    return path
+
+
 def owns_body_file(name: str, body_file: str) -> bool:
     """Whether `body_file` is one the scenario `name` writes: `<name>.<ext>`,
     or `<name>-<n>.<ext>` for its n-th body."""
@@ -2712,7 +2762,12 @@ def _check_body_files(
                 f"scenarios/{file_name}: exchange {index}: body file {body_file!r} is "
                 "neither the scenario's own nor one its parent names"
             )
-        if not (directory / body_file).is_file():
+        try:
+            path = body_path(directory, body_file)
+        except ValueError as exc:
+            problems.append(f"scenarios/{file_name}: exchange {index}: {exc}")
+            continue
+        if not path.is_file():
             problems.append(
                 f"scenarios/{file_name}: exchange {index}: body file "
                 f"{body_file!r} is missing"
