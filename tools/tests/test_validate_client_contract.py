@@ -1959,7 +1959,8 @@ _RANK = {"verb": "rank", "phrase": "top 5 donors"}
             {**_RANK, "over": None, "target_year": None},
         ),
         ({**_RANK, "over": 3, "target_year": True}, _RANK),
-        ({**_RANK, "target_year": 2020.0}, _RANK),
+        ({**_RANK, "target_year": 2020.0}, {**_RANK, "target_year": 2020}),
+        ({**_RANK, "target_year": 2020.5}, _RANK),
         ({**_RANK, "note": "x"}, _RANK),
         ({"verb": 7, "phrase": "top 5 donors"}, None),
         ({"verb": "rank"}, None),
@@ -1969,7 +1970,8 @@ _RANK = {"verb": "rank", "phrase": "top 5 donors"}
         "whole",
         "optional-null",
         "optional-of-another-type",
-        "target-year-a-float",
+        "target-year-a-whole-float",
+        "target-year-fractional",
         "unknown-member",
         "verb-a-number",
         "phrase-missing",
@@ -1977,7 +1979,8 @@ _RANK = {"verb": "rank", "phrase": "top 5 donors"}
     ],
 )
 def test_an_operation_reads_as_its_schema_members(item: Any, read: Any) -> None:
-    assert validator.read_operation(item) == read
+    # JSON text tells 2020 from 2020.0, which compare equal in Python.
+    assert json.dumps(validator.read_operation(item)) == json.dumps(read)
 
 
 def test_an_assumptions_list_with_no_item_read_echoes_empty() -> None:

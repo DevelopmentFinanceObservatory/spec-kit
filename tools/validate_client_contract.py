@@ -1110,8 +1110,9 @@ def read_assumption(item: Any) -> dict[str, Any] | None:
 
 def read_operation(item: Any) -> dict[str, Any] | None:
     """An `Operation` as a client reads it: verb and phrase, over when it is a
-    string or null, and target_year when it is an integer or null. None when
-    the item does not read."""
+    string or null, and target_year when it is null or a number other than a
+    boolean with no fractional part, read as that integer, so 2020.0 reads as
+    2020. None when the item does not read."""
     read = _required_strings(item, OPERATION_REQUIRED)
     if read is None:
         return None
@@ -1119,10 +1120,12 @@ def read_operation(item: Any) -> dict[str, Any] | None:
     if "over" in item and (over is None or isinstance(over, str)):
         read["over"] = over
     year = item.get("target_year")
-    if "target_year" in item and (
-        year is None or (isinstance(year, int) and not isinstance(year, bool))
+    if year is None and "target_year" in item:
+        read["target_year"] = None
+    elif (isinstance(year, int) and not isinstance(year, bool)) or (
+        isinstance(year, float) and year.is_integer()
     ):
-        read["target_year"] = year
+        read["target_year"] = int(year)
     return read
 
 
