@@ -716,6 +716,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "step 0 expects",
         ),
         (
+            "scenarios/answer-timed-out-keeps-reasons.json",
+            _first_gap(kind="timed_out"),
+            "step 0 expects",
+        ),
+        (
             "scenarios/answer-unsupported-part.json",
             _first_gap(kind="unknown"),
             "step 0 expects",
@@ -1649,11 +1654,6 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "the steps never make exchanges 1 to 1",
         ),
         (
-            "scenarios/answer-timed-out.json",
-            _set_body(0, lambda body: body.update(diagnostics="timed out")),
-            "step 0 expects",
-        ),
-        (
             "scenarios/answer-candidates-choose-fetch.json",
             _set_body(
                 0,
@@ -1703,6 +1703,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "strict-fetch-made-lenient",
         "warn-notice-raises-on-strict",
         "expect-wrong-timed-out-gap",
+        "expect-timed-out-gap-over-the-reason",
         "expect-wrong-unsupported-gap",
         "known-kind-raises-nothing",
         "partial-fetch-nothing-answered",
@@ -1900,7 +1901,6 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "no-data-options-null-counted",
         "bound-entities-as-objects-compared",
         "mentions-as-a-string-matched",
-        "diagnostics-not-an-object-read",
         "candidate-spec-not-an-object-read",
     ],
 )
@@ -1947,6 +1947,36 @@ def test_a_body_trace_id_that_is_not_a_non_empty_string_reads_as_absent(
     _edit(package_dir / _CODELESS, change)
     problems = validator.validate()
     assert not [p for p in problems if _CODELESS in p], problems
+
+
+_DEGRADED = {"code": "engine_degraded", "severity": "degraded", "message": "slow"}
+
+
+@pytest.mark.parametrize(
+    ("diagnostics", "warns"),
+    [
+        ("timed out", False),
+        ([_DEGRADED], False),
+        ({"warnings": [_DEGRADED]}, True),
+    ],
+    ids=["a-string", "a-list-of-warnings", "an-object-as-control"],
+)
+def test_diagnostics_that_is_not_an_object_holds_no_warnings(
+    package_dir: Path, diagnostics: Any, warns: bool
+) -> None:
+    """The served schema rejects the body, which is a separate problem. The
+    replay reads the answer, and a fetch that expects no SearchWarning holds
+    when diagnostics is a string or a list, even a list of warnings, and
+    differs from the expectation when it is an object whose warnings read."""
+    target = "scenarios/answer-definite-fetch.json"
+    _edit(
+        package_dir / target,
+        _set_body(0, lambda body: body.update(diagnostics=diagnostics)),
+    )
+    replayed = [
+        p for p in validator.validate() if target in p and "response body:" not in p
+    ]
+    assert bool(replayed) is warns, replayed
 
 
 def test_one_record_that_crashes_its_derivation_is_its_own_problem(
