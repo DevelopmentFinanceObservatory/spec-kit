@@ -511,6 +511,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "is listed twice",
         ),
         ("actions.json", _drop_action("spec_not_found"), "'spec_not_found' has no row"),
+        ("actions.json", _drop_action("timed_out"), "'timed_out' has no row"),
         (
             "actions.json",
             _add_action({"code": "alternates_unevaluated", "action": "report"}),
@@ -1621,6 +1622,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "strict-enum-value-gone",
         "strict-pointer-repeated",
         "action-row-missing",
+        "action-row-timed-out-missing",
         "action-row-for-a-warning",
         "action-row-for-an-unknown-code",
         "actions-unsorted",
