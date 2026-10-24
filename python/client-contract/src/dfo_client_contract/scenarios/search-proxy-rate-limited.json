@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "search-proxy-rate-limited",
-  "description": "The proxy's 429 body carries no code or retryable: error is the code and retry \"retry_after_delay\" makes it retryable, so the client waits the Retry-After seconds, retries, and reaches the same answer.",
+  "description": "The proxy's 429 is a problem document like any other refusal: rate_limited has no row in actions.json, so it is a RateLimitError by its status, and retryable true makes the client wait the Retry-After seconds, retry, and reach the same answer.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "search-place-ambiguous",
-    "edit": "The website proxy's own 429 {error, retry, detail} with Retry-After 2 answers the first search."
+    "edit": "The website proxy's own 429 rate_limited problem document with Retry-After 2 answers the first search."
   },
   "call": [
     {
@@ -29,13 +29,19 @@
       "response": {
         "status": 429,
         "headers": {
-          "content-type": "application/json",
+          "content-type": "application/problem+json",
+          "cache-control": "no-cache",
+          "x-dfo-trace-id": "77777777777777777777777777777777",
           "retry-after": "2"
         },
         "json": {
-          "error": "rate_limited",
-          "retry": "retry_after_delay",
-          "detail": "Too many requests from this address. Try again shortly."
+          "type": "/codes/rate_limited",
+          "title": "Too Many Requests",
+          "status": 429,
+          "detail": "Too many requests: 120 per window per address. Try again in 2s.",
+          "code": "rate_limited",
+          "trace_id": "77777777777777777777777777777777",
+          "retryable": true
         }
       }
     },
@@ -55,7 +61,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a321fb82bfba461b9dc922634789650f"
+          "x-dfo-trace-id": "304fe92b998b45849ff11a547aadc3e8"
         },
         "json": {
           "schema_version": 1,
@@ -66,15 +72,15 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "035d29cd05fb31d7cb47cfb33197d4002f773df6",
-            "trace_id": "a321fb82bfba461b9dc922634789650f",
+            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
+            "trace_id": "304fe92b998b45849ff11a547aadc3e8",
             "warnings": [],
             "timing_ms": {
-              "total": 1126,
+              "total": 1416,
               "by_step": {
                 "coverage": 0,
-                "extract": 1119,
-                "cache_lookup": 1
+                "extract": 1297,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
@@ -90,9 +96,9 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 115,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 115,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0
                 }
@@ -139,6 +145,16 @@
                 "sources": [],
                 "operations": []
               },
+              "entity_refs": [
+                {
+                  "text": "Germany",
+                  "refs": []
+                },
+                {
+                  "text": "Congo",
+                  "refs": []
+                }
+              ],
               "operations": [],
               "departures": [],
               "assumptions": [],

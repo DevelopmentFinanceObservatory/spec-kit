@@ -35,7 +35,8 @@ document validates against its schema, then what the schemas cannot express:
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
   none of them a code another table or `registries/codes.json` holds, and the
   warning codes are those the client rules issue: `ref_digest_changed`,
-  `route_deprecated`, `server_warning`, and one `key_<reason>` per key-format reason.
+  `route_deprecated`, `server_warning`, and one `key_<reason>` per key-format
+  reason.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
   one, a synthetic scenario derives from a recorded one, and every body file
@@ -46,8 +47,10 @@ document validates against its schema, then what the schemas cannot express:
   route's schema for its status, a required member included when it admits
   null, and its `origin.dfo_commit` is `served/SOURCE.json`'s commit. In
   every scenario a problem document's `code`, a failed operation's error
-  included, is an active code registered with its status, and the website
-  proxy's `error` a code `proxy-codes.json` lists with its status.
+  included, is an active code registered with its status or a code
+  `proxy-codes.json` lists with its status. A document with a proxy code is
+  `application/problem+json` and carries PROXY_PROBLEM_MEMBERS, its own
+  status and `retryable` true, and no 202's operation reads `done`.
 - Each error a scenario expects, other than a `SearchWarning` or
   `DataWarning`, carries a refusal's code from its exchanges, a failed
   operation's included, or a client code of its class.
@@ -668,25 +671,23 @@ def _check_problem_code(
     registry: dict[str, Any],
     proxy_codes: Mapping[str, Mapping[str, Any]],
 ) -> list[str]:
-    """A refusal's code: a problem document's is an active registry code
-    registered with its status, and the website proxy's `error` is a code
-    `proxy-codes.json` lists with its status."""
+    """A problem document's code: an active registry code registered with its
+    status, or a code of the website proxy's own refusals that
+    `proxy-codes.json` lists with its status, in a proxy problem document."""
     body = response.get("json")
-    if response["status"] < 400 or not isinstance(body, dict):
+    if response["status"] < 400 or not isinstance(body, dict) or "code" not in body:
         return []
-    if "code" not in body:
-        if "error" not in body:
-            return []
-        error = body["error"]
-        row = proxy_codes.get(error) if isinstance(error, str) else None
-        if row is None or row["status"] != response["status"]:
+    code = body["code"]
+    proxy_row = proxy_codes.get(code) if isinstance(code, str) else None
+    if proxy_row is not None:
+        if proxy_row["status"] != response["status"]:
             return [
                 (
-                    f"{label}: proxy code {body['error']!r} is not a code "
+                    f"{label}: proxy code {code!r} is not a code "
                     f"proxy-codes.json lists with status {response['status']}"
                 )
             ]
-        return []
+        return _check_proxy_problem(label, response)
     for entry in registry["entries"]:
         if entry["code"] != body["code"]:
             continue
@@ -704,6 +705,43 @@ def _check_problem_code(
             ]
         return []
     return [f"{label}: problem code {body['code']!r} is not in the registry"]
+
+
+def _check_accepted(label: str, response: Mapping[str, Any]) -> list[str]:
+    """A 202's operation does not read `done`, because a submission that finds a
+    done operation builds it again."""
+    body = response.get("json")
+    operation = body.get("operation") if isinstance(body, dict) else None
+    if response["status"] != 202 or not isinstance(operation, dict):
+        return []
+    if operation.get("status") == "done":
+        return [f"{label}: a 202's operation reads done"]
+    return []
+
+
+# The members every problem document the website proxy answers itself carries.
+PROXY_PROBLEM_MEMBERS = ("type", "title", "status", "detail", "code", "trace_id")
+PROXY_PROBLEM_MEDIA = "application/problem+json"
+
+
+def _check_proxy_problem(label: str, response: Mapping[str, Any]) -> list[str]:
+    """A proxy problem document is `application/problem+json`, has the common
+    members, carries the response's status, and has `retryable` true."""
+    body = response["json"]
+    problems = []
+    content_type = response.get("headers", {}).get("content-type", "")
+    if content_type.split(";", maxsplit=1)[0].strip().lower() != PROXY_PROBLEM_MEDIA:
+        problems.append(
+            f"{label}: a proxy problem document is not {PROXY_PROBLEM_MEDIA}"
+        )
+    missing = [m for m in PROXY_PROBLEM_MEMBERS if m not in body]
+    if missing:
+        problems.append(f"{label}: a proxy problem document lacks {missing}")
+    if "status" in body and body["status"] != response["status"]:
+        problems.append(f"{label}: a proxy problem document's status is not its own")
+    if body.get("retryable") is not True:
+        problems.append(f"{label}: a proxy problem document is not retryable: true")
+    return problems
 
 
 # --- outcomes ---------------------------------------------------------------
@@ -741,8 +779,6 @@ STATUS_CLASSES = {
 }
 # The statuses a refusal is retried on when its body does not say.
 RETRYABLE_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
-# The website proxy's `retry` value that makes its refusal retryable.
-_PROXY_RETRY = "retry_after_delay"
 # The retries a client makes by default after a retryable refusal.
 MAX_RETRIES = 2
 # The status that cuts a synchronous build off at the server's limit.
@@ -768,8 +804,7 @@ def may_retry(
     return not (build and any(r["status"] == BUILD_CUT_OFF for r in earlier))
 
 
-# The content types a client reads a refusal's body as a problem document, or
-# the website proxy's own body, in.
+# The content types a client reads a refusal's body as a problem document in.
 PROBLEM_MEDIA = ("application/problem+json", "application/json")
 
 
@@ -787,11 +822,10 @@ def gap_kinds(actions: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
 
 
 def refusal_code(body: Any) -> str | None:
-    """A refusal's code: a problem document's `code`, or the `error` member
-    of the website proxy's own `{error, retry, detail}` body."""
+    """A refusal's code: its problem document's `code`."""
     if not isinstance(body, dict):
         return None
-    code = body.get("code", body.get("error"))
+    code = body.get("code")
     return code if isinstance(code, str) else None
 
 
@@ -808,13 +842,10 @@ def error_class(
 
 
 def retryable(status: int, body: Any) -> bool:
-    """Whether a client retries a refusal: as a problem document's `retryable`
-    says, or the website proxy's `retry`, and otherwise by its status."""
-    if isinstance(body, dict):
-        if "code" not in body and "error" in body:
-            return body.get("retry") == _PROXY_RETRY
-        if isinstance(body.get("retryable"), bool):
-            return body["retryable"]
+    """Whether a client retries a refusal: as its problem document's
+    `retryable` says, and otherwise by its status."""
+    if isinstance(body, dict) and isinstance(body.get("retryable"), bool):
+        return body["retryable"]
     return status in RETRYABLE_STATUSES
 
 
@@ -3085,6 +3116,7 @@ def _check_scenarios(
                         label, exchange["response"], registry, proxy_codes
                     )
                 )
+            problems.extend(_check_accepted(label, exchange["response"]))
         for resource in _failed_operations(record):
             error = resource.get("error")
             status = error.get("status") if isinstance(error, dict) else None

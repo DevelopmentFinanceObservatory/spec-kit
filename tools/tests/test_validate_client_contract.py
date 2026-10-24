@@ -309,10 +309,35 @@ def _never_retried(doc: Any) -> None:
 def _proxy_code(code: str) -> Callable[[Any], None]:
     def change(doc: Any) -> None:
         for exchange in doc["exchanges"]:
-            exchange["response"]["json"]["error"] = code
+            exchange["response"]["json"]["code"] = code
         doc["expect"][0]["error"]["code"] = code
 
     return change
+
+
+def _proxy_responses(change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """`change` edits every response of a proxy scenario."""
+
+    def edit(doc: Any) -> None:
+        for exchange in doc["exchanges"]:
+            change(exchange["response"])
+
+    return edit
+
+
+def _proxy_old_body(doc: Any) -> None:
+    """The proxy's 502s carry the `{error, retry, detail}` JSON body it sent
+    before its refusals became problem documents, with no trace id, and the
+    step expects `error` read as the code. A client reads that body as one
+    without a code."""
+    for exchange in doc["exchanges"]:
+        exchange["response"]["headers"] = {"content-type": "application/json"}
+        exchange["response"]["json"] = {
+            "error": "transient_unavailable",
+            "retry": "retry_after_delay",
+            "detail": "The Search API is unreachable.",
+        }
+    doc["expect"][0]["error"]["trace_id"] = None
 
 
 def _search_posts(change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -1173,12 +1198,36 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (
             "scenarios/search-proxy-unavailable.json",
             _proxy_code("made_up_code"),
-            "proxy code 'made_up_code' is not a code proxy-codes.json lists",
+            "problem code 'made_up_code' is not in the registry",
+        ),
+        (
+            "scenarios/search-proxy-unavailable.json",
+            _proxy_old_body,
+            "step 0 expects",
         ),
         (
             "scenarios/search-proxy-unavailable.json",
             _proxy_code("rate_limited"),
             "lists with status 502",
+        ),
+        (
+            "scenarios/search-proxy-unavailable.json",
+            _proxy_responses(lambda response: response["json"].pop("retryable")),
+            "a proxy problem document is not retryable: true",
+        ),
+        (
+            "scenarios/search-proxy-rate-limited.json",
+            _proxy_responses(
+                lambda response: response["headers"].update(
+                    {"content-type": "application/json"}
+                )
+            ),
+            "a proxy problem document is not application/problem+json",
+        ),
+        (
+            "scenarios/fetch-spec-accepted-running.json",
+            _set_body(0, lambda body: body["operation"].update(status="done")),
+            "exchange 0: a 202's operation reads done",
         ),
         (
             "proxy-codes.json",
@@ -1438,9 +1487,9 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (
             "scenarios/search-proxy-unavailable.json",
             lambda doc: doc["exchanges"][0]["response"]["json"].update(
-                error=["transient_unavailable"]
+                code=["transient_unavailable"]
             ),
-            "proxy code ['transient_unavailable'] is not a code",
+            "problem code ['transient_unavailable'] is not in the registry",
         ),
         (
             _FETCH,
@@ -1622,7 +1671,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "strict-enum-value-gone",
         "strict-pointer-repeated",
         "action-row-missing",
-        "action-row-timed-out-missing",
+        "action-row-no-data-reason-missing",
         "action-row-for-a-warning",
         "action-row-for-an-unknown-code",
         "actions-unsorted",
@@ -1747,7 +1796,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "search-without-schema-version",
         "step-timeout",
         "proxy-code-unlisted",
+        "proxy-old-body-reads-without-code",
         "proxy-code-wrong-status",
+        "proxy-problem-without-retryable",
+        "proxy-problem-in-plain-json",
+        "accepted-operation-reads-done",
         "proxy-code-is-a-registry-code",
         "warning-code-ref-digest-changed-missing",
         "warning-code-missing",

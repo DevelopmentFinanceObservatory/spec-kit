@@ -1872,29 +1872,47 @@ def _refusal(
     body: dict[str, Any],
     headers: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
-    """An exchange answering `request` with a refusal: a problem document, or
-    the website proxy's own `{error, retry, detail}` JSON."""
-    media = "application/json" if "error" in body else "application/problem+json"
+    """An exchange answering `request` with the problem document `body`."""
     return {
         "request": copy.deepcopy(request),
         "response": {
             "status": status,
-            "headers": {"content-type": media, **(headers or {})},
+            "headers": {"content-type": "application/problem+json", **(headers or {})},
             "json": body,
         },
     }
 
 
-_PROXY_RATE_LIMITED = {
-    "error": "rate_limited",
-    "retry": "retry_after_delay",
-    "detail": "Too many requests from this address. Try again shortly.",
-}
-_PROXY_UNAVAILABLE = {
-    "error": "transient_unavailable",
-    "retry": "retry_after_delay",
-    "detail": "The Search API is unreachable.",
-}
+# The trace id of the website proxy's own refusals, which it also sends in
+# the x-dfo-trace-id header.
+_PROXY_TRACE_ID = "7" * 32
+
+
+def _proxy_problem(code: str, status: int, title: str, detail: str) -> dict[str, Any]:
+    """A problem document the website proxy answers itself. It has the common
+    members with `retryable` true, and no `capability_version`, which only
+    dfo-apis sends."""
+    return {
+        "type": f"/codes/{code}",
+        "title": title,
+        "status": status,
+        "detail": detail,
+        "code": code,
+        "trace_id": _PROXY_TRACE_ID,
+        "retryable": True,
+    }
+
+
+_PROXY_HEADERS = {"cache-control": "no-cache", "x-dfo-trace-id": _PROXY_TRACE_ID}
+_PROXY_RATE_LIMITED = _proxy_problem(
+    "rate_limited",
+    429,
+    "Too Many Requests",
+    "Too many requests: 120 per window per address. Try again in 2s.",
+)
+_PROXY_UNAVAILABLE = _proxy_problem(
+    "transient_unavailable", 502, "Bad Gateway", "The Search API is unreachable."
+)
 
 
 @dataclass(frozen=True)
@@ -1963,7 +1981,10 @@ def _retry_after_503(parent: dict[str, Any], ctx: Context) -> Derived:
 def _proxy_429(parent: dict[str, Any], ctx: Context) -> Derived:
     first = parent["exchanges"][0]
     refused = _refusal(
-        first["request"], 429, dict(_PROXY_RATE_LIMITED), {"retry-after": "2"}
+        first["request"],
+        429,
+        dict(_PROXY_RATE_LIMITED),
+        {**_PROXY_HEADERS, "retry-after": "2"},
     )
     return _refused_first(parent, 0, refused)
 
@@ -1971,9 +1992,10 @@ def _proxy_429(parent: dict[str, Any], ctx: Context) -> Derived:
 def _proxy_502(parent: dict[str, Any], ctx: Context) -> Derived:
     first = parent["exchanges"][0]
     refused = [
-        _refusal(first["request"], 502, dict(_PROXY_UNAVAILABLE)) for _ in range(3)
+        _refusal(first["request"], 502, dict(_PROXY_UNAVAILABLE), _PROXY_HEADERS)
+        for _ in range(3)
     ]
-    error = refusal_error(502, _PROXY_UNAVAILABLE, ctx.actions).outcome(
+    error = refusal_error(502, _PROXY_UNAVAILABLE, ctx.actions, _PROXY_HEADERS).outcome(
         ctx.client_codes
     )
     return Derived(
@@ -2369,6 +2391,36 @@ def _poll_rate_limited(exchanges: list[dict[str, Any]], build: dict[str, Any]) -
     }
     exchanges.insert(index, refused)
     build["poll_waits"].insert(1, 3.0)
+
+
+def _accepted_running(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
+    """The 202 reads running where the recording reads pending. The polls and
+    the outcome are the recording's."""
+    exchanges[0]["response"]["json"]["operation"]["status"] = "running"
+
+
+# The retry_after_ms each poll that finds the build running reads in
+# fetch-spec-poll-pacing-changes. The values go up, up again, then down.
+_CHANGING_PACING_MS = (2500, 4000, 1000)
+
+
+def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
+    """Each poll that finds the build running reads its own retry_after_ms
+    from _CHANGING_PACING_MS, and the wait before the next poll is that
+    poll's value."""
+    running = [
+        e["response"]["json"]["operation"]
+        for e in exchanges[_poll_index(exchanges) :]
+        if e["request"].get("path", "").startswith("/datasets/operations/")
+        and e["response"]["json"]["operation"]["status"] == "running"
+    ]
+    require(
+        len(running) == len(_CHANGING_PACING_MS),
+        f"{len(_CHANGING_PACING_MS)} polls find the build running",
+    )
+    for operation, ms in zip(running, _CHANGING_PACING_MS, strict=True):
+        operation["retry_after_ms"] = ms
+    build["poll_waits"][1:] = [ms / 1000 for ms in _CHANGING_PACING_MS]
 
 
 def _operation_failed(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
@@ -3415,19 +3467,21 @@ SYNTHETIC = (
     Synthetic(
         "search-proxy-rate-limited",
         "search-place-ambiguous",
-        "The website proxy's own 429 {error, retry, detail} with Retry-After 2 answers the first search.",
-        "The proxy's 429 body carries no code or retryable: error is the code and retry "
-        '"retry_after_delay" makes it retryable, so the client waits the Retry-After seconds, '
-        "retries, and reaches the same answer.",
+        "The website proxy's own 429 rate_limited problem document with Retry-After 2 answers "
+        "the first search.",
+        "The proxy's 429 is a problem document like any other refusal: rate_limited has no "
+        "row in actions.json, so it is a RateLimitError by its status, and retryable true makes "
+        "the client wait the Retry-After seconds, retry, and reach the same answer.",
         _proxy_429,
     ),
     Synthetic(
         "search-proxy-unavailable",
         "search-place-ambiguous",
-        "The website proxy's own 502 {error, retry, detail} answers the search and both retries.",
-        "The proxy's 502 body is retryable through its retry member and has no Retry-After, so "
-        "the client backs off and retries twice, then raises ServerError with the error member, "
-        "transient_unavailable, as its code.",
+        "The website proxy's own 502 transient_unavailable problem document answers the search "
+        "and both retries.",
+        "The proxy's 502 problem document says retryable true and has no Retry-After, so the "
+        "client backs off and retries twice, then raises ServerError, the class of its status, "
+        "with its code, transient_unavailable, and its trace id.",
         _proxy_502,
     ),
     Synthetic(
@@ -3590,6 +3644,25 @@ SYNTHETIC = (
         "retry_after_ms, then each poll's, backing off from 1 to 8 seconds when a poll gives "
         "none, and downloads the done manifest's file.",
         _async_fetch(),
+    ),
+    Synthetic(
+        "fetch-spec-accepted-running",
+        "mint-async-build",
+        "As fetch-spec-async-build, with the 202 reading running where it read pending.",
+        "A 202 reads pending or running: the client polls either as an operation still "
+        "under way, with the same pacing, and downloads the done manifest's file.",
+        _async_fetch(_accepted_running),
+    ),
+    Synthetic(
+        "fetch-spec-poll-pacing-changes",
+        "mint-async-build",
+        "As fetch-spec-async-build, with the polls that find the build running reading "
+        "retry_after_ms 2500, 4000 and 1000 where the recording reads 1500.",
+        "Before each poll the client waits the retry_after_ms of the last operation "
+        "resource it read: 1.5 seconds from the 202, then 2.5, 4 and 1 from the polls. A "
+        "client that keeps the 202's value, or reads the Retry-After header in its place, "
+        "waits otherwise.",
+        _async_fetch(_pacing_changes),
     ),
     Synthetic(
         "fetch-spec-poll-rate-limited",
