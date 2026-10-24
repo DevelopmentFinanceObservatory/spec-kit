@@ -1756,7 +1756,7 @@
           "Datasets"
         ],
         "summary": "Post Pin",
-        "description": "Pin an artifact of a version, and the frame its files render from: the version's own frame and, for a derived version, its base version's frame, servable or aged, so every format stays fetchable and the version reports `retention.pinned`. A frame whose bytes are gone stays unpinned: the named artifact still pins, and `retention` keeps that frame's `held_until`. Only the named artifact's copy waits on the daily pin budget; the frame copies skip it and count toward later calls, so one pin can add up to three copies to the count.",
+        "description": "Pin an artifact of a version, and the first frame its files can render from that survives, servable or aged: the version's own frame, else, for a derived version, its base version's frame. Every format then stays fetchable and the version reports `retention.pinned`. When no such frame's bytes survive, the named artifact still pins, and `retention` keeps the frames' `held_until`. Only the named artifact's copy waits on the daily pin budget; the frame copy skips it and counts toward later calls, so one pin can add up to two copies to the count.",
         "operationId": "datasets_post_pin",
         "parameters": [
           {
@@ -4294,6 +4294,14 @@
               }
             ],
             "description": "the ParsedPart that reproduces this part's own resolution inputs -- the same entities, resolved time window, unit text, and source text the engine actually used to resolve this one leg -- so a client holding this part alone can copy it straight into a fresh ParsedInput.parts entry and re-resolve it faithfully, without flattening it into the whole query's variable_text the way variable_text alone would. Canonical, not verbatim: for a raw_text part, time_text is the equivalent phrase this door's own time grammar recognises (e.g. '2015 to 2020'), not the user's original words, since the engine's date extraction keeps only the structured window and discards the phrasing. Null whenever this part has no faithful echo to give. On a dataset_resubmit entry's identity/candidates/placeholder kinds, which post an identity or stub rather than a phrase and have no per-part resolution inputs to echo -- a dataset_resubmit parsed entry, genuinely re-resolved from its own posted ParsedPart, carries a real one like any parsed-door part. Also null when this leg's entity was bound to a directional role axis (origin/destination) and no door-supplied role named that axis, since an echo without the axis would resubmit the request with that entity reversed. Also null when one of this leg's own inputs does not fit ParsedPart's own field caps, since a truncated echo would misrepresent what was actually resolved."
+          },
+          "entity_refs": {
+            "items": {
+              "$ref": "#/components/schemas/EntityRefs"
+            },
+            "type": "array",
+            "title": "Entity Refs",
+            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
@@ -7267,6 +7275,14 @@
             ],
             "description": "the ParsedPart that reproduces this part's own resolution inputs -- the same entities, resolved time window, unit text, and source text the engine actually used to resolve this one leg -- so a client holding this part alone can copy it straight into a fresh ParsedInput.parts entry and re-resolve it faithfully, without flattening it into the whole query's variable_text the way variable_text alone would. Canonical, not verbatim: for a raw_text part, time_text is the equivalent phrase this door's own time grammar recognises (e.g. '2015 to 2020'), not the user's original words, since the engine's date extraction keeps only the structured window and discards the phrasing. Null whenever this part has no faithful echo to give. On a dataset_resubmit entry's identity/candidates/placeholder kinds, which post an identity or stub rather than a phrase and have no per-part resolution inputs to echo -- a dataset_resubmit parsed entry, genuinely re-resolved from its own posted ParsedPart, carries a real one like any parsed-door part. Also null when this leg's entity was bound to a directional role axis (origin/destination) and no door-supplied role named that axis, since an echo without the axis would resubmit the request with that entity reversed. Also null when one of this leg's own inputs does not fit ParsedPart's own field caps, since a truncated echo would misrepresent what was actually resolved."
           },
+          "entity_refs": {
+            "items": {
+              "$ref": "#/components/schemas/EntityRefs"
+            },
+            "type": "array",
+            "title": "Entity Refs",
+            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
+          },
           "operations": {
             "items": {
               "$ref": "#/components/schemas/Operation"
@@ -7441,7 +7457,7 @@
               "scope_limited"
             ],
             "title": "Code",
-            "description": "what kind of departure this is. 'closest_match': the answer shows the nearest measure the graph holds, not the one asked; a client draws a muted 'Closest match:' lead before the heading, and on a candidates part, whose readings stand in for a measure with no data, once before the first reading. 'measure_not_applied': a named measure qualifier was not applied. 'operation_not_applied': an operation the request named (a share, a ranking) was not run, so the amounts behind it are shown. 'breakdown_not_applied': a breakdown the request named was not applied, so the total is shown. 'entity_unavailable': an entity the request named holds no values in the series the answer reads, one departure per role; for a role the request named as a group, asked is the request's words for the group and the text counts the members without values; the text names any source holding values there that Search does not read. 'year_unavailable': a named year or range falls outside the years served. 'modelled_values': the served values are modelled or estimated. 'group_read_as_members': a named group was read as its member entities; on a flow role the text names the amounts the group's published total counts that no member holds, and, for a group whose published total is not its members' sum, says the source publishes its own figure for the group. 'whole_total_read': a flow side is read as its whole population, the total its source publishes for every party of that side (official donors (DAC) for 'official donors' or a donor side the request named nothing on or summed over; official and private donors (DAC) for 'all donors'); the text says what the total holds and how to list the side's members with open_roles. 'whole_total_unpublished': the request named a whole population ('all donors', 'all recipients') on a side whose dataset publishes no total of it and holds no party outside it, so the side is left unnamed and the answer covers every party the dataset holds there; asked is the request's words, and the text names the dataset. 'direction_discarded': a flow direction the request's own words named was not applied. 'direction_inferred': a place the request named without a direction is read on the one direction that holds data, which over names. 'scope_limited': a no_data answer's check covered only values the engine chose, which the request did not name; its text names only what the check covered ('This check covered only ODA.')"
+            "description": "what kind of departure this is. 'closest_match': the answer shows the nearest measure the graph holds, not the one asked; a client draws a muted 'Closest match:' lead before the heading, and on a candidates part, whose readings stand in for a measure with no data, once before the first reading. 'measure_not_applied': a named measure qualifier was not applied. 'operation_not_applied': an operation the request named (a share, a ranking) was not run, so the amounts behind it are shown. 'breakdown_not_applied': a breakdown the request named was not applied, so the total is shown. 'entity_unavailable': an entity the request named holds no values in the series the answer reads, one departure per role; for a role the request named as a group, asked is the request's words for the group and the text counts the members without values; the text names any source holding values there that Search does not read. 'year_unavailable': a named year or range falls outside the years served. 'modelled_values': the served values are modelled or estimated. 'group_read_as_members': a named group was read as its member entities; on a flow role the text names the amounts the group's published total counts that no member holds, and, for a group whose published total is not its members' sum, says the source publishes its own figure for the group. 'whole_total_read': a flow side is read as its whole population, the total its source publishes for every party of that side (official donors (DAC) for 'official donors' or a donor side the request named nothing on or summed over; official and private donors (DAC) for 'all donors'); the text says what the total holds and how to list the side's members: in the question's words ('by donor') on the raw_text door, with open_roles on the others. 'whole_total_unpublished': the request named a whole population ('all donors', 'all recipients') on a side whose dataset publishes no total of it and holds no party outside it, so the side is left unnamed and the answer covers every party the dataset holds there; asked is the request's words, and the text names the dataset. 'direction_discarded': a flow direction the request's own words named was not applied. 'direction_inferred': a place the request named without a direction is read on the one direction that holds data, which over names. 'scope_limited': a no_data answer's check covered only values the engine chose, which the request did not name; its text names only what the check covered ('This check covered only ODA.')"
           },
           "binding_ref": {
             "anyOf": [
@@ -8222,6 +8238,31 @@
         ],
         "title": "GraphResolveEntity",
         "description": "A reference with its kind. `kind` is `null` only for a `not_held` entity, which the\ngraph holds no node to classify."
+      },
+      "EntityRefs": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "the entity text, equal to some restatement.entities[i].text"
+          },
+          "refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refs",
+            "description": "the refs the part's answer binds for `text`: a place gives its node; a group, continent or subregion bound as itself gives its own node, or the total its dataset publishes for it (G7 bound as GroupOfSeven); one bound as its members gives the set's own ref first (its node, else that total, else its registry id) and then the members, sorted. [] for an ambiguous text, one that resolved to no node or a node the answer does not bind, and every text of a part refused before its places were bound"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "refs"
+        ],
+        "title": "EntityRefs",
+        "description": "The graph nodes one entity text of a part's restatement binds in the answer."
       },
       "Exclusion": {
         "properties": {
@@ -10522,10 +10563,11 @@
               "facet_not_available",
               "role_incompatible",
               "role_signature_incompatible",
-              "qualifier_not_bound"
+              "qualifier_not_bound",
+              "timed_out"
             ],
             "title": "Reason",
-            "description": "why nothing could be returned, in contract resolution order. \"entity_not_resolved\" means a named entity could not be resolved to a graph node; \"entity_ambiguous\" means a named entity matched more than one graph candidate and none could be preferred over the others, distinct from \"entity_not_resolved\", where no node matched at all; \"entity_role_not_admitted\" means a named entity resolved to exactly one graph node, but no role any candidate shape declares admits that node's graph type -- the entity is real, just not the kind of thing this query's data is reported for; \"entity_set_too_large\" means every named entity resolved, but the places the request names, counting the members of each group or region among them and summed over the roles they sit on, exceed what the engine binds in one request -- distinct from every other entity_* reason, where one entity, not the size of the set, is what failed; \"variable_not_resolved\" means no StatVar matched the variable text (e.g. an absent posted stat_var_dcid or entity, or no measure match at all); \"role_not_resolved\" means the query names a role the engine could not resolve; \"unit_not_resolved\" means the unit binder could not classify a token in the requested unit phrase against its lexicons; \"no_matching_slice\" means the measure matched fine, but the requested combination has no corresponding data series -- the constructed/derived variable does not exist in the graph at all. Covers an identity resubmit refine edit with no confirmable sibling StatVar for the edited slice, and a dev-finance scheme x purpose x recipient combination that was never published as a series, on raw-text and resubmit alike; \"binding_mismatch\" means the variable resolved and graph-confirmed StatVars exist, but none satisfies the requested slot bindings, either because a resolved value on a bound property mismatched or because the StatVar's value on a bound property is present but could not be read (an unresolvable dcid); distinct from \"no_matching_slice\" (the combination was never published at all) and \"variable_not_resolved\" (no StatVar matched at all); \"denominator_not_available\" means the query asks for a normalised form (per person, per area, a rate or a share) or names a denominator, and the matched series is not in that form or divides by another base; \"no_observations\" means a StatVar WAS confirmed to exist but has no observation at the resolved entity (it exists, but not data here); \"facet_not_available\" means observations exist at the entity, none under the requested facet values; \"role_incompatible\" means the role is real, and the StatVar does not declare it; \"role_signature_incompatible\" means the resolved StatVars carry incompatible role signatures and no partition into candidates was possible; \"source_code_not_held\" means no variable held under the part's source_code by a source search serves can answer the part: no served source holds the code, the part's sources exclude every source that does, or the code's variables cannot answer the part as asked; \"source_code_ambiguous\" means two of the part's sources hold its source_code; \"source_code_shares_variable\" means the source_code's variables answer other codes of its source too, so search cannot serve the code alone; \"qualifier_not_bound\" means the variable resolved to a series family, but a narrowing term the request's text named bound no constraint slot: no code system in the packaged index carries it, or its registered rows landed in no binding"
+            "description": "why nothing could be returned, in contract resolution order. \"entity_not_resolved\" means a named entity could not be resolved to a graph node; \"entity_ambiguous\" means a named entity matched more than one graph candidate and none could be preferred over the others, distinct from \"entity_not_resolved\", where no node matched at all; \"entity_role_not_admitted\" means a named entity resolved to exactly one graph node, but no role any candidate shape declares admits that node's graph type -- the entity is real, just not the kind of thing this query's data is reported for; \"entity_set_too_large\" means every named entity resolved, but the places the request names, counting the members of each group or region among them and summed over the roles they sit on, exceed what the engine binds in one request -- distinct from every other entity_* reason, where one entity, not the size of the set, is what failed; \"variable_not_resolved\" means no StatVar matched the variable text (e.g. an absent posted stat_var_dcid or entity, or no measure match at all); \"role_not_resolved\" means the query names a role the engine could not resolve; \"unit_not_resolved\" means the unit binder could not classify a token in the requested unit phrase against its lexicons; \"no_matching_slice\" means the measure matched fine, but the requested combination has no corresponding data series -- the constructed/derived variable does not exist in the graph at all. Covers an identity resubmit refine edit with no confirmable sibling StatVar for the edited slice, and a dev-finance scheme x purpose x recipient combination that was never published as a series, on raw-text and resubmit alike; \"binding_mismatch\" means the variable resolved and graph-confirmed StatVars exist, but none satisfies the requested slot bindings, either because a resolved value on a bound property mismatched or because the StatVar's value on a bound property is present but could not be read (an unresolvable dcid); distinct from \"no_matching_slice\" (the combination was never published at all) and \"variable_not_resolved\" (no StatVar matched at all); \"denominator_not_available\" means the query asks for a normalised form (per person, per area, a rate or a share) or names a denominator, and the matched series is not in that form or divides by another base; \"no_observations\" means a StatVar WAS confirmed to exist but has no observation at the resolved entity (it exists, but not data here); \"facet_not_available\" means observations exist at the entity, none under the requested facet values; \"role_incompatible\" means the role is real, and the StatVar does not declare it; \"role_signature_incompatible\" means the resolved StatVars carry incompatible role signatures and no partition into candidates was possible; \"source_code_not_held\" means no variable held under the part's source_code by a source search serves can answer the part: no served source holds the code, the part's sources exclude every source that does, or the code's variables cannot answer the part as asked; \"source_code_ambiguous\" means two of the part's sources hold its source_code; \"source_code_shares_variable\" means the source_code's variables answer other codes of its source too, so search cannot serve the code alone; \"qualifier_not_bound\" means the variable resolved to a series family, but a narrowing term the request's text named bound no constraint slot: no code system in the packaged index carries it, or its registered rows landed in no binding; \"timed_out\" means the request reached its time limit before this part was answered (diagnostics.timed_out is true); the question may hold data, so asking it again, alone or narrower, can answer it"
           },
           "cause": {
             "anyOf": [
@@ -10545,7 +10587,7 @@
               "absent"
             ],
             "title": "Category",
-            "description": "derived from reason, never independently settable: \"entity_not_resolved\", \"entity_ambiguous\", \"entity_set_too_large\", \"entity_role_not_admitted\", \"variable_not_resolved\", \"role_not_resolved\", \"source_not_resolved\", \"source_ambiguous\", \"source_code_not_held\", \"source_code_ambiguous\", \"source_code_shares_variable\", and \"unit_not_resolved\" are \"unresolved\" (the request could not be read into the graph); every other code is \"absent\" (the read request names a place holding nothing)",
+            "description": "derived from reason, never independently settable: \"entity_not_resolved\", \"entity_ambiguous\", \"entity_set_too_large\", \"entity_role_not_admitted\", \"variable_not_resolved\", \"role_not_resolved\", \"source_not_resolved\", \"source_ambiguous\", \"source_code_not_held\", \"source_code_ambiguous\", \"source_code_shares_variable\", \"unit_not_resolved\", and \"timed_out\" are \"unresolved\" (the request could not be read into the graph); every other code is \"absent\" (the read request names a place holding nothing)",
             "default": "absent"
           },
           "message": {
@@ -10845,6 +10887,14 @@
               }
             ],
             "description": "the ParsedPart that reproduces this part's own resolution inputs -- the same entities, resolved time window, unit text, and source text the engine actually used to resolve this one leg -- so a client holding this part alone can copy it straight into a fresh ParsedInput.parts entry and re-resolve it faithfully, without flattening it into the whole query's variable_text the way variable_text alone would. Canonical, not verbatim: for a raw_text part, time_text is the equivalent phrase this door's own time grammar recognises (e.g. '2015 to 2020'), not the user's original words, since the engine's date extraction keeps only the structured window and discards the phrasing. Null whenever this part has no faithful echo to give. On a dataset_resubmit entry's identity/candidates/placeholder kinds, which post an identity or stub rather than a phrase and have no per-part resolution inputs to echo -- a dataset_resubmit parsed entry, genuinely re-resolved from its own posted ParsedPart, carries a real one like any parsed-door part. Also null when this leg's entity was bound to a directional role axis (origin/destination) and no door-supplied role named that axis, since an echo without the axis would resubmit the request with that entity reversed. Also null when one of this leg's own inputs does not fit ParsedPart's own field caps, since a truncated echo would misrepresent what was actually resolved."
+          },
+          "entity_refs": {
+            "items": {
+              "$ref": "#/components/schemas/EntityRefs"
+            },
+            "type": "array",
+            "title": "Entity Refs",
+            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
@@ -15233,7 +15283,8 @@
                   "facet_not_available",
                   "role_incompatible",
                   "role_signature_incompatible",
-                  "qualifier_not_bound"
+                  "qualifier_not_bound",
+                  "timed_out"
                 ]
               },
               {
@@ -18844,6 +18895,14 @@
               }
             ],
             "description": "the ParsedPart that reproduces this part's own resolution inputs -- the same entities, resolved time window, unit text, and source text the engine actually used to resolve this one leg -- so a client holding this part alone can copy it straight into a fresh ParsedInput.parts entry and re-resolve it faithfully, without flattening it into the whole query's variable_text the way variable_text alone would. Canonical, not verbatim: for a raw_text part, time_text is the equivalent phrase this door's own time grammar recognises (e.g. '2015 to 2020'), not the user's original words, since the engine's date extraction keeps only the structured window and discards the phrasing. Null whenever this part has no faithful echo to give. On a dataset_resubmit entry's identity/candidates/placeholder kinds, which post an identity or stub rather than a phrase and have no per-part resolution inputs to echo -- a dataset_resubmit parsed entry, genuinely re-resolved from its own posted ParsedPart, carries a real one like any parsed-door part. Also null when this leg's entity was bound to a directional role axis (origin/destination) and no door-supplied role named that axis, since an echo without the axis would resubmit the request with that entity reversed. Also null when one of this leg's own inputs does not fit ParsedPart's own field caps, since a truncated echo would misrepresent what was actually resolved."
+          },
+          "entity_refs": {
+            "items": {
+              "$ref": "#/components/schemas/EntityRefs"
+            },
+            "type": "array",
+            "title": "Entity Refs",
+            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
