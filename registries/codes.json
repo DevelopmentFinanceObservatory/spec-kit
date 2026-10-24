@@ -4663,6 +4663,26 @@
       "lifecycle": "active"
     },
     {
+      "code": "timed_out",
+      "classification": "refusal",
+      "definition": "Search stopped at the request's time limit before it resolved this part; the same question, or a narrower one, may answer when sent again.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "timeout",
       "classification": "refusal",
       "definition": "The request did not complete before its deadline.",
