@@ -1182,6 +1182,7 @@ MIXED = "debt service of Kenya and the price of tea in Kenya"
 FOLDED = "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya"
 PLACE = "ODA disbursements from Germany to Congo in 2018"
 TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
+PLACE_TWICE = "aid from Congo to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
 TOP5 = "top 5 donors to Ethiopia in 2022"
@@ -1211,10 +1212,10 @@ CANDIDATES_BESIDE_ASSUMED = (
 # recipient pairs of one variable over 60 years. A variable broken down by
 # sector would list thousands of variables in the done manifest.
 ASYNC = (
-    "ODA disbursements from the DAC countries to the G77 countries from 1963 to 2024"
+    "ODA disbursements from the DAC countries to the G77 countries from 1964 to 2024"
 )
 ASYNC_RESUMED = (
-    "ODA disbursements from the OECD countries to the G77 countries from 1966 to 2024"
+    "ODA disbursements from the OECD countries to the G77 countries from 1965 to 2024"
 )
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
@@ -1480,6 +1481,35 @@ def _place_answer(s: Session, question: str, parts: int) -> Answer:
         f"each part offers {PLACE_LABELS}",
     )
     return answer
+
+
+def _search_place_twice(s: Session, ctx: Context) -> None:
+    """One entity_ambiguous part asking "Congo" for each end of the flow: two
+    groups with one text, each option and slot token naming its group."""
+    answer = s.search(PLACE_TWICE)
+    require(len(answer.parts) == 1, "one part")
+    (part,) = answer.parts
+    no_data = part.get("no_data", {})
+    require(no_data.get("reason") == "entity_ambiguous", "an entity_ambiguous part")
+    require(
+        [group["text"] for group in no_data.get("ambiguous_entities", [])]
+        == ["Congo", "Congo"],
+        'two ambiguous groups, each "Congo"',
+    )
+    require(
+        [(o["entity_choice"], o["label"]) for o in no_data.get("options", [])]
+        == [(choice, label) for choice in (0, 1) for label in PLACE_LABELS],
+        f"each group offers {PLACE_LABELS} under its own entity_choice",
+    )
+    require(
+        [
+            token["entity_choice"]
+            for token in part.get("sentence_plan") or []
+            if token.get("entity_choice") is not None
+        ]
+        == [0, 1],
+        "one slot token per group",
+    )
 
 
 def _search_place(question: str, parts: int) -> Callable[[Session, Context], None]:
@@ -1769,6 +1799,13 @@ RECORDED = (
         "A two-part question naming a place that matches two countries answers no_data on both "
         "parts, each an entity_ambiguous choice gap with one option per country.",
         _search_place(TWO_PLACES, 2),
+    ),
+    Recorded(
+        "search-place-ambiguous-twice",
+        "A flow naming one ambiguous place at both ends answers one no_data part with two "
+        "entity_ambiguous groups of the same text: each option and slot token names its group "
+        "by entity_choice, so a menu groups options by entity_choice, never by mentions.",
+        _search_place_twice,
     ),
     Recorded(
         "choose-place-one-part",
@@ -2399,15 +2436,16 @@ def _accepted_running(exchanges: list[dict[str, Any]], build: dict[str, Any]) ->
     exchanges[0]["response"]["json"]["operation"]["status"] = "running"
 
 
-# The retry_after_ms each poll that finds the build running reads in
-# fetch-spec-poll-pacing-changes. The values go up, up again, then down.
+# The retry_after_ms the polls that find the build running read in
+# fetch-spec-poll-pacing-changes, in turn. The values go up, up again, then down.
 _CHANGING_PACING_MS = (2500, 4000, 1000)
 
 
 def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
-    """Each poll that finds the build running reads its own retry_after_ms
-    from _CHANGING_PACING_MS, and the wait before the next poll is that
-    poll's value."""
+    """Each poll that finds the build running reads its own retry_after_ms,
+    the next value of _CHANGING_PACING_MS in turn, and the wait before the
+    next poll is that poll's value. How many polls find it running depends on
+    how long the recorded build took."""
     running = [
         e["response"]["json"]["operation"]
         for e in exchanges[_poll_index(exchanges) :]
@@ -2415,12 +2453,16 @@ def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> N
         and e["response"]["json"]["operation"]["status"] == "running"
     ]
     require(
-        len(running) == len(_CHANGING_PACING_MS),
-        f"{len(_CHANGING_PACING_MS)} polls find the build running",
+        len(running) >= len(_CHANGING_PACING_MS),
+        f"at least {len(_CHANGING_PACING_MS)} polls find the build running",
     )
-    for operation, ms in zip(running, _CHANGING_PACING_MS, strict=True):
+    pacing = [
+        _CHANGING_PACING_MS[index % len(_CHANGING_PACING_MS)]
+        for index in range(len(running))
+    ]
+    for operation, ms in zip(running, pacing, strict=True):
         operation["retry_after_ms"] = ms
-    build["poll_waits"][1:] = [ms / 1000 for ms in _CHANGING_PACING_MS]
+    build["poll_waits"][1:] = [ms / 1000 for ms in pacing]
 
 
 def _operation_failed(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
