@@ -18,6 +18,9 @@
       "$ref": "#/$defs/key_lookup"
     },
     {
+      "$ref": "#/$defs/base_url"
+    },
+    {
       "$ref": "#/$defs/cache_dir"
     },
     {
@@ -357,6 +360,74 @@
                       "profile_without_key",
                       "credentials_file_invalid"
                     ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "base_url": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "base-url"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "env"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "source",
+                  "url"
+                ]
+              },
+              {
+                "required": [
+                  "error"
+                ]
+              }
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "base_url": {
+                "description": "The base URL argument of the call or constructor, which may be the empty string a client refuses. Absent when the caller passes none.",
+                "type": "string"
+              },
+              "env": {
+                "$ref": "#/$defs/env"
+              },
+              "source": {
+                "enum": [
+                  "argument",
+                  "environment",
+                  "default"
+                ]
+              },
+              "url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "error": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "const": "base_url_invalid"
                   }
                 }
               }

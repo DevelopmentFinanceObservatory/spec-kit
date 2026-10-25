@@ -13,6 +13,7 @@ RULES = (
     "credentials-path",
     "credentials-file",
     "key-lookup",
+    "base-url",
     "cache-dir",
     "cache-layout",
 )

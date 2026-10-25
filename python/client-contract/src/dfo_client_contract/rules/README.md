@@ -1,6 +1,6 @@
 # Client rules
 
-Clients implement these rules for the capabilities available in their runtime. Python implements every rule. TypeScript implements the key and credentials rules in Node; browser runtimes use the key sources available there. TypeScript currently keeps no disk cache, so `cache-dir` and `cache-layout` apply to Python. Clients implementing the same capability use the same rules and formats. Each rule's vectors are in `<rule>.json`, validated by `rules.schema.json`. In a vector, `env` lists the environment variables set, and an empty value counts as unset everywhere below.
+Clients implement these rules for the capabilities available in their runtime. Python implements every rule. TypeScript implements the key, credentials and base-URL rules in Node; browser runtimes use the key sources available there. TypeScript currently keeps no disk cache, so `cache-dir` and `cache-layout` apply to Python. Clients implementing the same capability use the same rules and formats. Each rule's vectors are in `<rule>.json`, validated by `rules.schema.json`. In a vector, `env` lists the environment variables set, and an empty value counts as unset everywhere below.
 
 ## Credentials path (`credentials-path`)
 
@@ -33,6 +33,16 @@ A client resolves its key when it is built, and again after a 401. The first sou
 1. otherwise, anonymous.
 
 A missing file goes on to the next source, and so does a missing `default` profile. A file that fails to parse raises `credentials_file_invalid`, a profile named by `DFO_PROFILE` that the file lacks raises `profile_not_found`, and a chosen profile with no `key`, or an empty one, raises `profile_without_key`. The file is read only when no earlier source wins. The argument may also be a callable or a key object, called or unwrapped when the client resolves the key. The vectors pass strings, and the Colab source has no vectors.
+
+## Base URL (`base-url`)
+
+A client resolves its base URL when it is built. The first source found wins:
+
+1. the `base_url` argument of the call or constructor, as given;
+1. `DFO_BASE_URL`;
+1. the public default, `https://developmentfinance.org/api/v1`.
+
+Only the chosen source is checked. A base URL is valid when it is an absolute `http` or `https` URL with a host and no userinfo. An invalid one raises `base_url_invalid`, so an empty `base_url` argument raises it where an empty `DFO_BASE_URL` counts as unset. A valid value is used as given; the rule fixes the source and the validity, and leaves the URL's form to the client. A key sent over plain `http` to a host that is not loopback is refused by `insecure_transport`, which this rule does not decide.
 
 ## Key format (`key-format`)
 

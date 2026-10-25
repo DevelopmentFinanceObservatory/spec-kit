@@ -13,6 +13,7 @@ import re
 import tomllib
 import zlib
 from typing import Any
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -20,6 +21,7 @@ from dfo_client_contract import RULES, rule
 
 _BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 _KEY_PREFIXES = ("dfo_k_", "dfo_p_")
+_DEFAULT_BASE_URL = "https://developmentfinance.org/api/v1"
 _TABLE = re.compile(r"\[([A-Za-z0-9_-]+)\]")
 _ENTRY = re.compile(r'([A-Za-z0-9_-]+)[ \t]*=[ \t]*"([^"\\\x00-\x1f\x7f]*)"')
 
@@ -123,6 +125,27 @@ def look_up_key(vector: dict[str, Any]) -> tuple[str, str | None]:
     return "credentials_file", profile["key"]
 
 
+def is_valid_base_url(url: str) -> bool:
+    parts = urlsplit(url)
+    return (
+        parts.scheme in ("http", "https")
+        and bool(parts.hostname)
+        and "@" not in parts.netloc
+    )
+
+
+def resolve_base_url(vector: dict[str, Any]) -> tuple[str, str]:
+    if (argument := vector.get("base_url")) is not None:
+        source, url = "argument", argument
+    elif from_env := _set(vector["env"], "DFO_BASE_URL"):
+        source, url = "environment", from_env
+    else:
+        source, url = "default", _DEFAULT_BASE_URL
+    if not is_valid_base_url(url):
+        raise RuleError("base_url_invalid")
+    return source, url
+
+
 def cache_root(vector: dict[str, Any]) -> str:
     platform, home, env = vector["platform"], vector["home"], vector["env"]
     path = ntpath if platform == "windows" else posixpath
@@ -200,6 +223,16 @@ def test_key_lookup(vector: dict[str, Any]) -> None:
         assert excinfo.value.reason == vector["error"]["reason"]
         return
     assert look_up_key(vector) == (vector["source"], vector["key"])
+
+
+@pytest.mark.parametrize("vector", _vectors("base-url"), ids=_ids("base-url"))
+def test_base_url(vector: dict[str, Any]) -> None:
+    if "error" in vector:
+        with pytest.raises(RuleError) as excinfo:
+            resolve_base_url(vector)
+        assert excinfo.value.reason == vector["error"]["reason"]
+        return
+    assert resolve_base_url(vector) == (vector["source"], vector["url"])
 
 
 @pytest.mark.parametrize("vector", _vectors("cache-dir"), ids=_ids("cache-dir"))
