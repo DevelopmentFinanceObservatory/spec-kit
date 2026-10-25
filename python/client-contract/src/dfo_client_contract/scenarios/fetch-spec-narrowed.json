@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
-    "recorded_at": "2026-10-24T16:30:30Z"
+    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
+    "recorded_at": "2026-10-25T17:35:05Z"
   },
   "call": [
     {
@@ -183,7 +183,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a1fe53d87b784d23bcc55926b9530dec"
+          "x-dfo-trace-id": "dbd045d5a84b4818a273bafc3e808e9c"
         },
         "json": {
           "schema_version": 1,
@@ -590,7 +590,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
             "served_from": "head",
-            "confirmed_at": "2026-10-24T16:30:31.570035+00:00"
+            "confirmed_at": "2026-10-25T17:30:48.703616+00:00"
           },
           "warnings": [
             {
@@ -635,7 +635,7 @@
           ],
           "series_count": 1,
           "output_options": {
-            "capability_version": "dset_cc753cefa9199881",
+            "capability_version": "dset_76f5fa7244511c58",
             "columns": [
               {
                 "name": "stat_var",
@@ -903,7 +903,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-19T13:59:18.051742Z"
@@ -997,7 +997,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "c4313642ac68484fb1d13d6f7b206d66"
+          "x-dfo-trace-id": "10b2cc32955e4dd1bdbb44ea217a46a1"
         },
         "json": {
           "schema_version": 1,
@@ -1006,11 +1006,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
-            "trace_id": "c4313642ac68484fb1d13d6f7b206d66",
+            "engine_build": "99e62038ceb4b459c2ac699549076ff123c166aa",
+            "trace_id": "10b2cc32955e4dd1bdbb44ea217a46a1",
             "warnings": [],
             "timing_ms": {
-              "total": 340,
+              "total": 2,
               "by_step": {
                 "coverage": 0
               }
@@ -1023,19 +1023,9 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 256,
+                "total": 0,
                 "by_step": {
-                  "validate": 4,
-                  "walk": 219,
-                  "reread_arcs": 1,
-                  "detect_edits": 0,
-                  "resolve_survivors": 0,
-                  "shape": 3,
-                  "bind": 1,
-                  "where_places": 0,
-                  "materialise": 12,
-                  "answer": 14,
-                  "options": 2
+                  "response_cache_part_memo": 0
                 }
               },
               "entity_refs": [],
@@ -1117,7 +1107,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal",
-                    "label": "gross disbursements (basic health care, official development assistance)",
+                    "label": "gross disbursements (basic health care, official development assistance, core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes, standard grant)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -1469,7 +1459,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1703,6 +1693,8 @@
                       "segment": "heading",
                       "entity_refs": [],
                       "states": [
+                        "how:crsCooperationModality",
+                        "how:crsTypeOfFinance",
                         "how:crsTypeOfFlow",
                         "how:financialFlowType",
                         "how:nettingBasis",
@@ -2032,7 +2024,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_9deef72763b45f40"
+                    "capability_version": "cap_88defe77cc79e0c0"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -2296,105 +2288,18 @@
                   "open_axis_facts": [
                     {
                       "property": "crsCooperationModality",
-                      "varies": true,
-                      "distinct_count": 14,
-                      "undeclared_count": 2,
+                      "varies": false,
+                      "value": {
+                        "ref": "CRSCooperationModalityB01",
+                        "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
+                      },
+                      "distinct_count": 1,
+                      "undeclared_count": 0,
                       "values": [
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityC01",
-                            "label": "project-type intervention"
-                          },
-                          "count": 5
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityA02",
-                            "label": "sector budget support"
-                          },
-                          "count": 2
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB04",
-                            "label": "basket fund and pooled funding"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB031",
-                            "label": "contribution to multi-donor and multi-entity funding mechanism"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB032",
-                            "label": "contribution to multi-donor and single-entity funding mechanism"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB033",
-                            "label": "contribution to single-donor funding mechanism or earmarked contribution to a specific funding window or geographical location"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB03",
-                            "label": "contribution to specific-purpose programme and fund managed by an international organisation"
-                          },
-                          "count": 1
-                        },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityB01",
                             "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityD01",
-                            "label": "donor country personnel"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityA01",
-                            "label": "general budget support"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityE02",
-                            "label": "imputed student cost"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityG01",
-                            "label": "other administrative cost"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityD02",
-                            "label": "other technical assistance"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityE01",
-                            "label": "scholarship and training in donor country"
                           },
                           "count": 1
                         }
@@ -2402,42 +2307,18 @@
                     },
                     {
                       "property": "crsTypeOfFinance",
-                      "varies": true,
-                      "distinct_count": 5,
+                      "varies": false,
+                      "value": {
+                        "ref": "CRSTypeOfFinance110",
+                        "label": "standard grant"
+                      },
+                      "distinct_count": 1,
                       "undeclared_count": 0,
                       "values": [
                         {
                           "value": {
                             "ref": "CRSTypeOfFinance110",
                             "label": "standard grant"
-                          },
-                          "count": 14
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance421",
-                            "label": "standard loan"
-                          },
-                          "count": 4
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance510",
-                            "label": "common equity"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance210",
-                            "label": "interest subsidy"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance520",
-                            "label": "share in collective investment vehicle"
                           },
                           "count": 1
                         }
@@ -4450,6 +4331,8 @@
               "segment": "heading",
               "entity_refs": [],
               "states": [
+                "how:crsCooperationModality",
+                "how:crsTypeOfFinance",
                 "how:crsTypeOfFlow",
                 "how:financialFlowType",
                 "how:nettingBasis",
@@ -4640,7 +4523,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ac44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "2f0c6beb58394dd390dc7e490b5e6c00"
+          "x-dfo-trace-id": "3eb8e8c056854f268dff17ba392f1890"
         }
       }
     },
