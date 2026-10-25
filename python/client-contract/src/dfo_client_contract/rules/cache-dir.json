@@ -1,0 +1,109 @@
+{
+  "format_version": 1,
+  "rule": "cache-dir",
+  "vectors": [
+    {
+      "name": "argument-wins",
+      "platform": "linux",
+      "home": "/home/ana",
+      "cache_dir": "/data/cache",
+      "env": {
+        "DFO_CACHE_DIR": "/env/dfo",
+        "BBLOCKS_CACHE_DIR": "/env/bblocks"
+      },
+      "root": "/data/cache",
+      "directory": "/data/cache/v1/dfo/cache1"
+    },
+    {
+      "name": "argument-with-home-expands",
+      "platform": "macos",
+      "home": "/Users/ana",
+      "cache_dir": "~/dfo-cache",
+      "env": {},
+      "root": "/Users/ana/dfo-cache",
+      "directory": "/Users/ana/dfo-cache/v1/dfo/cache1"
+    },
+    {
+      "name": "dfo-variable",
+      "platform": "linux",
+      "home": "/home/ana",
+      "env": {
+        "DFO_CACHE_DIR": "/env/dfo",
+        "BBLOCKS_CACHE_DIR": "/env/bblocks"
+      },
+      "root": "/env/dfo",
+      "directory": "/env/dfo/v1/dfo/cache1"
+    },
+    {
+      "name": "family-variable",
+      "platform": "linux",
+      "home": "/home/ana",
+      "env": {
+        "BBLOCKS_CACHE_DIR": "/env/bblocks"
+      },
+      "root": "/env/bblocks",
+      "directory": "/env/bblocks/v1/dfo/cache1"
+    },
+    {
+      "name": "empty-variables-count-as-unset",
+      "platform": "linux",
+      "home": "/home/ana",
+      "env": {
+        "DFO_CACHE_DIR": "",
+        "BBLOCKS_CACHE_DIR": "",
+        "XDG_CACHE_HOME": ""
+      },
+      "root": "/home/ana/.cache/readerkit",
+      "directory": "/home/ana/.cache/readerkit/v1/dfo/cache1"
+    },
+    {
+      "name": "xdg-cache-home-on-linux",
+      "platform": "linux",
+      "home": "/home/ana",
+      "env": {
+        "XDG_CACHE_HOME": "/home/ana/.xdg-cache"
+      },
+      "root": "/home/ana/.xdg-cache/readerkit",
+      "directory": "/home/ana/.xdg-cache/readerkit/v1/dfo/cache1"
+    },
+    {
+      "name": "platform-default-on-linux",
+      "platform": "linux",
+      "home": "/home/ana",
+      "env": {},
+      "root": "/home/ana/.cache/readerkit",
+      "directory": "/home/ana/.cache/readerkit/v1/dfo/cache1"
+    },
+    {
+      "name": "platform-default-on-macos",
+      "platform": "macos",
+      "home": "/Users/ana",
+      "env": {
+        "XDG_CACHE_HOME": "/Users/ana/.xdg-cache"
+      },
+      "root": "/Users/ana/Library/Caches/readerkit",
+      "directory": "/Users/ana/Library/Caches/readerkit/v1/dfo/cache1"
+    },
+    {
+      "name": "platform-default-on-windows",
+      "platform": "windows",
+      "home": "C:\\Users\\ana",
+      "env": {
+        "LOCALAPPDATA": "C:\\Users\\ana\\AppData\\Local"
+      },
+      "root": "C:\\Users\\ana\\AppData\\Local\\readerkit\\Cache",
+      "directory": "C:\\Users\\ana\\AppData\\Local\\readerkit\\Cache\\v1\\dfo\\cache1"
+    },
+    {
+      "name": "dfo-variable-on-windows",
+      "platform": "windows",
+      "home": "C:\\Users\\ana",
+      "env": {
+        "DFO_CACHE_DIR": "D:\\cache",
+        "LOCALAPPDATA": "C:\\Users\\ana\\AppData\\Local"
+      },
+      "root": "D:\\cache",
+      "directory": "D:\\cache\\v1\\dfo\\cache1"
+    }
+  ]
+}

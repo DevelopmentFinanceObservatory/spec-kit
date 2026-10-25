@@ -1,0 +1,54 @@
+{
+  "format_version": 1,
+  "name": "search-refused-without-code",
+  "description": "A problem document with no code raises refusal_without_code with the class its status maps to, and keeps its body's retryable and trace_id, so a retryable false 503 is not retried and its trace id is the body's, not the header's.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "A 503 problem document with no code, retryable false and trace_id 11111111111111111111111111111111 answers the search, with x-dfo-trace-id 22222222222222222222222222222222."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo in 2018"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 503,
+        "headers": {
+          "content-type": "application/problem+json",
+          "x-dfo-trace-id": "22222222222222222222222222222222"
+        },
+        "json": {
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "The service is busy.",
+          "trace_id": "11111111111111111111111111111111",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ServerError",
+        "code": "refusal_without_code",
+        "trace_id": "11111111111111111111111111111111"
+      }
+    }
+  ]
+}

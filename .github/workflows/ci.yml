@@ -3,12 +3,12 @@ name: CI
 # A draft pull request runs no jobs. `ready_for_review` is in the types so that
 # marking it ready starts the run: without it the skipped jobs would stand as
 # passing required checks on the commit and nothing would have tested it. A push
-# to main still runs, as the only test of the merged tree.
+# to dev or main still runs, as the only test of the merged tree.
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
   pull_request:
-    branches: [main]
+    branches: [dev, main]
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
@@ -29,6 +29,8 @@ jobs:
             module: dfo_provenance_docs
           - package: python/descriptions
             module: dfo_descriptions
+          - package: python/client-contract
+            module: dfo_client_contract
     defaults:
       run:
         working-directory: ${{ matrix.package }}
@@ -74,6 +76,7 @@ jobs:
             python/dfo-spec-kit-components,
             python/provenance-docs,
             python/descriptions,
+            python/client-contract,
           ]
         python-version: ["3.12", "3.13"]
     defaults:
@@ -141,3 +144,6 @@ jobs:
 
       - name: Validate step and description vectors
         run: uv run tools/validate_descriptions_vectors.py
+
+      - name: Validate the client contract
+        run: uv run tools/validate_client_contract.py

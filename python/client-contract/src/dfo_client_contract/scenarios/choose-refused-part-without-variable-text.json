@@ -1,0 +1,3468 @@
+{
+  "format_version": 1,
+  "name": "choose-refused-part-without-variable-text",
+  "description": "An identity entry carries its part's variable_text, so a part without one cannot be posted back and the choice raises InvalidRequestError with no request.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "choose-option-beside-definite",
+    "edit": "Part 0, the definite part, loses its variable_text."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "GDP of the G20 in 2015, and Germany India ODA"
+    },
+    {
+      "op": "choose",
+      "part": 1,
+      "option": 0
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "GDP of the G20 in 2015, and Germany India ODA"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "009afd1dc09e44299c2004e111d17991"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "GDP of the G20 in 2015, and Germany India ODA",
+            "normalized_query": "GDP of the G20 in 2015, and Germany India ODA",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
+            "trace_id": "009afd1dc09e44299c2004e111d17991",
+            "warnings": [],
+            "timing_ms": {
+              "total": 2627,
+              "by_step": {
+                "coverage": 0,
+                "extract": 1263,
+                "cache_lookup": 0
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 2239,
+              "output_tokens": 164,
+              "cached_tokens": 842,
+              "jev_input_tokens": 17402,
+              "jev_output_tokens": 3500
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [
+            {
+              "warnings": [],
+              "timing_ms": {
+                "total": 1129,
+                "by_step": {
+                  "recall": 2,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 4,
+                  "shape_probe_coverage": 4,
+                  "shape_probe": 151,
+                  "shape_groups": 45,
+                  "shape_labels": 10,
+                  "shape_admission": 1,
+                  "phase_derive_shapes": 0,
+                  "shape": 407,
+                  "phase_prune_and_rank": 0,
+                  "bind": 127,
+                  "phase_bind": 10,
+                  "phase_settle": 24,
+                  "phase_place_bindings": 8,
+                  "phase_facet_requests": 0,
+                  "materialise": 144,
+                  "phase_materialise": 0,
+                  "answer": 185,
+                  "options": 98,
+                  "phase_outcome": 124
+                }
+              },
+              "restatement": {
+                "variable_text": "GDP",
+                "entities": [
+                  {
+                    "text": "G20"
+                  },
+                  {
+                    "text": "Germany"
+                  },
+                  {
+                    "text": "India"
+                  }
+                ],
+                "time_text": "2015",
+                "sources": [],
+                "operations": []
+              },
+              "entity_refs": [
+                {
+                  "text": "G20",
+                  "refs": [
+                    "groups/G20",
+                    "country/ARG",
+                    "country/AUS",
+                    "country/BRA",
+                    "country/CAN",
+                    "country/CHN",
+                    "country/DEU",
+                    "country/FRA",
+                    "country/GBR",
+                    "country/IDN",
+                    "country/IND",
+                    "country/ITA",
+                    "country/JPN",
+                    "country/KOR",
+                    "country/MEX",
+                    "country/RUS",
+                    "country/SAU",
+                    "country/TUR",
+                    "country/USA",
+                    "country/ZAF"
+                  ]
+                },
+                {
+                  "text": "Germany",
+                  "refs": [
+                    "country/DEU"
+                  ]
+                },
+                {
+                  "text": "India",
+                  "refs": [
+                    "country/IND"
+                  ]
+                }
+              ],
+              "operations": [],
+              "departures": [
+                {
+                  "code": "group_read_as_members",
+                  "binding_ref": "where:",
+                  "asked": "G20",
+                  "text": "You asked for G20. This shows its members, each on its own."
+                }
+              ],
+              "assumptions": [],
+              "status": "definite",
+              "spec": {
+                "spec_id": "spec_66fdfe785d6a2bc455d49daaf76d6f89",
+                "definition": {
+                  "schema_version": 1,
+                  "spec_id": "spec_66fdfe785d6a2bc455d49daaf76d6f89",
+                  "identity": {
+                    "identity_version": "spec1",
+                    "shape": {
+                      "kind": "statvar_schema",
+                      "population_type": "EconomicActivity",
+                      "measured_property": "amount",
+                      "stat_type": "measuredValue",
+                      "measurement_qualifier": "Nominal"
+                    },
+                    "slots": [
+                      {
+                        "property": "activitySource",
+                        "binding": {
+                          "state": "value",
+                          "ref": "GrossDomesticProduction"
+                        }
+                      },
+                      {
+                        "property": "economicSector",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      },
+                      {
+                        "property": "naics",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      },
+                      {
+                        "property": "schoolGradeLevel",
+                        "binding": {
+                          "state": "unbound"
+                        }
+                      }
+                    ],
+                    "entities": {
+                      "observationAbout": [
+                        "country/ARG",
+                        "country/AUS",
+                        "country/BRA",
+                        "country/CAN",
+                        "country/CHN",
+                        "country/DEU",
+                        "country/FRA",
+                        "country/GBR",
+                        "country/IDN",
+                        "country/IND",
+                        "country/ITA",
+                        "country/JPN",
+                        "country/KOR",
+                        "country/MEX",
+                        "country/RUS",
+                        "country/SAU",
+                        "country/TUR",
+                        "country/USA",
+                        "country/ZAF"
+                      ]
+                    },
+                    "requested_window": {
+                      "kind": "range",
+                      "start_year": 2015,
+                      "end_year": 2015
+                    },
+                    "facets": {
+                      "unit": {
+                        "state": "value",
+                        "ref": "USDollar"
+                      }
+                    }
+                  }
+                },
+                "resolved": {
+                  "shape": {
+                    "shape_id": "economicactivity_amount_measuredvalue_nominal",
+                    "label": "Nominal gross domestic product",
+                    "population_type": {
+                      "ref": "EconomicActivity",
+                      "label": "EconomicActivity"
+                    },
+                    "measured_property": {
+                      "ref": "amount",
+                      "label": "amount"
+                    },
+                    "stat_type": {
+                      "ref": "measuredValue",
+                      "label": "measuredValue"
+                    },
+                    "measurement_qualifier": {
+                      "ref": "Nominal",
+                      "label": "Nominal"
+                    },
+                    "measurement_denominator_unresolved": false,
+                    "slot_keys": [
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "activitySource",
+                          "label": "activitySource"
+                        },
+                        "label": "activity source"
+                      },
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "economicSector",
+                          "label": "economicSector"
+                        },
+                        "label": "economic sector"
+                      },
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "naics",
+                          "label": "naics"
+                        },
+                        "label": "naics"
+                      },
+                      {
+                        "axis": "how",
+                        "property": {
+                          "ref": "schoolGradeLevel",
+                          "label": "schoolGradeLevel"
+                        },
+                        "label": "school grade level"
+                      },
+                      {
+                        "axis": "where",
+                        "label": "place"
+                      },
+                      {
+                        "axis": "when",
+                        "label": "time window"
+                      },
+                      {
+                        "axis": "source",
+                        "label": "data source"
+                      }
+                    ],
+                    "member_count": 65,
+                    "member_digest": "73519eeb75639bdae33042fc844830cd46becc08e4f9122dfcd0886e9875f657",
+                    "refine_supported": true,
+                    "data_commons": [
+                      {
+                        "id": "base",
+                        "label": "Data Commons by Google"
+                      }
+                    ]
+                  },
+                  "slots": [
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "activitySource",
+                          "label": "activitySource"
+                        },
+                        "label": "activity source"
+                      },
+                      "binding": {
+                        "kind": "value",
+                        "value": {
+                          "ref": {
+                            "ref": "GrossDomesticProduction",
+                            "label": "GrossDomesticProduction"
+                          },
+                          "value_kind": "enum_value"
+                        }
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "economicSector",
+                          "label": "economicSector"
+                        },
+                        "label": "economic sector"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "naics",
+                          "label": "naics"
+                        },
+                        "label": "naics"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "schoolGradeLevel",
+                          "label": "schoolGradeLevel"
+                        },
+                        "label": "school grade level"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "where",
+                        "label": "place"
+                      },
+                      "binding": {
+                        "kind": "set",
+                        "values": [
+                          {
+                            "ref": {
+                              "ref": "country/ARG",
+                              "label": "Argentina"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/AUS",
+                              "label": "Australia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/BRA",
+                              "label": "Brazil"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/CAN",
+                              "label": "Canada"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/CHN",
+                              "label": "China"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/DEU",
+                              "label": "Germany"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/FRA",
+                              "label": "France"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/GBR",
+                              "label": "United Kingdom"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/IDN",
+                              "label": "Indonesia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/IND",
+                              "label": "India"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ITA",
+                              "label": "Italy"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/JPN",
+                              "label": "Japan"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/KOR",
+                              "label": "South Korea"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/MEX",
+                              "label": "Mexico"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/RUS",
+                              "label": "Russia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/SAU",
+                              "label": "Saudi Arabia"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/TUR",
+                              "label": "Turkey"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/USA",
+                              "label": "United States"
+                            },
+                            "value_kind": "entity"
+                          },
+                          {
+                            "ref": {
+                              "ref": "country/ZAF",
+                              "label": "South Africa"
+                            },
+                            "value_kind": "entity"
+                          }
+                        ]
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "when",
+                        "label": "time window"
+                      },
+                      "binding": {
+                        "kind": "value",
+                        "value": {
+                          "value_kind": "time_window",
+                          "time_window": {
+                            "start_year": 2015,
+                            "end_year": 2015
+                          }
+                        }
+                      },
+                      "summable": false
+                    },
+                    {
+                      "key": {
+                        "axis": "source",
+                        "label": "data source"
+                      },
+                      "binding": {
+                        "kind": "unbound"
+                      },
+                      "summable": false
+                    }
+                  ],
+                  "inapplicable_slots": [
+                    "economicSector",
+                    "naics",
+                    "schoolGradeLevel"
+                  ],
+                  "unresolved_slots": [],
+                  "stat_vars": {
+                    "member_count": 1,
+                    "member_count_exact": false,
+                    "served_count": 1,
+                    "data_date_range": {
+                      "start": "2015",
+                      "end": "2015"
+                    }
+                  },
+                  "entities": [
+                    {
+                      "ref": "country/ARG",
+                      "label": "Argentina",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/AUS",
+                      "label": "Australia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/BRA",
+                      "label": "Brazil",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/CAN",
+                      "label": "Canada",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/CHN",
+                      "label": "China",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/DEU",
+                      "label": "Germany",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/FRA",
+                      "label": "France",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/GBR",
+                      "label": "United Kingdom",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/IDN",
+                      "label": "Indonesia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/IND",
+                      "label": "India",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ITA",
+                      "label": "Italy",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/JPN",
+                      "label": "Japan",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/KOR",
+                      "label": "South Korea",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/MEX",
+                      "label": "Mexico",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/RUS",
+                      "label": "Russia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/SAU",
+                      "label": "Saudi Arabia",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/TUR",
+                      "label": "Turkey",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/USA",
+                      "label": "United States",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    },
+                    {
+                      "ref": "country/ZAF",
+                      "label": "South Africa",
+                      "entity_type": "Country",
+                      "role": "observationAbout"
+                    }
+                  ],
+                  "entity_groups": {
+                    "observationAbout": {
+                      "label": "G20",
+                      "group_id": "groups/G20"
+                    }
+                  },
+                  "coverage": {
+                    "kind": "exact",
+                    "has_data": true,
+                    "observation_count": 19,
+                    "evidence": "facet_metadata",
+                    "dimensions": [
+                      {
+                        "label": "countries",
+                        "count": 19
+                      },
+                      {
+                        "label": "observations",
+                        "count": 1
+                      },
+                      {
+                        "label": "variables",
+                        "count": 1
+                      }
+                    ],
+                    "window": {
+                      "start_year": 2015,
+                      "end_year": 2015
+                    }
+                  },
+                  "download": {
+                    "rows": 19,
+                    "rows_exact": true,
+                    "series": 19,
+                    "window": {
+                      "start_year": 2015,
+                      "end_year": 2015
+                    },
+                    "licence": {
+                      "label": "Creative Commons Attribution License"
+                    }
+                  },
+                  "facets": {
+                    "provenance": {
+                      "basis": "fallback",
+                      "ref": "dc/base/WorldDevelopmentIndicators",
+                      "label": "World Development Indicators",
+                      "source": {
+                        "ref": "dc/s/WorldBank",
+                        "label": "World Bank"
+                      },
+                      "data_commons": {
+                        "id": "base",
+                        "label": "Data Commons by Google"
+                      },
+                      "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                    },
+                    "unit": {
+                      "basis": "bound",
+                      "ref": "USDollar",
+                      "label": "USDollar",
+                      "currency": "USD"
+                    }
+                  },
+                  "slot_options": [
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "activitySource",
+                          "label": "activitySource"
+                        },
+                        "label": "activity source"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "GrossValueAdded",
+                              "label": "GrossValueAdded"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "GrossDomesticProduction",
+                              "label": "GrossDomesticProduction"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NetDomesticProduction",
+                              "label": "Net Domestic Production"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NetValueAdded",
+                              "label": "Net Value Added"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "economicSector",
+                          "label": "economicSector"
+                        },
+                        "label": "economic sector"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AgricultureForestryFishingSector",
+                              "label": "Agriculture,Forestry and Fishing Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ConstructionSector",
+                              "label": "Construction Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ElectricityGasSteamAirConditionSupply",
+                              "label": "Electric Gas Steam Air Condition Supply"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinanceService",
+                              "label": "Finance Service"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "MOSPI_OtherService",
+                              "label": "MOSPI Other Service"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ManufacturingSector",
+                              "label": "Manufacturing Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "MiningQuarrying",
+                              "label": "Mining quarrying"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "TradeSector",
+                              "label": "Trade Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AccommodationAndFoodSector",
+                              "label": "Accommodation and food sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AdministrativeAndSupportServices",
+                              "label": "Administrative and support services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AgriculturalSupportActivities",
+                              "label": "Agricultural support activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Agriculture",
+                              "label": "Agriculture"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AirTransportAndSupportServices",
+                              "label": "Air transport and support services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AllEconomicActivities",
+                              "label": "All economic activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "AnimalProduction",
+                              "label": "Animal production"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ArtsEntertainmentRecreation",
+                              "label": "Arts entertainment recreation"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Education",
+                              "label": "Education"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ElectricitySupply",
+                              "label": "Electricity supply"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "EmployerHouseholdActivities",
+                              "label": "Employer household activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialActivities",
+                              "label": "FinancialActivities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialAndInsuranceActivities",
+                              "label": "Financial and insurance activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialIntermediationServicesIndirectlyMeasured",
+                              "label": "Financial intermediation services indirectly measured"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FishingAquaculture",
+                              "label": "Fishing aquaculture"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FoodBeveragesTobaccoManufacture",
+                              "label": "Food beverages tobacco manufacture"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ForestryLogging",
+                              "label": "Forestry logging"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "HumanHealthAndSocialWork",
+                              "label": "Human health and social work"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "InformationAndCommunication",
+                              "label": "Information and communication"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "InsuranceActivities",
+                              "label": "Insurance activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "LandTransport",
+                              "label": "Land transport"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "OtherManufacturingAndRepair",
+                              "label": "Other manufacturing and repair"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "OtherServiceSector",
+                              "label": "Other service sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "OtherTransportPostalCourierActivities",
+                              "label": "Other transport postal courier activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ProductTaxes",
+                              "label": "Product taxes"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "ProfessionalScientificTechnicalActivities",
+                              "label": "Professional scientific technical activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PublicAdministrationAndDefence",
+                              "label": "Public administration and defence"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PublishingBroadcastingInformationActivities",
+                              "label": "Publishing Broadcasting Information Activities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "RealEstate",
+                              "label": "Real estate"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Telecommunications",
+                              "label": "Telecommunications"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "TransportStorageSector",
+                              "label": "Transport and Storage"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "WaterSupplySewerageWasteManagement",
+                              "label": "Water supply sewerage waste management"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "WholesaleRetailTradeAndRepair",
+                              "label": "Wholesale retail trade and repair"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "BankingAndInsuranceSector",
+                              "label": "Banking And Insurance Sector"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Construction",
+                              "label": "Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "FinancialServices",
+                              "label": "Financial Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Industry",
+                              "label": "Industry"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Services",
+                              "label": "Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "naics",
+                          "label": "naics"
+                        },
+                        "label": "naics"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/23",
+                              "label": "Construction"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/44-45",
+                              "label": "Retail trade"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/53",
+                              "label": "Real estate and rental and leasing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/22",
+                              "label": "Utilities"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/55",
+                              "label": "Management of companies and enterprises"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/48-49",
+                              "label": "Transportation and warehousing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/61",
+                              "label": "Educational services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/51",
+                              "label": "Information"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/42",
+                              "label": "Wholesale trade"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/21",
+                              "label": "Mining, quarrying, and oil and gas extraction"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/11",
+                              "label": "Agriculture, forestry, fishing and hunting"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/72",
+                              "label": "Accommodation and food services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/52",
+                              "label": "Finance and insurance"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/54",
+                              "label": "Professional, Scientific, and Technical Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/71",
+                              "label": "Arts, entertainment, and recreation"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/311-316_322-326",
+                              "label": "Durable Goods Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/31-33",
+                              "label": "Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/321_327-339",
+                              "label": "Durable Goods Manufacturing"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/56",
+                              "label": "Administrative and Support and Waste Management Services"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/62",
+                              "label": "Health care and social assistance"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/81",
+                              "label": "Other services, except public administration"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NAICS/92",
+                              "label": "Public administration"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    },
+                    {
+                      "key": {
+                        "axis": "how",
+                        "property": {
+                          "ref": "schoolGradeLevel",
+                          "label": "schoolGradeLevel"
+                        },
+                        "label": "school grade level"
+                      },
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "HigherSecondaryEducation",
+                              "label": "Higher Secondary Education"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PrePrimaryAndPrimaryEducation",
+                              "label": "PrePrimary and Primary"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "SecondaryEducation",
+                              "label": "SecondaryEducation"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": true,
+                      "source": "observed"
+                    }
+                  ],
+                  "entity_options": [],
+                  "facet_options": [
+                    {
+                      "axis": "provenance",
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "dc/base/WorldDevelopmentIndicators",
+                              "label": "World Development Indicators"
+                            },
+                            "value_kind": "source"
+                          }
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    },
+                    {
+                      "axis": "unit",
+                      "options": [
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "USDollar",
+                              "label": "USDollar"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "Euro",
+                              "label": "Euro"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "NationalCurrency",
+                              "label": "NationalCurrency"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "PurchasingPowerStandard",
+                              "label": "PurchasingPowerStandard"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "INR",
+                              "label": "INR"
+                            },
+                            "value_kind": "enum_value"
+                          }
+                        }
+                      ],
+                      "truncated": false,
+                      "source": "observed"
+                    }
+                  ],
+                  "rendered_sentence": "GDP in the 19 G20 members in 2015. Current US dollars · World Development Indicators.",
+                  "sentence_plan": [
+                    {
+                      "kind": "slot",
+                      "text": "GDP",
+                      "axis": "what",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": [
+                        "how:activitySource",
+                        "axis:populationType",
+                        "axis:measuredProperty",
+                        "axis:statType"
+                      ]
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "economicSector",
+                      "binding_ref": "how:economicSector",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "naics",
+                      "binding_ref": "how:naics",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "schoolGradeLevel",
+                      "binding_ref": "how:schoolGradeLevel",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "",
+                      "axis": "how",
+                      "segment": "heading",
+                      "property_dcid": "activitySource",
+                      "binding_ref": "how:activitySource",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "text",
+                      "text": " in ",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "the 19 G20 members",
+                      "axis": "where",
+                      "segment": "heading",
+                      "binding_ref": "where:",
+                      "entity_refs": [],
+                      "states": [
+                        "where:"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": " ",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "in 2015",
+                      "axis": "when",
+                      "segment": "heading",
+                      "binding_ref": "when:",
+                      "entity_refs": [],
+                      "states": [
+                        "when:"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": ".",
+                      "segment": "heading",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "text",
+                      "text": " ",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "Current US dollars",
+                      "axis": "unit",
+                      "segment": "byline",
+                      "binding_ref": "unit:",
+                      "entity_refs": [],
+                      "states": [
+                        "unit:",
+                        "axis:measurementQualifier"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": " · ",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": []
+                    },
+                    {
+                      "kind": "slot",
+                      "text": "World Development Indicators",
+                      "axis": "source",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": [
+                        "source:"
+                      ]
+                    },
+                    {
+                      "kind": "text",
+                      "text": ".",
+                      "segment": "byline",
+                      "entity_refs": [],
+                      "states": []
+                    }
+                  ],
+                  "trace": {
+                    "resolved_entities": [
+                      {
+                        "ref": "country/ARG",
+                        "label": "Argentina"
+                      },
+                      {
+                        "ref": "country/AUS",
+                        "label": "Australia"
+                      },
+                      {
+                        "ref": "country/BRA",
+                        "label": "Brazil"
+                      },
+                      {
+                        "ref": "country/CAN",
+                        "label": "Canada"
+                      },
+                      {
+                        "ref": "country/CHN",
+                        "label": "China"
+                      },
+                      {
+                        "ref": "country/DEU",
+                        "label": "Germany"
+                      },
+                      {
+                        "ref": "country/FRA",
+                        "label": "France"
+                      },
+                      {
+                        "ref": "country/GBR",
+                        "label": "United Kingdom"
+                      },
+                      {
+                        "ref": "country/IDN",
+                        "label": "Indonesia"
+                      },
+                      {
+                        "ref": "country/IND",
+                        "label": "India"
+                      },
+                      {
+                        "ref": "country/ITA",
+                        "label": "Italy"
+                      },
+                      {
+                        "ref": "country/JPN",
+                        "label": "Japan"
+                      },
+                      {
+                        "ref": "country/KOR",
+                        "label": "South Korea"
+                      },
+                      {
+                        "ref": "country/MEX",
+                        "label": "Mexico"
+                      },
+                      {
+                        "ref": "country/RUS",
+                        "label": "Russia"
+                      },
+                      {
+                        "ref": "country/SAU",
+                        "label": "Saudi Arabia"
+                      },
+                      {
+                        "ref": "country/TUR",
+                        "label": "Turkey"
+                      },
+                      {
+                        "ref": "country/USA",
+                        "label": "United States"
+                      },
+                      {
+                        "ref": "country/ZAF",
+                        "label": "South Africa"
+                      }
+                    ],
+                    "resolved_sources": [
+                      {
+                        "ref": "dc/base/WorldDevelopmentIndicators",
+                        "label": "World Development Indicators",
+                        "source": {
+                          "ref": "dc/s/WorldBank",
+                          "label": "World Bank"
+                        },
+                        "data_commons": {
+                          "id": "base",
+                          "label": "Data Commons by Google"
+                        },
+                        "documentation": "/api/graph/documentation/dc/base/WorldDevelopmentIndicators"
+                      }
+                    ],
+                    "slot_filters": [
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "activitySource",
+                            "label": "activitySource"
+                          },
+                          "label": "activity source"
+                        },
+                        "binding_kind": "value",
+                        "refs": [
+                          {
+                            "ref": "GrossDomesticProduction",
+                            "label": "GrossDomesticProduction"
+                          }
+                        ],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "economicSector",
+                            "label": "economicSector"
+                          },
+                          "label": "economic sector"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "naics",
+                            "label": "naics"
+                          },
+                          "label": "naics"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "how",
+                          "property": {
+                            "ref": "schoolGradeLevel",
+                            "label": "schoolGradeLevel"
+                          },
+                          "label": "school grade level"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "where",
+                          "label": "place"
+                        },
+                        "binding_kind": "set",
+                        "refs": [
+                          {
+                            "ref": "country/ARG",
+                            "label": "Argentina"
+                          },
+                          {
+                            "ref": "country/AUS",
+                            "label": "Australia"
+                          },
+                          {
+                            "ref": "country/BRA",
+                            "label": "Brazil"
+                          },
+                          {
+                            "ref": "country/CAN",
+                            "label": "Canada"
+                          },
+                          {
+                            "ref": "country/CHN",
+                            "label": "China"
+                          },
+                          {
+                            "ref": "country/DEU",
+                            "label": "Germany"
+                          },
+                          {
+                            "ref": "country/FRA",
+                            "label": "France"
+                          },
+                          {
+                            "ref": "country/GBR",
+                            "label": "United Kingdom"
+                          },
+                          {
+                            "ref": "country/IDN",
+                            "label": "Indonesia"
+                          },
+                          {
+                            "ref": "country/IND",
+                            "label": "India"
+                          },
+                          {
+                            "ref": "country/ITA",
+                            "label": "Italy"
+                          },
+                          {
+                            "ref": "country/JPN",
+                            "label": "Japan"
+                          },
+                          {
+                            "ref": "country/KOR",
+                            "label": "South Korea"
+                          },
+                          {
+                            "ref": "country/MEX",
+                            "label": "Mexico"
+                          },
+                          {
+                            "ref": "country/RUS",
+                            "label": "Russia"
+                          },
+                          {
+                            "ref": "country/SAU",
+                            "label": "Saudi Arabia"
+                          },
+                          {
+                            "ref": "country/TUR",
+                            "label": "Turkey"
+                          },
+                          {
+                            "ref": "country/USA",
+                            "label": "United States"
+                          },
+                          {
+                            "ref": "country/ZAF",
+                            "label": "South Africa"
+                          }
+                        ],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "when",
+                          "label": "time window"
+                        },
+                        "binding_kind": "value",
+                        "refs": [],
+                        "provenance": "binder"
+                      },
+                      {
+                        "key": {
+                          "axis": "source",
+                          "label": "data source"
+                        },
+                        "binding_kind": "unbound",
+                        "refs": [],
+                        "provenance": "binder"
+                      }
+                    ],
+                    "query_qualifiers": [],
+                    "requested_window": {
+                      "start_year": 2015,
+                      "end_year": 2015
+                    },
+                    "capability_version": "cap_9deef72763b45f40",
+                    "default_reading": {
+                      "applied": true,
+                      "removed_stat_vars": [
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSAccommodationFoodServices_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSFinanceInsurance_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSMiningQuarryingOilGasExtraction_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSProfessionalScientificTechnicalServices_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                        "Amount_EconomicActivity_GrossDomesticProduction_NAICSWholesaleTrade_RealValue",
+                        "InflationAdjustedGDP",
+                        "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                        "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                        "dc/qt7ewllmt3826",
+                        "dc/zz6gwv838v9w"
+                      ]
+                    }
+                  },
+                  "confidence": "high",
+                  "available_at_place": true,
+                  "equivalent_readings": [
+                    {
+                      "spec_id": "spec_1db6b5f85ff32760913d9a4f2a28500b",
+                      "definition": {
+                        "schema_version": 1,
+                        "spec_id": "spec_1db6b5f85ff32760913d9a4f2a28500b",
+                        "identity": {
+                          "identity_version": "spec1",
+                          "shape": {
+                            "kind": "statvar_schema",
+                            "population_type": "EconomicProduction",
+                            "measured_property": "valueAdded",
+                            "stat_type": "measuredValue",
+                            "measurement_qualifier": "Nominal"
+                          },
+                          "slots": [
+                            {
+                              "property": "currencyConversionBasis",
+                              "binding": {
+                                "state": "unbound"
+                              }
+                            },
+                            {
+                              "property": "fixedCapitalConsumptionBasis",
+                              "binding": {
+                                "state": "value",
+                                "ref": "GrossOfFixedCapitalConsumption"
+                              }
+                            },
+                            {
+                              "property": "productTaxBasis",
+                              "binding": {
+                                "state": "value",
+                                "ref": "IncludingProductTaxes"
+                              }
+                            }
+                          ],
+                          "entities": {
+                            "observationAbout": [
+                              "country/ARG",
+                              "country/AUS",
+                              "country/BRA",
+                              "country/CAN",
+                              "country/CHN",
+                              "country/DEU",
+                              "country/FRA",
+                              "country/GBR",
+                              "country/IDN",
+                              "country/IND",
+                              "country/ITA",
+                              "country/JPN",
+                              "country/KOR",
+                              "country/MEX",
+                              "country/RUS",
+                              "country/SAU",
+                              "country/TUR",
+                              "country/USA",
+                              "country/ZAF"
+                            ]
+                          },
+                          "requested_window": {
+                            "kind": "range",
+                            "start_year": 2015,
+                            "end_year": 2015
+                          },
+                          "facets": {
+                            "unit": {
+                              "state": "value",
+                              "ref": "CurrencyUSD"
+                            }
+                          }
+                        }
+                      },
+                      "resolved": {
+                        "shape": {
+                          "shape_id": "economicproduction_valueadded_measuredvalue_nominal",
+                          "label": "Gross domestic product (GDP)",
+                          "population_type": {
+                            "ref": "EconomicProduction",
+                            "label": "economic production"
+                          },
+                          "measured_property": {
+                            "ref": "valueAdded",
+                            "label": "value added"
+                          },
+                          "stat_type": {
+                            "ref": "measuredValue",
+                            "label": "measuredValue"
+                          },
+                          "measurement_qualifier": {
+                            "ref": "Nominal",
+                            "label": "Nominal"
+                          },
+                          "measurement_denominator_unresolved": false,
+                          "slot_keys": [
+                            {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            {
+                              "axis": "how",
+                              "property": {
+                                "ref": "productTaxBasis",
+                                "label": "product tax basis"
+                              },
+                              "label": "product tax basis"
+                            },
+                            {
+                              "axis": "how",
+                              "property": {
+                                "ref": "currencyConversionBasis",
+                                "label": "currency conversion basis"
+                              },
+                              "label": "currency conversion basis"
+                            },
+                            {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            {
+                              "axis": "source",
+                              "label": "data source"
+                            }
+                          ],
+                          "member_count": 2,
+                          "member_digest": "ef9c4356618ed98aab762248e68799d78c74ad249a6041dad0e8a345c85ee02f",
+                          "refine_supported": true,
+                          "data_commons": [
+                            {
+                              "id": "dfo",
+                              "label": "Development Finance Observatory"
+                            }
+                          ]
+                        },
+                        "slots": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            "binding": {
+                              "kind": "value",
+                              "value": {
+                                "ref": {
+                                  "ref": "GrossOfFixedCapitalConsumption",
+                                  "label": "gross of fixed capital consumption"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "productTaxBasis",
+                                "label": "product tax basis"
+                              },
+                              "label": "product tax basis"
+                            },
+                            "binding": {
+                              "kind": "value",
+                              "value": {
+                                "ref": {
+                                  "ref": "IncludingProductTaxes",
+                                  "label": "including taxes on products"
+                                },
+                                "value_kind": "enum_value"
+                              }
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "currencyConversionBasis",
+                                "label": "currency conversion basis"
+                              },
+                              "label": "currency conversion basis"
+                            },
+                            "binding": {
+                              "kind": "unbound"
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "where",
+                              "label": "place"
+                            },
+                            "binding": {
+                              "kind": "set",
+                              "values": [
+                                {
+                                  "ref": {
+                                    "ref": "country/ARG",
+                                    "label": "Argentina"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/AUS",
+                                    "label": "Australia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/BRA",
+                                    "label": "Brazil"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/CAN",
+                                    "label": "Canada"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/CHN",
+                                    "label": "China"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/DEU",
+                                    "label": "Germany"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/FRA",
+                                    "label": "France"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/GBR",
+                                    "label": "United Kingdom"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/IDN",
+                                    "label": "Indonesia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/IND",
+                                    "label": "India"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ITA",
+                                    "label": "Italy"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/JPN",
+                                    "label": "Japan"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/KOR",
+                                    "label": "South Korea"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/MEX",
+                                    "label": "Mexico"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/RUS",
+                                    "label": "Russia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/SAU",
+                                    "label": "Saudi Arabia"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/TUR",
+                                    "label": "Turkey"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/USA",
+                                    "label": "United States"
+                                  },
+                                  "value_kind": "entity"
+                                },
+                                {
+                                  "ref": {
+                                    "ref": "country/ZAF",
+                                    "label": "South Africa"
+                                  },
+                                  "value_kind": "entity"
+                                }
+                              ]
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "when",
+                              "label": "time window"
+                            },
+                            "binding": {
+                              "kind": "value",
+                              "value": {
+                                "value_kind": "time_window",
+                                "time_window": {
+                                  "start_year": 2015,
+                                  "end_year": 2015
+                                }
+                              }
+                            },
+                            "summable": false
+                          },
+                          {
+                            "key": {
+                              "axis": "source",
+                              "label": "data source"
+                            },
+                            "binding": {
+                              "kind": "unbound"
+                            },
+                            "summable": false
+                          }
+                        ],
+                        "inapplicable_slots": [
+                          "currencyConversionBasis"
+                        ],
+                        "unresolved_slots": [],
+                        "stat_vars": {
+                          "member_count": 2,
+                          "member_count_exact": false,
+                          "served_count": 1,
+                          "data_date_range": {
+                            "start": "2015",
+                            "end": "2015"
+                          }
+                        },
+                        "entities": [
+                          {
+                            "ref": "country/ARG",
+                            "label": "Argentina",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/AUS",
+                            "label": "Australia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/BRA",
+                            "label": "Brazil",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/CAN",
+                            "label": "Canada",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/CHN",
+                            "label": "China",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/DEU",
+                            "label": "Germany",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/FRA",
+                            "label": "France",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/GBR",
+                            "label": "United Kingdom",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/IDN",
+                            "label": "Indonesia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/IND",
+                            "label": "India",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ITA",
+                            "label": "Italy",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/JPN",
+                            "label": "Japan",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/KOR",
+                            "label": "South Korea",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/MEX",
+                            "label": "Mexico",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/RUS",
+                            "label": "Russia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/SAU",
+                            "label": "Saudi Arabia",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/TUR",
+                            "label": "Turkey",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/USA",
+                            "label": "United States",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          },
+                          {
+                            "ref": "country/ZAF",
+                            "label": "South Africa",
+                            "entity_type": "Country",
+                            "role": "observationAbout"
+                          }
+                        ],
+                        "entity_groups": {
+                          "observationAbout": {
+                            "label": "G20",
+                            "group_id": "groups/G20"
+                          }
+                        },
+                        "coverage": {
+                          "kind": "exact",
+                          "has_data": true,
+                          "observation_count": 19,
+                          "evidence": "facet_metadata",
+                          "dimensions": [
+                            {
+                              "label": "countries",
+                              "count": 19
+                            },
+                            {
+                              "label": "observations",
+                              "count": 1
+                            },
+                            {
+                              "label": "variables",
+                              "count": 1
+                            }
+                          ],
+                          "window": {
+                            "start_year": 2015,
+                            "end_year": 2015
+                          }
+                        },
+                        "download": {
+                          "rows": 19,
+                          "rows_exact": true,
+                          "series": 19,
+                          "window": {
+                            "start_year": 2015,
+                            "end_year": 2015
+                          },
+                          "licence": {
+                            "label": "IMF Copyright and Usage"
+                          }
+                        },
+                        "facets": {
+                          "provenance": {
+                            "basis": "fallback",
+                            "ref": "provenance/IMFWorldEconomicOutlook",
+                            "label": "IMF World Economic Outlook (WEO)",
+                            "source": {
+                              "ref": "source/InternationalMonetaryFund",
+                              "label": "International Monetary Fund (IMF)"
+                            },
+                            "data_commons": {
+                              "id": "dfo",
+                              "label": "Development Finance Observatory"
+                            },
+                            "documentation": "/api/graph/documentation/provenance/IMFWorldEconomicOutlook"
+                          },
+                          "unit": {
+                            "basis": "bound",
+                            "ref": "CurrencyUSD",
+                            "label": "US Dollar",
+                            "currency": "USD"
+                          }
+                        },
+                        "slot_options": [
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "fixedCapitalConsumptionBasis",
+                                "label": "fixed capital consumption basis"
+                              },
+                              "label": "fixed capital consumption basis"
+                            },
+                            "options": [
+                              {
+                                "value": {
+                                  "ref": {
+                                    "ref": "GrossOfFixedCapitalConsumption",
+                                    "label": "gross of fixed capital consumption"
+                                  },
+                                  "value_kind": "enum_value"
+                                }
+                              }
+                            ],
+                            "truncated": true,
+                            "source": "observed"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "productTaxBasis",
+                                "label": "product tax basis"
+                              },
+                              "label": "product tax basis"
+                            },
+                            "options": [
+                              {
+                                "value": {
+                                  "ref": {
+                                    "ref": "IncludingProductTaxes",
+                                    "label": "including taxes on products"
+                                  },
+                                  "value_kind": "enum_value"
+                                }
+                              }
+                            ],
+                            "truncated": true,
+                            "source": "observed"
+                          },
+                          {
+                            "key": {
+                              "axis": "how",
+                              "property": {
+                                "ref": "currencyConversionBasis",
+                                "label": "currency conversion basis"
+                              },
+                              "label": "currency conversion basis"
+                            },
+                            "options": [
+                              {
+                                "value": {
+                                  "ref": {
+                                    "ref": "PurchasingPowerParityRate",
+                                    "label": "purchasing power parity rate"
+                                  },
+                                  "value_kind": "enum_value"
+                                }
+                              }
+                            ],
+                            "truncated": true,
+                            "source": "observed"
+                          }
+                        ],
+                        "entity_options": [],
+                        "facet_options": [],
+                        "trace": {
+                          "resolved_entities": [
+                            {
+                              "ref": "country/ARG",
+                              "label": "Argentina"
+                            },
+                            {
+                              "ref": "country/AUS",
+                              "label": "Australia"
+                            },
+                            {
+                              "ref": "country/BRA",
+                              "label": "Brazil"
+                            },
+                            {
+                              "ref": "country/CAN",
+                              "label": "Canada"
+                            },
+                            {
+                              "ref": "country/CHN",
+                              "label": "China"
+                            },
+                            {
+                              "ref": "country/DEU",
+                              "label": "Germany"
+                            },
+                            {
+                              "ref": "country/FRA",
+                              "label": "France"
+                            },
+                            {
+                              "ref": "country/GBR",
+                              "label": "United Kingdom"
+                            },
+                            {
+                              "ref": "country/IDN",
+                              "label": "Indonesia"
+                            },
+                            {
+                              "ref": "country/IND",
+                              "label": "India"
+                            },
+                            {
+                              "ref": "country/ITA",
+                              "label": "Italy"
+                            },
+                            {
+                              "ref": "country/JPN",
+                              "label": "Japan"
+                            },
+                            {
+                              "ref": "country/KOR",
+                              "label": "South Korea"
+                            },
+                            {
+                              "ref": "country/MEX",
+                              "label": "Mexico"
+                            },
+                            {
+                              "ref": "country/RUS",
+                              "label": "Russia"
+                            },
+                            {
+                              "ref": "country/SAU",
+                              "label": "Saudi Arabia"
+                            },
+                            {
+                              "ref": "country/TUR",
+                              "label": "Turkey"
+                            },
+                            {
+                              "ref": "country/USA",
+                              "label": "United States"
+                            },
+                            {
+                              "ref": "country/ZAF",
+                              "label": "South Africa"
+                            }
+                          ],
+                          "resolved_sources": [
+                            {
+                              "ref": "provenance/IMFWorldEconomicOutlook",
+                              "label": "IMF World Economic Outlook (WEO)",
+                              "source": {
+                                "ref": "source/InternationalMonetaryFund",
+                                "label": "International Monetary Fund (IMF)"
+                              },
+                              "data_commons": {
+                                "id": "dfo",
+                                "label": "Development Finance Observatory"
+                              },
+                              "documentation": "/api/graph/documentation/provenance/IMFWorldEconomicOutlook"
+                            }
+                          ],
+                          "slot_filters": [
+                            {
+                              "key": {
+                                "axis": "how",
+                                "property": {
+                                  "ref": "fixedCapitalConsumptionBasis",
+                                  "label": "fixed capital consumption basis"
+                                },
+                                "label": "fixed capital consumption basis"
+                              },
+                              "binding_kind": "value",
+                              "refs": [
+                                {
+                                  "ref": "GrossOfFixedCapitalConsumption",
+                                  "label": "gross of fixed capital consumption"
+                                }
+                              ],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "how",
+                                "property": {
+                                  "ref": "productTaxBasis",
+                                  "label": "product tax basis"
+                                },
+                                "label": "product tax basis"
+                              },
+                              "binding_kind": "value",
+                              "refs": [
+                                {
+                                  "ref": "IncludingProductTaxes",
+                                  "label": "including taxes on products"
+                                }
+                              ],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "how",
+                                "property": {
+                                  "ref": "currencyConversionBasis",
+                                  "label": "currency conversion basis"
+                                },
+                                "label": "currency conversion basis"
+                              },
+                              "binding_kind": "unbound",
+                              "refs": [],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "where",
+                                "label": "place"
+                              },
+                              "binding_kind": "set",
+                              "refs": [
+                                {
+                                  "ref": "country/ARG",
+                                  "label": "Argentina"
+                                },
+                                {
+                                  "ref": "country/AUS",
+                                  "label": "Australia"
+                                },
+                                {
+                                  "ref": "country/BRA",
+                                  "label": "Brazil"
+                                },
+                                {
+                                  "ref": "country/CAN",
+                                  "label": "Canada"
+                                },
+                                {
+                                  "ref": "country/CHN",
+                                  "label": "China"
+                                },
+                                {
+                                  "ref": "country/DEU",
+                                  "label": "Germany"
+                                },
+                                {
+                                  "ref": "country/FRA",
+                                  "label": "France"
+                                },
+                                {
+                                  "ref": "country/GBR",
+                                  "label": "United Kingdom"
+                                },
+                                {
+                                  "ref": "country/IDN",
+                                  "label": "Indonesia"
+                                },
+                                {
+                                  "ref": "country/IND",
+                                  "label": "India"
+                                },
+                                {
+                                  "ref": "country/ITA",
+                                  "label": "Italy"
+                                },
+                                {
+                                  "ref": "country/JPN",
+                                  "label": "Japan"
+                                },
+                                {
+                                  "ref": "country/KOR",
+                                  "label": "South Korea"
+                                },
+                                {
+                                  "ref": "country/MEX",
+                                  "label": "Mexico"
+                                },
+                                {
+                                  "ref": "country/RUS",
+                                  "label": "Russia"
+                                },
+                                {
+                                  "ref": "country/SAU",
+                                  "label": "Saudi Arabia"
+                                },
+                                {
+                                  "ref": "country/TUR",
+                                  "label": "Turkey"
+                                },
+                                {
+                                  "ref": "country/USA",
+                                  "label": "United States"
+                                },
+                                {
+                                  "ref": "country/ZAF",
+                                  "label": "South Africa"
+                                }
+                              ],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "when",
+                                "label": "time window"
+                              },
+                              "binding_kind": "value",
+                              "refs": [],
+                              "provenance": "binder"
+                            },
+                            {
+                              "key": {
+                                "axis": "source",
+                                "label": "data source"
+                              },
+                              "binding_kind": "unbound",
+                              "refs": [],
+                              "provenance": "binder"
+                            }
+                          ],
+                          "query_qualifiers": [],
+                          "requested_window": {
+                            "start_year": 2015,
+                            "end_year": 2015
+                          },
+                          "capability_version": "cap_9deef72763b45f40",
+                          "default_reading": {
+                            "applied": true,
+                            "removed_stat_vars": [
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSAccommodationFoodServices_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSAgricultureForestryFishingHunting_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSArtsEntertainmentRecreation_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSConstruction_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSEducationalServices_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSFinanceInsurance_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSInformation_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSManagementOfCompaniesEnterprises_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSMiningQuarryingOilGasExtraction_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSProfessionalScientificTechnicalServices_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSRealEstateRentalLeasing_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSUtilities_RealValue",
+                              "Amount_EconomicActivity_GrossDomesticProduction_NAICSWholesaleTrade_RealValue",
+                              "InflationAdjustedGDP",
+                              "RealValue_Amount_EconomicActivity_GrossValueAdded_TradeSectorOrTransportStorageSectorOrPublishingBroadcastingInformationActivities",
+                              "RealValue_GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                              "dc/qt7ewllmt3826",
+                              "dc/zz6gwv838v9w"
+                            ]
+                          }
+                        },
+                        "confidence": "high",
+                        "available_at_place": true,
+                        "measure_label_axes": [],
+                        "measure_axis_values": []
+                      }
+                    }
+                  ],
+                  "measure_label_axes": [],
+                  "measure_axis_values": [],
+                  "related_group": {
+                    "ref": "dc/g/EconomicActivity_ActivitySource-GrossDomesticProduction",
+                    "label": "Economic Activity With Activity Source = Gross Domestic Production"
+                  },
+                  "related_measures": [
+                    {
+                      "stat_var": {
+                        "ref": "GrowthRate_Amount_EconomicActivity_GrossDomesticProduction",
+                        "label": "Gross domestic product growth rate"
+                      },
+                      "definition": {
+                        "schema_version": 1,
+                        "spec_id": "spec_6a275ffe4c22b60bf44d5cbb54e60538",
+                        "identity": {
+                          "identity_version": "spec1",
+                          "shape": {
+                            "kind": "statvar_schema",
+                            "population_type": "EconomicActivity",
+                            "measured_property": "amount",
+                            "stat_type": "growthRate"
+                          },
+                          "slots": [
+                            {
+                              "property": "activitySource",
+                              "binding": {
+                                "state": "value",
+                                "ref": "GrossDomesticProduction"
+                              }
+                            }
+                          ],
+                          "entities": {
+                            "observationAbout": [
+                              "country/ARG",
+                              "country/AUS",
+                              "country/BRA",
+                              "country/CAN",
+                              "country/CHN",
+                              "country/DEU",
+                              "country/FRA",
+                              "country/GBR",
+                              "country/IDN",
+                              "country/IND",
+                              "country/ITA",
+                              "country/JPN",
+                              "country/KOR",
+                              "country/MEX",
+                              "country/RUS",
+                              "country/SAU",
+                              "country/TUR",
+                              "country/USA",
+                              "country/ZAF"
+                            ]
+                          },
+                          "requested_window": {
+                            "kind": "range",
+                            "start_year": 2015,
+                            "end_year": 2015
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "variable_text": "ODA",
+              "warnings": [],
+              "timing_ms": {
+                "total": 619,
+                "by_step": {
+                  "recall": 315,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 5,
+                  "shape_probe": 107,
+                  "shape_groups": 3,
+                  "shape_labels": 0,
+                  "shape_admission": 1,
+                  "phase_derive_shapes": 0,
+                  "shape": 196,
+                  "phase_prune_and_rank": 0,
+                  "bind": 97,
+                  "phase_bind": 2,
+                  "phase_settle": 9,
+                  "phase_place_bindings": 0
+                }
+              },
+              "rendered_sentence": "Could not tell who is giving and who is receiving among \"G20\", \"Germany\", and \"India\". Put \"from\" or \"to\" before a name.",
+              "sentence_plan": [
+                {
+                  "kind": "text",
+                  "text": "Could not tell who is giving and who is receiving among \"G20\", \"Germany\", and \"India\". Put \"from\" or \"to\" before a name.",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                }
+              ],
+              "entity_refs": [],
+              "operations": [],
+              "departures": [],
+              "assumptions": [],
+              "status": "no_data",
+              "no_data": {
+                "reason": "role_not_resolved",
+                "category": "unresolved",
+                "message": "Could not tell who is giving and who is receiving among \"G20\", \"Germany\", and \"India\". Put \"from\" or \"to\" before a name.",
+                "entity_terms": [
+                  "G20",
+                  "Germany",
+                  "India"
+                ],
+                "ambiguous_entities": [],
+                "source_terms": [],
+                "ambiguous_sources": [],
+                "unbound_qualifiers": [],
+                "options": [
+                  {
+                    "mentions": [
+                      "G20",
+                      "Germany",
+                      "India"
+                    ],
+                    "label": "G20 and Germany to India",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA",
+                          "entities": [
+                            {
+                              "text": "G20",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "Germany",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "India",
+                              "role_text": "to"
+                            }
+                          ],
+                          "time_text": "2015",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "G20",
+                      "Germany",
+                      "India"
+                    ],
+                    "label": "G20 and India to Germany",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA",
+                          "entities": [
+                            {
+                              "text": "G20",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "Germany",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "India",
+                              "role_text": "from"
+                            }
+                          ],
+                          "time_text": "2015",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "G20",
+                      "Germany",
+                      "India"
+                    ],
+                    "label": "G20 to Germany and India",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA",
+                          "entities": [
+                            {
+                              "text": "G20",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "Germany",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "India",
+                              "role_text": "to"
+                            }
+                          ],
+                          "time_text": "2015",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "G20",
+                      "Germany",
+                      "India"
+                    ],
+                    "label": "Germany and India to G20",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA",
+                          "entities": [
+                            {
+                              "text": "G20",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "Germany",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "India",
+                              "role_text": "from"
+                            }
+                          ],
+                          "time_text": "2015",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "G20",
+                      "Germany",
+                      "India"
+                    ],
+                    "label": "Germany to G20 and India",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA",
+                          "entities": [
+                            {
+                              "text": "G20",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "Germany",
+                              "role_text": "from"
+                            },
+                            {
+                              "text": "India",
+                              "role_text": "to"
+                            }
+                          ],
+                          "time_text": "2015",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "mentions": [
+                      "G20",
+                      "Germany",
+                      "India"
+                    ],
+                    "label": "India to G20 and Germany",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA",
+                          "entities": [
+                            {
+                              "text": "G20",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "Germany",
+                              "role_text": "to"
+                            },
+                            {
+                              "text": "India",
+                              "role_text": "from"
+                            }
+                          ],
+                          "time_text": "2015",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rendered_sentence": "Answered 1 of 2 parts. GDP in the 19 G20 members in 2015. Current US dollars · World Development Indicators. You asked for G20. This shows its members, each on its own. Could not tell who is giving and who is receiving among \"G20\", \"Germany\", and \"India\". Put \"from\" or \"to\" before a name.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "Answered 1 of 2 parts.",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "coverage",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "slot",
+              "text": "GDP",
+              "axis": "what",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [
+                "how:activitySource",
+                "axis:populationType",
+                "axis:measuredProperty",
+                "axis:statType"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "economicSector",
+              "binding_ref": "how:economicSector",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "naics",
+              "binding_ref": "how:naics",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "schoolGradeLevel",
+              "binding_ref": "how:schoolGradeLevel",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "",
+              "axis": "how",
+              "segment": "heading",
+              "property_dcid": "activitySource",
+              "binding_ref": "how:activitySource",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " in ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "the 19 G20 members",
+              "axis": "where",
+              "segment": "heading",
+              "binding_ref": "where:",
+              "entity_refs": [],
+              "states": [
+                "where:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "in 2015",
+              "axis": "when",
+              "segment": "heading",
+              "binding_ref": "when:",
+              "entity_refs": [],
+              "states": [
+                "when:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "Current US dollars",
+              "axis": "unit",
+              "segment": "byline",
+              "binding_ref": "unit:",
+              "entity_refs": [],
+              "states": [
+                "unit:",
+                "axis:measurementQualifier"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " · ",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "World Development Indicators",
+              "axis": "source",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [
+                "source:"
+              ],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": ".",
+              "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "You asked for G20. This shows its members, each on its own.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": []
+            },
+            {
+              "kind": "text",
+              "text": "Could not tell who is giving and who is receiving among \"G20\", \"Germany\", and \"India\". Put \"from\" or \"to\" before a name.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 1
+            }
+          ],
+          "status": "mixed"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "resolution",
+        "status": "mixed",
+        "sentence": "Answered 1 of 2 parts. GDP in the 19 G20 members in 2015. Current US dollars · World Development Indicators. You asked for G20. This shows its members, each on its own. Could not tell who is giving and who is receiving among \"G20\", \"Germany\", and \"India\". Put \"from\" or \"to\" before a name.",
+        "complete": false,
+        "specs": [
+          "spec_66fdfe785d6a2bc455d49daaf76d6f89"
+        ],
+        "gaps": [
+          {
+            "part": 1,
+            "kind": "choice",
+            "options": 6
+          }
+        ]
+      }
+    },
+    {
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "choice_invalid",
+        "trace_id": null
+      }
+    }
+  ]
+}

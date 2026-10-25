@@ -1,0 +1,47 @@
+{
+  "format_version": 1,
+  "name": "search-no-json-body",
+  "description": "A 2xx Search response with no JSON body raises ContractError unexpected_response, with that response's trace id.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "The search answers 200 with an empty text/html body and x-dfo-trace-id 33333333333333333333333333333333."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo in 2018"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/html; charset=utf-8",
+          "x-dfo-trace-id": "33333333333333333333333333333333"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "unexpected_response",
+        "trace_id": "33333333333333333333333333333333"
+      }
+    }
+  ]
+}

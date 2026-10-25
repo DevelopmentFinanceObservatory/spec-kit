@@ -1,0 +1,1020 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/scenario.schema.json",
+  "title": "Client scenario",
+  "description": "One client-level call, the HTTP exchanges it makes in order, and the outcome each step reaches. Every DFO client replays every scenario.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "name",
+    "description",
+    "origin",
+    "call",
+    "exchanges",
+    "expect"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "name": {
+      "$ref": "#/$defs/name"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "origin": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/recorded"
+        },
+        {
+          "$ref": "#/$defs/synthetic"
+        }
+      ]
+    },
+    "call": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "exchanges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/exchange"
+      }
+    },
+    "expect": {
+      "description": "One outcome per step of call, in the same order.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/outcome"
+      }
+    }
+  },
+  "$defs": {
+    "one_line": {
+      "description": "Text without a newline. Python's `re.search` lets an anchored pattern's `$` match before a final newline, so every pattern here anchored with `$` refers to this as well.",
+      "not": {
+        "pattern": "\\n"
+      }
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "$ref": "#/$defs/one_line"
+    },
+    "spec_id": {
+      "type": "string",
+      "pattern": "^spec_[0-9a-f]{32}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "content_version": {
+      "type": "string",
+      "pattern": "^cv_[0-9a-f]{32}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "operation_id": {
+      "type": "string",
+      "pattern": "^op_[0-9a-f]{64}$",
+      "$ref": "#/$defs/one_line"
+    },
+    "recorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "base_url",
+        "dfo_commit",
+        "recorded_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "recorded"
+        },
+        "base_url": {
+          "description": "The base URL the client was given. A request path resolves against it, and an origin path against its origin.",
+          "type": "string",
+          "pattern": "^https?://[^/?#]+(/[^?#]*)?$",
+          "$ref": "#/$defs/one_line"
+        },
+        "dfo_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "synthetic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "derived_from",
+        "edit"
+      ],
+      "properties": {
+        "kind": {
+          "const": "synthetic"
+        },
+        "derived_from": {
+          "$ref": "#/$defs/name"
+        },
+        "edit": {
+          "type": "string",
+          "minLength": 1,
+          "$ref": "#/$defs/one_line"
+        }
+      }
+    },
+    "spec": {
+      "description": "A Spec as a client holds it: the server's spec_id and unmodified definition, the sentence when the client knows it, and the entity groups the server's resolved.entity_groups names, when it names any.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "definition"
+      ],
+      "properties": {
+        "spec_id": {
+          "$ref": "#/$defs/spec_id"
+        },
+        "definition": {
+          "type": "object"
+        },
+        "sentence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entity_groups": {
+          "description": "The server's resolved.entity_groups: each grouped role's EntityGroup, keyed by role.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "window": {
+      "oneOf": [
+        {
+          "enum": [
+            "all",
+            "latest"
+          ]
+        },
+        {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "narrowing": {
+      "type": "object",
+      "properties": {
+        "window": {
+          "$ref": "#/$defs/window"
+        },
+        "entities": {
+          "description": "The roles the caller rebinds. A role holds its new refs, or null to drop it; a role left out keeps the spec's binding.",
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "facets": {
+          "type": "object"
+        }
+      }
+    },
+    "layout": {
+      "enum": [
+        "long",
+        "frame"
+      ]
+    },
+    "step": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/search_step"
+        },
+        {
+          "$ref": "#/$defs/choose_step"
+        },
+        {
+          "$ref": "#/$defs/fetch_answer_step"
+        },
+        {
+          "$ref": "#/$defs/fetch_spec_step"
+        },
+        {
+          "$ref": "#/$defs/fetch_ref_step"
+        },
+        {
+          "$ref": "#/$defs/newest_version_step"
+        },
+        {
+          "$ref": "#/$defs/mint_step"
+        },
+        {
+          "$ref": "#/$defs/operation_step"
+        },
+        {
+          "$ref": "#/$defs/result_step"
+        }
+      ]
+    },
+    "search_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "question"
+      ],
+      "properties": {
+        "op": {
+          "const": "search"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "choose_step": {
+      "description": "A choice on the answer the previous step produced. part names the part by index, by variable text, or by a word that one part's options mention, and may be left out when one part awaits a choice. option names the option by index or label; a candidate is named by index.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "option"
+      ],
+      "properties": {
+        "op": {
+          "const": "choose"
+        },
+        "part": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "option": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    },
+    "fetch_answer_step": {
+      "description": "A fetch of the answer the last search or choose step produced.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "const": "fetch"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "partial": {
+          "type": "boolean"
+        },
+        "strict": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fetch_spec_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "spec"
+      ],
+      "$ref": "#/$defs/narrowing",
+      "properties": {
+        "op": {
+          "const": "fetch"
+        },
+        "spec": {
+          "$ref": "#/$defs/spec"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "strict": {
+          "type": "boolean"
+        },
+        "window": true,
+        "entities": true,
+        "facets": true
+      }
+    },
+    "fetch_ref_step": {
+      "description": "A fetch of the exact versions a ref names. A ref takes no narrowing.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "ref"
+      ],
+      "properties": {
+        "op": {
+          "const": "fetch"
+        },
+        "ref": {
+          "$ref": "dataset-ref.schema.json"
+        }
+      }
+    },
+    "newest_version_step": {
+      "description": "The newest stored version of a spec, the first the versions route lists with no base_content_version.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "spec"
+      ],
+      "properties": {
+        "op": {
+          "const": "newest_version"
+        },
+        "spec": {
+          "$ref": "#/$defs/spec"
+        }
+      }
+    },
+    "mint_step": {
+      "description": "A mint of a spec, which starts its build and answers the operation; it takes a layout and no narrowing.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "spec"
+      ],
+      "properties": {
+        "op": {
+          "const": "mint"
+        },
+        "spec": {
+          "$ref": "#/$defs/spec"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        }
+      }
+    },
+    "operation_step": {
+      "description": "Resuming, by its id, a long build another process started.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "operation_id"
+      ],
+      "properties": {
+        "op": {
+          "const": "operation"
+        },
+        "operation_id": {
+          "$ref": "#/$defs/operation_id"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        }
+      }
+    },
+    "result_step": {
+      "description": "Waiting for the operation the previous mint or operation step holds, and taking its dataset.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "const": "result"
+        }
+      }
+    },
+    "exchange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request",
+        "response"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "response": {
+          "$ref": "#/$defs/response"
+        }
+      }
+    },
+    "request": {
+      "description": "Exactly one of path, a path the client composes under the base URL; origin_path, a root-relative URL the server returned, resolved against the base URL's origin; or url, an absolute URL outside the API, such as a signed storage URL. A POST names its body in json.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "origin_path"
+          ]
+        },
+        {
+          "required": [
+            "url"
+          ]
+        }
+      ],
+      "if": {
+        "properties": {
+          "method": {
+            "const": "POST"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "json"
+        ]
+      },
+      "properties": {
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/[^?#]*(\\?[^#]*)?$",
+          "$ref": "#/$defs/one_line"
+        },
+        "origin_path": {
+          "type": "string",
+          "pattern": "^/[^?#]*(\\?[^#]*)?$",
+          "$ref": "#/$defs/one_line"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://[^/?#]+",
+          "$ref": "#/$defs/one_line"
+        },
+        "json": {
+          "description": "The members of the JSON request body that must match, compared as parsed JSON values. A recorded scenario lists every member the client sent.",
+          "type": "object"
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "not": {
+        "required": [
+          "json",
+          "body_file"
+        ]
+      },
+      "properties": {
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "headers": {
+          "description": "The response headers a client reads, by lower-case name, and a cache-control header that marks the response shared-cacheable, which excuses it from carrying x-dfo-trace-id.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z0-9-]+$",
+            "$ref": "#/$defs/one_line"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "json": {
+          "description": "The JSON response body."
+        },
+        "body_file": {
+          "description": "A binary response body, in a file beside the record whose name starts with the scenario's name.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+$",
+          "$ref": "#/$defs/one_line"
+        }
+      }
+    },
+    "gap_kind": {
+      "enum": [
+        "choice",
+        "no_data",
+        "not_understood",
+        "unsupported",
+        "timed_out",
+        "unknown"
+      ]
+    },
+    "outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "answer"
+          ],
+          "properties": {
+            "answer": {
+              "$ref": "#/$defs/answer"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataset"
+          ],
+          "properties": {
+            "dataset": {
+              "$ref": "#/$defs/dataset"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "$ref": "#/$defs/operation"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "newest_version"
+          ],
+          "properties": {
+            "newest_version": {
+              "$ref": "#/$defs/newest_version"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/error"
+            }
+          }
+        }
+      ]
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "complete",
+        "gaps"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "resolution",
+            "catalogue",
+            "declined"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sentence": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "specs": {
+          "description": "The distinct spec_ids of the answer's definite parts, in part order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/spec_id"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "part",
+              "kind",
+              "options"
+            ],
+            "properties": {
+              "part": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "kind": {
+                "$ref": "#/$defs/gap_kind"
+              },
+              "options": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rows",
+        "columns",
+        "complete",
+        "members",
+        "missing"
+      ],
+      "properties": {
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "part_rows": {
+          "description": "For a dataset of several members only: one entry per member, in member order, with the value of the part column on that member's rows and the number of those rows.",
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "part",
+              "rows"
+            ],
+            "properties": {
+              "part": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "parts",
+              "spec_id",
+              "content_version",
+              "sentence"
+            ],
+            "properties": {
+              "parts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "spec_id": {
+                "$ref": "#/$defs/spec_id"
+              },
+              "content_version": {
+                "$ref": "#/$defs/content_version"
+              },
+              "sentence": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "part",
+              "kind"
+            ],
+            "properties": {
+              "part": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "kind": {
+                "$ref": "#/$defs/gap_kind"
+              }
+            }
+          }
+        },
+        "search_warning": {
+          "description": "For a fetch of an answer only: whether the fetch issued a SearchWarning.",
+          "type": "boolean"
+        },
+        "long_builds": {
+          "$ref": "#/$defs/long_builds"
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/operation_id"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "done",
+            "failed"
+          ]
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
+    "newest_version": {
+      "description": "The newest stored version a newest_version step finds, or null when the spec has none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_version"
+      ],
+      "properties": {
+        "content_version": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/content_version"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "code",
+        "trace_id"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "InvalidRequestError",
+            "NotFoundError",
+            "IncompleteAnswerError",
+            "DeclinedError",
+            "VersionUnavailableError",
+            "AuthenticationError",
+            "PermissionDeniedError",
+            "RateLimitError",
+            "QuotaExceededError",
+            "ServerError",
+            "ContractError",
+            "SearchWarning",
+            "DataWarning",
+            "NetworkError",
+            "DfoTimeoutError"
+          ]
+        },
+        "code": {
+          "description": "A refusal's code: its problem document's code, the website proxy's included, or refusal_without_code for a body without one. A SearchWarning's code is the server's warning or departure code, or the verb of an operation Search did not run, or null when the readings differ from the question in several ways. A DataWarning's code is the manifest warning's. Any other error the client raises itself carries its code from client-codes.json.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trace_id": {
+          "description": "A refusal's trace id: its body's trace_id, else its x-dfo-trace-id header, else null. A failed operation's is its error document's, else the header of the response that carried the failed resource; a VersionUnavailableError's is its first refusal's. An error the client raises itself that describes a response, an unexpected_response, a contract_violation, an answer_declined, an answer_incomplete, a SearchWarning or a DataWarning, carries that response's trace id, the held answer's Search response for those that describe the answer, as the body's trace_id, else the x-dfo-trace-id header, else null. An error that describes the caller's input, or a storage-host fetch, carries null.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "newest_version": {
+          "description": "For a VersionUnavailableError only: the newest version the lookup found, or null.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/content_version"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "long_builds": {
+          "$ref": "#/$defs/long_builds"
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      },
+      "if": {
+        "properties": {
+          "class": {
+            "const": "VersionUnavailableError"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "newest_version"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "newest_version"
+          ]
+        }
+      }
+    },
+    "long_builds": {
+      "description": "One entry per build the step saw the server run on, in order.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation_id",
+          "poll_waits",
+          "resubmissions"
+        ],
+        "properties": {
+          "operation_id": {
+            "description": "The operation the client polled last, the one a deadline error names.",
+            "$ref": "#/$defs/operation_id"
+          },
+          "poll_waits": {
+            "description": "The seconds the client waited before each poll, in order.",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "resubmissions": {
+            "description": "How many times the client posted the build again after the operation failed.",
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "retry_waits": {
+      "description": "The seconds a step waited before each retry of a refused request, in order: the refusal's Retry-After, else a backoff that doubles from 0.5 to 8 seconds. Given only when the step retried.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "warnings": {
+      "description": "The codes, from warning-codes.json and in order, of the warnings the step's API responses issued. Given only when they issued any.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/name_code"
+      }
+    },
+    "name_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "$ref": "#/$defs/one_line"
+    }
+  }
+}

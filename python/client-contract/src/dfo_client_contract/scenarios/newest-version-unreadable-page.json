@@ -1,0 +1,152 @@
+{
+  "format_version": 1,
+  "name": "newest-version-unreadable-page",
+  "description": "A versions page with no versions list raises ContractError contract_violation, since only a NotFoundError reads as no stored version.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "fetch-ref-newest-version",
+    "edit": "The versions page names its versions list items."
+  },
+  "call": [
+    {
+      "op": "newest_version",
+      "spec": {
+        "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "identity": {
+            "identity_version": "spec1",
+            "shape": {
+              "kind": "statvar_schema",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "stat_type": "measuredValue",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "property": "crsCooperationModality",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsPurpose",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSPurposeCode12220"
+                }
+              },
+              {
+                "property": "crsTypeOfFinance",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsTypeOfFlow",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSTypeOfFlow10"
+                }
+              },
+              {
+                "property": "financialFlowType",
+                "binding": {
+                  "state": "value",
+                  "ref": "Disbursement"
+                }
+              },
+              {
+                "property": "nettingBasis",
+                "binding": {
+                  "state": "value",
+                  "ref": "Gross"
+                }
+              }
+            ],
+            "entities": {
+              "destination": [
+                "country/NGA"
+              ],
+              "origin": [
+                "country/DEU"
+              ]
+            },
+            "requested_window": {
+              "kind": "all"
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS)."
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/versions?limit=100"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "6f93d15300c8413191296f90fbc4b8b0"
+        },
+        "json": {
+          "schema_version": 1,
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8",
+          "next_cursor": null,
+          "complete": true,
+          "items": [
+            {
+              "content_version": "cv_25fa336da15247db708dd220b2d933a2",
+              "base_content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
+              "rendering": "groupby",
+              "groupby": {
+                "by": [
+                  "crsTypeOfFlow"
+                ],
+                "op": "sum"
+              },
+              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+            },
+            {
+              "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
+              "base_content_version": null,
+              "rendering": "plain",
+              "groupby": null,
+              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+            },
+            {
+              "content_version": "cv_9417c96e4e09dd36053fc395c5b0f92c",
+              "base_content_version": null,
+              "rendering": "plain",
+              "groupby": null,
+              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+            },
+            {
+              "content_version": "cv_e7f6ed9ddc5ca69902f92a8866f93ef7",
+              "base_content_version": null,
+              "rendering": "plain",
+              "groupby": null,
+              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "contract_violation",
+        "trace_id": "6f93d15300c8413191296f90fbc4b8b0"
+      }
+    }
+  ]
+}

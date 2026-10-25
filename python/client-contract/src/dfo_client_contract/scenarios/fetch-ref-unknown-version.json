@@ -1,0 +1,139 @@
+{
+  "format_version": 1,
+  "name": "fetch-ref-unknown-version",
+  "description": "Fetching a ref whose content_version the server never built ends at the snapshot route's 404 snapshot_not_found, which raises NotFoundError with no build: an unknown version is not an expired one.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
+    "recorded_at": "2026-10-24T16:30:53Z"
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "ref": {
+        "format_version": 1,
+        "members": [
+          {
+            "parts": [
+              "ODA disbursements for basic health care"
+            ],
+            "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+            "spec": {
+              "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+              "definition": {
+                "schema_version": 1,
+                "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                "identity": {
+                  "shape": {
+                    "kind": "statvar_schema",
+                    "stat_type": "measuredValue",
+                    "population_type": "FinancialFlow",
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal"
+                  },
+                  "slots": [
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "crsCooperationModality"
+                    },
+                    {
+                      "binding": {
+                        "ref": "CRSPurposeCode12220",
+                        "state": "value"
+                      },
+                      "property": "crsPurpose"
+                    },
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "crsTypeOfFinance"
+                    },
+                    {
+                      "binding": {
+                        "ref": "CRSTypeOfFlow10",
+                        "state": "value"
+                      },
+                      "property": "crsTypeOfFlow"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Disbursement",
+                        "state": "value"
+                      },
+                      "property": "financialFlowType"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Gross",
+                        "state": "value"
+                      },
+                      "property": "nettingBasis"
+                    }
+                  ],
+                  "entities": {
+                    "origin": [
+                      "country/DEU"
+                    ],
+                    "destination": [
+                      "country/NGA"
+                    ]
+                  },
+                  "identity_version": "spec1",
+                  "requested_window": {
+                    "kind": "all"
+                  }
+                }
+              }
+            },
+            "content_version": "cv_00000000000000000000000000000000",
+            "artifact": {
+              "digest": "sha256:421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db",
+              "rendering": {
+                "format": "parquet",
+                "bundle": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_00000000000000000000000000000000"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "application/problem+json",
+          "x-dfo-trace-id": "5228b20a07a147e9861e20170e7363f1"
+        },
+        "json": {
+          "type": "/codes/snapshot_not_found",
+          "title": "Snapshot Not Found",
+          "status": 404,
+          "detail": "'spec_774d6c001a6250aa67ca676ab067895e' has no version at content_version 'cv_00000000000000000000000000000000'",
+          "code": "snapshot_not_found",
+          "trace_id": "5228b20a07a147e9861e20170e7363f1",
+          "capability_version": "dset_cc753cefa9199881",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "NotFoundError",
+        "code": "snapshot_not_found",
+        "trace_id": "5228b20a07a147e9861e20170e7363f1"
+      }
+    }
+  ]
+}

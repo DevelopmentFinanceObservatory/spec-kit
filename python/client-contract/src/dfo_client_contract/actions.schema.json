@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/actions.schema.json",
+  "title": "Caller actions",
+  "description": "The next step a client caller takes for each active refusal code that reaches a problem document or a no_data reason, sorted by code. A code with a no_data_reason mapping also names the gap kind a no_data part with that reason becomes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "codes"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "action"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "action": {
+            "enum": [
+              "fix_request",
+              "check_id",
+              "choose",
+              "ask_data_question",
+              "take_newest_version",
+              "log_in",
+              "request_scope",
+              "wait",
+              "wait_for_reset",
+              "report",
+              "upgrade"
+            ]
+          },
+          "gap_kind": {
+            "enum": [
+              "choice",
+              "no_data",
+              "not_understood",
+              "unsupported",
+              "timed_out"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

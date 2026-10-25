@@ -283,6 +283,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 501
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 501
         }
       ],
       "lifecycle": "active"
@@ -1194,6 +1199,11 @@
           "endpoint": "datasets.definition",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1213,6 +1223,11 @@
         },
         {
           "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -1642,6 +1657,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -2594,6 +2614,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3269,6 +3294,16 @@
           "endpoint": "datasets.description",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -3582,6 +3617,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -4623,6 +4663,26 @@
       "lifecycle": "active"
     },
     {
+      "code": "timed_out",
+      "classification": "refusal",
+      "definition": "Search stopped at the request's time limit before it resolved this part; the same question, or a narrower one, may answer when sent again.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "timeout",
       "classification": "refusal",
       "definition": "The request did not complete before its deadline.",
@@ -5033,6 +5093,26 @@
           "doors": [
             "raw_text",
             "parsed"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "whole_total_available",
+      "classification": "warning",
+      "definition": "The answer lists each member of a flow side whose dataset publishes the total of that side's whole population for the answer's years, so a sum of the listed members can differ from the published figure. The params name the total (total, total_label) and the party classes it covers (whole_of: official, private or residual, comma-joined).",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
           ],
           "channel": "diagnostics_warning"
         }

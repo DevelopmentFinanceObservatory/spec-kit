@@ -1,0 +1,35 @@
+{
+  "format_version": 1,
+  "codes": [
+    {
+      "code": "key_checksum_mismatch",
+      "class": "DfoWarning",
+      "condition": "The resolved key's body is empty or its checksum differs, by the key-format rule; the client sends it anyway."
+    },
+    {
+      "code": "key_not_base62",
+      "class": "DfoWarning",
+      "condition": "A character of the resolved key after its prefix is outside base62, by the key-format rule; the client sends it anyway."
+    },
+    {
+      "code": "key_unknown_prefix",
+      "class": "DfoWarning",
+      "condition": "The resolved key starts with neither dfo_k_ nor dfo_p_, by the key-format rule; the client sends it anyway."
+    },
+    {
+      "code": "ref_digest_changed",
+      "class": "DfoWarning",
+      "condition": "A ref member's content_version serves a file whose digest differs from the ref's, because the server rendered the same data again; the client returns the data."
+    },
+    {
+      "code": "route_deprecated",
+      "class": "DfoDeprecationWarning",
+      "condition": "An API response carries a Deprecation or Sunset header, once per process per distinct pair of their values."
+    },
+    {
+      "code": "server_warning",
+      "class": "DfoWarning",
+      "condition": "An API response carries an x-dfo-warning header, once per process per message."
+    }
+  ]
+}

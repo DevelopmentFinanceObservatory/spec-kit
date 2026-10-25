@@ -1,0 +1,210 @@
+{
+  "format_version": 1,
+  "name": "fetch-spec-request-invalid",
+  "description": "Fetching a spec with a facet the server does not know sends it in input.scope.facets; the build refuses 400 request_invalid, which raises InvalidRequestError.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
+    "recorded_at": "2026-10-24T16:30:51Z"
+  },
+  "call": [
+    {
+      "op": "fetch",
+      "spec": {
+        "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+        "definition": {
+          "schema_version": 1,
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "identity": {
+            "identity_version": "spec1",
+            "shape": {
+              "kind": "statvar_schema",
+              "population_type": "FinancialFlow",
+              "measured_property": "amount",
+              "stat_type": "measuredValue",
+              "measurement_qualifier": "Nominal"
+            },
+            "slots": [
+              {
+                "property": "crsCooperationModality",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsPurpose",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSPurposeCode12220"
+                }
+              },
+              {
+                "property": "crsTypeOfFinance",
+                "binding": {
+                  "state": "unbound"
+                }
+              },
+              {
+                "property": "crsTypeOfFlow",
+                "binding": {
+                  "state": "value",
+                  "ref": "CRSTypeOfFlow10"
+                }
+              },
+              {
+                "property": "financialFlowType",
+                "binding": {
+                  "state": "value",
+                  "ref": "Disbursement"
+                }
+              },
+              {
+                "property": "nettingBasis",
+                "binding": {
+                  "state": "value",
+                  "ref": "Gross"
+                }
+              }
+            ],
+            "entities": {
+              "destination": [
+                "country/NGA"
+              ],
+              "origin": [
+                "country/DEU"
+              ]
+            },
+            "requested_window": {
+              "kind": "all"
+            }
+          }
+        },
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS)."
+      },
+      "facets": {
+        "colour": "blue"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "spec_id",
+            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+              "identity": {
+                "identity_version": "spec1",
+                "shape": {
+                  "kind": "statvar_schema",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "stat_type": "measuredValue",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "property": "crsCooperationModality",
+                    "binding": {
+                      "state": "unbound"
+                    }
+                  },
+                  {
+                    "property": "crsPurpose",
+                    "binding": {
+                      "state": "value",
+                      "ref": "CRSPurposeCode12220"
+                    }
+                  },
+                  {
+                    "property": "crsTypeOfFinance",
+                    "binding": {
+                      "state": "unbound"
+                    }
+                  },
+                  {
+                    "property": "crsTypeOfFlow",
+                    "binding": {
+                      "state": "value",
+                      "ref": "CRSTypeOfFlow10"
+                    }
+                  },
+                  {
+                    "property": "financialFlowType",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Disbursement"
+                    }
+                  },
+                  {
+                    "property": "nettingBasis",
+                    "binding": {
+                      "state": "value",
+                      "ref": "Gross"
+                    }
+                  }
+                ],
+                "entities": {
+                  "destination": [
+                    "country/NGA"
+                  ],
+                  "origin": [
+                    "country/DEU"
+                  ]
+                },
+                "requested_window": {
+                  "kind": "all"
+                }
+              }
+            },
+            "scope": {
+              "facets": {
+                "colour": {
+                  "ref": "blue"
+                }
+              }
+            }
+          },
+          "options": {
+            "format": "parquet",
+            "bundle": false
+          }
+        }
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "content-type": "application/problem+json",
+          "x-dfo-trace-id": "e229106e38d04e07af32b2895e017913"
+        },
+        "json": {
+          "type": "/codes/request_invalid",
+          "title": "Bad Request",
+          "status": 400,
+          "detail": "Value error, unknown facet axis/axes: colour",
+          "code": "request_invalid",
+          "pointer": "/input/scope",
+          "trace_id": "e229106e38d04e07af32b2895e017913",
+          "capability_version": "dset_cc753cefa9199881",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "request_invalid",
+        "trace_id": "e229106e38d04e07af32b2895e017913"
+      }
+    }
+  ]
+}

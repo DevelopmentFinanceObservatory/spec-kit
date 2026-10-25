@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/client-codes.schema.json",
+  "title": "Client codes",
+  "description": "Each code a client sets on an error it raises when no problem document carries one, with the error class it raises and the condition, sorted by code. A server refusal's error keeps the server's code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "codes"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "class",
+          "retryable",
+          "condition"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "class": {
+            "description": "The error class the client raises, one the scenario schema names, or by_status for the class a refusal's HTTP status maps to.",
+            "type": "string",
+            "pattern": "^([A-Z][A-Za-z]*|by_status)$"
+          },
+          "retryable": {
+            "description": "Whether the error is one a caller may retry, which both clients set as the error's retryable flag; by_status for the error whose class its status maps to, retryable as that status is.",
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "const": "by_status"
+              }
+            ]
+          },
+          "condition": {
+            "description": "The condition, in one line.",
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "pattern": "\\n"
+            }
+          }
+        }
+      }
+    }
+  }
+}

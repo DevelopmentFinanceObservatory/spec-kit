@@ -1,0 +1,97 @@
+{
+  "format_version": 1,
+  "name": "answer-declined",
+  "description": "A question that asks for analysis answers declined, with no parts and no sentence, and is not complete. Fetching it raises DeclinedError with no request.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
+    "recorded_at": "2026-10-24T16:31:24Z"
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "should donors give more aid to Kenya?"
+    },
+    {
+      "op": "fetch"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "should donors give more aid to Kenya?"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "5b2bc45dc7f7419cb3dfb98ed9bf68a3"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "should donors give more aid to Kenya?",
+            "normalized_query": "should donors give more aid to Kenya?",
+            "extract_skipped": false
+          },
+          "diagnostics": {
+            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
+            "trace_id": "5b2bc45dc7f7419cb3dfb98ed9bf68a3",
+            "warnings": [],
+            "timing_ms": {
+              "total": 1050,
+              "by_step": {
+                "coverage": 1,
+                "extract": 1049,
+                "entity_check": 0,
+                "cache_lookup": 0
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 2229,
+              "output_tokens": 64,
+              "cached_tokens": 840
+            },
+            "timed_out": false
+          },
+          "kind": "declined",
+          "reason": "requires_analysis",
+          "scope": {
+            "place": {
+              "ref": "country/KEN",
+              "label": "Kenya"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "declined",
+        "sentence": null,
+        "complete": false,
+        "specs": [],
+        "gaps": []
+      }
+    },
+    {
+      "error": {
+        "class": "DeclinedError",
+        "code": "answer_declined",
+        "trace_id": "5b2bc45dc7f7419cb3dfb98ed9bf68a3"
+      }
+    }
+  ]
+}

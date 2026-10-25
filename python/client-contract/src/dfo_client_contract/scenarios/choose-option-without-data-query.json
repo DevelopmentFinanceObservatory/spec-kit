@@ -1,0 +1,260 @@
+{
+  "format_version": 1,
+  "name": "choose-option-without-data-query",
+  "description": "Choosing an option with no data_query in a one-part answer raises ContractError contract_violation with no request, as in a several-part answer.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "choose-place-one-part",
+    "edit": "The no_data part's first option loses its data_query."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo in 2018"
+    },
+    {
+      "op": "choose",
+      "option": "Congo [DRC]"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "6c90259bc5dc43649740c2e47cb555bc"
+        },
+        "json": {
+          "schema_version": 1,
+          "query_echo": {
+            "entry_path": "raw_text",
+            "raw_query": "ODA disbursements from Germany to Congo in 2018",
+            "normalized_query": "ODA disbursements from Germany to Congo in 2018",
+            "extract_skipped": true
+          },
+          "diagnostics": {
+            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
+            "trace_id": "6c90259bc5dc43649740c2e47cb555bc",
+            "warnings": [],
+            "timing_ms": {
+              "total": 1,
+              "by_step": {
+                "coverage": 0,
+                "response_cache_layer1": 1
+              }
+            },
+            "llm_usage": {
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0
+            },
+            "timed_out": false
+          },
+          "kind": "resolution",
+          "parts": [
+            {
+              "variable_text": "ODA disbursements",
+              "warnings": [],
+              "timing_ms": {
+                "total": 115,
+                "by_step": {
+                  "recall": 115,
+                  "phase_resolve_places": 0,
+                  "phase_check_entities": 0
+                }
+              },
+              "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "sentence_plan": [
+                {
+                  "kind": "text",
+                  "text": "\"",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "slot",
+                  "text": "Congo",
+                  "axis": "where",
+                  "segment": "heading",
+                  "role": "destination",
+                  "entity_refs": [],
+                  "states": []
+                },
+                {
+                  "kind": "text",
+                  "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                  "segment": "heading",
+                  "entity_refs": [],
+                  "states": []
+                }
+              ],
+              "restatement": {
+                "variable_text": "ODA disbursements",
+                "entities": [
+                  {
+                    "text": "Germany",
+                    "role_text": "from"
+                  },
+                  {
+                    "text": "Congo",
+                    "role_text": "to"
+                  }
+                ],
+                "time_text": "2018",
+                "sources": [],
+                "operations": []
+              },
+              "entity_refs": [
+                {
+                  "text": "Germany",
+                  "refs": []
+                },
+                {
+                  "text": "Congo",
+                  "refs": []
+                }
+              ],
+              "operations": [],
+              "departures": [],
+              "assumptions": [],
+              "status": "no_data",
+              "no_data": {
+                "reason": "entity_ambiguous",
+                "category": "unresolved",
+                "message": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                "entity_terms": [
+                  "Congo"
+                ],
+                "ambiguous_entities": [
+                  {
+                    "text": "Congo",
+                    "candidates": [
+                      {
+                        "ref": "country/COD",
+                        "label": "Congo [DRC]",
+                        "kind": "country"
+                      },
+                      {
+                        "ref": "country/COG",
+                        "label": "Congo [Republic]",
+                        "kind": "country"
+                      }
+                    ]
+                  }
+                ],
+                "source_terms": [],
+                "ambiguous_sources": [],
+                "unbound_qualifiers": [],
+                "options": [
+                  {
+                    "mentions": [
+                      "Congo"
+                    ],
+                    "label": "Congo [DRC]"
+                  },
+                  {
+                    "mentions": [
+                      "Congo"
+                    ],
+                    "label": "Congo [Republic]",
+                    "data_query": {
+                      "kind": "parsed",
+                      "parts": [
+                        {
+                          "variable_text": "ODA disbursements",
+                          "entities": [
+                            {
+                              "text": "Germany",
+                              "role_text": "from",
+                              "dcid": "country/DEU"
+                            },
+                            {
+                              "text": "Congo",
+                              "role_text": "to",
+                              "dcid": "country/COG"
+                            }
+                          ],
+                          "time_text": "2018",
+                          "sources": [],
+                          "operations": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "\"",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "slot",
+              "text": "Congo",
+              "axis": "where",
+              "segment": "heading",
+              "role": "destination",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            }
+          ],
+          "status": "no_data"
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "answer": {
+        "kind": "resolution",
+        "status": "no_data",
+        "sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+        "complete": false,
+        "specs": [],
+        "gaps": [
+          {
+            "part": 0,
+            "kind": "choice",
+            "options": 2
+          }
+        ]
+      }
+    },
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "contract_violation",
+        "trace_id": "6c90259bc5dc43649740c2e47cb555bc"
+      }
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "format_version": 1,
+  "name": "ref-frame-layout",
+  "description": "A member fetched with layout frame names the frame layout in its rendering.",
+  "scenario": "fetch-spec-frame-layout",
+  "ref": {
+    "format_version": 1,
+    "members": [
+      {
+        "parts": [],
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+        "spec": {
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+          "definition": {
+            "schema_version": 1,
+            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+            "identity": {
+              "identity_version": "spec1",
+              "shape": {
+                "kind": "statvar_schema",
+                "population_type": "FinancialFlow",
+                "measured_property": "amount",
+                "stat_type": "measuredValue",
+                "measurement_qualifier": "Nominal"
+              },
+              "slots": [
+                {
+                  "property": "crsCooperationModality",
+                  "binding": {
+                    "state": "unbound"
+                  }
+                },
+                {
+                  "property": "crsPurpose",
+                  "binding": {
+                    "state": "value",
+                    "ref": "CRSPurposeCode12220"
+                  }
+                },
+                {
+                  "property": "crsTypeOfFinance",
+                  "binding": {
+                    "state": "unbound"
+                  }
+                },
+                {
+                  "property": "crsTypeOfFlow",
+                  "binding": {
+                    "state": "value",
+                    "ref": "CRSTypeOfFlow10"
+                  }
+                },
+                {
+                  "property": "financialFlowType",
+                  "binding": {
+                    "state": "value",
+                    "ref": "Disbursement"
+                  }
+                },
+                {
+                  "property": "nettingBasis",
+                  "binding": {
+                    "state": "value",
+                    "ref": "Gross"
+                  }
+                }
+              ],
+              "entities": {
+                "destination": [
+                  "country/NGA"
+                ],
+                "origin": [
+                  "country/DEU"
+                ]
+              },
+              "requested_window": {
+                "kind": "all"
+              }
+            }
+          }
+        },
+        "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
+        "artifact": {
+          "digest": "sha256:f4026e80af4b8683d3bb86645ab3aca83dff75cd03fdd4c73ec54ba638922104",
+          "rendering": {
+            "format": "parquet",
+            "bundle": false,
+            "layout": "frame"
+          }
+        }
+      }
+    ]
+  },
+  "expect": "accept"
+}

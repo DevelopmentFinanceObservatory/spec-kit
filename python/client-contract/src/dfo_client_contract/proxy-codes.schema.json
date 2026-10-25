@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/proxy-codes.schema.json",
+  "title": "Proxy codes",
+  "description": "Each code the website proxy's own problem documents carry, with the HTTP status it answers and the condition, sorted by code. A client raises such a refusal with its code and the class its status maps to.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "codes"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "status",
+          "condition"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "condition": {
+            "description": "The condition, in one line.",
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "pattern": "\\n"
+            }
+          }
+        }
+      }
+    }
+  }
+}

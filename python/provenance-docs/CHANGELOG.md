@@ -31,4 +31,4 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Raise the `markdown-it-py` floor in `pyproject.toml` to the first release
   that contains that fix.
 
-[unreleased]: https://github.com/ONEcampaign/dfo-spec-kit/commits/main/python
+[unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python

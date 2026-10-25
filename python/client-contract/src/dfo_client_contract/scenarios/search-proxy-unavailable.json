@@ -1,0 +1,121 @@
+{
+  "format_version": 1,
+  "name": "search-proxy-unavailable",
+  "description": "The proxy's 502 problem document says retryable true and has no Retry-After, so the client backs off and retries twice, then raises ServerError, the class of its status, with its code, transient_unavailable, and its trace id.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "The website proxy's own 502 transient_unavailable problem document answers the search and both retries."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo in 2018"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "application/problem+json",
+          "cache-control": "no-cache",
+          "x-dfo-trace-id": "77777777777777777777777777777777"
+        },
+        "json": {
+          "type": "/codes/transient_unavailable",
+          "title": "Bad Gateway",
+          "status": 502,
+          "detail": "The Search API is unreachable.",
+          "code": "transient_unavailable",
+          "trace_id": "77777777777777777777777777777777",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "application/problem+json",
+          "cache-control": "no-cache",
+          "x-dfo-trace-id": "77777777777777777777777777777777"
+        },
+        "json": {
+          "type": "/codes/transient_unavailable",
+          "title": "Bad Gateway",
+          "status": 502,
+          "detail": "The Search API is unreachable.",
+          "code": "transient_unavailable",
+          "trace_id": "77777777777777777777777777777777",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "content-type": "application/problem+json",
+          "cache-control": "no-cache",
+          "x-dfo-trace-id": "77777777777777777777777777777777"
+        },
+        "json": {
+          "type": "/codes/transient_unavailable",
+          "title": "Bad Gateway",
+          "status": 502,
+          "detail": "The Search API is unreachable.",
+          "code": "transient_unavailable",
+          "trace_id": "77777777777777777777777777777777",
+          "retryable": true
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ServerError",
+        "code": "transient_unavailable",
+        "trace_id": "77777777777777777777777777777777",
+        "retry_waits": [
+          0.5,
+          1.0
+        ]
+      }
+    }
+  ]
+}
