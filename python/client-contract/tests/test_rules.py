@@ -7,6 +7,7 @@ disagrees with its rule fails here before a client replays it.
 
 from __future__ import annotations
 
+import ipaddress
 import ntpath
 import posixpath
 import re
@@ -24,13 +25,17 @@ _KEY_PREFIXES = ("dfo_k_", "dfo_p_")
 _DEFAULT_BASE_URL = "https://developmentfinance.org/api/v1"
 _TABLE = re.compile(r"\[([A-Za-z0-9_-]+)\]")
 _ENTRY = re.compile(r'([A-Za-z0-9_-]+)[ \t]*=[ \t]*"([^"\\\x00-\x1f\x7f]*)"')
+_MAJOR_MINOR = re.compile(r"([0-9]+)\.([0-9]+)")
 
 
 class RuleError(Exception):
-    def __init__(self, reason: str, line: int | None = None) -> None:
+    def __init__(
+        self, reason: str, line: int | None = None, names: tuple[str, ...] = ()
+    ) -> None:
         super().__init__(reason)
         self.reason = reason
         self.line = line
+        self.names = names
 
 
 def _vectors(name: str) -> list[dict[str, Any]]:
@@ -125,13 +130,24 @@ def look_up_key(vector: dict[str, Any]) -> tuple[str, str | None]:
     return "credentials_file", profile["key"]
 
 
+_NON_DECIMAL_IPV4 = re.compile(r"(?:[^:]*\.)?(?:0x[0-9a-f]*|[0-9]+)")
+
+
 def is_valid_base_url(url: str) -> bool:
+    if re.search(r"[^\x21-\x7e]", url) or "?" in url or "#" in url:
+        return False
     parts = urlsplit(url)
-    return (
-        parts.scheme in ("http", "https")
-        and bool(parts.hostname)
-        and "@" not in parts.netloc
-    )
+    if parts.scheme not in ("http", "https") or "@" in parts.netloc:
+        return False
+    if not parts.hostname or {".", ".."} & set(parts.path.split("/")):
+        return False
+    host = parts.hostname.removesuffix(".")
+    if _NON_DECIMAL_IPV4.fullmatch(host):
+        try:
+            ipaddress.IPv4Address(host)
+        except ValueError:
+            return False
+    return True
 
 
 def resolve_base_url(vector: dict[str, Any]) -> tuple[str, str]:
@@ -143,7 +159,7 @@ def resolve_base_url(vector: dict[str, Any]) -> tuple[str, str]:
         source, url = "default", _DEFAULT_BASE_URL
     if not is_valid_base_url(url):
         raise RuleError("base_url_invalid")
-    return source, url
+    return source, url.rstrip("/")
 
 
 def cache_root(vector: dict[str, Any]) -> str:
@@ -179,14 +195,89 @@ def cache_entry(vector: dict[str, Any]) -> str:
     return f"manifests/{vector['spec_id']}/{vector['content_version']}/{key}.json"
 
 
-def column_order(columns: list[str], reading: list[list[str]]) -> list[str]:
+def reading_order(
+    members: list[dict[str, Any]], reading: list[list[str]]
+) -> tuple[list[str], list[list[Any]]]:
+    """Stacks the members, a row holding null in a column its member lacks,
+    then orders the columns and each member's rows."""
+    stacked = [
+        {**dict(zip(member["columns"], row, strict=True)), "part": member.get("part")}
+        for member in members
+        for row in member["rows"]
+    ]
+    served = list(dict.fromkeys(c for member in members for c in member["columns"]))
     first = [
         name
         for names in reading
-        if (name := next((n for n in names if n in columns), None)) is not None
+        if (name := next((n for n in names if n in served), None)) is not None
     ]
-    rest = [c for c in columns if c not in first and c != "stat_var"]
-    return first + rest + ["stat_var"] * ("stat_var" in columns)
+    rest = [c for c in served if c not in first and c != "stat_var"]
+    varies = {c for c in rest if len({repr(row.get(c)) for row in stacked}) > 1}
+    columns = [
+        *(["part"] if len(members) > 1 else []),
+        *first,
+        *[c for c in rest if c in varies],
+        *[c for c in rest if c not in varies],
+        *(["stat_var"] if "stat_var" in served else []),
+    ]
+    keys = [c for c in first if c not in ("value", "time_period")]
+    keys += [c for c in columns if c in varies]
+    if "stat_var" in served and len({repr(row.get("stat_var")) for row in stacked}) > 1:
+        keys.append("stat_var")
+    keys += ["time_period"] if "time_period" in first else []
+    rows: list[list[Any]] = []
+    for part in dict.fromkeys(row["part"] for row in stacked):
+        block = [row for row in stacked if row["part"] == part]
+        block.sort(key=lambda row: [(row.get(k) is None, row.get(k)) for k in keys])
+        rows.extend([row.get(c) for c in columns] for row in block)
+    return columns, rows
+
+
+def client_identity(client: str, version: str, runtime: dict[str, str]) -> str:
+    label = runtime["name"]
+    if label != "browser":
+        match = _MAJOR_MINOR.match(runtime["version"])
+        assert match, runtime
+        label += f" {match[1]}.{match[2]}"
+    return f"{client}/{version} ({label})"
+
+
+def check_caller_headers(headers: dict[str, str]) -> str | None:
+    if any(name.lower() == "x-dfo-client" for name in headers):
+        return "header_invalid"
+    return None
+
+
+def spec_roles(identity: dict[str, Any]) -> dict[str, list[str] | None]:
+    caller = {wire: key for key, wire in rule("role-keys")["keys"].items()}
+    flow = rule("role-keys")["flow_keys"]
+    bound = {
+        caller[role]: dcids for role, dcids in identity.get("entities", {}).items()
+    }
+    named = [*bound, *(caller[role] for role in identity.get("open_roles", []))]
+    if any(key in flow for key in named):
+        named.extend(flow)
+    return {key: bound.get(key) for key in dict.fromkeys(named)}
+
+
+def posted_entities(
+    identity: dict[str, Any], entities: dict[str, list[str] | None]
+) -> dict[str, list[str]]:
+    keys = rule("role-keys")["keys"]
+    roles = spec_roles(identity)
+    for key in entities:
+        if roles and key not in roles:
+            raise RuleError("invalid_argument", names=(key, *roles))
+        if not roles and key in keys.values() and key not in keys:
+            caller = next(name for name, wire in keys.items() if wire == key)
+            raise RuleError("invalid_argument", names=(key, caller))
+    posted = dict(identity.get("entities", {}))
+    for key, dcids in entities.items():
+        if dcids is None:
+            posted.pop(keys.get(key, key), None)
+        else:
+            posted[keys.get(key, key)] = dcids
+    return posted
 
 
 @pytest.mark.parametrize("name", RULES)
@@ -258,11 +349,37 @@ def test_cache_layout(vector: dict[str, Any]) -> None:
     assert cache_entry(vector) == vector["path"]
 
 
-@pytest.mark.parametrize("vector", _vectors("column-order"), ids=_ids("column-order"))
-def test_column_order(vector: dict[str, Any]) -> None:
-    reading = rule("column-order")["reading_columns"]
-    if "columns" in vector:
-        assert column_order(vector["columns"], reading) == vector["ordered"]
+@pytest.mark.parametrize("vector", _vectors("reading-order"), ids=_ids("reading-order"))
+def test_reading_order(vector: dict[str, Any]) -> None:
+    reading = rule("reading-order")["reading_columns"]
+    columns, rows = reading_order(vector["members"], reading)
+    assert (columns, rows) == (vector["columns"], vector["rows"])
+
+
+@pytest.mark.parametrize(
+    "vector", _vectors("client-identity"), ids=_ids("client-identity")
+)
+def test_client_identity(vector: dict[str, Any]) -> None:
+    if "headers" in vector:
+        assert check_caller_headers(vector["headers"]) == vector.get("reason")
         return
-    gathered = list(dict.fromkeys(c for member in vector["members"] for c in member))
-    assert ["part", *column_order(gathered, reading)] == vector["ordered"]
+    value = client_identity(vector["client"], vector["version"], vector["runtime"])
+    assert value == vector["value"]
+    assert re.fullmatch(rule("client-identity")["pattern"], value)
+
+
+@pytest.mark.parametrize("vector", _vectors("role-keys"), ids=_ids("role-keys"))
+def test_role_keys(vector: dict[str, Any]) -> None:
+    roles = spec_roles(vector["identity"])
+    assert list(roles.items()) == list(vector["roles"].items())
+    if "error" in vector:
+        with pytest.raises(RuleError) as excinfo:
+            posted_entities(vector["identity"], vector["entities"])
+        error = excinfo.value
+        assert (error.reason, list(error.names)) == (
+            vector["error"]["reason"],
+            vector["error"]["names"],
+        )
+    elif "entities" in vector:
+        posted = posted_entities(vector["identity"], vector["entities"])
+        assert posted == vector["posted"]

@@ -61,9 +61,10 @@ document validates against its schema, then what the schemas cannot express:
   `client-codes.json`, as `expected_outcomes` derives them, the waits
   before each poll included, under the record's base URL and again under
   REPLAY_ORIGIN with the recorded origin a response names moved there. A
-  dataset's columns are the downloaded files' columns, read from their
-  Parquet footers by `parquet_columns` and ordered by `presented_columns`,
-  its rows and per-part row counts are left to the Parquet bodies, and each
+  dataset's columns are the downloaded files' columns, read with pyarrow
+  by `served_table` and ordered by `presented_columns`, which puts the
+  columns whose values vary before those that hold one value, its rows and
+  per-part row counts are left to the Parquet bodies, and each
   download hashes to its artifact's digest or the outcome says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity with the
@@ -93,8 +94,8 @@ document validates against its schema, then what the schemas cannot express:
   scenario's build of its spec posted.
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once, and each
-  column-order vector's `ordered` is what `presented_columns` gives. A
-  missing or unreadable `rules/column-order.json` is a problem.
+  reading-order vector's `columns` and `rows` are what `presented_rows`
+  gives. A missing or unreadable `rules/reading-order.json` is a problem.
 
 It does not import `dfo_client_contract`, whose tests replay
 the rule vectors. `tools/capture_client_contract.py` imports the outcome
@@ -107,9 +108,9 @@ import hashlib
 import json
 import re
 import sys
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from functools import partial
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
@@ -1777,8 +1778,12 @@ LAYOUT_RENDERINGS = {
 # The rendering member a fetch posts as true unless the caller keeps party
 # totals, which leaves out the group totals of the identity's open party roles.
 WITHOUT_PARTY_TOTALS = "without_party_totals"
-# The column a client presents last.
+# The column a client presents last, the column a stacked dataset puts
+# first, the measure no row sorts by, and the sort key that comes last.
 STAT_VAR = "stat_var"
+PART = "part"
+VALUE = "value"
+TIME_PERIOD = "time_period"
 # The snapshot refusal after which a stored version's lookup builds it again.
 # The version exists, but its file has expired. Any other refusal ends it.
 FILE_EXPIRED = "artifact_expired"
@@ -1811,35 +1816,168 @@ def fetch_rendering(
     return rendering
 
 
-def column_order(columns: Sequence[str], reading: Sequence[Sequence[str]]) -> list[str]:
-    """`columns` in the order a client presents them: each reading slot's
-    first name the columns hold, in slot order, then the other columns in
-    their own order, with `stat_var` last."""
-    first = [
+@dataclass(frozen=True, slots=True)
+class ServedTable:
+    """A served table as the reading-order rule reads it: its columns in the
+    order the server wrote them, its row count, and the value of each column
+    that holds one value in every row. A column `same` leaves out varies."""
+
+    columns: tuple[str, ...]
+    rows: int
+    same: Mapping[str, Any]
+
+
+def table_from_rows(
+    columns: Sequence[str], rows: Sequence[Sequence[Any]]
+) -> ServedTable:
+    """The `ServedTable` of a table given as rows, as a vector gives one."""
+    same = {
+        name: rows[0][index]
+        for index, name in enumerate(columns)
+        if rows and all(row[index] == rows[0][index] for row in rows)
+    }
+    return ServedTable(tuple(columns), len(rows), same)
+
+
+@lru_cache(maxsize=64)
+def served_table(data: bytes) -> ServedTable:
+    """The `ServedTable` of a downloaded Parquet file. Each scenario is
+    replayed twice and each test validates the whole contract, so the
+    tables are read once per file content.
+
+    Raises:
+        _UnfitError: The file is not a Parquet file.
+    """
+    try:
+        table = pq.read_table(pa.BufferReader(data))
+    except (pa.ArrowException, OSError) as exc:
+        raise _UnfitError(
+            f"a downloaded file is unreadable: not Parquet: {exc}"
+        ) from exc
+    same = {}
+    for name in table.column_names if table.num_rows else ():
+        values = table.column(name).unique()
+        if len(values) == 1:
+            same[name] = values[0].as_py()
+    return ServedTable(tuple(table.column_names), table.num_rows, same)
+
+
+def filled_slots(
+    columns: Collection[str], reading: Sequence[Sequence[str]]
+) -> list[str]:
+    """The reading slots `columns` fill, in slot order: each slot's first name
+    the columns hold."""
+    return [
         name
         for names in reading
         if (name := next((n for n in names if n in columns), None)) is not None
     ]
-    rest = [c for c in columns if c not in first and c != STAT_VAR]
-    return first + rest + [STAT_VAR] * (STAT_VAR in columns)
+
+
+def _varies(name: str, tables: Sequence[ServedTable]) -> bool:
+    """Whether column `name` holds more than one value over the rows of
+    `tables` stacked, a table without the column holding null in it."""
+    values = []
+    for table in tables:
+        if not table.rows:
+            continue
+        if name in table.columns and name not in table.same:
+            return True
+        values.append(table.same.get(name))
+    return any(value != values[0] for value in values[1:])
+
+
+@dataclass(frozen=True, slots=True)
+class ColumnGroups:
+    """A dataset's columns in the reading-order rule's groups: `part` when
+    there are several members, the filled reading slots in slot order, the
+    other columns whose values differ between the stacked rows and those
+    that hold one value in every row, each in served order, and `stat_var`
+    with whether it varies."""
+
+    part: tuple[str, ...]
+    first: tuple[str, ...]
+    varying: tuple[str, ...]
+    same: tuple[str, ...]
+    last: tuple[str, ...]
+    last_varies: bool
+
+    @property
+    def columns(self) -> list[str]:
+        return [*self.part, *self.first, *self.varying, *self.same, *self.last]
+
+    @property
+    def sort_keys(self) -> list[str]:
+        """The columns a client sorts each member's rows by: the filled
+        reading slots in slot order without `value`, a measure, and without
+        the time period, then the varying columns in presented order,
+        `stat_var` among them when it varies, then the time period, so each
+        series' years read together."""
+        keys = [c for c in self.first if c not in (VALUE, TIME_PERIOD)]
+        keys += [*self.varying, *(self.last if self.last_varies else ())]
+        return keys + [TIME_PERIOD] * (TIME_PERIOD in self.first)
+
+
+def column_groups(
+    tables: Sequence[ServedTable], reading: Sequence[Sequence[str]]
+) -> ColumnGroups:
+    """The reading-order rule's column groups for a dataset whose members
+    serve `tables`. The served order gathers the members' columns in member
+    order, each once."""
+    gathered = list(dict.fromkeys(c for table in tables for c in table.columns))
+    first = filled_slots(gathered, reading)
+    rest = [c for c in gathered if c not in first and c != STAT_VAR]
+    varying = [c for c in rest if _varies(c, tables)]
+    return ColumnGroups(
+        part=(PART,) if len(tables) > 1 else (),
+        first=tuple(first),
+        varying=tuple(varying),
+        same=tuple(c for c in rest if c not in varying),
+        last=(STAT_VAR,) if STAT_VAR in gathered else (),
+        last_varies=STAT_VAR in gathered and _varies(STAT_VAR, tables),
+    )
 
 
 def presented_columns(
-    members: Sequence[Sequence[str]], reading: Sequence[Sequence[str]]
+    tables: Sequence[ServedTable], reading: Sequence[Sequence[str]]
 ) -> list[str]:
-    """The columns a client presents for a dataset whose members hold
-    `members`: the members' columns gathered in member order, each once,
-    in the order `column_order` gives, after `part` when there are several."""
-    gathered = list(dict.fromkeys(c for columns in members for c in columns))
-    part = ["part"] if len(members) > 1 else []
-    return [*part, *column_order(gathered, reading)]
+    """The columns a client presents for a dataset whose members serve
+    `tables`, as `column_groups` orders them."""
+    return column_groups(tables, reading).columns
+
+
+def presented_rows(
+    members: Sequence[tuple[str | None, Sequence[str], Sequence[Sequence[Any]]]],
+    reading: Sequence[Sequence[str]],
+) -> tuple[list[str], list[list[Any]]]:
+    """The columns and rows a client presents for members given as their
+    `part` value, served columns and served rows. Each member's rows are
+    sorted by `ColumnGroups.sort_keys`, ascending with nulls last and ties in served
+    order, and the members follow in member order. A row of a stacked
+    dataset holds null in a column its member lacks."""
+    tables = [table_from_rows(columns, rows) for _, columns, rows in members]
+    groups = column_groups(tables, reading)
+    columns, keys = groups.columns, groups.sort_keys
+    presented = []
+    for part, served, rows in members:
+        at = {name: index for index, name in enumerate(served)}
+        cells = [
+            {**{name: row[index] for name, index in at.items()}, PART: part}
+            for row in rows
+        ]
+        ordered = sorted(
+            cells,
+            key=lambda cell: [(cell.get(key) is None, cell.get(key)) for key in keys],
+        )
+        presented.extend([cell.get(name) for name in columns] for cell in ordered)
+    return columns, presented
 
 
 def load_reading_columns(package_dir: Path) -> list[list[str]] | None:
-    """The reading slots `rules/column-order.json` lists, or None when the
-    file does not hold them, which the rules check reports."""
+    """The reading slots `rules/reading-order.json` lists, or None when the
+    file does not hold them, which the validator reports."""
     try:
-        reading = _load(package_dir / "rules" / "column-order.json")["reading_columns"]
+        reading = _load(package_dir / "rules" / "reading-order.json")["reading_columns"]
     except (OSError, ValueError, KeyError, TypeError):
         return None
     if isinstance(reading, list) and all(
@@ -1848,31 +1986,6 @@ def load_reading_columns(package_dir: Path) -> list[list[str]] | None:
     ):
         return reading
     return None
-
-
-def served_columns(data: bytes) -> list[str]:
-    """A downloaded file's columns, as `parquet_columns` reads them.
-
-    Raises:
-        _UnfitError: The file is not a Parquet file.
-    """
-    try:
-        return parquet_columns(data)
-    except ValueError as exc:
-        raise _UnfitError(f"a downloaded file is unreadable: {exc}") from exc
-
-
-def parquet_columns(data: bytes) -> list[str]:
-    """The top-level column names of a Parquet file, in the order its writer
-    wrote them, read from its footer's schema.
-
-    Raises:
-        ValueError: `data` is not a Parquet file.
-    """
-    try:
-        return list(pq.read_schema(pa.BufferReader(data)).names)
-    except (pa.ArrowException, OSError) as exc:
-        raise ValueError(f"not a Parquet file: {exc}") from exc
 
 
 def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
@@ -2598,7 +2711,7 @@ class _Replay:
             "spec_id": built,
             "content_version": manifest["content_version"],
             "sentence": sentence,
-            "served_columns": served_columns(data),
+            "served": served_table(data),
         }
 
     def sentence(
@@ -2636,7 +2749,7 @@ class _Replay:
             data, refusal = self.stored_file(member, manifest)
             if data is None:
                 return None, refusal
-            return {**stored, "served_columns": served_columns(data)}, None
+            return {**stored, "served": served_table(data)}, None
 
         def rebuilt(manifest: dict[str, Any]) -> dict[str, Any]:
             held = {**spec, "sentence": member["sentence"]}
@@ -2842,16 +2955,14 @@ class _Replay:
         search_warning: bool | None = None,
     ) -> dict[str, Any]:
         """A dataset outcome as `dataset_summary` gives it, with the columns a
-        client presents: the members' served columns, gathered in member
-        order with each once and ordered by the column-order rule, after
-        `part` when there are several members. Without the rule's reading
-        slots, which the rules check reports, the outcome gives no columns."""
+        client presents: the members' served columns ordered by the
+        reading-order rule, as `presented_columns` gives them. Without the
+        rule's reading slots, which the validator reports, the outcome gives
+        no columns."""
         summary = dataset_summary(members, gaps, search_warning=search_warning)
         if self.reading is None:
             return {"dataset": summary}
-        columns = presented_columns(
-            [m["served_columns"] for m in members], self.reading
-        )
+        columns = presented_columns([m["served"] for m in members], self.reading)
         return {"dataset": {"columns": columns, **summary}}
 
 
@@ -3112,7 +3223,7 @@ def _check_expect(
             if columns is not None and dataset["columns"] != columns:
                 problems.append(
                     f"scenarios/{file_name}: step {index}: columns "
-                    f"{json.dumps(dataset['columns'])[:300]} are not the column-order "
+                    f"{json.dumps(dataset['columns'])[:300]} are not the reading-order "
                     f"rule's order of the served columns, {json.dumps(columns)[:300]}"
                 )
         if compared != wanted:
@@ -3561,16 +3672,19 @@ def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
             f"{label}: vector {name!r} repeats"
             for name in sorted({n for n in names if names.count(n) > 1})
         )
-        if document["rule"] == "column-order":
+        if document["rule"] == "reading-order":
             problems.extend(
-                f"{label}: vector {vector['name']!r} orders its columns "
-                f"otherwise than presented_columns"
+                f"{label}: vector {vector['name']!r} orders its columns or rows "
+                f"otherwise than presented_rows"
                 for vector in document["vectors"]
-                if presented_columns(
-                    vector.get("members", [vector.get("columns")]),
+                if presented_rows(
+                    [
+                        (member.get("part"), member["columns"], member["rows"])
+                        for member in vector["members"]
+                    ],
                     document["reading_columns"],
                 )
-                != vector["ordered"]
+                != (vector["columns"], vector["rows"])
             )
     return problems
 
@@ -3653,7 +3767,7 @@ def validate() -> list[str]:
     reading = load_reading_columns(PACKAGE_DIR)
     if reading is None:
         problems.append(
-            "rules/column-order.json: missing or unreadable, or holds no "
+            "rules/reading-order.json: missing or unreadable, or holds no "
             "reading_columns list of column-name lists, so no dataset's columns "
             "are checked"
         )

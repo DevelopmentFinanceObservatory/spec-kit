@@ -165,6 +165,22 @@ def _swap_columns(first: str, second: str) -> Callable[[Any], None]:
     return change
 
 
+def _vector(name: str, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return lambda doc: change(next(v for v in doc["vectors"] if v["name"] == name))
+
+
+def _served_order_after_reading_columns(holder: Any) -> None:
+    """Moves the varying co-operation modality pair back to its served place,
+    just before `crsPurpose`, as the rule placed it before it put varying
+    columns ahead of constant ones."""
+    columns = holder["dataset"]["columns"] if "dataset" in holder else holder["columns"]
+    varying = ["crsCooperationModality", "crsCooperationModality_label"]
+    for name in varying:
+        columns.remove(name)
+    at = columns.index("crsPurpose")
+    columns[at:at] = varying
+
+
 def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
     return lambda doc: doc["call"][index].update(fields)
 
@@ -1720,20 +1736,55 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "scenarios/fetch-ref.json: step 0: columns",
         ),
         (
-            "rules/column-order.json",
-            lambda doc: doc["vectors"][0]["ordered"].reverse(),
-            "orders its columns otherwise than presented_columns",
+            "scenarios/answer-definite-fetch.json",
+            _set_outcome(1, _served_order_after_reading_columns),
+            "scenarios/answer-definite-fetch.json: step 1: columns",
         ),
         (
-            "rules/column-order.json",
-            lambda doc: doc["vectors"][-1]["ordered"].remove("part"),
-            "vector 'stack-crs-and-dac2a' orders its columns otherwise",
+            "rules/reading-order.json",
+            _vector(
+                "varying-column-follows-reading-columns",
+                _served_order_after_reading_columns,
+            ),
+            (
+                "vector 'varying-column-follows-reading-columns' orders its "
+                "columns or rows otherwise"
+            ),
         ),
         (
-            "rules/column-order.json",
+            "rules/reading-order.json",
+            _vector("stack-crs-and-dac2a", lambda v: v["columns"].remove("part")),
+            "vector 'stack-crs-and-dac2a' orders its columns or rows otherwise",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "ties-keep-served-order",
+                lambda v: v["rows"].insert(1, v["rows"].pop(2)),
+            ),
+            "vector 'ties-keep-served-order' orders its columns or rows otherwise",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "varying-column-follows-reading-columns",
+                lambda v: v["rows"].insert(1, v["rows"].pop(2)),
+            ),
+            (
+                "vector 'varying-column-follows-reading-columns' orders its "
+                "columns or rows otherwise"
+            ),
+        ),
+        (
+            "rules/reading-order.json",
+            _vector("null-sorts-last", lambda v: v["rows"].insert(0, v["rows"].pop())),
+            "vector 'null-sorts-last' orders its columns or rows otherwise",
+        ),
+        (
+            "rules/reading-order.json",
             lambda doc: doc.pop("reading_columns"),
             (
-                "rules/column-order.json: missing or unreadable, or holds no "
+                "rules/reading-order.json: missing or unreadable, or holds no "
                 "reading_columns"
             ),
         ),
@@ -1984,9 +2035,13 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "stacked-columns-out-of-reading-order",
         "served-order-of-other-columns-swapped",
         "served-column-dropped",
-        "column-order-vector-misordered",
-        "column-order-stacked-vector-misordered",
-        "column-order-without-reading-columns",
+        "constant-columns-before-varying-ones",
+        "reading-order-vector-in-served-order",
+        "reading-order-stacked-vector-without-part",
+        "reading-order-ties-reordered",
+        "reading-order-series-interleaved-by-year",
+        "reading-order-null-sorted-first",
+        "reading-order-without-reading-columns",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -2000,10 +2055,10 @@ def test_a_broken_contract_is_reported(
     assert any(expected in problem for problem in problems), problems
 
 
-def test_a_missing_column_order_rule_is_reported(package_dir: Path) -> None:
-    (package_dir / "rules" / "column-order.json").unlink()
+def test_a_missing_reading_order_rule_is_reported(package_dir: Path) -> None:
+    (package_dir / "rules" / "reading-order.json").unlink()
     assert any(
-        problem.startswith("rules/column-order.json: missing")
+        problem.startswith("rules/reading-order.json: missing")
         for problem in validator.validate()
     )
 

@@ -16,7 +16,9 @@ RULES = (
     "base-url",
     "cache-dir",
     "cache-layout",
-    "column-order",
+    "reading-order",
+    "client-identity",
+    "role-keys",
 )
 
 
