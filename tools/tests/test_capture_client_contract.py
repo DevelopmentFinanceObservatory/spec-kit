@@ -551,3 +551,75 @@ def test_an_environment_out_of_step_with_the_lock_is_refused(
     assert {a for a in command if a.startswith("--extra=")} == {
         f"--extra={e}" for e in ("eval", "api", "engine", "datasets", "graph")
     }
+
+
+def _long_build_ctx(
+    monkeypatch: pytest.MonkeyPatch,
+    answers: Mapping[tuple[str, int], tuple[str, int]],
+    built: set[str],
+) -> tuple[Any, list[str], list[str]]:
+    """A context whose searches answer `answers`, (donors, year) to spec id
+    and row estimate, and whose versions route lists a version of each spec
+    in `built`, with the questions searched and the spec ids probed."""
+    questions: list[str] = []
+    probed: list[str] = []
+
+    def search(self: Any, question: str) -> Any:
+        questions.append(question)
+        for (donors, year), (spec_id, rows) in answers.items():
+            if question == capture.LONG_BUILD.format(donors=donors, year=year):
+                spec = {
+                    "spec_id": spec_id,
+                    "definition": {"spec_id": spec_id},
+                    "resolved": {"download": {"rows": rows}},
+                }
+                return capture.Answer({}, [{"spec": spec}], None, "definite")
+        return capture.Answer({}, [], None, "declined")
+
+    def newest(self: Any, spec_id: str) -> str | None:
+        probed.append(spec_id)
+        return "cv_built" if spec_id in built else None
+
+    monkeypatch.setattr(capture.Session, "search", search)
+    monkeypatch.setattr(capture.Session, "_newest", newest)
+    ctx = capture.Context(capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES)
+    return ctx, questions, probed
+
+
+def test_a_long_build_takes_the_first_unbuilt_spec_in_the_band(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A year outside the row band, a built spec and a spec an earlier year
+    answered are passed over, and each pick is searched for once."""
+    in_band = capture.SYNC_ROWS + 1
+    ctx, questions, probed = _long_build_ctx(
+        monkeypatch,
+        {
+            ("DAC", 1960): ("spec_small", capture.SYNC_ROWS),
+            ("DAC", 1961): ("spec_built", in_band),
+            ("DAC", 1962): ("spec_built", in_band),
+            ("DAC", 1963): ("spec_dac", in_band),
+            ("OECD", 1960): ("spec_dac", in_band),
+            ("OECD", 1961): ("spec_oecd", in_band),
+        },
+        {"spec_built"},
+    )
+    assert ctx.async_spec("DAC").spec_id == "spec_dac"
+    assert ctx.async_spec("OECD").spec_id == "spec_oecd"
+    assert ctx.async_spec("DAC").spec_id == "spec_dac"
+    assert probed == ["spec_built", "spec_dac", "spec_oecd"]
+    assert len(questions) == 6
+
+
+def test_a_long_build_with_no_unbuilt_year_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(capture, "LONG_BUILD_YEARS", range(1960, 1962))
+    in_band = capture.SYNC_ROWS + 1
+    ctx, _, _ = _long_build_ctx(
+        monkeypatch,
+        {("DAC", 1960): ("spec_a", in_band), ("DAC", 1961): ("spec_b", in_band)},
+        {"spec_a", "spec_b"},
+    )
+    with pytest.raises(capture.ShapeError, match="from 1960 to 1961"):
+        ctx.async_spec("DAC")
