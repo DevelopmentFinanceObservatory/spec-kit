@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
-    "recorded_at": "2026-10-25T17:36:43Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:23:08Z"
   },
   "call": [
     {
@@ -166,7 +166,8 @@
           "options": {
             "format": "parquet",
             "bundle": false,
-            "layout": "frame"
+            "layout": "frame",
+            "without_party_totals": true
           }
         }
       },
@@ -174,7 +175,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "02d03065ffb242dbb868f3f7b8d63608"
+          "x-dfo-trace-id": "b236e3739a984c4da5c2a1ba3fe66cc9"
         },
         "json": {
           "schema_version": 1,
@@ -575,7 +576,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261011T194155Z-80081f08",
             "served_from": "head",
-            "confirmed_at": "2026-10-25T17:22:10.027136+00:00"
+            "confirmed_at": "2026-10-26T09:17:22.037029+00:00"
           },
           "warnings": [
             {
@@ -597,7 +598,8 @@
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": "frame"
+                "layout": "frame",
+                "without_party_totals": true
               },
               "bytes": 5627,
               "media_type": "application/vnd.apache.parquet",
@@ -919,7 +921,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Af4026e80af4b8683d3bb86645ab3aca83dff75cd03fdd4c73ec54ba638922104?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "3b2bd09c3ba0491596f2ff115a040356"
+          "x-dfo-trace-id": "5abca8a9651b4bca8e2d422e6b8c02a1"
         }
       }
     },
@@ -942,19 +944,19 @@
       "dataset": {
         "rows": 30,
         "columns": [
-          "stat_var",
+          "time_period",
           "financingProvider",
           "financingRecipient",
-          "time_period",
+          "stat_var_crsPurpose",
           "value",
           "unit",
-          "measurementMethod",
+          "stat_var_crsTypeOfFlow",
           "provenance",
+          "measurementMethod",
           "status",
           "stat_var_crsCooperationModality",
-          "stat_var_crsPurpose",
           "stat_var_crsTypeOfFinance",
-          "stat_var_crsTypeOfFlow"
+          "stat_var"
         ],
         "complete": true,
         "members": [

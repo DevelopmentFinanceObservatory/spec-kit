@@ -5,7 +5,7 @@ express, so those checks must read it without raising. A vector whose input
 does not get the schema verdict it states, and an operation list that breaks
 a rule the operation schema cannot express, must each be reported.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 """
 
 from __future__ import annotations

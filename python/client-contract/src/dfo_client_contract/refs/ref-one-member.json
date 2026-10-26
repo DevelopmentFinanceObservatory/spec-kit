@@ -1,89 +1,73 @@
 {
   "format_version": 1,
   "name": "ref-one-member",
-  "description": "A ref to one bare long Parquet version, the member of fetch-spec-known-sentence.",
-  "scenario": "fetch-spec-known-sentence",
+  "description": "A ref to one bare long Parquet version fetched with party_totals=True, whose rendering records no without_party_totals, the member of fetch-spec-party-totals-kept.",
+  "scenario": "fetch-spec-party-totals-kept",
   "ref": {
     "format_version": 1,
     "members": [
       {
         "parts": [],
-        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS).",
+        "sentence": "Gross disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
         "spec": {
-          "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+          "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
             "identity": {
-              "identity_version": "spec1",
               "shape": {
                 "kind": "statvar_schema",
+                "stat_type": "measuredValue",
                 "population_type": "FinancialFlow",
                 "measured_property": "amount",
-                "stat_type": "measuredValue",
                 "measurement_qualifier": "Nominal"
               },
               "slots": [
                 {
-                  "property": "crsCooperationModality",
+                  "binding": {
+                    "ref": "DAC2aAidType206",
+                    "state": "value"
+                  },
+                  "property": "dac2aAidType"
+                },
+                {
                   "binding": {
                     "state": "unbound"
-                  }
+                  },
+                  "property": "dacTypeOfFinance"
                 },
                 {
-                  "property": "crsPurpose",
                   "binding": {
-                    "state": "value",
-                    "ref": "CRSPurposeCode12220"
-                  }
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
                 },
                 {
-                  "property": "crsTypeOfFinance",
                   "binding": {
-                    "state": "unbound"
-                  }
-                },
-                {
-                  "property": "crsTypeOfFlow",
-                  "binding": {
-                    "state": "value",
-                    "ref": "CRSTypeOfFlow10"
-                  }
-                },
-                {
-                  "property": "financialFlowType",
-                  "binding": {
-                    "state": "value",
-                    "ref": "Disbursement"
-                  }
-                },
-                {
-                  "property": "nettingBasis",
-                  "binding": {
-                    "state": "value",
-                    "ref": "Gross"
-                  }
+                    "ref": "Gross",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
                 }
               ],
               "entities": {
                 "destination": [
-                  "country/NGA"
-                ],
-                "origin": [
-                  "country/DEU"
+                  "country/KEN"
                 ]
               },
+              "identity_version": "spec1",
               "requested_window": {
                 "kind": "range",
-                "start_year": 2020,
-                "end_year": 2023
+                "end_year": 2022,
+                "start_year": 2022
               }
             }
           }
         },
-        "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
+        "content_version": "cv_2aa4cc2fd852cd9b84347c61d07d609a",
         "artifact": {
-          "digest": "sha256:c44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170",
+          "digest": "sha256:05d0cbf59e8dddd7162104bf8e2edc406fc402a0b8d0d971452d01b07b0ee426",
           "rendering": {
             "format": "parquet",
             "bundle": false

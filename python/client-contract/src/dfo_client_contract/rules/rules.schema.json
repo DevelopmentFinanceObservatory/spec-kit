@@ -25,6 +25,9 @@
     },
     {
       "$ref": "#/$defs/cache_layout"
+    },
+    {
+      "$ref": "#/$defs/column_order"
     }
   ],
   "$defs": {
@@ -582,6 +585,95 @@
                 "$ref": "#/$defs/one_line"
               }
             }
+          }
+        }
+      }
+    },
+    "column_order": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "required": [
+        "reading_columns"
+      ],
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "column-order"
+        },
+        "reading_columns": {
+          "description": "The reading slots in order. Each slot lists the column names that fill it, each long layout's label before its frame layout's code; the first name a dataset holds fills the slot.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "$ref": "#/$defs/one_line"
+            },
+            "uniqueItems": true
+          }
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "ordered"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "$ref": "#/$defs/one_line"
+                },
+                "uniqueItems": true,
+                "description": "One dataset's columns in the order the server wrote them."
+              },
+              "members": {
+                "description": "The columns of each member of a stacked dataset, in member order, each in the order the server wrote them.",
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "$ref": "#/$defs/one_line"
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "ordered": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "$ref": "#/$defs/one_line"
+                },
+                "uniqueItems": true,
+                "description": "The same columns in the order a client presents them, after `part` for a stacked dataset."
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "columns"
+                ]
+              },
+              {
+                "required": [
+                  "members"
+                ]
+              }
+            ]
           }
         }
       }

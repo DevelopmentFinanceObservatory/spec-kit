@@ -1,8 +1,8 @@
 {
   "format_version": 1,
   "name": "ref-answer-member",
-  "description": "A member built from an answer names the part it answers.",
-  "scenario": "fetch-spec-known-sentence",
+  "description": "A member built from an answer names the part it answers, the member of answer-definite-fetch.",
+  "scenario": "answer-definite-fetch",
   "ref": {
     "format_version": 1,
     "members": [
@@ -10,85 +10,84 @@
         "parts": [
           "ODA disbursements for basic health care"
         ],
-        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS).",
+        "sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 1995 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
         "spec": {
-          "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+          "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
             "identity": {
-              "identity_version": "spec1",
               "shape": {
                 "kind": "statvar_schema",
+                "stat_type": "measuredValue",
                 "population_type": "FinancialFlow",
                 "measured_property": "amount",
-                "stat_type": "measuredValue",
                 "measurement_qualifier": "Nominal"
               },
               "slots": [
                 {
-                  "property": "crsCooperationModality",
                   "binding": {
                     "state": "unbound"
-                  }
+                  },
+                  "property": "crsCooperationModality"
                 },
                 {
-                  "property": "crsPurpose",
                   "binding": {
-                    "state": "value",
-                    "ref": "CRSPurposeCode12220"
-                  }
+                    "ref": "CRSPurposeCode12220",
+                    "state": "value"
+                  },
+                  "property": "crsPurpose"
                 },
                 {
-                  "property": "crsTypeOfFinance",
                   "binding": {
                     "state": "unbound"
-                  }
+                  },
+                  "property": "crsTypeOfFinance"
                 },
                 {
-                  "property": "crsTypeOfFlow",
                   "binding": {
-                    "state": "value",
-                    "ref": "CRSTypeOfFlow10"
-                  }
+                    "ref": "CRSTypeOfFlow10",
+                    "state": "value"
+                  },
+                  "property": "crsTypeOfFlow"
                 },
                 {
-                  "property": "financialFlowType",
                   "binding": {
-                    "state": "value",
-                    "ref": "Disbursement"
-                  }
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
                 },
                 {
-                  "property": "nettingBasis",
                   "binding": {
-                    "state": "value",
-                    "ref": "Gross"
-                  }
+                    "ref": "Gross",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
                 }
               ],
               "entities": {
-                "destination": [
-                  "country/NGA"
-                ],
                 "origin": [
                   "country/DEU"
+                ],
+                "destination": [
+                  "country/NGA"
                 ]
               },
+              "identity_version": "spec1",
               "requested_window": {
-                "kind": "range",
-                "start_year": 2020,
-                "end_year": 2023
+                "kind": "all"
               }
             }
           }
         },
-        "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
+        "content_version": "cv_b92d94774702c7f05f2075d0b03dd756",
         "artifact": {
-          "digest": "sha256:c44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170",
+          "digest": "sha256:421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db",
           "rendering": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       }

@@ -128,7 +128,7 @@ jobs:
         run: uv run tools/validate_unit_registry.py
 
       - name: Test the registry validator
-        run: uv run --with jsonschema --with pytest pytest tools/tests -q
+        run: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 
       - name: Validate identity vectors
         run: uv run tools/validate_vectors.py

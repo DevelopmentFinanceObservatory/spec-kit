@@ -4,7 +4,7 @@ A record the schema rejects still reaches the checks the schema cannot
 express, so those checks must read it without raising, and the validator
 must report every diagnostic and exit 1.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 """
 
 from __future__ import annotations

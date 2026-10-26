@@ -14,7 +14,7 @@ in the enum may not shrink, even alongside a retired one in the same mapping.
 Also tests check_entries' precondition for that matching: an entry's
 `mappings` may not repeat an `(endpoint, channel)` pair.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 (importing tools/validate_registry.py imports jsonschema at module scope,
 so a plain interpreter needs it on the path; `--with` provisions it for the
 one invocation without a project-level dependency).

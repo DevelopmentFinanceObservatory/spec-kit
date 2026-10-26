@@ -1,7 +1,7 @@
 """Tests for tools/validate_unit_registry.py: each mutation of the real
 registry is one rule the schema or the row checks must refuse.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 """
 
 from __future__ import annotations

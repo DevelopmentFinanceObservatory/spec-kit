@@ -16,6 +16,7 @@ RULES = (
     "base-url",
     "cache-dir",
     "cache-layout",
+    "column-order",
 )
 
 
