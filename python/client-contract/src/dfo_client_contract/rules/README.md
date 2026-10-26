@@ -1,6 +1,6 @@
 # Client rules
 
-Clients implement these rules for the capabilities available in their runtime. Python implements every rule. TypeScript implements the key, credentials and base-URL rules in Node; browser runtimes use the key sources available there. TypeScript currently keeps no disk cache, so `cache-dir` and `cache-layout` apply to Python. Clients implementing the same capability use the same rules and formats. Each rule's vectors are in `<rule>.json`, validated by `rules.schema.json`. In a vector, `env` lists the environment variables set, and an empty value counts as unset everywhere below.
+Clients implement these rules for the capabilities available in their runtime. Python implements every rule. TypeScript implements the key, credentials and base-URL rules in Node, and the column-order rule in every runtime; browser runtimes use the key sources available there. TypeScript currently keeps no disk cache, so `cache-dir` and `cache-layout` apply to Python. Clients implementing the same capability use the same rules and formats. Each rule's vectors are in `<rule>.json`, validated by `rules.schema.json`. In a vector, `env` lists the environment variables set, and an empty value counts as unset everywhere below.
 
 ## Credentials path (`credentials-path`)
 
@@ -68,4 +68,22 @@ Inside the cache directory:
 - a downloaded artifact is `files/sha256/<hex>`, keyed by its digest;
 - a manifest is `manifests/<spec_id>/<content_version>/<rendering>.json`, where `<rendering>` is the format, then `-bundle` for a bundle, then `-frame` for the frame layout: `parquet`, `parquet-frame`, `csv-bundle`.
 
-A client writes an entry to a temporary name in the same directory and renames it into place, so a reader sees a complete entry. Concurrent writers of one content-addressed artifact write identical bytes. Manifest updates can replace another complete manifest and lose a cache candidate, so cache availability is best-effort. A read re-hashes an artifact, and a mismatch counts as a miss.
+The key leaves out a rendering's `without_party_totals`: a cut that leaves rows out answers a version of its own, and one that leaves none out answers the plain version's file. A client writes an entry to a temporary name in the same directory and renames it into place, so a reader sees a complete entry. Concurrent writers of one content-addressed artifact write identical bytes. Manifest updates can replace another complete manifest and lose a cache candidate, so cache availability is best-effort. A read re-hashes an artifact, and a mismatch counts as a miss.
+
+## Column order (`column-order`)
+
+A client presents a dataset's columns in reading order, in every table it returns. `reading_columns` in `column-order.json` lists nine slots in order: the time period, the provider, the recipient, the subject, the purpose, the value, the unit, the flow type and the provenance. Each slot names the long layout's label column, then the frame layout's code column, and the flow type slot names the CRS pair, then the DAC2a aid type pair. The first name of a slot that the dataset holds fills the slot, and a slot whose names it holds none of stays empty. The filled slots come first, in slot order, then every other column in the order the server wrote it, with `stat_var` last.
+
+| Slot        | Long layout                                      | Frame layout                                           |
+| ----------- | ------------------------------------------------ | ------------------------------------------------------ |
+| Time period | `time_period`                                    | `time_period`                                          |
+| Provider    | `financingProvider_label`                        | `financingProvider`                                    |
+| Recipient   | `financingRecipient_label`                       | `financingRecipient`                                   |
+| Subject     | `observationAbout_label`                         | `observationAbout`                                     |
+| Purpose     | `crsPurpose_label`                               | `stat_var_crsPurpose`                                  |
+| Value       | `value`                                          | `value`                                                |
+| Unit        | `unit_label`                                     | `unit`                                                 |
+| Flow type   | `crsTypeOfFlow_label`, else `dac2aAidType_label` | `stat_var_crsTypeOfFlow`, else `stat_var_dac2aAidType` |
+| Provenance  | `provenance_label`                               | `provenance`                                           |
+
+A CRS series in the long layout, 26 columns, reads `time_period`, `financingProvider_label`, `financingRecipient_label`, `crsPurpose_label`, `value`, `unit_label`, `crsTypeOfFlow_label` and `provenance_label`, then its 18 other columns, `stat_var` last. A DAC2a series leads with `dac2aAidType_label` in the flow type slot. A dataset of several members puts `part` first, then orders the members' columns, gathered in member order with each column once, by the same rule. A vector gives one dataset's `columns`, or a stacked dataset's `members`, each member's columns in the server's order; in a stack of a CRS member and a DAC2a member, `crsTypeOfFlow_label` fills the flow type slot and `dac2aAidType_label` falls among the other columns. The order moves columns and changes no value, and a client hashes a downloaded file before it orders the columns, so the digest and the ref keep the server's file.

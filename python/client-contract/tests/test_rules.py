@@ -179,6 +179,16 @@ def cache_entry(vector: dict[str, Any]) -> str:
     return f"manifests/{vector['spec_id']}/{vector['content_version']}/{key}.json"
 
 
+def column_order(columns: list[str], reading: list[list[str]]) -> list[str]:
+    first = [
+        name
+        for names in reading
+        if (name := next((n for n in names if n in columns), None)) is not None
+    ]
+    rest = [c for c in columns if c not in first and c != "stat_var"]
+    return first + rest + ["stat_var"] * ("stat_var" in columns)
+
+
 @pytest.mark.parametrize("name", RULES)
 def test_every_rule_has_vectors(name: str) -> None:
     assert rule(name)["rule"] == name
@@ -246,3 +256,13 @@ def test_cache_dir(vector: dict[str, Any]) -> None:
 @pytest.mark.parametrize("vector", _vectors("cache-layout"), ids=_ids("cache-layout"))
 def test_cache_layout(vector: dict[str, Any]) -> None:
     assert cache_entry(vector) == vector["path"]
+
+
+@pytest.mark.parametrize("vector", _vectors("column-order"), ids=_ids("column-order"))
+def test_column_order(vector: dict[str, Any]) -> None:
+    reading = rule("column-order")["reading_columns"]
+    if "columns" in vector:
+        assert column_order(vector["columns"], reading) == vector["ordered"]
+        return
+    gathered = list(dict.fromkeys(c for member in vector["members"] for c in member))
+    assert ["part", *column_order(gathered, reading)] == vector["ordered"]

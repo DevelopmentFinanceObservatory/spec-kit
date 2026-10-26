@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
-    "recorded_at": "2026-10-25T17:35:16Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:31Z"
   },
   "call": [
     {
@@ -174,7 +174,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -182,16 +183,37 @@
         "status": 400,
         "headers": {
           "content-type": "application/problem+json",
-          "x-dfo-trace-id": "2e9e43a5095e4b10b1589c58cb4f8ecd"
+          "x-dfo-trace-id": "827e62e72957420a91edcc1564671a13"
         },
         "json": {
           "type": "/codes/request_invalid",
           "title": "Bad Request",
           "status": 400,
-          "detail": "Value error, unknown facet axis/axes: colour",
+          "detail": "unknown facet axis 'colour'. The facet axes are provenance, measurementMethod, unit.",
           "code": "request_invalid",
-          "pointer": "/input/scope",
-          "trace_id": "2e9e43a5095e4b10b1589c58cb4f8ecd",
+          "pointer": "/input/scope/facets/colour",
+          "issues": [
+            {
+              "pointer": "/input/scope/facets/colour",
+              "axis": "colour",
+              "alternatives": [
+                {
+                  "ref": "provenance",
+                  "label": "provenance"
+                },
+                {
+                  "ref": "measurementMethod",
+                  "label": "measurementMethod"
+                },
+                {
+                  "ref": "unit",
+                  "label": "unit"
+                }
+              ],
+              "truncated": false
+            }
+          ],
+          "trace_id": "827e62e72957420a91edcc1564671a13",
           "capability_version": "dset_76f5fa7244511c58",
           "retryable": false
         }
@@ -203,7 +225,7 @@
       "error": {
         "class": "InvalidRequestError",
         "code": "request_invalid",
-        "trace_id": "2e9e43a5095e4b10b1589c58cb4f8ecd"
+        "trace_id": "827e62e72957420a91edcc1564671a13"
       }
     }
   ]

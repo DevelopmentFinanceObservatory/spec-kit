@@ -11,7 +11,7 @@ Each case validates a whole copy of the contract, the served document's
 bodies included, which takes about a third of a second. The copy hard-links
 the package's files, so it writes no data where the file system allows.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 """
 
 from __future__ import annotations
@@ -154,6 +154,15 @@ def _first_gap(**fields: Any) -> Callable[[Any], None]:
 
 def _part_rows(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return _set_outcome(1, lambda o: change(o["dataset"]))
+
+
+def _swap_columns(first: str, second: str) -> Callable[[Any], None]:
+    def change(outcome: Any) -> None:
+        columns = outcome["dataset"]["columns"]
+        i, j = columns.index(first), columns.index(second)
+        columns[i], columns[j] = columns[j], columns[i]
+
+    return change
 
 
 def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
@@ -892,7 +901,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             lambda doc: doc["ref"]["members"][0].update(
                 content_version="cv_" + "0" * 32
             ),
-            "member 0 content_version is not fetch-spec-known-sentence's",
+            "member 0 content_version is not fetch-spec-party-totals-kept's",
         ),
         (
             "refs/ref-one-member.json",
@@ -903,6 +912,18 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "refs/ref-one-member.json",
             lambda doc: doc.pop("scenario"),
             "names no scenario that serves its members",
+        ),
+        (
+            "refs/ref-answer-member.json",
+            lambda doc: doc["ref"]["members"][0].update(parts=[]),
+            "refs/ref-answer-member.json: member 0 parts is not answer-definite-fetch's",
+        ),
+        (
+            "refs/ref-without-party-totals.json",
+            lambda doc: doc["ref"]["members"][0]["artifact"]["rendering"].pop(
+                "without_party_totals"
+            ),
+            "refs/ref-without-party-totals.json: member 0 records rendering",
         ),
         (
             "rules/key-format.json",
@@ -1663,6 +1684,59 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             ),
             "the step follows no answer",
         ),
+        (
+            _FETCH,
+            lambda doc: doc["exchanges"][0]["request"]["json"]["options"].pop(
+                "without_party_totals"
+            ),
+            f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-kept.json",
+            lambda doc: doc["call"][0].pop("party_totals"),
+            (
+                "scenarios/fetch-spec-party-totals-kept.json: the exchanges do not fit "
+                "the steps: _UnfitError('exchange 0 posts"
+            ),
+        ),
+        (
+            _FETCH,
+            _set_outcome(0, lambda o: o["dataset"]["columns"].reverse()),
+            f"{_FETCH}: step 0: columns",
+        ),
+        (
+            _FOLDED,
+            _part_rows(lambda d: d["columns"].append(d["columns"].pop(1))),
+            f"{_FOLDED}: step 1: columns",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            _set_outcome(0, _swap_columns("currency", "base_year")),
+            "scenarios/fetch-ref.json: step 0: columns",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            _set_outcome(0, lambda o: o["dataset"]["columns"].remove("price_basis")),
+            "scenarios/fetch-ref.json: step 0: columns",
+        ),
+        (
+            "rules/column-order.json",
+            lambda doc: doc["vectors"][0]["ordered"].reverse(),
+            "orders its columns otherwise than presented_columns",
+        ),
+        (
+            "rules/column-order.json",
+            lambda doc: doc["vectors"][-1]["ordered"].remove("part"),
+            "vector 'stack-crs-and-dac2a' orders its columns otherwise",
+        ),
+        (
+            "rules/column-order.json",
+            lambda doc: doc.pop("reading_columns"),
+            (
+                "rules/column-order.json: missing or unreadable, or holds no "
+                "reading_columns"
+            ),
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -1740,6 +1814,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "ref-content-version-stale",
         "ref-member-not-served",
         "ref-without-scenario",
+        "ref-parts-not-served",
+        "ref-rendering-not-posted",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",
@@ -1902,6 +1978,15 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "bound-entities-as-objects-compared",
         "mentions-as-a-string-matched",
         "candidate-spec-not-an-object-read",
+        "party-totals-left-in-by-default",
+        "party-totals-kept-without-the-option",
+        "columns-out-of-reading-order",
+        "stacked-columns-out-of-reading-order",
+        "served-order-of-other-columns-swapped",
+        "served-column-dropped",
+        "column-order-vector-misordered",
+        "column-order-stacked-vector-misordered",
+        "column-order-without-reading-columns",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -1913,6 +1998,14 @@ def test_a_broken_contract_is_reported(
     _edit(package_dir / target, change)
     problems = validator.validate()
     assert any(expected in problem for problem in problems), problems
+
+
+def test_a_missing_column_order_rule_is_reported(package_dir: Path) -> None:
+    (package_dir / "rules" / "column-order.json").unlink()
+    assert any(
+        problem.startswith("rules/column-order.json: missing")
+        for problem in validator.validate()
+    )
 
 
 def test_a_record_that_holds_only_under_its_recorded_host_is_reported(

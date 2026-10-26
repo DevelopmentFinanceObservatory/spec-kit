@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
-    "recorded_at": "2026-10-25T17:35:07Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:15Z"
   },
   "call": [
     {
@@ -179,7 +179,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -187,7 +188,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "c300bd110ab946ca8d84150069c17dca"
+          "x-dfo-trace-id": "042e6c2ebb034091b3fbbfcef0565c48"
         },
         "json": {
           "schema_version": 1,
@@ -592,7 +593,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261020T170016Z-691bf0da",
             "served_from": "head",
-            "confirmed_at": "2026-10-25T17:32:54.857057+00:00"
+            "confirmed_at": "2026-10-26T09:18:08.892616+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -608,7 +609,8 @@
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
               "bytes": 9116,
               "media_type": "application/vnd.apache.parquet",
@@ -1006,7 +1008,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "cda5e03a69994294aafeced4e9f7c863"
+          "x-dfo-trace-id": "155a086b6b2b46fe899457496517c746"
         },
         "json": {
           "schema_version": 1,
@@ -1015,11 +1017,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "99e62038ceb4b459c2ac699549076ff123c166aa",
-            "trace_id": "cda5e03a69994294aafeced4e9f7c863",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "155a086b6b2b46fe899457496517c746",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 3,
               "by_step": {
                 "coverage": 0
               }
@@ -1032,9 +1034,9 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 1,
                 "by_step": {
-                  "response_cache_part_memo": 0
+                  "response_cache_part_memo": 1
                 }
               },
               "entity_refs": [],
@@ -2048,7 +2050,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_88defe77cc79e0c0"
+                    "capability_version": "cap_765c9d2a0c7529b9"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4548,7 +4550,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A13a775f3b4811a104717ac226f173d614d685e533def09482b83c55e06505c4c?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "6e619a68dbf24322b376474542adb146"
+          "x-dfo-trace-id": "1300eead85a84452b36be91c751c6206"
         }
       }
     },
@@ -4571,32 +4573,32 @@
       "dataset": {
         "rows": 2,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
+          "financingRecipient_label",
+          "crsPurpose_label",
+          "value",
+          "unit_label",
+          "crsTypeOfFlow_label",
+          "provenance_label",
+          "financingProvider",
           "financingProvider_kind",
           "financingRecipient",
-          "financingRecipient_label",
           "financingRecipient_kind",
           "crsCooperationModality",
           "crsCooperationModality_label",
           "crsPurpose",
-          "crsPurpose_label",
           "crsTypeOfFinance",
           "crsTypeOfFinance_label",
           "crsTypeOfFlow",
-          "crsTypeOfFlow_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [

@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
-    "recorded_at": "2026-10-25T17:35:16Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:32Z"
   },
   "call": [
     {
@@ -94,7 +94,8 @@
               "digest": "sha256:421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db",
               "rendering": {
                 "format": "parquet",
-                "bundle": false
+                "bundle": false,
+                "without_party_totals": true
               }
             }
           }
@@ -112,7 +113,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4a5d0c28ab9544b2a8eabefdcaba5eb9"
+          "x-dfo-trace-id": "6bc9cad45e3c48769587db03ca0826a9"
         },
         "json": {
           "schema_version": 1,
@@ -987,7 +988,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "27db1ff9243247c2b620f137120283ba"
+          "x-dfo-trace-id": "9db04233957a46068e3999162a93c70c"
         }
       }
     },
@@ -1010,32 +1011,32 @@
       "dataset": {
         "rows": 30,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
+          "financingRecipient_label",
+          "crsPurpose_label",
+          "value",
+          "unit_label",
+          "crsTypeOfFlow_label",
+          "provenance_label",
+          "financingProvider",
           "financingProvider_kind",
           "financingRecipient",
-          "financingRecipient_label",
           "financingRecipient_kind",
           "crsCooperationModality",
           "crsCooperationModality_label",
           "crsPurpose",
-          "crsPurpose_label",
           "crsTypeOfFinance",
           "crsTypeOfFinance_label",
           "crsTypeOfFlow",
-          "crsTypeOfFlow_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [

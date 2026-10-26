@@ -2,12 +2,12 @@
 
 The recorder's client reproduces each packaged record from the record's own
 steps and responses, every derived record follows from its parent, and the
-writers keep the kit's JSON formatting. No test reaches the network or needs
-pyarrow: a fake transport serves the recorded responses, and the Parquet shape
-reader is replaced, so rows and columns are the one part of a dataset outcome
-these tests leave to the recording.
+writers keep the kit's JSON formatting. No test reaches the network: a fake
+transport serves the recorded responses, and the Parquet shape reader is
+replaced, so rows and columns are the one part of a dataset outcome these
+tests leave to the recording.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 """
 
 from __future__ import annotations
@@ -404,24 +404,39 @@ def test_a_part_without_a_reading_is_a_gap_of_its_kind(
 
 
 def test_several_members_stack_with_a_part_column_first() -> None:
+    """The stacked columns follow `part` in the column-order rule's order,
+    the reading columns first and `stat_var` last."""
     member = capture.Member(
-        [], {"spec_id": "spec_a"}, "cv_a", "A.", "sha256:a", 2, ["x", "y"]
+        [],
+        {"spec_id": "spec_a"},
+        "cv_a",
+        "A.",
+        "sha256:a",
+        2,
+        ["stat_var", "x", "value"],
     )
     other = capture.Member(
         [], {"spec_id": "spec_b"}, "cv_b", "B.", "sha256:b", 3, ["y", "z"]
     )
     unnamed = capture.Member(
-        ["p", "q"], {"spec_id": "spec_b"}, "cv_b", "B.", "sha256:b", 3, ["y", "z"]
+        ["p", "q"],
+        {"spec_id": "spec_b"},
+        "cv_b",
+        "B.",
+        "sha256:b",
+        3,
+        ["value", "time_period"],
     )
     dataset = capture.dataset_outcome([member, unnamed])["dataset"]
-    assert dataset["columns"] == ["part", "x", "y", "z"]
+    assert dataset["columns"] == ["part", "time_period", "value", "x", "stat_var"]
     assert dataset["rows"] == 5
     assert dataset["part_rows"] == [
         {"part": "A.", "rows": 2},
         {"part": "p; q", "rows": 3},
     ]
     assert "part_rows" not in capture.dataset_outcome([other])["dataset"]
-    assert capture.dataset_outcome([member])["dataset"]["columns"] == ["x", "y"]
+    columns = capture.dataset_outcome([member])["dataset"]["columns"]
+    assert columns == ["value", "x", "stat_var"]
 
 
 @pytest.mark.parametrize(

@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
-    "recorded_at": "2026-10-25T17:35:08Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:17Z"
   },
   "call": [
     {
@@ -174,7 +174,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -182,7 +183,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "6f43e68b9aeb46b4bc564fc277f0dd5e"
+          "x-dfo-trace-id": "dfa8f009e43a48bd9113306c1946b4b7"
         },
         "json": {
           "schema_version": 1,
@@ -584,7 +585,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261020T170016Z-691bf0da",
             "served_from": "head",
-            "confirmed_at": "2026-10-25T17:32:57.004736+00:00"
+            "confirmed_at": "2026-10-26T09:18:11.197140+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -596,17 +597,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9",
+              "artifact_digest": "sha256:e8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
-              "bytes": 13398,
+              "bytes": 13418,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-23T16:58:55.692876+00:00",
+              "created_at": "2026-10-25T14:19:44.744913+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9",
+              "url": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:e8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a",
               "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
             },
             {
@@ -1113,7 +1115,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "0692c2d1a7bd4f6eaea00d7d3ebbf320"
+          "x-dfo-trace-id": "de250b63d7d54077a2e7ced00745249b"
         },
         "json": {
           "schema_version": 1,
@@ -1122,8 +1124,8 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "99e62038ceb4b459c2ac699549076ff123c166aa",
-            "trace_id": "0692c2d1a7bd4f6eaea00d7d3ebbf320",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "de250b63d7d54077a2e7ced00745249b",
             "warnings": [],
             "timing_ms": {
               "total": 2,
@@ -1141,7 +1143,7 @@
                 {
                   "code": "role_scope_defaulted",
                   "severity": "warn",
-                  "message": "no provider was named; the answer was resolved across every provider with data."
+                  "message": "No provider was named, so the answer covers every provider with data."
                 }
               ],
               "timing_ms": {
@@ -2291,7 +2293,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_88defe77cc79e0c0"
+                    "capability_version": "cap_765c9d2a0c7529b9"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4853,21 +4855,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9"
+        "origin_path": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:e8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "87314d01b1d242878c925123dd2c645e"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "3971fe2094964eb69642432194306145"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -4883,32 +4885,32 @@
       "dataset": {
         "rows": 309,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
+          "financingRecipient_label",
+          "crsPurpose_label",
+          "value",
+          "unit_label",
+          "crsTypeOfFlow_label",
+          "provenance_label",
+          "financingProvider",
           "financingProvider_kind",
           "financingRecipient",
-          "financingRecipient_label",
           "financingRecipient_kind",
           "crsCooperationModality",
           "crsCooperationModality_label",
           "crsPurpose",
-          "crsPurpose_label",
           "crsTypeOfFinance",
           "crsTypeOfFinance_label",
           "crsTypeOfFlow",
-          "crsTypeOfFlow_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [

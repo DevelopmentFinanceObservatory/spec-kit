@@ -2,6 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "jsonschema>=4.23",
+#     "pyarrow>=15",
 # ]
 # ///
 """Validate the client contract under
@@ -60,14 +61,15 @@ document validates against its schema, then what the schemas cannot express:
   `client-codes.json`, as `expected_outcomes` derives them, the waits
   before each poll included, under the record's base URL and again under
   REPLAY_ORIGIN with the recorded origin a response names moved there. A
-  dataset's rows, columns and per-part row counts are left to the Parquet
-  bodies, and each download hashes to its artifact's digest or the outcome
-  says it does not. Each Search request a
+  dataset's columns are the downloaded files' columns, read from their
+  Parquet footers by `parquet_columns` and ordered by `presented_columns`,
+  its rows and per-part row counts are left to the Parquet bodies, and each
+  download hashes to its artifact's digest or the outcome says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity with the
   entity groups of the roles its build left bound as they were, and each
   build posts the body `build_body` gives for the spec the step builds, its
-  narrowing and its layout, and each Search request the whole body
+  narrowing, its layout and, for a fetch, its party totals, and each Search request the whole body
   `search_body` gives. A POST carries its body, a refused request repeated is
   a retry only as `may_retry` allows, a record that ends a run of retries
   while `may_retry` holds does not fit, each poll names the operation the
@@ -84,11 +86,15 @@ document validates against its schema, then what the schemas cannot express:
   states: from `dataset-ref.schema.json`, then from the rules that each
   member's definition carries its own `spec_id` and that members hold
   distinct `spec_id`s. A ref example whose ref holds members names the
-  recorded `scenario` that serves them, and each member's `spec_id`,
+  recorded `scenario` that serves them, and each member's `spec_id`, `parts`,
   `content_version` and `sentence` are a dataset member's of that scenario,
   and its artifact digest is the digest of a file the scenario downloads.
+  Each member of an example the schema accepts records the rendering the
+  scenario's build of its spec posted.
 - Each rule file under `rules/` validates against `rules.schema.json`, names
-  the rule its file name names, and names each vector once.
+  the rule its file name names, and names each vector once, and each
+  column-order vector's `ordered` is what `presented_columns` gives. A
+  missing or unreadable `rules/column-order.json` is a problem.
 
 It does not import `dfo_client_contract`, whose tests replay
 the rule vectors. `tools/capture_client_contract.py` imports the outcome
@@ -109,6 +115,8 @@ from typing import Any
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 
 import jsonschema
+import pyarrow as pa
+import pyarrow.parquet as pq
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
@@ -1766,6 +1774,11 @@ LAYOUT_RENDERINGS = {
     "long": {"format": "parquet", "bundle": False},
     "frame": {"format": "parquet", "bundle": False, "layout": "frame"},
 }
+# The rendering member a fetch posts as true unless the caller keeps party
+# totals, which leaves out the group totals of the identity's open party roles.
+WITHOUT_PARTY_TOTALS = "without_party_totals"
+# The column a client presents last.
+STAT_VAR = "stat_var"
 # The snapshot refusal after which a stored version's lookup builds it again.
 # The version exists, but its file has expired. Any other refusal ends it.
 FILE_EXPIRED = "artifact_expired"
@@ -1781,8 +1794,85 @@ OPERATION_FAILED = "operation_failed"
 
 
 def rendering_for(layout: str | None) -> dict[str, Any]:
-    """The build request's `options` for a fetch's `layout`, long by default."""
+    """The build request's `options` for a mint's or an operation's
+    `layout`, long by default."""
     return dict(LAYOUT_RENDERINGS[layout or "long"])
+
+
+def fetch_rendering(
+    layout: str | None, *, party_totals: bool = False
+) -> dict[str, Any]:
+    """The build request's `options` for a fetch of an answer or a spec:
+    the layout's rendering, with `without_party_totals` unless the caller
+    keeps party totals."""
+    rendering = rendering_for(layout)
+    if not party_totals:
+        rendering[WITHOUT_PARTY_TOTALS] = True
+    return rendering
+
+
+def column_order(columns: Sequence[str], reading: Sequence[Sequence[str]]) -> list[str]:
+    """`columns` in the order a client presents them: each reading slot's
+    first name the columns hold, in slot order, then the other columns in
+    their own order, with `stat_var` last."""
+    first = [
+        name
+        for names in reading
+        if (name := next((n for n in names if n in columns), None)) is not None
+    ]
+    rest = [c for c in columns if c not in first and c != STAT_VAR]
+    return first + rest + [STAT_VAR] * (STAT_VAR in columns)
+
+
+def presented_columns(
+    members: Sequence[Sequence[str]], reading: Sequence[Sequence[str]]
+) -> list[str]:
+    """The columns a client presents for a dataset whose members hold
+    `members`: the members' columns gathered in member order, each once,
+    in the order `column_order` gives, after `part` when there are several."""
+    gathered = list(dict.fromkeys(c for columns in members for c in columns))
+    part = ["part"] if len(members) > 1 else []
+    return [*part, *column_order(gathered, reading)]
+
+
+def load_reading_columns(package_dir: Path) -> list[list[str]] | None:
+    """The reading slots `rules/column-order.json` lists, or None when the
+    file does not hold them, which the rules check reports."""
+    try:
+        reading = _load(package_dir / "rules" / "column-order.json")["reading_columns"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if isinstance(reading, list) and all(
+        isinstance(names, list) and all(isinstance(n, str) for n in names)
+        for names in reading
+    ):
+        return reading
+    return None
+
+
+def served_columns(data: bytes) -> list[str]:
+    """A downloaded file's columns, as `parquet_columns` reads them.
+
+    Raises:
+        _UnfitError: The file is not a Parquet file.
+    """
+    try:
+        return parquet_columns(data)
+    except ValueError as exc:
+        raise _UnfitError(f"a downloaded file is unreadable: {exc}") from exc
+
+
+def parquet_columns(data: bytes) -> list[str]:
+    """The top-level column names of a Parquet file, in the order its writer
+    wrote them, read from its footer's schema.
+
+    Raises:
+        ValueError: `data` is not a Parquet file.
+    """
+    try:
+        return list(pq.read_schema(pa.BufferReader(data)).names)
+    except (pa.ArrowException, OSError) as exc:
+        raise ValueError(f"not a Parquet file: {exc}") from exc
 
 
 def posted_scope(step: Mapping[str, Any]) -> dict[str, Any] | None:
@@ -2231,6 +2321,7 @@ class _Replay:
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
     body_dir: Path
+    reading: Sequence[Sequence[str]] | None
     cursor: int = 0
     answer: Answer | None = None
     minted: _Minted | None = None
@@ -2351,8 +2442,8 @@ class _Replay:
             return json.dumps(response["json"]).encode()
         return b""
 
-    def download(self, target: str, digest: str, *, origin: bool) -> None:
-        """A file through its files route, named by an `origin_path`, as
+    def download(self, target: str, digest: str, *, origin: bool) -> bytes:
+        """The bytes of a file through its files route, named by an `origin_path`, as
         `artifact_route` places an artifact's `url`, when `origin`, else by a
         path under the base URL. A 302 names the signed URL in its
         `location`, which the client fetches once where `download_target`
@@ -2388,8 +2479,9 @@ class _Replay:
                     continue
             else:
                 raise ClientError("unexpected_response")
-            if digest_of(self.body(file)) == digest:
-                return
+            data = self.body(file)
+            if digest_of(data) == digest:
+                return data
             failure = ClientError("digest_mismatch")
         raise failure
 
@@ -2500,12 +2592,13 @@ class _Replay:
         sentence = None if spec is None else spec.get("sentence")
         if spec is None or built != spec["spec_id"] or sentence is None:
             sentence = self.sentence(parts, manifest["definition"], spec)
-        self.download(route, artifact["artifact_digest"], origin=True)
+        data = self.download(route, artifact["artifact_digest"], origin=True)
         return {
             "parts": parts,
             "spec_id": built,
             "content_version": manifest["content_version"],
             "sentence": sentence,
+            "served_columns": served_columns(data),
         }
 
     def sentence(
@@ -2540,8 +2633,10 @@ class _Replay:
         def stored_file(
             manifest: dict[str, Any],
         ) -> tuple[dict[str, Any] | None, ClientError | None]:
-            served, refusal = self.stored_file(member, manifest)
-            return (stored if served else None), refusal
+            data, refusal = self.stored_file(member, manifest)
+            if data is None:
+                return None, refusal
+            return {**stored, "served_columns": served_columns(data)}, None
 
         def rebuilt(manifest: dict[str, Any]) -> dict[str, Any]:
             held = {**spec, "sentence": member["sentence"]}
@@ -2561,9 +2656,9 @@ class _Replay:
 
     def stored_file(
         self, member: dict[str, Any], manifest: dict[str, Any]
-    ) -> tuple[bool, ClientError | None]:
-        """Whether the files route at the stored digest, or else the file
-        selector, served the stored file, and the files route's refusal when
+    ) -> tuple[bytes | None, ClientError | None]:
+        """The stored file the files route at the stored digest, or else the
+        file selector, served, or None, and the files route's refusal when
         it refused. A selector refusal outside FILE_GONE, and a files route
         one, raise. A selector file of another digest is not the stored one."""
         digest = member["artifact"]["digest"]
@@ -2574,27 +2669,24 @@ class _Replay:
         if artifact is not None:
             try:
                 route = artifact_route(self.base_url, artifact["url"])
-                self.download(route, digest, origin=True)
+                return self.download(route, digest, origin=True), None
             except ClientError as error:
                 if error.code not in FILE_GONE:
                     raise
                 refusal = error
-            else:
-                return True, None
         path = selector_path(
             member["spec"]["spec_id"],
             member["content_version"],
             member["artifact"]["rendering"],
         )
         try:
-            self.download(path, digest, origin=False)
+            return self.download(path, digest, origin=False), None
         except ClientError as error:
             if error.code == "digest_mismatch":
-                return False, refusal
+                return None, refusal
             if error.code in FILE_GONE:
-                return False, refusal or error
+                return None, refusal or error
             raise
-        return True, None
 
     def newest(self, spec_id: str) -> str | None:
         """The newest stored version, as `newest_plain` reads the versions
@@ -2678,7 +2770,9 @@ class _Replay:
                 ClientError(search_warning_code(answer), error="SearchWarning"),
                 answer.trace_id,
             )
-        rendering = rendering_for(step.get("layout"))
+        rendering = fetch_rendering(
+            step.get("layout"), party_totals=step.get("party_totals", False)
+        )
         if "layout" in rendering and len(readings) > 1:
             raise ClientError("invalid_argument")
         members = [
@@ -2690,18 +2784,20 @@ class _Replay:
             )
             for parts, spec in readings
         ]
-        return {"dataset": dataset_summary(members, gaps, search_warning=warns)}
+        return self.dataset(members, gaps, search_warning=warns)
 
     def _fetch_spec(self, step: dict[str, Any]) -> dict[str, Any]:
-        rendering = rendering_for(step.get("layout"))
+        rendering = fetch_rendering(
+            step.get("layout"), party_totals=step.get("party_totals", False)
+        )
         manifest = self.build(step["spec"], rendering, posted_scope(step))
         strict = step.get("strict", False)
         member = self.member([], step["spec"], manifest, rendering, strict)
-        return {"dataset": dataset_summary([member], [])}
+        return self.dataset([member], [])
 
     def _fetch_ref(self, step: dict[str, Any]) -> dict[str, Any]:
         members = [self.stored_version(member) for member in step["ref"]["members"]]
-        return {"dataset": dataset_summary(members, [])}
+        return self.dataset(members, [])
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
         rendering = rendering_for(step.get("layout"))
@@ -2736,7 +2832,27 @@ class _Replay:
         minted = self.minted
         manifest = self.long_build(minted.resource, minted.headers, minted.request)
         member = self.member([], minted.spec, manifest, minted.rendering, False)
-        return {"dataset": dataset_summary([member], [])}
+        return self.dataset([member], [])
+
+    def dataset(
+        self,
+        members: Sequence[Mapping[str, Any]],
+        gaps: Sequence[Mapping[str, Any]],
+        *,
+        search_warning: bool | None = None,
+    ) -> dict[str, Any]:
+        """A dataset outcome as `dataset_summary` gives it, with the columns a
+        client presents: the members' served columns, gathered in member
+        order with each once and ordered by the column-order rule, after
+        `part` when there are several members. Without the rule's reading
+        slots, which the rules check reports, the outcome gives no columns."""
+        summary = dataset_summary(members, gaps, search_warning=search_warning)
+        if self.reading is None:
+            return {"dataset": summary}
+        columns = presented_columns(
+            [m["served_columns"] for m in members], self.reading
+        )
+        return {"dataset": {"columns": columns, **summary}}
 
 
 def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
@@ -2773,13 +2889,14 @@ def expected_outcomes(
     actions: Mapping[str, Mapping[str, Any]],
     client_codes: Mapping[str, Mapping[str, Any]],
     body_dir: Path,
+    reading: Sequence[Sequence[str]] | None,
 ) -> list[dict[str, Any]]:
     """The outcome each of `record`'s steps reaches over its exchanges, its
     binary bodies read from `body_dir`, over
     `actions` for refusals' error classes and gap kinds, and over
     `client_codes` for the class of each error the client raises itself. A
-    dataset outcome holds what `dataset_summary` gives, without rows and
-    columns.
+    dataset outcome holds what `dataset_summary` gives and the columns the
+    `reading` slots order from the downloaded files, without rows.
 
     Raises:
         ValueError: The exchanges do not fit the steps, or deriving an
@@ -2794,6 +2911,7 @@ def expected_outcomes(
         actions,
         client_codes,
         body_dir,
+        reading,
     )
     try:
         outcomes = [replay.step(step) for step in record["call"]]
@@ -2963,9 +3081,10 @@ def _check_expect(
     derived: list[dict[str, Any]],
 ) -> list[str]:
     """Each outcome in `expect` against the one its exchanges give. A dataset
-    outcome's rows, columns and per-part row counts are the Parquet bodies'
-    and are not derived, except that several members put the `part` column
-    first and list each member's `part` value, rows summing to the dataset's."""
+    outcome's columns are derived from the downloaded files, and its rows
+    and per-part row counts are not, except that several members put the
+    `part` column first and list each member's `part` value, rows summing
+    to the dataset's."""
     problems = []
     for index, (stated, wanted) in enumerate(
         zip(record["expect"], derived, strict=False)
@@ -2980,10 +3099,22 @@ def _check_expect(
                     if k not in {"rows", "columns", "part_rows"}
                 }
             }
+            wanted = {
+                "dataset": {
+                    k: v for k, v in wanted["dataset"].items() if k != "columns"
+                }
+            }
             problems.extend(
                 f"scenarios/{file_name}: step {index}: {problem}"
                 for problem in _part_problems(dataset, wanted["dataset"]["members"])
             )
+            columns = derived[index]["dataset"].get("columns")
+            if columns is not None and dataset["columns"] != columns:
+                problems.append(
+                    f"scenarios/{file_name}: step {index}: columns "
+                    f"{json.dumps(dataset['columns'])[:300]} are not the column-order "
+                    f"rule's order of the served columns, {json.dumps(columns)[:300]}"
+                )
         if compared != wanted:
             problems.append(
                 f"scenarios/{file_name}: step {index} expects "
@@ -3035,6 +3166,7 @@ def _check_scenarios(
     client_codes: Mapping[str, Mapping[str, Any]],
     proxy_codes: Mapping[str, Mapping[str, Any]],
     served_commit: str | None,
+    reading: Sequence[Sequence[str]] | None,
 ) -> list[str]:
     directory = PACKAGE_DIR / "scenarios"
     paths = sorted(directory.glob("*.json"))
@@ -3131,6 +3263,7 @@ def _check_scenarios(
             actions=actions,
             client_codes=client_codes,
             body_dir=directory,
+            reading=reading,
         )
         try:
             derived = replay(record, base_url=base_url)
@@ -3263,7 +3396,7 @@ def _ref_rule(ref: dict[str, Any]) -> str | None:
 
 def _served_by(label: str, record: dict[str, Any]) -> list[str]:
     """Where a ref example's members differ from the members its `scenario`
-    serves: a `spec_id` no dataset member of it has, another
+    serves: a `spec_id` no dataset member of it has, other `parts`, another
     `content_version` or `sentence`, or an artifact digest that is not the
     digest of a file the scenario downloads. A ref with no members names no
     scenario."""
@@ -3300,7 +3433,7 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
             continue
         problems.extend(
             f"{label}: member {index} {key} is not {name}'s {found.get(key)!r}"
-            for key in ("content_version", "sentence")
+            for key in ("parts", "content_version", "sentence")
             if member.get(key) != found.get(key)
         )
         artifact = member.get("artifact")
@@ -3308,6 +3441,59 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
         if digest not in digests:
             problems.append(
                 f"{label}: member {index} digest {digest} is no file {name} downloads"
+            )
+    return problems
+
+
+def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, Any]:
+    """The rendering each build in `scenario` posted as its `options`, by
+    the spec_id the build answered: a manifest's own, or for a 202 the
+    manifest the poll of its operation answered done."""
+    renderings: dict[str, Any] = {}
+    by_operation: dict[str, Any] = {}
+    for exchange in read_objects(scenario, "exchanges"):
+        request = read_object(exchange, "request") or {}
+        body = read_object(read_object(exchange, "response"), "json") or {}
+        manifest = read_object(body, "manifest") if "manifest" in body else body
+        operation_id = read_string(read_object(body, "operation"), "operation_id")
+        if (request.get("method"), request.get("path")) == _BUILD:
+            options = (read_object(request, "json") or {}).get("options")
+            if operation_id is not None:
+                by_operation[operation_id] = options
+            spec_id = read_string(read_object(manifest, "definition"), "spec_id")
+            if spec_id is not None:
+                renderings[spec_id] = options
+        elif operation_id in by_operation and "manifest" in body:
+            spec_id = read_string(read_object(manifest, "definition"), "spec_id")
+            if spec_id is not None:
+                renderings[spec_id] = by_operation[operation_id]
+    return renderings
+
+
+def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
+    """Where a ref example's member records a rendering other than the one
+    the build of its spec in its `scenario` posted, since a ref records the
+    rendering its fetch posted."""
+    ref = record.get("ref")
+    members = ref.get("members") if isinstance(ref, dict) else None
+    name = record.get("scenario")
+    path = PACKAGE_DIR / "scenarios" / f"{name}.json"
+    if not isinstance(members, list) or not isinstance(name, str) or not path.is_file():
+        return []  # `_served_by` reports a ref that names no scenario
+    posted = posted_renderings(_load(path))
+    problems = []
+    for index, member in enumerate(members):
+        spec = read_object(member, "spec")
+        spec_id = read_string(spec, "spec_id")
+        rendering = read_object(read_object(member, "artifact"), "rendering")
+        if spec_id not in posted:
+            problems.append(
+                f"{label}: member {index}'s spec is built by no {name} build"
+            )
+        elif rendering != posted[spec_id]:
+            problems.append(
+                f"{label}: member {index} records rendering {json.dumps(rendering)}, "
+                f"but {name} posted {json.dumps(posted[spec_id])}"
             )
     return problems
 
@@ -3334,6 +3520,7 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
             if valid:
                 problems.append(f"{label}: the schema accepts a ref it should reject")
             continue
+        problems.extend(_posted_by(label, record))
         if not valid:
             first = next(validator.iter_errors(record.get("ref")))
             problems.append(f"{label}: ref fails the schema at {_where(first)}")
@@ -3374,6 +3561,17 @@ def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
             f"{label}: vector {name!r} repeats"
             for name in sorted({n for n in names if names.count(n) > 1})
         )
+        if document["rule"] == "column-order":
+            problems.extend(
+                f"{label}: vector {vector['name']!r} orders its columns "
+                f"otherwise than presented_columns"
+                for vector in document["vectors"]
+                if presented_columns(
+                    vector.get("members", [vector.get("columns")]),
+                    document["reading_columns"],
+                )
+                != vector["ordered"]
+            )
     return problems
 
 
@@ -3452,6 +3650,13 @@ def validate() -> list[str]:
         )
     )
 
+    reading = load_reading_columns(PACKAGE_DIR)
+    if reading is None:
+        problems.append(
+            "rules/column-order.json: missing or unreadable, or holds no "
+            "reading_columns list of column-name lists, so no dataset's columns "
+            "are checked"
+        )
     problems.extend(
         _check_scenarios(
             validators["scenario.schema.json"],
@@ -3462,6 +3667,7 @@ def validate() -> list[str]:
             client_codes={row["code"]: row for row in client_rows},
             proxy_codes={row["code"]: row for row in proxy_rows},
             served_commit=source.get("commit") if isinstance(source, dict) else None,
+            reading=reading,
         )
     )
     size = scenarios_size(PACKAGE_DIR / "scenarios")

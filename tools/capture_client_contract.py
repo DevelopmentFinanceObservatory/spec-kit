@@ -47,8 +47,7 @@ when the binary bodies pass 5 MB, or when the records and bodies together pass
 
 The outcome rules, error classes, gap kinds and long-build pacing come
 from `tools/validate_client_contract.py`, so a record's `expect` is written
-by the code that checks it. pyarrow loads only when a Parquet body is read, so
-the tests run without it.
+by the code that checks it.
 """
 
 from __future__ import annotations
@@ -72,6 +71,7 @@ from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
+import pyarrow.parquet as pq
 from validate_client_contract import (
     FILE_EXPIRED,
     FILE_GONE,
@@ -105,15 +105,18 @@ from validate_client_contract import (
     digest_of,
     download_target,
     failed_operation,
+    fetch_rendering,
     gap_kinds,
     header_warnings,
     held_spec,
+    load_reading_columns,
     may_retry,
     newest_plain,
     owns_body_file,
     part_label,
     pick_artifact,
     posted_scope,
+    presented_columns,
     problem_body,
     read_from,
     refusal_error,
@@ -142,8 +145,13 @@ DEV_BASE_URL = "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api"
 REPOSITORY = "DevelopmentFinanceObservatory/apis"
 BINARY_BUDGET = 5_000_000
 
-# The rendering both clients ask for, bare long Parquet.
-RENDERING = {"format": "parquet", "bundle": False}
+# The rendering a fetch asks for by default, bare long Parquet with the party
+# totals of open party roles left out, and so the rendering a ref it writes
+# records.
+RENDERING = fetch_rendering(None)
+# The reading slots of the column-order rule, which orders each dataset's
+# columns as a client presents them, or None when the rule file cannot be read.
+READING_COLUMNS = load_reading_columns(PACKAGE_DIR)
 # The response headers a client reads, and so the ones a record keeps, beside
 # a `cache-control` that marks the response shared-cacheable, which excuses it
 # from carrying `x-dfo-trace-id`.
@@ -583,7 +591,8 @@ def dataset_outcome(
 ) -> dict[str, Any]:
     """A dataset outcome. Several members stack into one long table with a
     `part` column first, holding each member's `part_label`, then every
-    member's columns in member order."""
+    member's columns in member order. The columns after `part` are in the
+    order the column-order rule gives."""
     summaries = [
         {
             "parts": member.parts,
@@ -594,11 +603,15 @@ def dataset_outcome(
         for member in members
     ]
     dataset: dict[str, Any] = {"rows": sum(member.rows for member in members)}
-    if len(members) == 1:
-        dataset["columns"] = list(members[0].columns)
-    else:
-        columns = dict.fromkeys(c for m in members for c in m.columns)
-        dataset["columns"] = ["part", *columns]
+    if READING_COLUMNS is None:
+        raise SystemExit(
+            "rules/column-order.json is missing or holds no reading_columns, so "
+            "no dataset's columns can be ordered"
+        )
+    dataset["columns"] = presented_columns(
+        [member.columns for member in members], READING_COLUMNS
+    )
+    if len(members) > 1:
         dataset["part_rows"] = [
             {"part": part_label(summary), "rows": member.rows}
             for summary, member in zip(summaries, members, strict=True)
@@ -608,8 +621,6 @@ def dataset_outcome(
 
 
 def parquet_shape(data: bytes) -> tuple[int, list[str]]:
-    import pyarrow.parquet as pq  # noqa: PLC0415 - optional, so the tests run without it
-
     parquet = pq.ParquetFile(io.BytesIO(data))
     return parquet.metadata.num_rows, list(parquet.schema_arrow.names)
 
@@ -645,12 +656,18 @@ class Minted:
 
 
 def _step_options(
-    step: dict[str, Any], *, layout: str | None, strict: bool
+    step: dict[str, Any],
+    *,
+    layout: str | None,
+    strict: bool,
+    party_totals: bool = False,
 ) -> dict[str, Any]:
     if layout is not None:
         step["layout"] = layout
     if strict:
         step["strict"] = True
+    if party_totals:
+        step["party_totals"] = True
     return step
 
 
@@ -765,11 +782,13 @@ class Session:
         partial: bool = False,
         strict: bool = False,
         layout: str | None = None,
+        party_totals: bool = False,
     ) -> None:
-        """Builds the answer's readings. A declined or catalogue answer, a gap
-        outside a partial fetch, a partial fetch with no reading, a strict
-        fetch whose readings depart from the question, and the frame layout
-        with several readings each raise before any request."""
+        """Builds the answer's readings, leaving out party totals unless
+        `party_totals`. A declined or catalogue answer, a gap outside a
+        partial fetch, a partial fetch with no reading, a strict fetch whose
+        readings depart from the question, and the frame layout with several
+        readings each raise before any request."""
         step: dict[str, Any] = {"op": "fetch"}
         if partial:
             step["partial"] = True
@@ -787,7 +806,7 @@ class Session:
                     ClientError(search_warning_code(answer), error="SearchWarning"),
                     answer.trace_id,
                 )
-            rendering = rendering_for(layout)
+            rendering = fetch_rendering(layout, party_totals=party_totals)
             if "layout" in rendering and len(readings) > 1:
                 raise ClientError("invalid_argument")
             members = [
@@ -796,7 +815,10 @@ class Session:
             ]
             return dataset_outcome(members, missing=gaps, search_warning=warns)
 
-        self._step(_step_options(step, layout=layout, strict=strict), run)
+        options = _step_options(
+            step, layout=layout, strict=strict, party_totals=party_totals
+        )
+        self._step(options, run)
 
     def fetch_spec(
         self,
@@ -807,10 +829,11 @@ class Session:
         facets: Mapping[str, str] | None = None,
         layout: str | None = None,
         strict: bool = False,
+        party_totals: bool = False,
     ) -> list[Member]:
-        """Builds `spec` narrowed by `window`, `entities` and `facets`. A
-        role in `entities` replaces the spec's binding of it, or drops it
-        when null."""
+        """Builds `spec` narrowed by `window`, `entities` and `facets`,
+        leaving out party totals unless `party_totals`. A role in `entities`
+        replaces the spec's binding of it, or drops it when null."""
         step: dict[str, Any] = {"op": "fetch", "spec": spec.step()}
         if window is not None:
             step["window"] = list(window) if isinstance(window, tuple) else window
@@ -825,11 +848,14 @@ class Session:
         built: list[Member] = []
 
         def run() -> dict[str, Any]:
-            rendering = rendering_for(layout)
+            rendering = fetch_rendering(layout, party_totals=party_totals)
             built.append(self.build([], spec, scope, rendering, strict=strict))
             return dataset_outcome(built)
 
-        self._step(_step_options(step, layout=layout, strict=strict), run)
+        options = _step_options(
+            step, layout=layout, strict=strict, party_totals=party_totals
+        )
+        self._step(options, run)
         return built
 
     def fetch_ref(self, ref: dict[str, Any]) -> None:
@@ -1212,13 +1238,18 @@ CANDIDATES_BESIDE_ASSUMED = (
 # recipient pairs of one variable over 60 years. A variable broken down by
 # sector would list thousands of variables in the done manifest.
 ASYNC = (
-    "ODA disbursements from the DAC countries to the G77 countries from 1964 to 2024"
+    "ODA disbursements from the DAC countries to the G77 countries from 1967 to 2024"
 )
 ASYNC_RESUMED = (
-    "ODA disbursements from the OECD countries to the G77 countries from 1965 to 2024"
+    "ODA disbursements from the OECD countries to the G77 countries from 1968 to 2024"
 )
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
+# The ASYNC spec narrowed to one recipient and year with its origin open: the
+# DAC2a table lists the donor group totals beside their members, about 110
+# rows with them and 95 without.
+PARTY_TOTALS_WINDOW = (2022, 2022)
+PARTY_TOTALS_ENTITIES = {"origin": None, "destination": ["country/KEN"]}
 SYNC_ROWS = 100_000
 
 
@@ -1385,6 +1416,36 @@ def _fetch_spec_entities(
         bound = member.definition["identity"]["entities"]
         require(member.spec_id != spec.spec_id, "the entities give a new spec_id")
         require(bound == posted["entities"], "the build binds the posted entities")
+
+    return run
+
+
+def _fetch_spec_party_totals(*, keep: bool) -> Callable[[Session, Context], None]:
+    """Fetches the ASYNC spec narrowed to PARTY_TOTALS_ENTITIES in
+    PARTY_TOTALS_WINDOW, keeping party totals when `keep`, and checks
+    against a fetch with the other setting that leaving them out drops rows
+    and answers a version of its own."""
+
+    def run(s: Session, ctx: Context) -> None:
+        spec = ctx.definite_spec(ASYNC)
+
+        def fetched(session: Session, party_totals: bool) -> Member:
+            (member,) = session.fetch_spec(
+                spec,
+                window=PARTY_TOTALS_WINDOW,
+                entities=PARTY_TOTALS_ENTITIES,
+                party_totals=party_totals,
+            )
+            return member
+
+        member = fetched(s, keep)
+        other = fetched(ctx.session("prerequisite"), not keep)
+        kept, cut = (member, other) if keep else (other, member)
+        require(kept.rows > cut.rows, "leaving out party totals drops rows")
+        require(
+            kept.content_version != cut.content_version,
+            "the version without party totals is a version of its own",
+        )
 
     return run
 
@@ -1706,6 +1767,21 @@ RECORDED = (
         "input.scope.entities with origin dropped and destination kept, and the build answers "
         "a new spec_id bound to destination alone.",
         _fetch_spec_entities({"origin": None}),
+    ),
+    Recorded(
+        "fetch-spec-party-totals-left-out",
+        "Fetching a spec of DAC2a ODA to Kenya in 2022 with its origin open posts "
+        "without_party_totals: true in the build's options, as every fetch does by default, so "
+        "the build leaves out the donor group totals beside their members and answers a "
+        "version of its own, with fewer rows than fetch-spec-party-totals-kept.",
+        _fetch_spec_party_totals(keep=False),
+    ),
+    Recorded(
+        "fetch-spec-party-totals-kept",
+        "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no "
+        "without_party_totals, so the build keeps the donor group totals and answers the plain "
+        "version, with more rows.",
+        _fetch_spec_party_totals(keep=True),
     ),
     Recorded(
         "fetch-spec-group-narrowed",
@@ -2396,8 +2472,9 @@ def _poll_index(exchanges: Sequence[dict[str, Any]]) -> int:
 def _async_fetch(
     change: Callable[[list[dict[str, Any]], dict[str, Any]], None] | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
-    """The parent's mint and result as one fetch of its spec, which makes the
-    same exchanges. `change` edits the exchanges and the fetch's outcome."""
+    """The parent's mint and result as one fetch of its spec that keeps
+    party totals, which makes the same exchanges, since a mint posts the
+    plain rendering. `change` edits the exchanges and the fetch's outcome."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         mint, result = parent["call"]
@@ -2412,9 +2489,12 @@ def _async_fetch(
         outcome = copy.deepcopy(parent["expect"][1])
         if change is not None:
             change(exchanges, outcome["dataset"]["long_builds"][0])
-        return Derived(
-            [{"op": "fetch", "spec": copy.deepcopy(mint["spec"])}], exchanges, [outcome]
-        )
+        fetch = {
+            "op": "fetch",
+            "spec": copy.deepcopy(mint["spec"]),
+            "party_totals": True,
+        }
+        return Derived([fetch], exchanges, [outcome])
 
     return derive
 
@@ -2442,27 +2522,29 @@ _CHANGING_PACING_MS = (2500, 4000, 1000)
 
 
 def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
-    """Each poll that finds the build running reads its own retry_after_ms,
-    the next value of _CHANGING_PACING_MS in turn, and the wait before the
-    next poll is that poll's value. How many polls find it running depends on
-    how long the recorded build took."""
-    running = [
-        e["response"]["json"]["operation"]
-        for e in exchanges[_poll_index(exchanges) :]
+    """Each poll that finds the build running reads its own retry_after_ms
+    from _CHANGING_PACING_MS, and the wait before the next poll is that
+    poll's value. The recording's running polls past that many are left
+    out, since how many a build takes depends on the server's load."""
+    polls = [
+        i
+        for i, e in enumerate(exchanges)
         if e["request"].get("path", "").startswith("/datasets/operations/")
         and e["response"]["json"]["operation"]["status"] == "running"
     ]
     require(
-        len(running) >= len(_CHANGING_PACING_MS),
-        f"at least {len(_CHANGING_PACING_MS)} polls find the build running",
+        len(polls) >= len(_CHANGING_PACING_MS),
+        f"{len(_CHANGING_PACING_MS)} polls find the build running",
     )
-    pacing = [
-        _CHANGING_PACING_MS[index % len(_CHANGING_PACING_MS)]
-        for index in range(len(running))
+    for index in reversed(polls[len(_CHANGING_PACING_MS) :]):
+        del exchanges[index]
+    running = [
+        exchanges[i]["response"]["json"]["operation"]
+        for i in polls[: len(_CHANGING_PACING_MS)]
     ]
-    for operation, ms in zip(running, pacing, strict=True):
+    for operation, ms in zip(running, _CHANGING_PACING_MS, strict=True):
         operation["retry_after_ms"] = ms
-    build["poll_waits"][1:] = [ms / 1000 for ms in pacing]
+    build["poll_waits"][1:] = [ms / 1000 for ms in _CHANGING_PACING_MS]
 
 
 def _operation_failed(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
@@ -3724,7 +3806,8 @@ SYNTHETIC = (
     Synthetic(
         "fetch-spec-async-build",
         "mint-async-build",
-        "The mint and result steps become one fetch of the spec, which makes the same exchanges.",
+        "The mint and result steps become one fetch of the spec with party_totals, which "
+        "makes the same exchanges.",
         "Fetching a spec whose build answers 202 polls the operation: it waits the 202's "
         "retry_after_ms, then each poll's, backing off from 1 to 8 seconds when a poll gives "
         "none, and downloads the done manifest's file.",
@@ -4549,6 +4632,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                     facets=step.get("facets"),
                     layout=step.get("layout"),
                     strict=step.get("strict", False),
+                    party_totals=step.get("party_totals", False),
                 )
             case {"op": "fetch", "ref": ref}:
                 session.fetch_ref(ref)
@@ -4562,6 +4646,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                     partial=step.get("partial", False),
                     strict=step.get("strict", False),
                     layout=step.get("layout"),
+                    party_totals=step.get("party_totals", False),
                 )
             case {"op": "mint", "spec": spec}:
                 session.mint(

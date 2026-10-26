@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "99e62038ceb4b459c2ac699549076ff123c166aa",
-    "recorded_at": "2026-10-25T17:35:10Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:26Z"
   },
   "call": [
     {
@@ -241,7 +241,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -249,7 +250,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "2c5831471ed840c29a3775450547ab35"
+          "x-dfo-trace-id": "c658ba6641be4c4183f82bbab7cabc5a"
         },
         "json": {
           "schema_version": 1,
@@ -535,7 +536,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "served_from": "head",
-            "confirmed_at": "2026-10-25T17:33:02.255719+00:00"
+            "confirmed_at": "2026-10-26T09:18:33.682273+00:00"
           },
           "warnings": [
             {
@@ -553,17 +554,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:a5198249a7b16b895b1b7e8127605c644edaf2cda240201e391fc377aaf4dafd",
+              "artifact_digest": "sha256:87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
-              "bytes": 8777,
+              "bytes": 8810,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-23T16:59:04.339940+00:00",
+              "created_at": "2026-10-25T14:20:02.459303+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:a5198249a7b16b895b1b7e8127605c644edaf2cda240201e391fc377aaf4dafd",
+              "url": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72",
               "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
             },
             {
@@ -999,7 +1001,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "134afaa6b00f4af9aca4184c7e3b3da3"
+          "x-dfo-trace-id": "b0a96c8e862d4a3ea8b0dea282c6ada4"
         },
         "json": {
           "schema_version": 1,
@@ -1008,13 +1010,13 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "99e62038ceb4b459c2ac699549076ff123c166aa",
-            "trace_id": "134afaa6b00f4af9aca4184c7e3b3da3",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "b0a96c8e862d4a3ea8b0dea282c6ada4",
             "warnings": [],
             "timing_ms": {
               "total": 2,
               "by_step": {
-                "coverage": 0
+                "coverage": 1
               }
             },
             "timed_out": false
@@ -2862,7 +2864,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_88defe77cc79e0c0"
+                    "capability_version": "cap_765c9d2a0c7529b9"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5295,21 +5297,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:a5198249a7b16b895b1b7e8127605c644edaf2cda240201e391fc377aaf4dafd"
+        "origin_path": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa5198249a7b16b895b1b7e8127605c644edaf2cda240201e391fc377aaf4dafd?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "b41ac53e34ed4270be2c55a3276a92dd"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "83e8a270332a4fdd9ae6127e98ee0d0d"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa5198249a7b16b895b1b7e8127605c644edaf2cda240201e391fc377aaf4dafd?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -5325,26 +5327,26 @@
       "dataset": {
         "rows": 170,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
+          "financingRecipient_label",
+          "value",
+          "unit_label",
+          "dac2aAidType_label",
+          "provenance_label",
+          "financingProvider",
           "financingProvider_kind",
           "financingRecipient",
-          "financingRecipient_label",
           "financingRecipient_kind",
           "dac2aAidType",
-          "dac2aAidType_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [
