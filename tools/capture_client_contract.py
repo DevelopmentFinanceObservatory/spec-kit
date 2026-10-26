@@ -38,9 +38,10 @@ a signed download or a `location` header, keeps its path and has its query
 replaced by `X-Goog-Signature=redacted`. A local app's blob URL becomes the
 storage URL a deployment signs. A record holding any other absolute URL,
 outside a `location` under the base URL, is refused. The long builds need
-two specs the server has not built, so a local recording starts on a fresh
-datasets database. `--scenarios-dir` writes outside the package,
-unvalidated. The run ends by validating the whole contract with
+two specs the server has not built, and the run picks each from the first
+start year whose spec the server has not built, so each record moves both
+start years up. `--scenarios-dir` writes outside the package, unvalidated.
+The run ends by validating the whole contract with
 `tools/validate_client_contract.py`, and fails when it reports a problem,
 when the binary bodies pass 5 MB, or when the records and bodies together pass
 `SCENARIOS_BUDGET`, 16 MB.
@@ -1237,24 +1238,29 @@ GROUPED_FLOW = "Germany's ODA to the least developed countries"
 CANDIDATES_BESIDE_ASSUMED = (
     "mortality in Kenya and aid flows to Kenya from 2013 to 2022"
 )
-# Two specs just above the 100,000-row sync budget, one for the mint and one
-# for the operation another process started: a version the server has built
-# answers inline, so each long build needs a spec the server has not built.
-# A flow side the question leaves unnamed reads as its source's whole total, so
-# both sides name groups read as their members: about 3,700 donor and
-# recipient pairs of one variable over 60 years. A variable broken down by
-# sector would list thousands of variables in the done manifest.
-ASYNC = (
-    "ODA disbursements from the DAC countries to the G77 countries from 1967 to 2024"
+# Two specs just above the 100,000-row sync budget, the DAC donors' for the
+# mint and the OECD donors' for the operation another process started: a
+# version the server has built answers inline, so each long build needs a spec
+# the server has not built, and the run takes the first start year in
+# LONG_BUILD_YEARS whose spec it has not. Each record builds both for good, so
+# the next record takes later start years. A flow side the question leaves unnamed
+# reads as its source's whole total, so both sides name groups read as their
+# members: about 3,700 donor and recipient pairs of one variable over some 60
+# years. A variable broken down by sector would list thousands of variables in
+# the done manifest.
+LONG_BUILD = (
+    "ODA disbursements from the {donors} countries to the G77 countries"
+    " from {year} to 2024"
 )
-ASYNC_RESUMED = (
-    "ODA disbursements from the OECD countries to the G77 countries from 1968 to 2024"
-)
+LONG_BUILD_YEARS = range(1960, 2001)
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
-# The ASYNC spec narrowed to one recipient and year with its origin open: the
-# DAC2a table lists the donor group totals beside their members, about 110
-# rows with them and 95 without.
+# The DAC donors' flow to the G77, narrowed to one recipient and year with its
+# origin open: the DAC2a table lists the donor group totals beside their
+# members, about 110 rows with them and 95 without.
+PARTY_TOTALS_FLOW = (
+    "ODA disbursements from the DAC countries to the G77 countries from 1967 to 2024"
+)
 PARTY_TOTALS_WINDOW = (2022, 2022)
 PARTY_TOTALS_ENTITIES = {"origin": None, "destination": ["country/KEN"]}
 SYNC_ROWS = 100_000
@@ -1322,22 +1328,47 @@ class Context:
             self._cache["ref"] = {"format_version": 1, "members": [member.ref()]}
         return self._cache["ref"]
 
-    def async_spec(self, question: str = ASYNC) -> Spec:
-        """The spec `question` answers, whose estimate is just above the sync
-        budget."""
-        (part,) = self.definite_answer(question).parts
-        rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
-        require(
-            SYNC_ROWS < rows < 2 * SYNC_ROWS,
-            f"{rows} rows is just above the sync budget",
-        )
-        return _part_spec(part["spec"])
+    def async_spec(self, donors: str) -> Spec:
+        """The spec the LONG_BUILD question for `donors` answers at the first
+        start year in LONG_BUILD_YEARS whose answer is one definite part, whose
+        estimate is just above the sync budget, and whose spec no earlier year
+        or other donors answered and the server has not built. No such year
+        raises ShapeError."""
+        picks: dict[str, Spec] = self._cache.setdefault("long builds", {})
+        if donors not in picks:
+            session = self.session("prerequisite")
+            seen = {spec.spec_id for spec in picks.values()}
+            for year in LONG_BUILD_YEARS:
+                answer = session.search(LONG_BUILD.format(donors=donors, year=year))
+                if answer.status != "definite" or len(answer.parts) != 1:
+                    continue
+                (part,) = answer.parts
+                rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
+                spec = _part_spec(part["spec"])
+                # A start year before the source's first year clips to the same
+                # spec as the years after it, so a spec already seen is built or
+                # is the other donors' pick.
+                if not SYNC_ROWS < rows < 2 * SYNC_ROWS or spec.spec_id in seen:
+                    continue
+                seen.add(spec.spec_id)
+                # `_newest` and not `newest_version`, which reads a refused
+                # versions request as no version.
+                if session._newest(spec.spec_id) is None:
+                    picks[donors] = spec
+                    break
+            else:
+                raise ShapeError(
+                    f"no start year from {LONG_BUILD_YEARS[0]} to"
+                    f" {LONG_BUILD_YEARS[-1]} gives the {donors} donors a spec"
+                    " just above the sync budget that the server has not built"
+                )
+        return picks[donors]
 
     def running_operation(self) -> str:
         """The id of a long build another process started."""
         if "operation" not in self._cache:
             self._cache["operation"] = self.session("prerequisite").mint(
-                self.async_spec(ASYNC_RESUMED)
+                self.async_spec("OECD")
             )
         return self._cache["operation"]
 
@@ -1428,13 +1459,13 @@ def _fetch_spec_entities(
 
 
 def _fetch_spec_party_totals(*, keep: bool) -> Callable[[Session, Context], None]:
-    """Fetches the ASYNC spec narrowed to PARTY_TOTALS_ENTITIES in
+    """Fetches the PARTY_TOTALS_FLOW spec narrowed to PARTY_TOTALS_ENTITIES in
     PARTY_TOTALS_WINDOW, keeping party totals when `keep`, and checks
     against a fetch with the other setting that leaving them out drops rows
     and answers a version of its own."""
 
     def run(s: Session, ctx: Context) -> None:
-        spec = ctx.definite_spec(ASYNC)
+        spec = ctx.definite_spec(PARTY_TOTALS_FLOW)
 
         def fetched(session: Session, party_totals: bool) -> Member:
             (member,) = session.fetch_spec(
@@ -1509,7 +1540,7 @@ def _fetch_ref_unknown_version(s: Session, ctx: Context) -> None:
 
 
 def _mint_async(s: Session, ctx: Context) -> None:
-    s.mint(ctx.async_spec(ASYNC))
+    s.mint(ctx.async_spec("DAC"))
     s.result()
 
 
