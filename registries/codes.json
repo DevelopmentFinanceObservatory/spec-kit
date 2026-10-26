@@ -476,6 +476,25 @@
       "lifecycle": "active"
     },
     {
+      "code": "conflicting_requested_options",
+      "classification": "refusal",
+      "definition": "Two requested scope-choice entries conflict. The problem detail carries the cause and the blocking entry.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "conjunction_cross_shape",
       "classification": "warning",
       "definition": "The parts of a conjunction query grounded to different shapes, so the returned specs measure structurally distinct things.",
@@ -3309,6 +3328,25 @@
           "endpoint": "datasets.snapshot",
           "channel": "problem_details",
           "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "requested_option_unavailable",
+      "classification": "refusal",
+      "definition": "A requested scope-choice option is unavailable for this part. The problem detail carries the cause.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
