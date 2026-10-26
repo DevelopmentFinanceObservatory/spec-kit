@@ -74,6 +74,16 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/`,
   with each file's path unchanged. The previous prefix named a private
   repository and did not resolve.
+- On `presentation.write`, codes `binding_invalid`, `constraint_violation`
+  and `resource_exhausted` map at 400, `frame_unavailable` at 404 and
+  `release_mismatch` at 503, the statuses the Presentation write routes
+  serve. `presentation.render` keeps 422 for the first two and 409 for the
+  rest. `frame_unavailable` covers a frame that is not held in a state
+  Presentation can load, and its definition names each case. A frame store
+  that fails to answer is `service_unavailable`.
+- Code `edit_conflict` maps to `presentation.render` at 409, for a render
+  of a component that has no current revision, and its definition names
+  that case.
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.
