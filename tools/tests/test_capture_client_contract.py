@@ -379,22 +379,24 @@ def test_a_renamed_strict_field_ends_the_call_at_the_build() -> None:
 
 
 @pytest.mark.parametrize(
-    ("timed_out", "status", "expected"),
+    ("timed_out", "status", "reason", "expected"),
     [
-        (False, "no_data", "not_understood"),
-        (True, "no_data", "timed_out"),
-        (False, "unsupported", "unsupported"),
-        (False, "deferred", "unknown"),
+        (False, "no_data", "variable_not_resolved", "not_understood"),
+        (True, "no_data", "variable_not_resolved", "not_understood"),
+        (False, "no_data", "timed_out", "timed_out"),
+        (False, "unsupported", "variable_not_resolved", "unsupported"),
+        (False, "deferred", "variable_not_resolved", "unknown"),
     ],
 )
 def test_a_part_without_a_reading_is_a_gap_of_its_kind(
-    timed_out: bool, status: str, expected: str
+    timed_out: bool, status: str, reason: str, expected: str
 ) -> None:
     body = copy.deepcopy(
         _load("answer-mixed-fetch-raises")["exchanges"][0]["response"]["json"]
     )
     body["diagnostics"]["timed_out"] = timed_out
     body["parts"][1]["status"] = status
+    body["parts"][1]["no_data"]["reason"] = reason
     gaps = capture.answer_gaps(
         capture.answer_from_body(body), capture.gap_kinds(ACTIONS)
     )

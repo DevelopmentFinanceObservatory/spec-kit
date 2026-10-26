@@ -2832,15 +2832,58 @@ def _answer_edit(
     return derive
 
 
-# The x-dfo-trace-id header the Search responses of `answer-timed-out` and
-# `choose-refused-shared-label` carry. The first's answer_incomplete carries
-# it, and the second's choice_invalid, which describes the caller's choice,
-# does not.
+# The x-dfo-trace-id header the Search responses of `answer-timed-out`,
+# `answer-timed-out-keeps-reasons` and `choose-refused-shared-label` carry. The
+# first two's answer_incomplete carries it, and the third's choice_invalid,
+# which describes the caller's choice, does not.
 ANSWER_TRACE_ID = "5" * 32
 
 
 def _timed_out(body: dict[str, Any]) -> None:
     body["diagnostics"]["timed_out"] = True
+
+
+# The no_data message dfo-apis renders for the reason `timed_out`.
+TIMED_OUT_MESSAGE = (
+    "Search reached its time limit before answering this part. "
+    "Try again, or ask a narrower question."
+)
+
+
+def _part_timed_out(body: dict[str, Any]) -> None:
+    """Part 1 is the part Search left unresolved at its time limit: reason
+    timed_out and the message that reason renders, which is also its sentence
+    and its whole heading in the answer's composed sentence."""
+    part = body["parts"][1]
+    part["no_data"]["reason"] = "timed_out"
+    part["no_data"]["message"] = TIMED_OUT_MESSAGE
+    part["rendered_sentence"] = TIMED_OUT_MESSAGE
+    (token,) = part["sentence_plan"]
+    token["text"] = TIMED_OUT_MESSAGE
+    plan = body["sentence_plan"]
+    indexes = [i for i, tok in enumerate(plan) if tok.get("part_index") == 1]
+    first, last = indexes[0], indexes[-1]
+    require(indexes == list(range(first, last + 1)), "part 1's tokens are adjacent")
+    heading = "".join(tok["text"] for tok in plan[first : last + 1])
+    require(body["rendered_sentence"].endswith(heading), "part 1's tokens end it")
+    plan[first : last + 1] = [
+        {
+            "kind": "text",
+            "text": TIMED_OUT_MESSAGE,
+            "segment": "heading",
+            "entity_refs": [],
+            "states": [],
+            "part_index": 1,
+        }
+    ]
+    body["rendered_sentence"] = (
+        body["rendered_sentence"][: -len(heading)] + TIMED_OUT_MESSAGE
+    )
+
+
+def _timed_out_part(body: dict[str, Any]) -> None:
+    _timed_out(body)
+    _part_timed_out(body)
 
 
 def _unsupported(body: dict[str, Any]) -> None:
@@ -4160,11 +4203,23 @@ SYNTHETIC = (
     Synthetic(
         "answer-timed-out",
         "answer-mixed-fetch-raises",
-        "The answer's diagnostics.timed_out becomes true, and its response carries "
+        "The answer's diagnostics.timed_out becomes true, part 1's no_data reason becomes "
+        "timed_out with the message that reason renders, and its response carries "
         f"x-dfo-trace-id {ANSWER_TRACE_ID}.",
-        "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, "
-        "whatever its reason, and fetching the answer raises IncompleteAnswerError, which "
-        "describes the answer and carries its response's trace id.",
+        "A no_data part with reason timed_out, the reason Search gives a part it left "
+        "unresolved at its time limit, is a timed_out gap, and fetching the answer raises "
+        "IncompleteAnswerError, which describes the answer and carries its response's trace "
+        "id.",
+        _answer_edit(_timed_out_part, {"x-dfo-trace-id": ANSWER_TRACE_ID}),
+    ),
+    Synthetic(
+        "answer-timed-out-keeps-reasons",
+        "answer-mixed-fetch-raises",
+        "The answer's diagnostics.timed_out becomes true, part 1 keeps its reason "
+        f"variable_not_resolved, and its response carries x-dfo-trace-id {ANSWER_TRACE_ID}.",
+        "A no_data part's gap kind comes from its own reason, whatever diagnostics.timed_out "
+        "says. A part Search resolved before its time limit keeps its reason's gap kind, and "
+        "fetching the answer raises IncompleteAnswerError.",
         _answer_edit(_timed_out, {"x-dfo-trace-id": ANSWER_TRACE_ID}),
     ),
     Synthetic(

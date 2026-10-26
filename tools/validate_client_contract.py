@@ -1530,11 +1530,8 @@ def search_warning_code(answer: Answer) -> str | None:
 
 def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]]:
     """Each part without a reading. A candidates part is a choice among its
-    specs, a no_data part takes its reason's gap kind, or `timed_out` when the
-    answer timed out, an unsupported part is an `unsupported` gap, and a part
-    of unknown status is an `unknown` gap."""
-    diagnostics = read_object(answer.body, "diagnostics")
-    timed_out = diagnostics is not None and diagnostics.get("timed_out") is True
+    specs, a no_data part takes its reason's gap kind, an unsupported part is
+    an `unsupported` gap, and a part of unknown status is an `unknown` gap."""
     gaps = []
     for index, part in enumerate(answer.parts):
         match part.get("status"):
@@ -1544,11 +1541,7 @@ def answer_gaps(answer: Answer, kinds: Mapping[str, str]) -> list[dict[str, Any]
                 kind, options = "choice", len(part["candidates"]["specs"])
             case "no_data":
                 no_data = part["no_data"]
-                kind = (
-                    "timed_out"
-                    if timed_out
-                    else kinds.get(no_data["reason"], "no_data")
-                )
+                kind = kinds.get(no_data["reason"], "no_data")
                 options = len(read_objects(no_data, "options"))
             case "unsupported":
                 kind, options = "unsupported", 0

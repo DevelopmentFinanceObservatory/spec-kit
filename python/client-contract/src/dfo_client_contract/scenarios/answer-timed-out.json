@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "answer-timed-out",
-  "description": "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, whatever its reason, and fetching the answer raises IncompleteAnswerError, which describes the answer and carries its response's trace id.",
+  "description": "A no_data part with reason timed_out, the reason Search gives a part it left unresolved at its time limit, is a timed_out gap, and fetching the answer raises IncompleteAnswerError, which describes the answer and carries its response's trace id.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "answer-mixed-fetch-raises",
-    "edit": "The answer's diagnostics.timed_out becomes true, and its response carries x-dfo-trace-id 55555555555555555555555555555555."
+    "edit": "The answer's diagnostics.timed_out becomes true, part 1's no_data reason becomes timed_out with the message that reason renders, and its response carries x-dfo-trace-id 55555555555555555555555555555555."
   },
   "call": [
     {
@@ -3286,11 +3286,11 @@
                   "phase_prune_and_rank": 0
                 }
               },
-              "rendered_sentence": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+              "rendered_sentence": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
               "sentence_plan": [
                 {
                   "kind": "text",
-                  "text": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+                  "text": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -3302,9 +3302,9 @@
               "assumptions": [],
               "status": "no_data",
               "no_data": {
-                "reason": "variable_not_resolved",
+                "reason": "timed_out",
                 "category": "unresolved",
-                "message": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+                "message": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
                 "entity_terms": [],
                 "ambiguous_entities": [],
                 "source_terms": [],
@@ -3314,7 +3314,7 @@
               }
             }
           ],
-          "rendered_sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. No match for price of tea. Try a different wording or a related indicator.",
+          "rendered_sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. Search reached its time limit before answering this part. Try again, or ask a narrower question.",
           "sentence_plan": [
             {
               "kind": "text",
@@ -3600,24 +3600,7 @@
             },
             {
               "kind": "text",
-              "text": "No match for ",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 1
-            },
-            {
-              "kind": "slot",
-              "text": "price of tea",
-              "axis": "what",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 1
-            },
-            {
-              "kind": "text",
-              "text": ". Try a different wording or a related indicator.",
+              "text": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -3634,7 +3617,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. No match for price of tea. Try a different wording or a related indicator.",
+        "sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. Search reached its time limit before answering this part. Try again, or ask a narrower question.",
         "complete": false,
         "specs": [
           "spec_78d04fefc3b3f1ef71acd622957e4995"
