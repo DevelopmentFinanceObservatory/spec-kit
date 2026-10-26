@@ -117,6 +117,61 @@
       },
       "source": "argument",
       "url": "https://arg.example.org/api/v1"
+    },
+    {
+      "name": "query-raises",
+      "base_url": "https://developmentfinance.org/api/v1?key=1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "fragment-raises",
+      "base_url": "https://developmentfinance.org/api/v1#top",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/../v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "control-character-raises",
+      "base_url": "https://developmentfinance.org/api\n/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "non-decimal-ipv4-raises",
+      "base_url": "http://0x7f.1:8083/api",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "empty-userinfo-raises",
+      "base_url": "https://@developmentfinance.org/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "trailing-slash-is-dropped",
+      "base_url": "https://developmentfinance.org/api/v1/",
+      "env": {},
+      "source": "argument",
+      "url": "https://developmentfinance.org/api/v1"
     }
   ]
 }

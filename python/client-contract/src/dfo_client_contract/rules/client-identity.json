@@ -1,0 +1,174 @@
+{
+  "format_version": 1,
+  "rule": "client-identity",
+  "header": "X-DFO-Client",
+  "pattern": "^(dfo-python|dfo-ts)/[0-9A-Za-z.+-]+ \\(([A-Za-z]+ [0-9]+\\.[0-9]+|browser)\\)$",
+  "vectors": [
+    {
+      "name": "python-cpython",
+      "client": "dfo-python",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "CPython",
+        "version": "3.14.0"
+      },
+      "value": "dfo-python/0.1.0 (CPython 3.14)"
+    },
+    {
+      "name": "python-pre-release-interpreter",
+      "client": "dfo-python",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "CPython",
+        "version": "3.15.0a1"
+      },
+      "value": "dfo-python/0.1.0 (CPython 3.15)"
+    },
+    {
+      "name": "python-pypy",
+      "client": "dfo-python",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "PyPy",
+        "version": "3.11.13"
+      },
+      "value": "dfo-python/0.1.0 (PyPy 3.11)"
+    },
+    {
+      "name": "python-pre-release-package",
+      "client": "dfo-python",
+      "version": "0.2.0rc1",
+      "runtime": {
+        "name": "CPython",
+        "version": "3.12.11"
+      },
+      "value": "dfo-python/0.2.0rc1 (CPython 3.12)"
+    },
+    {
+      "name": "python-local-version",
+      "client": "dfo-python",
+      "version": "0.2.0.dev3+g41c47f8",
+      "runtime": {
+        "name": "CPython",
+        "version": "3.13.5"
+      },
+      "value": "dfo-python/0.2.0.dev3+g41c47f8 (CPython 3.13)"
+    },
+    {
+      "name": "ts-node",
+      "client": "dfo-ts",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "Node",
+        "version": "22.18.0"
+      },
+      "value": "dfo-ts/0.1.0 (Node 22.18)"
+    },
+    {
+      "name": "ts-deno",
+      "client": "dfo-ts",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "Deno",
+        "version": "2.1.4"
+      },
+      "value": "dfo-ts/0.1.0 (Deno 2.1)"
+    },
+    {
+      "name": "ts-bun",
+      "client": "dfo-ts",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "Bun",
+        "version": "1.2.19"
+      },
+      "value": "dfo-ts/0.1.0 (Bun 1.2)"
+    },
+    {
+      "name": "ts-browser",
+      "client": "dfo-ts",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "browser"
+      },
+      "value": "dfo-ts/0.1.0 (browser)"
+    },
+    {
+      "name": "ts-pre-release-package",
+      "client": "dfo-ts",
+      "version": "0.2.0-rc.1",
+      "runtime": {
+        "name": "Node",
+        "version": "24.4.1"
+      },
+      "value": "dfo-ts/0.2.0-rc.1 (Node 24.4)"
+    },
+    {
+      "name": "header-argument-naming-it-refused",
+      "via": "argument",
+      "headers": {
+        "X-DFO-Client": "my-app/1.0"
+      },
+      "verdict": "refuse",
+      "reason": "header_invalid"
+    },
+    {
+      "name": "lower-case-name-refused",
+      "via": "argument",
+      "headers": {
+        "x-dfo-client": "my-app/1.0"
+      },
+      "verdict": "refuse",
+      "reason": "header_invalid"
+    },
+    {
+      "name": "empty-value-refused",
+      "via": "argument",
+      "headers": {
+        "X-DFO-CLIENT": ""
+      },
+      "verdict": "refuse",
+      "reason": "header_invalid"
+    },
+    {
+      "name": "provider-naming-it-refused",
+      "via": "provider",
+      "headers": {
+        "Accept-Language": "en",
+        "X-Dfo-Client": "dfo-python/0.1.0 (CPython 3.14)"
+      },
+      "verdict": "refuse",
+      "reason": "header_invalid"
+    },
+    {
+      "name": "other-headers-accepted",
+      "via": "argument",
+      "headers": {
+        "X-Request-Id": "f3a9"
+      },
+      "verdict": "accept"
+    },
+    {
+      "name": "user-agent-accepted",
+      "via": "argument",
+      "headers": {
+        "User-Agent": "my-app/2.0"
+      },
+      "verdict": "accept"
+    },
+    {
+      "name": "longer-name-accepted",
+      "via": "provider",
+      "headers": {
+        "X-DFO-Client-Id": "notebook-7"
+      },
+      "verdict": "accept"
+    },
+    {
+      "name": "no-headers-accepted",
+      "via": "argument",
+      "headers": {},
+      "verdict": "accept"
+    }
+  ]
+}

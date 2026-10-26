@@ -54,7 +54,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import io
 import json
 import os
 import re
@@ -71,7 +70,6 @@ from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
-import pyarrow.parquet as pq
 from validate_client_contract import (
     FILE_EXPIRED,
     FILE_GONE,
@@ -89,6 +87,7 @@ from validate_client_contract import (
     Answer,
     ClientError,
     LongBuild,
+    ServedTable,
     absolute_url_problems,
     answer_from_body,
     answer_gaps,
@@ -129,6 +128,7 @@ from validate_client_contract import (
     search_warns,
     selector_path,
     sentence_entry,
+    served_table,
     shared_cacheable,
     stored_version,
     surface_problems,
@@ -149,7 +149,7 @@ BINARY_BUDGET = 5_000_000
 # totals of open party roles left out, and so the rendering a ref it writes
 # records.
 RENDERING = fetch_rendering(None)
-# The reading slots of the column-order rule, which orders each dataset's
+# The reading slots of the reading-order rule, which orders each dataset's
 # columns as a client presents them, or None when the rule file cannot be read.
 READING_COLUMNS = load_reading_columns(PACKAGE_DIR)
 # The response headers a client reads, and so the ones a record keeps, beside
@@ -568,6 +568,12 @@ class Member:
     rows: int
     columns: list[str]
     rendering: dict[str, Any] = field(default_factory=lambda: dict(RENDERING))
+    # The value of each column that holds one value in every row.
+    same: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def table(self) -> ServedTable:
+        return ServedTable(tuple(self.columns), self.rows, self.same)
 
     @property
     def spec_id(self) -> str:
@@ -591,8 +597,8 @@ def dataset_outcome(
 ) -> dict[str, Any]:
     """A dataset outcome. Several members stack into one long table with a
     `part` column first, holding each member's `part_label`, then every
-    member's columns in member order. The columns after `part` are in the
-    order the column-order rule gives."""
+    member's columns in member order. The columns are in the order the
+    reading-order rule gives."""
     summaries = [
         {
             "parts": member.parts,
@@ -605,11 +611,11 @@ def dataset_outcome(
     dataset: dict[str, Any] = {"rows": sum(member.rows for member in members)}
     if READING_COLUMNS is None:
         raise SystemExit(
-            "rules/column-order.json is missing or holds no reading_columns, so "
+            "rules/reading-order.json is missing or holds no reading_columns, so "
             "no dataset's columns can be ordered"
         )
     dataset["columns"] = presented_columns(
-        [member.columns for member in members], READING_COLUMNS
+        [member.table for member in members], READING_COLUMNS
     )
     if len(members) > 1:
         dataset["part_rows"] = [
@@ -620,9 +626,8 @@ def dataset_outcome(
     return {"dataset": {**dataset, **summary}}
 
 
-def parquet_shape(data: bytes) -> tuple[int, list[str]]:
-    parquet = pq.ParquetFile(io.BytesIO(data))
-    return parquet.metadata.num_rows, list(parquet.schema_arrow.names)
+def parquet_shape(data: bytes) -> ServedTable:
+    return served_table(data)
 
 
 def _reached[T](results: list[T], step: str) -> T:
@@ -678,7 +683,7 @@ class Session:
     recorder: Recorder
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
-    read_shape: Callable[[bytes], tuple[int, list[str]]] = parquet_shape
+    read_shape: Callable[[bytes], ServedTable] = parquet_shape
     sleep: Callable[[float], None] = time.sleep
     call: list[dict[str, Any]] = field(default_factory=list)
     expect: list[dict[str, Any]] = field(default_factory=list)
@@ -972,16 +977,17 @@ class Session:
             held = None if spec is None else spec.step()
             sentence = self._identity_sentence(parts, definition, held)
         digest = artifact["artifact_digest"]
-        rows, columns = self.read_shape(self._download(route, digest))
+        table = self.read_shape(self._download(route, digest))
         return Member(
             parts,
             definition,
             manifest["content_version"],
             sentence,
             digest,
-            rows,
-            columns,
+            table.rows,
+            list(table.columns),
             dict(rendering),
+            table.same,
         )
 
     def _identity_sentence(
@@ -1081,16 +1087,17 @@ class Session:
             data, refusal = self._stored_file(member, manifest)
             if data is None:
                 return None, refusal
-            rows, columns = self.read_shape(data)
+            table = self.read_shape(data)
             stored = Member(
                 member["parts"],
                 spec["definition"],
                 version,
                 member["sentence"],
                 member["artifact"]["digest"],
-                rows,
-                columns,
+                table.rows,
+                list(table.columns),
                 dict(rendering),
+                table.same,
             )
             return stored, None
 
@@ -1261,7 +1268,7 @@ class Context:
     transport: Transport
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
-    read_shape: Callable[[bytes], tuple[int, list[str]]] = parquet_shape
+    read_shape: Callable[[bytes], ServedTable] = parquet_shape
     _cache: dict[str, Any] = field(default_factory=dict)
 
     def session(self, name: str, **recorder: Any) -> Session:

@@ -1,0 +1,355 @@
+{
+  "format_version": 1,
+  "rule": "role-keys",
+  "keys": {
+    "place": "observationAbout",
+    "origin": "origin",
+    "destination": "destination"
+  },
+  "flow_keys": [
+    "origin",
+    "destination"
+  ],
+  "vectors": [
+    {
+      "name": "subject-place",
+      "identity": {
+        "entities": {
+          "observationAbout": [
+            "country/KEN"
+          ]
+        }
+      },
+      "roles": {
+        "place": [
+          "country/KEN"
+        ]
+      },
+      "entities": {
+        "place": [
+          "country/NGA",
+          "country/GHA"
+        ]
+      },
+      "posted": {
+        "observationAbout": [
+          "country/NGA",
+          "country/GHA"
+        ]
+      }
+    },
+    {
+      "name": "subject-wire-role-refused",
+      "identity": {
+        "entities": {
+          "observationAbout": [
+            "country/KEN"
+          ]
+        }
+      },
+      "roles": {
+        "place": [
+          "country/KEN"
+        ]
+      },
+      "entities": {
+        "observationAbout": [
+          "country/NGA"
+        ]
+      },
+      "error": {
+        "reason": "invalid_argument",
+        "names": [
+          "observationAbout",
+          "place"
+        ]
+      }
+    },
+    {
+      "name": "subject-flow-key-refused",
+      "identity": {
+        "entities": {
+          "observationAbout": [
+            "country/KEN"
+          ]
+        }
+      },
+      "roles": {
+        "place": [
+          "country/KEN"
+        ]
+      },
+      "entities": {
+        "origin": [
+          "country/DEU"
+        ]
+      },
+      "error": {
+        "reason": "invalid_argument",
+        "names": [
+          "origin",
+          "place"
+        ]
+      }
+    },
+    {
+      "name": "flow-origin-rebound",
+      "identity": {
+        "entities": {
+          "origin": [
+            "country/DEU"
+          ],
+          "destination": [
+            "country/NGA"
+          ]
+        }
+      },
+      "roles": {
+        "origin": [
+          "country/DEU"
+        ],
+        "destination": [
+          "country/NGA"
+        ]
+      },
+      "entities": {
+        "origin": [
+          "country/FRA"
+        ]
+      },
+      "posted": {
+        "origin": [
+          "country/FRA"
+        ],
+        "destination": [
+          "country/NGA"
+        ]
+      }
+    },
+    {
+      "name": "flow-open-origin-bound",
+      "identity": {
+        "entities": {
+          "destination": [
+            "country/KEN"
+          ]
+        },
+        "open_roles": [
+          "origin"
+        ]
+      },
+      "roles": {
+        "destination": [
+          "country/KEN"
+        ],
+        "origin": null
+      },
+      "entities": {
+        "origin": [
+          "country/GBR"
+        ],
+        "destination": [
+          "country/ETH"
+        ]
+      },
+      "posted": {
+        "destination": [
+          "country/ETH"
+        ],
+        "origin": [
+          "country/GBR"
+        ]
+      }
+    },
+    {
+      "name": "flow-total-direction-bound",
+      "identity": {
+        "entities": {
+          "destination": [
+            "country/ETH"
+          ]
+        }
+      },
+      "roles": {
+        "destination": [
+          "country/ETH"
+        ],
+        "origin": null
+      },
+      "entities": {
+        "origin": [
+          "country/USA"
+        ]
+      },
+      "posted": {
+        "destination": [
+          "country/ETH"
+        ],
+        "origin": [
+          "country/USA"
+        ]
+      }
+    },
+    {
+      "name": "flow-direction-dropped",
+      "identity": {
+        "entities": {
+          "origin": [
+            "country/DEU"
+          ],
+          "destination": [
+            "country/NGA"
+          ]
+        }
+      },
+      "roles": {
+        "origin": [
+          "country/DEU"
+        ],
+        "destination": [
+          "country/NGA"
+        ]
+      },
+      "entities": {
+        "destination": null
+      },
+      "posted": {
+        "origin": [
+          "country/DEU"
+        ]
+      }
+    },
+    {
+      "name": "flow-column-name-refused",
+      "identity": {
+        "entities": {
+          "origin": [
+            "country/DEU"
+          ],
+          "destination": [
+            "country/NGA"
+          ]
+        }
+      },
+      "roles": {
+        "origin": [
+          "country/DEU"
+        ],
+        "destination": [
+          "country/NGA"
+        ]
+      },
+      "entities": {
+        "financingRecipient": [
+          "country/GHA"
+        ]
+      },
+      "error": {
+        "reason": "invalid_argument",
+        "names": [
+          "financingRecipient",
+          "origin",
+          "destination"
+        ]
+      }
+    },
+    {
+      "name": "flow-place-refused",
+      "identity": {
+        "entities": {
+          "origin": [
+            "country/DEU"
+          ],
+          "destination": [
+            "country/NGA"
+          ]
+        }
+      },
+      "roles": {
+        "origin": [
+          "country/DEU"
+        ],
+        "destination": [
+          "country/NGA"
+        ]
+      },
+      "entities": {
+        "place": [
+          "country/GHA"
+        ]
+      },
+      "error": {
+        "reason": "invalid_argument",
+        "names": [
+          "place",
+          "origin",
+          "destination"
+        ]
+      }
+    },
+    {
+      "name": "flow-open-destination-roles",
+      "identity": {
+        "entities": {},
+        "open_roles": [
+          "destination"
+        ]
+      },
+      "roles": {
+        "destination": null,
+        "origin": null
+      }
+    },
+    {
+      "name": "no-roles-place",
+      "identity": {
+        "entities": {}
+      },
+      "roles": {},
+      "entities": {
+        "place": [
+          "country/KEN"
+        ]
+      },
+      "posted": {
+        "observationAbout": [
+          "country/KEN"
+        ]
+      }
+    },
+    {
+      "name": "no-roles-other-key-posted",
+      "identity": {
+        "entities": {}
+      },
+      "roles": {},
+      "entities": {
+        "financingRecipient": [
+          "country/KEN"
+        ]
+      },
+      "posted": {
+        "financingRecipient": [
+          "country/KEN"
+        ]
+      }
+    },
+    {
+      "name": "no-roles-wire-role-refused",
+      "identity": {},
+      "roles": {},
+      "entities": {
+        "observationAbout": [
+          "country/KEN"
+        ]
+      },
+      "error": {
+        "reason": "invalid_argument",
+        "names": [
+          "observationAbout",
+          "place"
+        ]
+      }
+    }
+  ]
+}

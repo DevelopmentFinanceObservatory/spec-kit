@@ -46,8 +46,8 @@ def _records(kind: str) -> list[str]:
     )
 
 
-def _shape(data: bytes) -> tuple[int, list[str]]:
-    return len(data), ["column"]
+def _shape(data: bytes) -> capture.ServedTable:
+    return capture.ServedTable(("column",), len(data), {})
 
 
 def _without_shapes(expect: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -404,7 +404,7 @@ def test_a_part_without_a_reading_is_a_gap_of_its_kind(
 
 
 def test_several_members_stack_with_a_part_column_first() -> None:
-    """The stacked columns follow `part` in the column-order rule's order,
+    """The stacked columns follow `part` in the reading-order rule's order,
     the reading columns first and `stat_var` last."""
     member = capture.Member(
         [],
