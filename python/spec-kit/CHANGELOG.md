@@ -220,6 +220,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mirror: a 422 refusal on `search.resolve` for a `dataset_resubmit` whose
   identity names an open role, when the StatVars the definition elects declare
   no role on that axis, so the definition cannot give one series per member.
+- Codes `requested_option_unavailable` and `conflicting_requested_options` in
+  `registries/codes.json` and its bundled mirror: 422 refusals on
+  `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.
+  `requested_option_unavailable` covers an entry that names an axis the part
+  does not offer, an option the axis does not list, or an unavailable option.
+  `conflicting_requested_options` covers entries that cannot all apply: two
+  options on one axis, an option that conflicts with an entry on another
+  axis, or entries that rule out every option of an axis.
 - Optional top-level identity member `open_roles` in
   `dfo_spec_kit.identity`: a list of flow roles, from `origin` and
   `destination`, whose every member the request asks for, as distinct from an

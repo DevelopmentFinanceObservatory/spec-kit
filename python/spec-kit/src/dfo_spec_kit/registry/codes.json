@@ -476,6 +476,25 @@
       "lifecycle": "active"
     },
     {
+      "code": "conflicting_requested_options",
+      "classification": "refusal",
+      "definition": "The scope_entries posted for a part cannot all apply: two entries name different options on one axis, an option conflicts with an entry on another axis, or the entries rule out every option of an axis.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "conjunction_cross_shape",
       "classification": "warning",
       "definition": "The parts of a conjunction query grounded to different shapes, so the returned specs measure structurally distinct things.",
@@ -3309,6 +3328,25 @@
           "endpoint": "datasets.snapshot",
           "channel": "problem_details",
           "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "requested_option_unavailable",
+      "classification": "refusal",
+      "definition": "A scope_entries entry names an axis the part does not offer, an option the axis does not list, or an option that is unavailable for this part.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
