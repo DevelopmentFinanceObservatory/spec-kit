@@ -81,6 +81,10 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   status it has on `datasets.mint`, `datasets.snapshot` or the platform rows,
   among them `request_invalid` (400), `snapshot_revoked` (410),
   `over_ceiling` (422), `upstream_error` (502) and `service_unavailable` (503).
+- `registries/codes.json` and its bundled mirror map `timeout` (504) on
+  `datasets.analysis`, and `not_found` (404), `request_invalid` (400),
+  `frame_unavailable` (404), `edit_conflict` (409), `service_unavailable` (503),
+  `internal_error` (500) and `timeout` (504) on `presentation.shares`.
 
 ### Changed
 
