@@ -4,13 +4,18 @@
     {
       "code": "allowance_exhausted",
       "classification": "refusal",
-      "definition": "The caller has spent its daily allowance for this kind of write, shares or pins, so the write is refused until the allowance resets, which the response's Retry-After header names.",
+      "definition": "The caller has spent its daily allowance for this kind of write, shares, cards or pins, so the write is refused until the allowance resets, which the response's Retry-After header names.",
       "owning_contract": "platform",
       "owner": "platform",
       "introduced_in": "v1",
       "mappings": [
         {
           "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 429
+        },
+        {
+          "endpoint": "presentation.write",
           "channel": "problem_details",
           "http_status": 429
         },

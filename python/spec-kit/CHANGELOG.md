@@ -8,6 +8,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `registries/codes.json` and its bundled mirror map `allowance_exhausted` to
+  429 on `presentation.write`, the endpoint that creates and revises
+  components (cards), and its definition now reads "shares, cards or pins".
 - `dfo_spec_kit.units` reads a unit ref into one typed value: `Money`
   (`currency`, `prices`, `base_year`, `chained`), `UnpricedMoney`
   (`currency`), `Percent`, `Count` or `Other` (`ref`). A ref that leaves
