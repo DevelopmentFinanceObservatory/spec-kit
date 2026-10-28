@@ -212,6 +212,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -671,6 +676,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -3097,6 +3107,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "payload_too_large",
+      "classification": "refusal",
+      "definition": "A share's request body is larger than the share routes accept.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 413
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "pin_not_permitted",
       "classification": "refusal",
       "definition": "The authenticated caller lacks the pin permission, or programmatic pinning is not live on this deployment.",
@@ -3110,7 +3136,7 @@
           "http_status": 403
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "pivot_not_homogeneous",
@@ -3672,6 +3698,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 503
         }
       ],
       "lifecycle": "active"
@@ -3927,6 +3958,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -4280,6 +4316,11 @@
         },
         {
           "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 400
         }

@@ -36,7 +36,7 @@ document validates against its schema, then what the schemas cannot express:
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
   none of them a code another table or `registries/codes.json` holds, and the
   warning codes are those the client rules issue: `ref_digest_changed`,
-  `route_deprecated`, `server_warning`, and one `key_<reason>` per key-format
+  `route_deprecated`, `series_left_out`, `server_warning`, and one `key_<reason>` per key-format
   reason.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
@@ -504,14 +504,15 @@ def _check_warning_codes(
     key_reasons: Sequence[str],
 ) -> list[str]:
     """As `_check_other_codes`, and the codes are those a client's rules
-    issue: `ref_digest_changed`, each header warning, and one `key_<reason>`
-    warning per key-format reason."""
+    issue: `ref_digest_changed`, each header warning, `series_left_out`, and one
+    `key_<reason>` warning per key-format reason."""
     codes = [row["code"] for row in document["codes"]]
     problems = _check_other_codes("warning-codes.json", codes, taken)
     wanted = {
         REF_DIGEST_CHANGED,
         ROUTE_DEPRECATED,
         SERVER_WARNING,
+        SERIES_LEFT_OUT,
         *(f"key_{r}" for r in key_reasons),
     }
     problems.extend(
@@ -885,6 +886,9 @@ def retry_wait(headers: Mapping[str, str], attempt: int) -> float:
 
 # The warning a client issues when a ref's file digest has changed.
 REF_DIGEST_CHANGED = "ref_digest_changed"
+
+# The warning a client issues when a derived frame leaves series out for missing data.
+SERIES_LEFT_OUT = "series_left_out"
 
 # The headers a client warns on, and the warning-codes.json code of each.
 DEPRECATION_HEADERS = ("deprecation", "sunset")

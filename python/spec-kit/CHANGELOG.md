@@ -85,6 +85,17 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `datasets.analysis`, and `not_found` (404), `request_invalid` (400),
   `frame_unavailable` (404), `edit_conflict` (409), `service_unavailable` (503),
   `internal_error` (500) and `timeout` (504) on `presentation.shares`.
+- `registries/codes.json` and its bundled mirror map `binding_invalid`,
+  `schema_invalid`, `constraint_violation` and `resource_exhausted` (400
+  each) and `release_mismatch` (503) on `presentation.shares`, the statuses
+  the components door gives them.
+- Code `payload_too_large` in `registries/codes.json` and its bundled mirror:
+  a `presentation.shares` refusal at 413 for a request body larger than the
+  share routes accept.
+- Code `series_left_out` in `python/client-contract`'s `warning-codes.json`,
+  class `SeriesLeftOutWarning`, issued when a derived frame leaves series out
+  for missing data. `warning-codes.schema.json` admits the class and
+  `tools/validate_client_contract.py` expects the row.
 
 ### Changed
 
@@ -113,6 +124,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code `upstream_error` maps to `graph.members` at 502, the status the
   members route answers when the read that checks whether the graph holds
   the node fails upstream, as `graph.node` answers for the same read.
+- `pin_not_permitted` is retired in `registries/codes.json` and its bundled
+  mirror: the pin route admits every caller and no longer raises it. Its
+  `datasets.pin` mapping stays.
 - `starved_axis_binding_restored` is retired in `registries/codes.json` and
   its bundled mirror: Search no longer restores a starved constraint axis, so
   nothing raises it.

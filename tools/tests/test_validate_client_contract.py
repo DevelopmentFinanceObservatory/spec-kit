@@ -1302,6 +1302,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             "warning-codes.json",
+            _drop_action("series_left_out"),
+            "no row for 'series_left_out'",
+        ),
+        (
+            "warning-codes.json",
             _add_action(
                 {"code": "key_too_long", "class": "DfoWarning", "condition": "x"}
             ),
@@ -1948,6 +1953,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "proxy-code-is-a-registry-code",
         "warning-code-ref-digest-changed-missing",
         "warning-code-missing",
+        "warning-code-series-left-out-missing",
         "warning-code-no-rule-issues",
         "warning-code-is-a-client-code",
         "location-localhost-alias",
