@@ -76,6 +76,11 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `unit_heterogeneous`, `cross_frame_unit_mismatch`, `join_output_collision`,
   `rolling_anchor_unresolved` and the paired-step codes `compare_no_key_matched`
   and `sum_of_no_key_matched`.
+- `registries/codes.json` and its bundled mirror add a `datasets.analysis`
+  mapping to 27 existing codes the analysis route also serves, each with the
+  status it has on `datasets.mint`, `datasets.snapshot` or the platform rows,
+  among them `request_invalid` (400), `snapshot_revoked` (410),
+  `over_ceiling` (422), `upstream_error` (502) and `service_unavailable` (503).
 
 ### Changed
 
