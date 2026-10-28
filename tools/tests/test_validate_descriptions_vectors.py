@@ -124,7 +124,25 @@ def test_an_operation_listed_twice_is_reported(package_dir: Path) -> None:
     document["operations"].append(document["operations"][1])
     path.write_text(json.dumps(document))
 
-    assert validator.validate() == ["operations.json: op 'sum' is listed twice"]
+    assert validator.validate() == [
+        "operations.json: op 'sum' is listed twice",
+        "operations.json: verb 'sum_of' is listed twice",
+    ]
+
+
+def test_arguments_outside_the_roles_are_reported(package_dir: Path) -> None:
+    path = package_dir / "schemas" / "operations.json"
+    document = json.loads(path.read_text())
+    compare = next(e for e in document["operations"] if e["op"] == "compare")
+    compare["arguments"]["data"] = "numerator"
+    path.write_text(json.dumps(document))
+
+    assert validator.validate() == [
+        (
+            "operations.json: compare: arguments' data and other must fill its "
+            "two roles ['left', 'right']"
+        )
+    ]
 
 
 def test_a_missing_analysis_operation_is_reported(package_dir: Path) -> None:

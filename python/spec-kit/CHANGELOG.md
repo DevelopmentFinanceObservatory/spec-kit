@@ -64,6 +64,13 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differ from the published figure. Its params name the total (`total`,
   `total_label`) and the party classes it covers (`whole_of`: `official`,
   `private` or `residual`, comma-joined).
+- `registries/codes.json` and its bundled mirror register
+  `allowance_exhausted` (429 on `datasets.pin` and `presentation.shares`),
+  `rolling_populations_differ` and `several_members` (422 on
+  `datasets.analysis`), `share_not_replaceable` (409), and
+  `write_token_required` and `write_token_invalid` (403 on
+  `presentation.shares`). The registry schema adds the `datasets.analysis` and
+  `presentation.shares` endpoints.
 
 ### Changed
 

@@ -1,0 +1,487 @@
+{
+  "format_version": 1,
+  "rule": "operation-outputs",
+  "vectors": [
+    {
+      "name": "share-of-in-percent",
+      "description": "ODA as a share of GNI comes back in per cent, 100 times the ratio, under the Percent unit, keyed by data's role. Ghana has no GNI row and Nigeria no ODA row, so neither has a share.",
+      "verb": "share_of",
+      "arguments": {
+        "on": {
+          "destination": "observationAbout"
+        }
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 300.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 250.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2022",
+          "value": 90.0,
+          "unit": "USDollar"
+        }
+      ],
+      "other": [
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "observationAbout": "country/KEN",
+          "time_period": "2022",
+          "value": 120000.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "observationAbout": "country/KEN",
+          "time_period": "2023",
+          "value": 125000.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "observationAbout": "country/NGA",
+          "time_period": "2022",
+          "value": 400000.0,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 0.25,
+          "unit": "Percent"
+        },
+        {
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 0.2,
+          "unit": "Percent"
+        }
+      ]
+    },
+    {
+      "name": "share-of-across-members",
+      "description": "With no second reading, each member of by gets its share of the total across every member in the same year: donors giving 40 and 60 get 40 and 60 per cent. A donor's rows to several recipients add up first.",
+      "verb": "share_of",
+      "arguments": {
+        "by": [
+          "origin"
+        ]
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "origin": "country/DEU",
+          "destination": "country/ETH",
+          "time_period": "2024",
+          "value": 40.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "origin": "country/FRA",
+          "destination": "country/ETH",
+          "time_period": "2024",
+          "value": 60.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "origin": "country/DEU",
+          "destination": "country/ETH",
+          "time_period": "2023",
+          "value": 30.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "origin": "country/FRA",
+          "destination": "country/ETH",
+          "time_period": "2023",
+          "value": 10.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "origin": "country/FRA",
+          "destination": "country/SOM",
+          "time_period": "2023",
+          "value": 10.0,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "origin": "country/DEU",
+          "time_period": "2024",
+          "value": 40.0,
+          "unit": "Percent"
+        },
+        {
+          "origin": "country/FRA",
+          "time_period": "2024",
+          "value": 60.0,
+          "unit": "Percent"
+        },
+        {
+          "origin": "country/DEU",
+          "time_period": "2023",
+          "value": 60.0,
+          "unit": "Percent"
+        },
+        {
+          "origin": "country/FRA",
+          "time_period": "2023",
+          "value": 40.0,
+          "unit": "Percent"
+        }
+      ]
+    },
+    {
+      "name": "join-long-format",
+      "description": "join returns both readings' matched rows in long format, one row per side, told apart by stat_var, each side keeping its own unit, the key named as data names it.",
+      "verb": "join",
+      "arguments": {
+        "on": {
+          "destination": "observationAbout"
+        }
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 300.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 250.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2022",
+          "value": 90.0,
+          "unit": "USDollar"
+        }
+      ],
+      "other": [
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "observationAbout": "country/KEN",
+          "time_period": "2022",
+          "value": 120000.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "observationAbout": "country/KEN",
+          "time_period": "2023",
+          "value": 125000.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "observationAbout": "country/NGA",
+          "time_period": "2022",
+          "value": 400000.0,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 300.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 120000.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 250.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_EconomicActivity_GrossNationalIncome",
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 125000.0,
+          "unit": "USDollar"
+        }
+      ]
+    },
+    {
+      "name": "compare-data-minus-other",
+      "description": "compare gives data minus other for each paired member and period both hold, in the unit both share.",
+      "verb": "compare",
+      "arguments": {
+        "on": {
+          "destination": "observationAbout"
+        }
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 300.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 250.0,
+          "unit": "USDollar"
+        }
+      ],
+      "other": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_NetDisbursement",
+          "observationAbout": "country/KEN",
+          "time_period": "2022",
+          "value": 280.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_NetDisbursement",
+          "observationAbout": "country/KEN",
+          "time_period": "2023",
+          "value": 265.5,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 20.0,
+          "unit": "USDollar"
+        },
+        {
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": -15.5,
+          "unit": "USDollar"
+        }
+      ]
+    },
+    {
+      "name": "sum-of-paired",
+      "description": "sum_of adds the paired rows of two readings over the periods both hold, in the unit both share.",
+      "verb": "sum_of",
+      "arguments": {
+        "on": {
+          "destination": "observationAbout"
+        }
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 300.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 250.0,
+          "unit": "USDollar"
+        }
+      ],
+      "other": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_NetDisbursement",
+          "observationAbout": "country/KEN",
+          "time_period": "2022",
+          "value": 280.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_NetDisbursement",
+          "observationAbout": "country/KEN",
+          "time_period": "2023",
+          "value": 265.5,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 580.0,
+          "unit": "USDollar"
+        },
+        {
+          "destination": "country/KEN",
+          "time_period": "2023",
+          "value": 515.5,
+          "unit": "USDollar"
+        }
+      ]
+    },
+    {
+      "name": "growth-as-a-fraction",
+      "description": "A relative growth is a fraction in the value column, 0.25 for 25 per cent, with no unit, its period the window as a span. Nigeria has no 2018 value, so it has no growth.",
+      "verb": "growth",
+      "arguments": {
+        "by": [
+          "destination"
+        ],
+        "window": [
+          "2018",
+          "2022"
+        ]
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2018",
+          "value": 200.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 250.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2018",
+          "value": 80.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2022",
+          "value": 70.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/NGA",
+          "time_period": "2022",
+          "value": 50.0,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2018/2022",
+          "value": 0.25,
+          "unit": null
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2018/2022",
+          "value": -0.125,
+          "unit": null
+        }
+      ]
+    },
+    {
+      "name": "growth-as-an-amount",
+      "description": "An absolute growth is the change in the input's own unit.",
+      "verb": "growth",
+      "arguments": {
+        "by": [
+          "destination"
+        ],
+        "window": [
+          "2018",
+          "2022"
+        ],
+        "change": "absolute"
+      },
+      "data": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2018",
+          "value": 200.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2022",
+          "value": 250.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2018",
+          "value": 80.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2022",
+          "value": 70.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/NGA",
+          "time_period": "2022",
+          "value": 50.0,
+          "unit": "USDollar"
+        }
+      ],
+      "rows": [
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/KEN",
+          "time_period": "2018/2022",
+          "value": 50.0,
+          "unit": "USDollar"
+        },
+        {
+          "stat_var": "dcid:Amount_FinancialFlow_ODA_Disbursement",
+          "destination": "country/GHA",
+          "time_period": "2018/2022",
+          "value": -10.0,
+          "unit": "USDollar"
+        }
+      ]
+    }
+  ]
+}

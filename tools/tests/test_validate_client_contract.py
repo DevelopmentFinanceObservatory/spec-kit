@@ -942,6 +942,20 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "refs/ref-without-party-totals.json: member 0 records rendering",
         ),
         (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0]["roots"][0].update(
+                content_version="cv_" + "0" * 32
+            ),
+            "member 0 root 0 is no member fetch-spec-known-sentence serves",
+        ),
+        (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0]["roots"][0]["rendering"].pop(
+                "without_party_totals"
+            ),
+            "refs/ref-derived-member.json: member 0 root 0 records rendering",
+        ),
+        (
             "rules/key-format.json",
             lambda doc: doc["vectors"].append(doc["vectors"][0]),
             "vector 'secret-key-passes' repeats",
@@ -1867,6 +1881,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "ref-without-scenario",
         "ref-parts-not-served",
         "ref-rendering-not-posted",
+        "ref-derived-root-not-served",
+        "ref-derived-root-rendering-not-posted",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",

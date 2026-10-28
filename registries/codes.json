@@ -2,6 +2,27 @@
   "format_version": 1,
   "entries": [
     {
+      "code": "allowance_exhausted",
+      "classification": "refusal",
+      "definition": "The caller has spent its daily allowance for this kind of write, shares or pins, so the write is refused until the allowance resets, which the response's Retry-After header names.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 429
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 429
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "alternates_unevaluated",
       "classification": "warning",
       "definition": "An alternate reading of the question that passed admission was not evaluated because the presence read its default scope needs did not complete (no worker free, an upstream failure, or a timeout). The elected answer is served, a near-neighbour tie with that reading stays stated, the message states the cause in plain words, and the response is not cached.",
@@ -3641,6 +3662,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "rolling_populations_differ",
+      "classification": "refusal",
+      "definition": "The rolling steps of one analysis recipe count the latest period over different populations of series, so the recipe is refused before it runs, whether or not the periods they would settle on agree.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "rollup_not_summable",
       "classification": "refusal",
       "definition": "The requested groupby roll-up fails summability or one of its preconditions.",
@@ -3870,6 +3907,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "several_members",
+      "classification": "refusal",
+      "definition": "An analysis step takes one reading for each input, and an input names a dataset that holds several.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "shape_mismatch",
       "classification": "refusal",
       "definition": "A spec-resubmit's definition names a different shape_id than its base. A shape change is a new construction and must be posted without a base.",
@@ -3884,6 +3937,22 @@
           ],
           "channel": "problem_details",
           "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_not_replaceable",
+      "classification": "refusal",
+      "definition": "A replace names a snapshot share, whose cards are fixed for good. Only a live share takes new cards.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 409
         }
       ],
       "lifecycle": "active"
@@ -5203,6 +5272,38 @@
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "write_token_invalid",
+      "classification": "refusal",
+      "definition": "A replace or delete of a share carries a write token other than the share's, or names a share created without one, which no token can change.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "write_token_required",
+      "classification": "refusal",
+      "definition": "A replace or delete of a share carries no write token.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 403
         }

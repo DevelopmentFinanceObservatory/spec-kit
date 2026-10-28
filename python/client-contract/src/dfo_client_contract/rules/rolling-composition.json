@@ -1,0 +1,530 @@
+{
+  "format_version": 1,
+  "rule": "rolling-composition",
+  "vectors": [
+    {
+      "name": "one-rolling-step",
+      "description": "One rolling step takes the newest period at least half of every population's series hold: Kenya alone holds 2024, so 2023.",
+      "series": [
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/NGA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {}
+            }
+          ]
+        }
+      ],
+      "period": "2023"
+    },
+    {
+      "name": "two-steps-one-population",
+      "description": "Two rolling steps that state the same populations, however they list them, share one latest period.",
+      "series": [
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/NGA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {
+                "destination": [
+                  "country/KEN",
+                  "country/GHA"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "step": "rank",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {
+                "destination": [
+                  "country/GHA",
+                  "country/KEN"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "period": "2024"
+    },
+    {
+      "name": "one-population-per-root",
+      "description": "A tree over two roots counts the latest period over both: each population must hold it.",
+      "series": [
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/NGA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {}
+            },
+            {
+              "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+              "bindings": {}
+            }
+          ]
+        },
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+              "bindings": {}
+            },
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {}
+            }
+          ]
+        }
+      ],
+      "period": "2023"
+    },
+    {
+      "name": "same-year-other-series-refused",
+      "description": "Two rolling steps over different series are refused even when each would settle on the same year, 2024 here, so one latest period is never counted twice.",
+      "series": [
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/NGA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {
+                "destination": [
+                  "country/KEN",
+                  "country/GHA"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "step": "rank",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {
+                "destination": [
+                  "country/KEN",
+                  "country/NGA"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "error": "rolling_populations_differ"
+    },
+    {
+      "name": "other-year-refused",
+      "description": "Two rolling steps over different populations that would settle on different years are refused.",
+      "series": [
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/NGA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {}
+            }
+          ]
+        },
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+              "bindings": {}
+            }
+          ]
+        }
+      ],
+      "error": "rolling_populations_differ"
+    },
+    {
+      "name": "empty-population-unresolved",
+      "description": "A population no series falls in names no latest period.",
+      "series": [
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+          "coordinates": {
+            "destination": "country/NGA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/KEN"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "spec_id": "spec_1a3c5e7f9b2d4f6a8c0e2b4d6f8a0c3e",
+          "coordinates": {
+            "observationAbout": "country/GHA"
+          },
+          "periods": [
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "step": "growth",
+          "population": [
+            {
+              "spec_id": "spec_6f0c2a9d4b7e1f3a5c8d0b2e4f6a8c1d",
+              "bindings": {
+                "destination": [
+                  "country/SOM"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "error": "rolling_anchor_unresolved"
+    }
+  ]
+}

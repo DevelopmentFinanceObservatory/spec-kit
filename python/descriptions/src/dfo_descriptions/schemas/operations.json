@@ -17,25 +17,42 @@
     },
     {
       "op": "sum",
+      "verb": "sum_of",
       "kind": "analysis",
       "input": "roles",
-      "roles": ["left", "right"],
+      "roles": [
+        "left",
+        "right"
+      ],
+      "arguments": {
+        "data": "left",
+        "other": "right",
+        "on": "Pairs each role of `data` with the role of `other` that holds the same entities, a role to a role, or names the same role on both sides as a list. Left out, each side is one series."
+      },
       "policy": "sum_of_intersect_periods",
       "new_variable": true,
       "unit": {
         "rule": "same_as_input",
         "text": "The unit both sides share."
       },
+      "output": {
+        "shape": "per_key_and_period",
+        "text": "One row for each paired key and period both sides hold, its value `data` plus `other`, its keys named as `data` names them."
+      },
       "coverage": null,
       "left_out": [
         {
           "reason": "period_unmatched",
-          "of": ["periods"],
+          "of": [
+            "periods"
+          ],
           "text": "Periods one side reports and the other does not, so their total is unknown."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         }
       ],
@@ -43,40 +60,65 @@
     },
     {
       "op": "quotient",
+      "verb": "quotient_of",
       "kind": "analysis",
       "input": "roles",
-      "roles": ["numerator", "denominator"],
+      "roles": [
+        "numerator",
+        "denominator"
+      ],
+      "arguments": {
+        "data": "numerator",
+        "other": "denominator",
+        "on": "Pairs each role of `data` with the role of `other` that holds the same entities, a role to a role, or names the same role on both sides as a list."
+      },
       "policy": "quotient_of_intersect_periods",
       "new_variable": true,
       "unit": {
         "rule": "composed",
         "text": "The numerator's unit per the denominator's."
       },
+      "output": {
+        "shape": "per_key_and_period",
+        "text": "One row for each numerator key and period the denominator also holds, its value `data` divided by `other`."
+      },
       "coverage": "period_coverage",
       "left_out": [
         {
           "reason": "unmatched_key",
-          "of": ["entities"],
+          "of": [
+            "entities"
+          ],
           "text": "Numerator entities with no denominator."
         },
         {
           "reason": "period_unmatched",
-          "of": ["entities", "entity_periods"],
+          "of": [
+            "entities",
+            "entity_periods"
+          ],
           "text": "Entities that share no period with their denominator, or values in periods the other side lacks."
         },
         {
           "reason": "zero_denominator",
-          "of": ["entities", "entity_periods"],
+          "of": [
+            "entities",
+            "entity_periods"
+          ],
           "text": "Entities, or values, whose denominator sums to zero."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         },
         {
           "reason": "party_total",
-          "of": ["pooled_entities"],
+          "of": [
+            "pooled_entities"
+          ],
           "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
         }
       ],
@@ -84,30 +126,51 @@
     },
     {
       "op": "share",
+      "verb": "share_of",
       "kind": "analysis",
       "input": "roles",
-      "roles": ["numerator", "denominator"],
+      "roles": [
+        "numerator",
+        "denominator"
+      ],
+      "arguments": {
+        "data": "numerator",
+        "other": "denominator",
+        "on": "Pairs each role of `data` with the role of `other` that holds the same entities, a role to a role, or names the same role on both sides as a list. With no `other`, each member of `by` is divided by the total across every member of `by` in the same period."
+      },
       "policy": "share_of_intersect_periods",
       "new_variable": true,
       "unit": {
         "rule": "percent",
-        "text": "Per cent."
+        "ref": "Percent",
+        "text": "Per cent, under the unit `Percent`."
+      },
+      "output": {
+        "shape": "per_key_and_period",
+        "text": "One row for each key and period, its value 100 times `data` divided by `other`."
       },
       "coverage": "period_coverage",
       "left_out": [
         {
           "reason": "period_unmatched",
-          "of": ["periods", "entity_periods"],
+          "of": [
+            "periods",
+            "entity_periods"
+          ],
           "text": "Periods, or values, one side reports and the other does not."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         },
         {
           "reason": "party_total",
-          "of": ["pooled_entities"],
+          "of": [
+            "pooled_entities"
+          ],
           "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
         }
       ],
@@ -115,6 +178,7 @@
     },
     {
       "op": "growth",
+      "verb": "growth",
       "kind": "analysis",
       "input": "single",
       "roles": [],
@@ -122,28 +186,40 @@
       "new_variable": false,
       "unit": {
         "rule": "same_as_input_or_dimensionless",
-        "text": "The input's unit for an absolute change, a dimensionless ratio for a relative one."
+        "text": "The input's unit for an absolute change; none for a relative one, whose value is a fraction."
+      },
+      "output": {
+        "shape": "per_member_over_window",
+        "text": "One row for each member holding a value at both ends of the window, its period the window as a span such as `2018/2022`, its value the change: a fraction for a relative change, 0.25 for 25 per cent, and an amount in the input's unit for an absolute one."
       },
       "coverage": null,
       "left_out": [
         {
           "reason": "endpoint_missing",
-          "of": ["entities"],
+          "of": [
+            "entities"
+          ],
           "text": "Entities with no value in the start or the end period."
         },
         {
           "reason": "zero_or_sign_crossing_base",
-          "of": ["entities"],
+          "of": [
+            "entities"
+          ],
           "text": "Entities whose base is zero or changes sign, so a relative change is undefined."
         },
         {
           "reason": "non_finite",
-          "of": ["entities"],
+          "of": [
+            "entities"
+          ],
           "text": "Entities whose change overflows to a non-finite value."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         }
       ],
@@ -151,6 +227,7 @@
     },
     {
       "op": "rank",
+      "verb": "rank",
       "kind": "analysis",
       "input": "single",
       "roles": [],
@@ -160,16 +237,24 @@
         "rule": "same_as_input_or_none",
         "text": "The input's unit; none for a per-period ranking without a limit, whose values are rank positions."
       },
+      "output": {
+        "shape": "ranked_members",
+        "text": "One row for each ranked member, or each member and period for a ranking per period, its value the measured value, or the rank position for a ranking per period without a limit."
+      },
       "coverage": "entity_coverage",
       "left_out": [
         {
           "reason": "party_total",
-          "of": ["pooled_entities"],
+          "of": [
+            "pooled_entities"
+          ],
           "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         }
       ],
@@ -177,6 +262,7 @@
     },
     {
       "op": "aggregate",
+      "verb": "aggregate",
       "kind": "analysis",
       "input": "single",
       "roles": [],
@@ -186,16 +272,24 @@
         "rule": "same_as_input",
         "text": "The input's unit."
       },
+      "output": {
+        "shape": "per_key_and_period",
+        "text": "One row for each key and period, its value the reduction of the rows it pools."
+      },
       "coverage": "period_coverage",
       "left_out": [
         {
           "reason": "party_total",
-          "of": ["pooled_entities"],
+          "of": [
+            "pooled_entities"
+          ],
           "text": "Flow parties of a pooled role that total other parties of it, left out so nothing counts twice; one entry per pooled role, counting its distinct parties across the step's inputs."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         }
       ],
@@ -203,6 +297,7 @@
     },
     {
       "op": "filter",
+      "verb": "filter",
       "kind": "analysis",
       "input": "single",
       "roles": [],
@@ -212,31 +307,52 @@
         "rule": "same_as_input",
         "text": "The input's unit."
       },
+      "output": {
+        "shape": "input_rows",
+        "text": "The input's rows that meet the predicates, unchanged."
+      },
       "coverage": null,
       "left_out": [],
       "description": "Keeps the values that meet the caller's predicates. What the predicates drop is the caller's selection and stays in the parameters."
     },
     {
       "op": "compare",
+      "verb": "compare",
       "kind": "analysis",
       "input": "roles",
-      "roles": ["left", "right"],
+      "roles": [
+        "left",
+        "right"
+      ],
+      "arguments": {
+        "data": "right",
+        "other": "left",
+        "on": "Pairs each role of `data` with the role of `other` that holds the same entities, a role to a role, or names the same role on both sides as a list. Left out, each side is one series."
+      },
       "policy": "compare_intersect_periods",
       "new_variable": true,
       "unit": {
         "rule": "same_as_input",
         "text": "The unit both sides share."
       },
+      "output": {
+        "shape": "per_key_and_period",
+        "text": "One row for each paired key and period both sides hold, its value `data` minus `other`, its keys named as `data` names them. `data` fills the `right` role, since the step subtracts the left series from the right."
+      },
       "coverage": null,
       "left_out": [
         {
           "reason": "period_unmatched",
-          "of": ["periods"],
+          "of": [
+            "periods"
+          ],
           "text": "Periods one side reports and the other does not."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         }
       ],
@@ -244,25 +360,42 @@
     },
     {
       "op": "join",
+      "verb": "join",
       "kind": "analysis",
       "input": "roles",
-      "roles": ["left", "right"],
+      "roles": [
+        "left",
+        "right"
+      ],
+      "arguments": {
+        "data": "left",
+        "other": "right",
+        "on": "Pairs each role of `data` with the role of `other` that holds the same entities, a role to a role, or names the same role on both sides as a list. Left out, the roles both readings hold under one name."
+      },
       "policy": "join_inner",
       "new_variable": false,
       "unit": {
         "rule": "per_side",
         "text": "Each side keeps its own unit."
       },
+      "output": {
+        "shape": "long_by_stat_var",
+        "text": "Two rows for each paired key and period both readings hold, one from each side, told apart by `stat_var`, each keeping its own value and unit, the key named as `data` names it."
+      },
       "coverage": null,
       "left_out": [
         {
           "reason": "unmatched_key",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Keys and periods one side holds and the other does not."
         },
         {
           "reason": "unit_unbound",
-          "of": ["entity_periods"],
+          "of": [
+            "entity_periods"
+          ],
           "text": "Values that declare no unit."
         }
       ],
@@ -328,12 +461,17 @@
       "left_out": [
         {
           "reason": "currency_unmapped",
-          "of": ["entities"],
+          "of": [
+            "entities"
+          ],
           "text": "Entities no single national currency names, in a conversion into each entity's own currency."
         },
         {
           "reason": "deflator_missing",
-          "of": ["entities", "entity_periods"],
+          "of": [
+            "entities",
+            "entity_periods"
+          ],
           "text": "Entities with no deflator in the base year, or values in years the deflator table lacks."
         }
       ],

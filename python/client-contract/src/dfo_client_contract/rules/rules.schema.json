@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/rules/rules.schema.json",
   "title": "Client rule vectors",
-  "description": "One file per rule, each holding the vectors a client's implementation of that rule must reproduce. rules/README.md states each rule.",
+  "description": "One file per rule, each holding the vectors an implementation of that rule must reproduce: a client's for the client rules, DFO's for the analysis and publication rules. rules/README.md states each rule.",
   "type": "object",
   "oneOf": [
     {
@@ -34,6 +34,21 @@
     },
     {
       "$ref": "#/$defs/role_keys"
+    },
+    {
+      "$ref": "#/$defs/output_digest"
+    },
+    {
+      "$ref": "#/$defs/output_comparison"
+    },
+    {
+      "$ref": "#/$defs/operation_outputs"
+    },
+    {
+      "$ref": "#/$defs/rolling_composition"
+    },
+    {
+      "$ref": "#/$defs/publication"
     }
   ],
   "$defs": {
@@ -1115,6 +1130,682 @@
                       "minLength": 1
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "output_digest": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "output-digest"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "frame",
+              "document",
+              "digest"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "frame": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "columns",
+                  "rows"
+                ],
+                "properties": {
+                  "columns": {
+                    "description": "The frame's columns in the frame grammar's order.",
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "$ref": "#/$defs/one_line"
+                    }
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "string",
+                          "number",
+                          "null",
+                          "object"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "description": "A frame as docs/frame-grammar-v1.md defines it, each row in its column order."
+              },
+              "document": {
+                "description": "The output digest document, as the UTF-8 text the digest hashes.",
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "string",
+                "pattern": "^out_[0-9a-f]{32}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "output_comparison": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "output-comparison"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "left",
+              "right",
+              "equal",
+              "same_data"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "left": {
+                "$ref": "../dataset-ref.schema.json"
+              },
+              "right": {
+                "$ref": "../dataset-ref.schema.json"
+              },
+              "equal": {
+                "description": "Whether the refs name the same versions, recipes and renderings: `==` in Python, `equals` in TypeScript.",
+                "type": "boolean"
+              },
+              "same_data": {
+                "description": "Whether the refs hold the same output: `same_data` in Python, `sameData` in TypeScript.",
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "operation_outputs": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "operation-outputs"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "description",
+              "verb",
+              "arguments",
+              "data",
+              "rows"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "verb": {
+                "enum": [
+                  "share_of",
+                  "join",
+                  "compare",
+                  "sum_of",
+                  "growth"
+                ]
+              },
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {
+                  "on": {
+                    "description": "Each role of data, to the role of other it pairs with.",
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "by": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "window": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}$"
+                    }
+                  },
+                  "change": {
+                    "enum": [
+                      "relative",
+                      "absolute"
+                    ]
+                  }
+                }
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "time_period",
+                    "value",
+                    "unit"
+                  ],
+                  "properties": {
+                    "stat_var": {
+                      "type": "string",
+                      "pattern": "^dcid:."
+                    },
+                    "time_period": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": [
+                        "string",
+                        "number",
+                        "null",
+                        "object"
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The rows of the first reading, each its frame row by column name."
+              },
+              "other": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "time_period",
+                    "value",
+                    "unit"
+                  ],
+                  "properties": {
+                    "stat_var": {
+                      "type": "string",
+                      "pattern": "^dcid:."
+                    },
+                    "time_period": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": [
+                        "string",
+                        "number",
+                        "null",
+                        "object"
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The rows of the second reading, for an operation that takes one."
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "time_period",
+                    "value",
+                    "unit"
+                  ],
+                  "properties": {
+                    "stat_var": {
+                      "type": "string",
+                      "pattern": "^dcid:."
+                    },
+                    "time_period": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": [
+                        "string",
+                        "number",
+                        "null",
+                        "object"
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The output rows, in any order. A row leaves out stat_var when the operation writes a variable of its own."
+              }
+            }
+          }
+        }
+      }
+    },
+    "rolling_composition": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "rolling-composition"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "description",
+              "series",
+              "steps"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "series": {
+                "description": "Every series of the roots, by its root's spec_id and coordinates, with the periods it holds a row at.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "spec_id",
+                    "coordinates",
+                    "periods"
+                  ],
+                  "properties": {
+                    "spec_id": {
+                      "type": "string",
+                      "pattern": "^spec_[0-9a-f]{32}$"
+                    },
+                    "coordinates": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "periods": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}$"
+                      }
+                    }
+                  }
+                }
+              },
+              "steps": {
+                "description": "The rolling steps of one recipe tree, each with the populations it counts the latest period over.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "step",
+                    "population"
+                  ],
+                  "properties": {
+                    "step": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "population": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "spec_id"
+                        ],
+                        "properties": {
+                          "spec_id": {
+                            "type": "string",
+                            "pattern": "^spec_[0-9a-f]{32}$"
+                          },
+                          "bindings": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "array",
+                              "minItems": 1,
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "period": {
+                "type": "string",
+                "pattern": "^[0-9]{4}$"
+              },
+              "error": {
+                "enum": [
+                  "rolling_populations_differ",
+                  "rolling_anchor_unresolved"
+                ]
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "period"
+                ]
+              },
+              {
+                "required": [
+                  "error"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "publication": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "publication"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "description",
+              "steps",
+              "outcomes"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "op",
+                        "share",
+                        "latest",
+                        "cards"
+                      ],
+                      "properties": {
+                        "op": {
+                          "const": "share"
+                        },
+                        "share": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "latest": {
+                          "type": "boolean"
+                        },
+                        "cards": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^cmp_[0-9a-z]+$"
+                          }
+                        },
+                        "tokenless": {
+                          "description": "The share holds no write token, as a guest's share migrates.",
+                          "const": true
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "op",
+                        "share",
+                        "cards"
+                      ],
+                      "properties": {
+                        "op": {
+                          "const": "replace"
+                        },
+                        "share": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "cards": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^cmp_[0-9a-z]+$"
+                          }
+                        },
+                        "write_token": {
+                          "description": "`held` for the token the share's creation returned, `other` for another; absent sends none.",
+                          "enum": [
+                            "held",
+                            "other"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "op",
+                        "share"
+                      ],
+                      "properties": {
+                        "op": {
+                          "const": "unshare"
+                        },
+                        "share": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "write_token": {
+                          "description": "`held` for the token the share's creation returned, `other` for another; absent sends none.",
+                          "enum": [
+                            "held",
+                            "other"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "op",
+                        "share"
+                      ],
+                      "properties": {
+                        "op": {
+                          "const": "read"
+                        },
+                        "share": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "outcomes": {
+                "description": "One outcome per step.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "share"
+                      ],
+                      "properties": {
+                        "share": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "latest",
+                            "slots"
+                          ],
+                          "properties": {
+                            "latest": {
+                              "type": "boolean"
+                            },
+                            "slots": {
+                              "type": "array",
+                              "minItems": 1,
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "slot",
+                                  "card"
+                                ],
+                                "properties": {
+                                  "slot": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                  },
+                                  "card": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string",
+                                        "pattern": "^cmp_[0-9a-z]+$"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "removed"
+                      ],
+                      "properties": {
+                        "removed": {
+                          "const": true
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "error"
+                      ],
+                      "properties": {
+                        "error": {
+                          "enum": [
+                            "write_token_required",
+                            "write_token_invalid",
+                            "share_not_replaceable"
+                          ]
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }

@@ -5,7 +5,9 @@
   "description": "The operations a step record can name: for each, its kind, how it takes its inputs, its one fixed policy, whether it writes a new variable, the unit it produces, the coverage it records, and the data gaps it can leave out with what each counts.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["operations"],
+  "required": [
+    "operations"
+  ],
   "properties": {
     "operations": {
       "type": "array",
@@ -35,19 +37,66 @@
         "op": {
           "$ref": "steps.schema.json#/$defs/name"
         },
+        "verb": {
+          "description": "The analysis function a client calls for this operation, such as `share_of` for `share`.",
+          "enum": [
+            "aggregate",
+            "compare",
+            "filter",
+            "growth",
+            "join",
+            "quotient_of",
+            "rank",
+            "share_of",
+            "sum_of"
+          ]
+        },
         "kind": {
           "description": "`retrieval` reads a version; `analysis` is one of the analysis engine's operations; `source_pipeline` is a step the source's pipeline applied before the DFO read the data; `mint_choice` is a choice the DFO made while minting a version; `card_selection` is what a card draws from its version; `card_derivation` is a value a card derives from what it draws.",
-          "enum": ["retrieval", "analysis", "source_pipeline", "mint_choice", "card_selection", "card_derivation"]
+          "enum": [
+            "retrieval",
+            "analysis",
+            "source_pipeline",
+            "mint_choice",
+            "card_selection",
+            "card_derivation"
+          ]
         },
         "input": {
           "description": "`single`: one `input`. `roles`: `inputs` keyed by the names in `roles`. `none`: the step takes no input, since it records a choice inside the version being made.",
-          "enum": ["single", "roles", "none"]
+          "enum": [
+            "single",
+            "roles",
+            "none"
+          ]
         },
         "roles": {
           "type": "array",
           "uniqueItems": true,
           "items": {
             "$ref": "steps.schema.json#/$defs/name"
+          }
+        },
+        "arguments": {
+          "description": "How a client's call fills the roles of an analysis operation that takes inputs by role: `data`, its first reading, and `other`, its second, each name the role it fills, and `on` states how the call pairs the two readings' roles.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "data",
+            "other",
+            "on"
+          ],
+          "properties": {
+            "data": {
+              "$ref": "steps.schema.json#/$defs/name"
+            },
+            "other": {
+              "$ref": "steps.schema.json#/$defs/name"
+            },
+            "on": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "policy": {
@@ -60,10 +109,13 @@
         "unit": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["rule", "text"],
+          "required": [
+            "rule",
+            "text"
+          ],
           "properties": {
             "rule": {
-              "description": "`as_recorded`: the unit the version holds. `same_as_input`: the input's unit, which every input must share. `composed`: the numerator's unit per the denominator's. `percent`: per cent. `same_as_input_or_dimensionless`: the input's unit for an absolute change, a dimensionless ratio for a relative one. `per_side`: each side keeps its own unit. `converted`: the unit converted into. `same_as_input_or_percent`: the input's unit for a difference, per cent for a percent change. `same_as_input_or_none`: the input's unit for a ranking of values, none for an ordinal ranking, whose values are rank positions.",
+              "description": "`as_recorded`: the unit the version holds. `same_as_input`: the input's unit, which every input must share. `composed`: the numerator's unit per the denominator's. `percent`: per cent, 100 times the ratio, under the unit `ref` names. `same_as_input_or_dimensionless`: the input's unit for an absolute change, none for a relative one, whose value is a fraction. `per_side`: each side keeps its own unit. `converted`: the unit converted into. `same_as_input_or_percent`: the input's unit for a difference, per cent for a percent change. `same_as_input_or_none`: the input's unit for a ranking of values, none for an ordinal ranking, whose values are rank positions.",
               "enum": [
                 "as_recorded",
                 "same_as_input",
@@ -76,6 +128,35 @@
                 "same_as_input_or_none"
               ]
             },
+            "ref": {
+              "description": "The unit's graph reference, for a rule that names one unit: `Percent` for `percent`.",
+              "type": "string",
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "output": {
+          "description": "The rows an analysis operation writes. `per_key_and_period`: one row for each key and period. `long_by_stat_var`: one row for each side at each key and period, told apart by `stat_var`. `per_member_over_window`: one row for each member, its period the window as a span. `ranked_members`: one row for each ranked member, or each member and period. `input_rows`: the input's rows that pass.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "shape",
+            "text"
+          ],
+          "properties": {
+            "shape": {
+              "enum": [
+                "per_key_and_period",
+                "long_by_stat_var",
+                "per_member_over_window",
+                "ranked_members",
+                "input_rows"
+              ]
+            },
             "text": {
               "type": "string",
               "minLength": 1
@@ -84,7 +165,11 @@
         },
         "coverage": {
           "description": "`period_coverage`: how many entities each period's total covers. `entity_coverage`: how many periods each ranked entity holds. `null`: none.",
-          "enum": ["period_coverage", "entity_coverage", null]
+          "enum": [
+            "period_coverage",
+            "entity_coverage",
+            null
+          ]
         },
         "left_out": {
           "description": "The data gaps the operation can leave out. A step may name a reason this list lacks.",
@@ -92,7 +177,11 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["reason", "of", "text"],
+            "required": [
+              "reason",
+              "of",
+              "text"
+            ],
             "properties": {
               "reason": {
                 "$ref": "steps.schema.json#/$defs/name"
@@ -103,7 +192,12 @@
                 "minItems": 1,
                 "uniqueItems": true,
                 "items": {
-                  "enum": ["entities", "periods", "entity_periods", "pooled_entities"]
+                  "enum": [
+                    "entities",
+                    "periods",
+                    "entity_periods",
+                    "pooled_entities"
+                  ]
                 }
               },
               "text": {
@@ -117,7 +211,102 @@
           "type": "string",
           "minLength": 1
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "analysis"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "verb",
+              "output"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "verb"
+                  ]
+                },
+                {
+                  "required": [
+                    "output"
+                  ]
+                },
+                {
+                  "required": [
+                    "arguments"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "analysis"
+              },
+              "input": {
+                "const": "roles"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "arguments"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "arguments"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "unit": {
+                "properties": {
+                  "rule": {
+                    "const": "percent"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unit": {
+                "required": [
+                  "ref"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "unit": {
+                "not": {
+                  "required": [
+                    "ref"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

@@ -7,7 +7,8 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
-# The rules under `rules/`, each a file of vectors named after the rule.
+# The rules under `rules/`, each a file of vectors named after the rule: the
+# client rules, then the analysis and publication rules DFO applies.
 RULES = (
     "key-format",
     "credentials-path",
@@ -19,6 +20,11 @@ RULES = (
     "reading-order",
     "client-identity",
     "role-keys",
+    "output-digest",
+    "output-comparison",
+    "operation-outputs",
+    "rolling-composition",
+    "publication",
 )
 
 

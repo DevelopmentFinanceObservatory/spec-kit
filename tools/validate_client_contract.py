@@ -85,12 +85,14 @@ document validates against its schema, then what the schemas cannot express:
   SCENARIOS_BUDGET bytes.
 - Each ref example's file name matches its `name` and gets the verdict it
   states: from `dataset-ref.schema.json`, then from the rules that each
-  member's definition carries its own `spec_id` and that members hold
+  dataset member's definition carries its own `spec_id` and that members hold
   distinct `spec_id`s. A ref example whose ref holds members names the
   recorded `scenario` that serves them, and each member's `spec_id`, `parts`,
   `content_version` and `sentence` are a dataset member's of that scenario,
   and its artifact digest is the digest of a file the scenario downloads.
-  Each member of an example the schema accepts records the rendering the
+  Each root of a derived member is a dataset member's `spec_id` and
+  `content_version` of that scenario. Each member of an example the schema
+  accepts, and each root of a derived one, records the rendering the
   scenario's build of its spec posted.
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once, and each
@@ -3497,7 +3499,7 @@ def _ref_rule(ref: dict[str, Any]) -> str | None:
     seen: set[str] = set()
     for member in ref["members"]:
         spec = member["spec"]
-        if spec["definition"]["spec_id"] != spec["spec_id"]:
+        if "definition" in spec and spec["definition"]["spec_id"] != spec["spec_id"]:
             return "definition_spec_id_mismatch"
         if spec["spec_id"] in seen:
             return "repeated_spec_id"
@@ -3505,12 +3507,19 @@ def _ref_rule(ref: dict[str, Any]) -> str | None:
     return None
 
 
+def _derived(member: Any) -> bool:
+    """Whether a ref member is a derived member, which names its roots."""
+    return isinstance(member, dict) and "roots" in member
+
+
 def _served_by(label: str, record: dict[str, Any]) -> list[str]:
     """Where a ref example's members differ from the members its `scenario`
     serves: a `spec_id` no dataset member of it has, other `parts`, another
     `content_version` or `sentence`, or an artifact digest that is not the
-    digest of a file the scenario downloads. A ref with no members names no
-    scenario."""
+    digest of a file the scenario downloads. A derived member's roots are
+    checked instead, each a dataset member's `spec_id` and `content_version`,
+    since no scenario serves the derived member itself. A ref with no members
+    names no scenario."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     if not isinstance(members, list) or not members:
@@ -3537,6 +3546,14 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
             digests.add(digest_of(path.read_bytes()))
     problems = []
     for index, member in enumerate(members):
+        if _derived(member):
+            problems.extend(
+                f"{label}: member {index} root {position} is no member {name} serves"
+                for position, root in enumerate(read_objects(member, "roots"))
+                if (found := served.get(root.get("spec_id"))) is None
+                or found.get("content_version") != root.get("content_version")
+            )
+            continue
         spec = member.get("spec") if isinstance(member, dict) else None
         found = served.get(spec.get("spec_id") if isinstance(spec, dict) else None)
         if found is None:
@@ -3582,9 +3599,9 @@ def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
-    """Where a ref example's member records a rendering other than the one
-    the build of its spec in its `scenario` posted, since a ref records the
-    rendering its fetch posted."""
+    """Where a ref example's member, or a derived member's root, records a
+    rendering other than the one the build of its spec in its `scenario`
+    posted, since a ref records the rendering its fetch posted."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
@@ -3592,18 +3609,32 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     if not isinstance(members, list) or not isinstance(name, str) or not path.is_file():
         return []  # `_served_by` reports a ref that names no scenario
     posted = posted_renderings(_load(path))
-    problems = []
+    read: list[tuple[str, str | None, dict[str, Any] | None]] = []
     for index, member in enumerate(members):
-        spec = read_object(member, "spec")
-        spec_id = read_string(spec, "spec_id")
-        rendering = read_object(read_object(member, "artifact"), "rendering")
-        if spec_id not in posted:
-            problems.append(
-                f"{label}: member {index}'s spec is built by no {name} build"
+        if _derived(member):
+            read.extend(
+                (
+                    f"member {index} root {position}",
+                    read_string(root, "spec_id"),
+                    read_object(root, "rendering"),
+                )
+                for position, root in enumerate(read_objects(member, "roots"))
             )
+        else:
+            read.append(
+                (
+                    f"member {index}",
+                    read_string(read_object(member, "spec"), "spec_id"),
+                    read_object(read_object(member, "artifact"), "rendering"),
+                )
+            )
+    problems = []
+    for where, spec_id, rendering in read:
+        if spec_id not in posted:
+            problems.append(f"{label}: {where}'s spec is built by no {name} build")
         elif rendering != posted[spec_id]:
             problems.append(
-                f"{label}: member {index} records rendering {json.dumps(rendering)}, "
+                f"{label}: {where} records rendering {json.dumps(rendering)}, "
                 f"but {name} posted {json.dumps(posted[spec_id])}"
             )
     return problems
