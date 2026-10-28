@@ -42,6 +42,13 @@
       "coverage": null,
       "left_out": [
         {
+          "reason": "unmatched_key",
+          "of": [
+            "entities"
+          ],
+          "text": "Members of one side with no partner on the other, so their total is unknown."
+        },
+        {
           "reason": "period_unmatched",
           "of": [
             "periods"
@@ -56,7 +63,7 @@
           "text": "Values that declare no unit."
         }
       ],
-      "description": "Adds two single-entity series period by period, over the periods both report."
+      "description": "Adds two series period by period, over the periods both report. Given `on`, it pairs the members of `data` and `other` by role and adds each pair, leaving out a member with no partner."
     },
     {
       "op": "quotient",
@@ -342,6 +349,13 @@
       "coverage": null,
       "left_out": [
         {
+          "reason": "unmatched_key",
+          "of": [
+            "entities"
+          ],
+          "text": "Members of one side with no partner on the other."
+        },
+        {
           "reason": "period_unmatched",
           "of": [
             "periods"
@@ -356,7 +370,7 @@
           "text": "Values that declare no unit."
         }
       ],
-      "description": "Subtracts the left series from the right for each period both report, and writes the difference under a variable of its own. The step records in `sides` the entities each side holds."
+      "description": "Subtracts the left series from the right for each period both report, so a call returns `data` minus `other`, and writes the difference under a variable of its own. Given `on`, it pairs the members of `data` and `other` by role and compares each pair, leaving out a member with no partner. The step records in `sides` the entities each side holds."
     },
     {
       "op": "join",

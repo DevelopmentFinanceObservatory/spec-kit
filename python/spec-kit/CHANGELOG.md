@@ -71,6 +71,11 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `write_token_required` and `write_token_invalid` (403 on
   `presentation.shares`). The registry schema adds the `datasets.analysis` and
   `presentation.shares` endpoints.
+- `registries/codes.json` and its bundled mirror register on `datasets.analysis`
+  (422) the 34 refusal codes the analysis engine serves, among them
+  `unit_heterogeneous`, `cross_frame_unit_mismatch`, `join_output_collision`,
+  `rolling_anchor_unresolved` and the paired-step codes `compare_no_key_matched`
+  and `sum_of_no_key_matched`.
 
 ### Changed
 
