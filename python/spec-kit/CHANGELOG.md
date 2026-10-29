@@ -252,6 +252,38 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mirror: a 422 refusal on `search.resolve` for a `dataset_resubmit` whose
   identity names an open role, when the StatVars the definition elects declare
   no role on that axis, so the definition cannot give one series per member.
+- Codes `tool_not_found`, `frame_ref_incomplete`, `frame_not_held`,
+  `frame_expired`, `rolling_reanchor_unavailable`, `provenance_unavailable`
+  and `licence_not_redistributable` in `registries/codes.json` and its bundled
+  mirror, all refusals. The first five are refusals an MCP tool result
+  carries, on endpoint `mcp.tools` and channel `mcp_refusal`: an unknown or
+  removed tool, a frame reference that lacks its content version, a frame
+  never stored, a frame aged out of the working tier, and a derived frame that
+  follows the latest data and has no stored computation tree to replay under a
+  shared period. `provenance_unavailable` (422) and
+  `licence_not_redistributable` (403) are on `datasets.exports`, the latter
+  also on `datasets.export_link`: an export of a derived frame with no stored
+  recipe, and an export whose source licence forbids redistribution.
+- Endpoint `mcp.tools` and channel `mcp_refusal` in
+  `schemas/registry/code-registry.schema.json`, its README and
+  `tools/validate_registry.py`: the refusal envelope of an MCP tool result
+  (dfo-ai data-mcp, analysis-mcp, presentation-mcp). A mapping on it carries no
+  `http_status`, and `mcp_refusal` is a refusal-only channel.
+- Endpoints `datasets.exports` and `datasets.export_link` in
+  `schemas/registry/code-registry.schema.json` and its README.
+  `datasets.exports` is `POST /api/datasets/exports`, which prepares an export
+  file of a stored frame. It carries `request_invalid` (400), `spec_not_found`
+  (404), `snapshot_not_found` (404), `snapshot_revoked` (410),
+  `artifact_expired` (410), `identity_quarantined` (500), `over_ceiling`
+  (422), `provenance_unavailable` (422), `licence_not_redistributable` (403),
+  `allowance_exhausted` (429), `service_unavailable` (503), `internal_error`
+  (500), `capability_unavailable` (501), `excel_limit` (422),
+  `excel_illegal_character` (422), `parquet_size_bound` (422) and
+  `rollup_not_summable` (422). `datasets.export_link` is
+  `GET /api/datasets/exports/{export_id}`, which answers a 302 redirect to the
+  file's download link. It carries `not_found` (404),
+  `licence_not_redistributable` (403), `service_unavailable` (503) and
+  `internal_error` (500).
 - Codes `requested_option_unavailable` and `conflicting_requested_options` in
   `registries/codes.json` and its bundled mirror: 422 refusals on
   `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.

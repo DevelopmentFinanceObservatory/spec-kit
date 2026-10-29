@@ -43,7 +43,7 @@
           "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
         },
         "classification": {
-          "description": "refusal is a request that cannot be answered. It appears in a non-2xx problem-details body, a 200 no_data reason, a 200 unsupported reason, or a 200 no_data response's flagged_match.gate. warning is a diagnostic attached to an otherwise-answered request. It appears in diagnostics.warnings, the SSE stream's terminal done event, a Datasets manifest's warnings array, a Datasets options envelope's warnings array, or a Skills API list or skill body's warnings array.",
+          "description": "refusal is a request that cannot be answered. It appears in an MCP tool result's refusal envelope, in a non-2xx problem-details body, a 200 no_data reason, a 200 unsupported reason, or a 200 no_data response's flagged_match.gate. warning is a diagnostic attached to an otherwise-answered request. It appears in diagnostics.warnings, the SSE stream's terminal done event, a Datasets manifest's warnings array, a Datasets options envelope's warnings array, or a Skills API list or skill body's warnings array.",
           "enum": [
             "refusal",
             "warning"
@@ -117,6 +117,8 @@
             "datasets.refresh",
             "datasets.operations",
             "datasets.analysis",
+            "datasets.exports",
+            "datasets.export_link",
             "graph.node",
             "graph.nodes",
             "graph.members",
@@ -128,7 +130,8 @@
             "platform.codes",
             "skills.list",
             "skills.fetch",
-            "skills.resource"
+            "skills.resource",
+            "mcp.tools"
           ]
         },
         "doors": {
@@ -146,7 +149,7 @@
           }
         },
         "channel": {
-          "description": "problem_details is a non-2xx RFC 9457 body. no_data_reason is the 200 no_data status's `reason`. unsupported_code is the 200 unsupported status's `code`. diagnostics_warning is an entry in the response envelope's diagnostics.warnings. done_event_warning is an entry in the SSE stream's terminal done event, for trailing work that finishes after the response event has shipped. manifest_warning is an entry in a Datasets manifest's warnings array or a Datasets options envelope's warnings array. flagged_match_gate is the failed quality-gate code in a 200 no_data response's `flagged_match.gate`, naming why the nearest real match was flagged in place of a confident answer. skills_warning is an entry in a Skills API list body's or skill body's warnings array. observations_omission_reason is a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series. The Datasets observations body carries the same `omitted` object.",
+          "description": "problem_details is a non-2xx RFC 9457 body. no_data_reason is the 200 no_data status's `reason`. unsupported_code is the 200 unsupported status's `code`. diagnostics_warning is an entry in the response envelope's diagnostics.warnings. done_event_warning is an entry in the SSE stream's terminal done event, for trailing work that finishes after the response event has shipped. manifest_warning is an entry in a Datasets manifest's warnings array or a Datasets options envelope's warnings array. flagged_match_gate is the failed quality-gate code in a 200 no_data response's `flagged_match.gate`, naming why the nearest real match was flagged in place of a confident answer. skills_warning is an entry in a Skills API list body's or skill body's warnings array. observations_omission_reason is a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series. The Datasets observations body carries the same `omitted` object. mcp_refusal is the refusal envelope an MCP tool result carries, a `code` with a `retry_mode`, a message and a `fix`, which has no HTTP status.",
           "enum": [
             "problem_details",
             "no_data_reason",
@@ -156,7 +159,8 @@
             "manifest_warning",
             "flagged_match_gate",
             "skills_warning",
-            "observations_omission_reason"
+            "observations_omission_reason",
+            "mcp_refusal"
           ]
         },
         "http_status": {
@@ -261,6 +265,8 @@
                   "datasets.refresh",
                   "datasets.operations",
                   "datasets.analysis",
+                  "datasets.exports",
+                  "datasets.export_link",
                   "graph.node",
                   "graph.nodes",
                   "graph.members",
@@ -272,7 +278,8 @@
                   "platform.codes",
                   "skills.list",
                   "skills.fetch",
-                  "skills.resource"
+                  "skills.resource",
+                  "mcp.tools"
                 ]
               }
             },

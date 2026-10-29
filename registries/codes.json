@@ -23,6 +23,11 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 429
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 429
         }
       ],
       "lifecycle": "active"
@@ -76,6 +81,11 @@
         },
         {
           "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 410
         }
@@ -327,6 +337,11 @@
         },
         {
           "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 501
         }
@@ -1438,6 +1453,11 @@
           "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1462,6 +1482,11 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -1741,6 +1766,36 @@
       "lifecycle": "active"
     },
     {
+      "code": "frame_expired",
+      "classification": "refusal",
+      "definition": "The frame a reference names was stored and has since aged out of the working tier, so none of its artifacts remains servable.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "frame_not_held",
+      "classification": "refusal",
+      "definition": "The frame a reference names was never stored here, or the stored identity and version do not belong together.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "frame_not_refreshable",
       "classification": "refusal",
       "definition": "The named frame is a derived frame, published by an analysis service from its own computation. No dataset definition stands behind it, so it cannot be rebuilt here on current data; the service that computed it replays it.",
@@ -1752,6 +1807,21 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "frame_ref_incomplete",
+      "classification": "refusal",
+      "definition": "A frame reference carries a derived-frame id without its content version, or an id that is not a dataset id, so the server cannot fetch the frame by itself.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1927,6 +1997,11 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -2018,6 +2093,16 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.export_link",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -2092,6 +2177,27 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "licence_not_redistributable",
+      "classification": "refusal",
+      "definition": "The licence of a source behind the requested frame forbids redistribution, so no export file is served.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 403
+        },
+        {
+          "endpoint": "datasets.export_link",
+          "channel": "problem_details",
+          "http_status": 403
         }
       ],
       "lifecycle": "active"
@@ -2486,6 +2592,11 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.export_link",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -3058,6 +3169,11 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3087,6 +3203,11 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3343,6 +3464,22 @@
         {
           "endpoint": "datasets.snapshot",
           "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "provenance_unavailable",
+      "classification": "refusal",
+      "definition": "A derived frame has no stored recipe, so its processing steps and input versions cannot be listed for an export.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3889,6 +4026,11 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -4276,6 +4418,21 @@
       "lifecycle": "active"
     },
     {
+      "code": "rolling_reanchor_unavailable",
+      "classification": "refusal",
+      "definition": "A derived frame whose period follows the latest data cannot be computed again under the latest period shared with the other frames in the request, because its stored recipe has no computation tree to replay.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "rollup_not_summable",
       "classification": "refusal",
       "definition": "The requested groupby roll-up fails summability or one of its preconditions.",
@@ -4300,6 +4457,11 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -4513,6 +4675,16 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.export_link",
           "channel": "problem_details",
           "http_status": 503
         }
@@ -5060,6 +5232,11 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -5124,6 +5301,11 @@
         },
         {
           "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 410
         }
@@ -5364,6 +5546,11 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -5593,6 +5780,21 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 504
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "tool_not_found",
+      "classification": "refusal",
+      "definition": "The request names a tool the server does not offer, either because the name is unknown or because the tool was removed from the public list in favour of another.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
