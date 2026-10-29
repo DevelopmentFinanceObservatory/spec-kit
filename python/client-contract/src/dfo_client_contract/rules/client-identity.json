@@ -2,7 +2,7 @@
   "format_version": 1,
   "rule": "client-identity",
   "header": "X-DFO-Client",
-  "pattern": "^(dfo-python|dfo-ts)/[0-9A-Za-z.+-]+ \\(([A-Za-z]+ [0-9]+\\.[0-9]+|browser)\\)$",
+  "pattern": "^(dfo-python|dfo-ts)/[0-9A-Za-z.+-]+ \\(([A-Za-z]+ [0-9]+\\.[0-9]+|browser|other)\\)$",
   "vectors": [
     {
       "name": "python-cpython",
@@ -92,6 +92,15 @@
         "name": "browser"
       },
       "value": "dfo-ts/0.1.0 (browser)"
+    },
+    {
+      "name": "ts-other-runtime",
+      "client": "dfo-ts",
+      "version": "0.1.0",
+      "runtime": {
+        "name": "other"
+      },
+      "value": "dfo-ts/0.1.0 (other)"
     },
     {
       "name": "ts-pre-release-package",

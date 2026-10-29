@@ -19,6 +19,7 @@ RULES = (
     "reading-order",
     "client-identity",
     "role-keys",
+    "file-selector",
 )
 
 

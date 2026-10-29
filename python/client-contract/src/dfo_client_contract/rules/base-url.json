@@ -172,6 +172,84 @@
       "env": {},
       "source": "argument",
       "url": "https://developmentfinance.org/api/v1"
+    },
+    {
+      "name": "encoded-dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/%2e%2e/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "mixed-encoded-dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/.%2E/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "encoded-single-dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/%2E/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "backslash-raises",
+      "base_url": "https://developmentfinance.org\\api\\v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "port-out-of-range-raises",
+      "base_url": "https://developmentfinance.org:99999/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "port-zero-raises",
+      "base_url": "https://developmentfinance.org:0/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "port-not-decimal-raises",
+      "base_url": "https://developmentfinance.org:abc/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "empty-port-raises",
+      "base_url": "https://developmentfinance.org:/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "highest-port-is-valid",
+      "base_url": "https://developmentfinance.org:65535/api/v1",
+      "env": {},
+      "source": "argument",
+      "url": "https://developmentfinance.org:65535/api/v1"
+    },
+    {
+      "name": "dot-inside-a-segment-is-valid",
+      "base_url": "https://developmentfinance.org/api/v1.%2e",
+      "env": {},
+      "source": "argument",
+      "url": "https://developmentfinance.org/api/v1.%2e"
     }
   ]
 }

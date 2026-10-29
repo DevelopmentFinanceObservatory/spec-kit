@@ -63,14 +63,15 @@ document validates against its schema, then what the schemas cannot express:
   REPLAY_ORIGIN with the recorded origin a response names moved there. A
   dataset's columns are the downloaded files' columns, read with pyarrow
   by `served_table` and ordered by `presented_columns`, which puts the
-  columns whose values vary before those that hold one value, its rows and
+  columns whose values vary, as `same_value` judges cells, before those
+  that hold one value, its rows and
   per-part row counts are left to the Parquet bodies, and each
   download hashes to its artifact's digest or the outcome says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity with the
   entity groups of the roles its build left bound as they were, and each
   build posts the body `build_body` gives for the spec the step builds, its
-  narrowing, its layout and, for a fetch, its party totals, and each Search request the whole body
+  narrowing, its layout and, for a fetch or a mint, its party totals, and each Search request the whole body
   `search_body` gives. A POST carries its body, a refused request repeated is
   a retry only as `may_retry` allows, a record that ends a run of retries
   while `may_retry` holds does not fit, each poll names the operation the
@@ -95,7 +96,9 @@ document validates against its schema, then what the schemas cannot express:
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once, and each
   reading-order vector's `columns` and `rows` are what `presented_rows`
-  gives. A missing or unreadable `rules/reading-order.json` is a problem.
+  gives, and each file-selector vector's `query` is what `selector_query`
+  gives. A missing or unreadable `rules/reading-order.json` or
+  `rules/file-selector.json` is a problem.
 
 It does not import `dfo_client_contract`, whose tests replay
 the rule vectors. `tools/capture_client_contract.py` imports the outcome
@@ -106,6 +109,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import sys
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
@@ -1799,17 +1803,17 @@ OPERATION_FAILED = "operation_failed"
 
 
 def rendering_for(layout: str | None) -> dict[str, Any]:
-    """The build request's `options` for a mint's or an operation's
-    `layout`, long by default."""
+    """The rendering a build posts for `layout`, long by default, with
+    party totals kept: what a resumed operation downloads."""
     return dict(LAYOUT_RENDERINGS[layout or "long"])
 
 
 def fetch_rendering(
     layout: str | None, *, party_totals: bool = False
 ) -> dict[str, Any]:
-    """The build request's `options` for a fetch of an answer or a spec:
-    the layout's rendering, with `without_party_totals` unless the caller
-    keeps party totals."""
+    """The build request's `options` for a fetch of an answer or a spec, or
+    a mint: the layout's rendering, with `without_party_totals` unless the
+    caller keeps party totals."""
     rendering = rendering_for(layout)
     if not party_totals:
         rendering[WITHOUT_PARTY_TOTALS] = True
@@ -1827,6 +1831,29 @@ class ServedTable:
     same: Mapping[str, Any]
 
 
+def same_value(left: Any, right: Any) -> bool:
+    """Whether two cells hold the same value, as the reading-order rule
+    judges it: numbers by value, so 1 and 1.0 are the same, booleans apart
+    from numbers, NaN the same as NaN, null the same as null, and lists and
+    structs item by item."""
+    if isinstance(left, bool) or isinstance(right, bool):
+        return type(left) is type(right) and left == right
+    if isinstance(left, float) and isinstance(right, float):
+        return left == right or (math.isnan(left) and math.isnan(right))
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(map(same_value, left, right))
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            same_value(value, right[key]) for key, value in left.items()
+        )
+    return left == right
+
+
+def _one_value(values: Sequence[Any]) -> bool:
+    """Whether `values` hold one value as `same_value` judges it."""
+    return all(same_value(value, values[0]) for value in values[1:])
+
+
 def table_from_rows(
     columns: Sequence[str], rows: Sequence[Sequence[Any]]
 ) -> ServedTable:
@@ -1834,7 +1861,7 @@ def table_from_rows(
     same = {
         name: rows[0][index]
         for index, name in enumerate(columns)
-        if rows and all(row[index] == rows[0][index] for row in rows)
+        if rows and _one_value([row[index] for row in rows])
     }
     return ServedTable(tuple(columns), len(rows), same)
 
@@ -1856,9 +1883,9 @@ def served_table(data: bytes) -> ServedTable:
         ) from exc
     same = {}
     for name in table.column_names if table.num_rows else ():
-        values = table.column(name).unique()
-        if len(values) == 1:
-            same[name] = values[0].as_py()
+        values = table.column(name).to_pylist()
+        if _one_value(values):
+            same[name] = values[0]
     return ServedTable(tuple(table.column_names), table.num_rows, same)
 
 
@@ -1884,7 +1911,7 @@ def _varies(name: str, tables: Sequence[ServedTable]) -> bool:
         if name in table.columns and name not in table.same:
             return True
         values.append(table.same.get(name))
-    return any(value != values[0] for value in values[1:])
+    return not _one_value(values)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1985,6 +2012,18 @@ def load_reading_columns(package_dir: Path) -> list[list[str]] | None:
         for names in reading
     ):
         return reading
+    return None
+
+
+def load_selector_keys(package_dir: Path) -> list[str] | None:
+    """The query keys `rules/file-selector.json` lists, or None when the file
+    does not hold them, which the validator reports."""
+    try:
+        keys = _load(package_dir / "rules" / "file-selector.json")["query_keys"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if isinstance(keys, list) and keys and all(isinstance(k, str) for k in keys):
+        return keys
     return None
 
 
@@ -2172,16 +2211,25 @@ def digest_of(data: bytes) -> str:
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
-def selector_path(
-    spec_id: str, content_version: str, rendering: Mapping[str, Any]
-) -> str:
-    """The file selector's path for a stored version, its rendering as the
-    query."""
-    query = "&".join(
-        f"{name}={str(value).lower() if isinstance(value, bool) else value}"
-        for name, value in rendering.items()
+def selector_query(rendering: Mapping[str, Any], keys: Sequence[str]) -> str:
+    """The file selector's query for `rendering`, as the file-selector rule
+    builds it: each of `keys` the rendering holds, in that order."""
+    return "&".join(
+        f"{key}={str(rendering[key]).lower()}" for key in keys if key in rendering
     )
-    return f"/datasets/{spec_id}/{content_version}/file?{query}"
+
+
+def selector_path(
+    spec_id: str,
+    content_version: str,
+    rendering: Mapping[str, Any],
+    keys: Sequence[str],
+) -> str:
+    """The file selector's path for a stored version in `rendering`, its
+    query from `selector_query`."""
+    return (
+        f"/datasets/{spec_id}/{content_version}/file?{selector_query(rendering, keys)}"
+    )
 
 
 # The storage host a signed download names, the only host outside the API a
@@ -2435,6 +2483,7 @@ class _Replay:
     client_codes: Mapping[str, Mapping[str, Any]]
     body_dir: Path
     reading: Sequence[Sequence[str]] | None
+    selector_keys: Sequence[str] | None
     cursor: int = 0
     answer: Answer | None = None
     minted: _Minted | None = None
@@ -2787,10 +2836,13 @@ class _Replay:
                 if error.code not in FILE_GONE:
                     raise
                 refusal = error
+        if self.selector_keys is None:
+            raise _UnfitError("rules/file-selector.json lists no query_keys")
         path = selector_path(
             member["spec"]["spec_id"],
             member["content_version"],
             member["artifact"]["rendering"],
+            self.selector_keys,
         )
         try:
             return self.download(path, digest, origin=False), None
@@ -2913,7 +2965,9 @@ class _Replay:
         return self.dataset(members, [])
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
-        rendering = rendering_for(step.get("layout"))
+        rendering = fetch_rendering(
+            step.get("layout"), party_totals=step.get("party_totals", False)
+        )
         exchange = self.posted_build(step["spec"], rendering, None)
         if exchange["response"]["status"] == 200:
             raise _UnfitError(
@@ -3001,6 +3055,7 @@ def expected_outcomes(
     client_codes: Mapping[str, Mapping[str, Any]],
     body_dir: Path,
     reading: Sequence[Sequence[str]] | None,
+    selector_keys: Sequence[str] | None,
 ) -> list[dict[str, Any]]:
     """The outcome each of `record`'s steps reaches over its exchanges, its
     binary bodies read from `body_dir`, over
@@ -3023,6 +3078,7 @@ def expected_outcomes(
         client_codes,
         body_dir,
         reading,
+        selector_keys,
     )
     try:
         outcomes = [replay.step(step) for step in record["call"]]
@@ -3278,6 +3334,7 @@ def _check_scenarios(
     proxy_codes: Mapping[str, Mapping[str, Any]],
     served_commit: str | None,
     reading: Sequence[Sequence[str]] | None,
+    selector_keys: Sequence[str] | None,
 ) -> list[str]:
     directory = PACKAGE_DIR / "scenarios"
     paths = sorted(directory.glob("*.json"))
@@ -3375,6 +3432,7 @@ def _check_scenarios(
             client_codes=client_codes,
             body_dir=directory,
             reading=reading,
+            selector_keys=selector_keys,
         )
         try:
             derived = replay(record, base_url=base_url)
@@ -3556,11 +3614,12 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
     return problems
 
 
-def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, Any]:
-    """The rendering each build in `scenario` posted as its `options`, by
-    the spec_id the build answered: a manifest's own, or for a 202 the
-    manifest the poll of its operation answered done."""
-    renderings: dict[str, Any] = {}
+def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
+    """The renderings the builds in `scenario` posted as their `options`, by
+    the spec_id each build answered: a manifest's own, or for a 202 the
+    manifest the poll of its operation answered done. A spec built in
+    several renderings lists each in build order."""
+    renderings: dict[str, list[Any]] = {}
     by_operation: dict[str, Any] = {}
     for exchange in read_objects(scenario, "exchanges"):
         request = read_object(exchange, "request") or {}
@@ -3573,11 +3632,11 @@ def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, Any]:
                 by_operation[operation_id] = options
             spec_id = read_string(read_object(manifest, "definition"), "spec_id")
             if spec_id is not None:
-                renderings[spec_id] = options
+                renderings.setdefault(spec_id, []).append(options)
         elif operation_id in by_operation and "manifest" in body:
             spec_id = read_string(read_object(manifest, "definition"), "spec_id")
             if spec_id is not None:
-                renderings[spec_id] = by_operation[operation_id]
+                renderings.setdefault(spec_id, []).append(by_operation[operation_id])
     return renderings
 
 
@@ -3601,10 +3660,10 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             problems.append(
                 f"{label}: member {index}'s spec is built by no {name} build"
             )
-        elif rendering != posted[spec_id]:
+        elif rendering not in posted[spec_id]:
             problems.append(
                 f"{label}: member {index} records rendering {json.dumps(rendering)}, "
-                f"but {name} posted {json.dumps(posted[spec_id])}"
+                f"but {name} posted {' and '.join(map(json.dumps, posted[spec_id]))}"
             )
     return problems
 
@@ -3651,6 +3710,34 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
 # --- rules ------------------------------------------------------------------
 
 
+def _json_type(value: Any) -> str:
+    if isinstance(value, bool):
+        return "boolean"
+    return "number" if isinstance(value, int | float) else type(value).__name__
+
+
+def _unorderable(members: Sequence[Mapping[str, Any]]) -> str | None:
+    """Why a reading-order vector's members cannot be ordered, or None: a
+    row whose cells do not match its member's columns, or a column whose
+    cells, nulls aside, mix JSON types, which the rule gives no order."""
+    types: dict[str, set[str]] = {}
+    for index, member in enumerate(members):
+        columns = member["columns"]
+        for row in member["rows"]:
+            if len(row) != len(columns):
+                return (
+                    f"member {index} has a row of {len(row)} cells for "
+                    f"{len(columns)} columns"
+                )
+            for name, cell in zip(columns, row, strict=True):
+                if cell is not None:
+                    types.setdefault(name, set()).add(_json_type(cell))
+    mixed = sorted(name for name, found in types.items() if len(found) > 1)
+    if mixed:
+        return f"mixes JSON types in column {mixed[0]!r}"
+    return None
+
+
 def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
     paths = sorted(
         p
@@ -3673,18 +3760,28 @@ def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
             for name in sorted({n for n in names if names.count(n) > 1})
         )
         if document["rule"] == "reading-order":
-            problems.extend(
-                f"{label}: vector {vector['name']!r} orders its columns or rows "
-                f"otherwise than presented_rows"
-                for vector in document["vectors"]
-                if presented_rows(
+            for vector in document["vectors"]:
+                unfit = _unorderable(vector["members"])
+                if unfit is not None:
+                    problems.append(f"{label}: vector {vector['name']!r} {unfit}")
+                elif presented_rows(
                     [
                         (member.get("part"), member["columns"], member["rows"])
                         for member in vector["members"]
                     ],
                     document["reading_columns"],
-                )
-                != (vector["columns"], vector["rows"])
+                ) != (vector["columns"], vector["rows"]):
+                    problems.append(
+                        f"{label}: vector {vector['name']!r} orders its columns or "
+                        f"rows otherwise than presented_rows"
+                    )
+        if document["rule"] == "file-selector":
+            problems.extend(
+                f"{label}: vector {vector['name']!r} gives a query other than "
+                f"selector_query's"
+                for vector in document["vectors"]
+                if selector_query(vector["rendering"], document["query_keys"])
+                != vector["query"]
             )
     return problems
 
@@ -3771,6 +3868,12 @@ def validate() -> list[str]:
             "reading_columns list of column-name lists, so no dataset's columns "
             "are checked"
         )
+    selector_keys = load_selector_keys(PACKAGE_DIR)
+    if selector_keys is None:
+        problems.append(
+            "rules/file-selector.json: missing or unreadable, or holds no "
+            "query_keys list of names, so no file selector request is checked"
+        )
     problems.extend(
         _check_scenarios(
             validators["scenario.schema.json"],
@@ -3782,6 +3885,7 @@ def validate() -> list[str]:
             proxy_codes={row["code"]: row for row in proxy_rows},
             served_commit=source.get("commit") if isinstance(source, dict) else None,
             reading=reading,
+            selector_keys=selector_keys,
         )
     )
     size = scenarios_size(PACKAGE_DIR / "scenarios")

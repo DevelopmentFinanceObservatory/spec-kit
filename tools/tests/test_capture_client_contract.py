@@ -32,6 +32,7 @@ _spec.loader.exec_module(capture)
 SCENARIOS = capture.PACKAGE_DIR / "scenarios"
 ACTIONS = capture.load_actions(capture.PACKAGE_DIR)
 CLIENT_CODES = capture.load_client_codes(capture.PACKAGE_DIR)
+RULES = capture.load_client_rules(capture.PACKAGE_DIR)
 
 
 def _load(name: str) -> dict[str, Any]:
@@ -75,7 +76,7 @@ def test_the_recorder_reproduces_each_record_from_its_steps(name: str) -> None:
     served = capture.Served(record, SCENARIOS)
     recorder = capture.Recorder(name, served.base_url, served)
     session = capture.Session(
-        recorder, ACTIONS, CLIENT_CODES, read_shape=_shape, sleep=lambda _: None
+        recorder, ACTIONS, CLIENT_CODES, RULES, read_shape=_shape, sleep=lambda _: None
     )
     capture.drive(session, record["call"])
     assert served.pending == [], "the client skipped a recorded exchange"
@@ -236,7 +237,11 @@ def test_each_derived_record_follows_from_its_parent(name: str) -> None:
     definition = next(d for d in capture.SYNTHETIC if d.name == name)
     parent = _load(record["origin"]["derived_from"])
     ctx = capture.Context(
-        capture.DEV_BASE_URL, capture.Served(parent, SCENARIOS), ACTIONS, CLIENT_CODES
+        capture.DEV_BASE_URL,
+        capture.Served(parent, SCENARIOS),
+        ACTIONS,
+        CLIENT_CODES,
+        RULES,
     )
     derived = definition.derive(copy.deepcopy(parent), ctx)
     assert record["origin"]["edit"] == definition.edit
@@ -253,7 +258,12 @@ def test_an_offline_rederivation_rewrites_only_the_expect(tmp_path: Path) -> Non
     stale["expect"][1]["error"]["code"] = None
     capture.write_record(tmp_path, stale, {})
     ctx = capture.Context(
-        capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES, read_shape=_shape
+        capture.DEV_BASE_URL,
+        capture._offline,
+        ACTIONS,
+        CLIENT_CODES,
+        RULES,
+        read_shape=_shape,
     )
     capture.rederive_recorded(name, ctx, tmp_path)
     fresh = (tmp_path / f"{name}.json").read_text(encoding="utf-8")
@@ -287,7 +297,12 @@ def test_an_offline_rederivation_refuses_a_body_file_outside_its_directory(
             exchange["response"]["body_file"] = body_file
     record.write_text(json.dumps(stale), encoding="utf-8")
     ctx = capture.Context(
-        capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES, read_shape=_shape
+        capture.DEV_BASE_URL,
+        capture._offline,
+        ACTIONS,
+        CLIENT_CODES,
+        RULES,
+        read_shape=_shape,
     )
     with pytest.raises(SystemExit) as refused:
         capture.rederive_recorded(name, ctx, scenarios)
@@ -342,7 +357,7 @@ def test_a_recorded_scenario_answered_by_a_canned_exchange_is_refused(
         raise AssertionError(f"{method} {url} reached the network")
 
     definition = capture.Recorded("s", "None.", run)
-    ctx = capture.Context(capture.DEV_BASE_URL, transport, ACTIONS, CLIENT_CODES)
+    ctx = capture.Context(capture.DEV_BASE_URL, transport, ACTIONS, CLIENT_CODES, RULES)
     with pytest.raises(SystemExit, match="1 were canned"):
         capture.record_recorded(definition, ctx, tmp_path)
     assert list(tmp_path.iterdir()) == []
@@ -358,7 +373,7 @@ def test_a_synthetic_derivation_makes_no_request(tmp_path: Path) -> None:
         raise AssertionError(f"{method} {url} reached the network")
 
     definition = capture.Synthetic("s", "parent", "None.", "None.", derive)
-    ctx = capture.Context(capture.DEV_BASE_URL, transport, ACTIONS, CLIENT_CODES)
+    ctx = capture.Context(capture.DEV_BASE_URL, transport, ACTIONS, CLIENT_CODES, RULES)
     with pytest.raises(SystemExit, match="makes no request"):
         capture.record_synthetic(definition, ctx, tmp_path)
 
@@ -427,15 +442,15 @@ def test_several_members_stack_with_a_part_column_first() -> None:
         3,
         ["value", "time_period"],
     )
-    dataset = capture.dataset_outcome([member, unnamed])["dataset"]
+    dataset = capture.dataset_outcome([member, unnamed], RULES.reading)["dataset"]
     assert dataset["columns"] == ["part", "time_period", "value", "x", "stat_var"]
     assert dataset["rows"] == 5
     assert dataset["part_rows"] == [
         {"part": "A.", "rows": 2},
         {"part": "p; q", "rows": 3},
     ]
-    assert "part_rows" not in capture.dataset_outcome([other])["dataset"]
-    columns = capture.dataset_outcome([member])["dataset"]["columns"]
+    assert "part_rows" not in capture.dataset_outcome([other], RULES.reading)["dataset"]
+    columns = capture.dataset_outcome([member], RULES.reading)["dataset"]["columns"]
     assert columns == ["value", "x", "stat_var"]
 
 
@@ -553,10 +568,34 @@ def test_an_environment_out_of_step_with_the_lock_is_refused(
     }
 
 
+@pytest.mark.parametrize("rule", ["reading-order", "file-selector"])
+def test_a_record_run_without_a_rule_table_stops_before_any_request(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, rule: str
+) -> None:
+    """The rule tables load from --package-dir when the run starts, so a
+    broken one costs no live call."""
+    for name in ("actions.json", "client-codes.json"):
+        (tmp_path / name).write_bytes((capture.PACKAGE_DIR / name).read_bytes())
+    (tmp_path / "rules").mkdir()
+    for path in (capture.PACKAGE_DIR / "rules").glob("*.json"):
+        if path.stem != rule:
+            (tmp_path / "rules" / path.name).write_bytes(path.read_bytes())
+
+    def transport(method: str, url: str, **kwargs: Any) -> Any:
+        raise AssertionError(f"{method} {url} reached the network")
+
+    monkeypatch.setattr(capture, "urllib_transport", transport)
+    with pytest.raises(SystemExit, match=f"{rule}.json is missing"):
+        capture.main(
+            ["--package-dir", str(tmp_path), "record", "--only", "answer-declined"]
+        )
+
+
 def _long_build_ctx(
     monkeypatch: pytest.MonkeyPatch,
     answers: Mapping[tuple[str, int], tuple[str, int]],
     built: set[str],
+    starts: Mapping[str, int] | None = None,
 ) -> tuple[Any, list[str], list[str]]:
     """A context whose searches answer `answers`, (donors, year) to spec id
     and row estimate, and whose versions route lists a version of each spec
@@ -582,7 +621,14 @@ def _long_build_ctx(
 
     monkeypatch.setattr(capture.Session, "search", search)
     monkeypatch.setattr(capture.Session, "_newest", newest)
-    ctx = capture.Context(capture.DEV_BASE_URL, capture._offline, ACTIONS, CLIENT_CODES)
+    ctx = capture.Context(
+        capture.DEV_BASE_URL,
+        capture._offline,
+        ACTIONS,
+        CLIENT_CODES,
+        RULES,
+        long_build_starts=starts or {},
+    )
     return ctx, questions, probed
 
 
@@ -595,7 +641,7 @@ def test_a_long_build_takes_the_first_unbuilt_spec_in_the_band(
     ctx, questions, probed = _long_build_ctx(
         monkeypatch,
         {
-            ("DAC", 1960): ("spec_small", capture.SYNC_ROWS),
+            ("DAC", 1960): ("spec_large", 2 * capture.SYNC_ROWS),
             ("DAC", 1961): ("spec_built", in_band),
             ("DAC", 1962): ("spec_built", in_band),
             ("DAC", 1963): ("spec_dac", in_band),
@@ -623,3 +669,40 @@ def test_a_long_build_with_no_unbuilt_year_is_refused(
     )
     with pytest.raises(capture.ShapeError, match="from 1960 to 1961"):
         ctx.async_spec("DAC")
+
+
+def test_a_long_build_scan_stops_at_the_first_year_within_the_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A later start year estimates fewer rows, so none after it can be in
+    the band, and the scan stops without searching them."""
+    ctx, questions, _ = _long_build_ctx(
+        monkeypatch,
+        {
+            ("DAC", 1960): ("spec_a", capture.SYNC_ROWS),
+            ("DAC", 1961): ("spec_b", capture.SYNC_ROWS + 1),
+        },
+        set(),
+    )
+    with pytest.raises(capture.ShapeError, match="no long build left: from 1960"):
+        ctx.async_spec("DAC")
+    assert len(questions) == 1
+
+
+def test_a_long_build_scan_starts_after_the_recorded_year(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    in_band = capture.SYNC_ROWS + 1
+    ctx, questions, _ = _long_build_ctx(
+        monkeypatch,
+        {("DAC", 1960): ("spec_a", in_band), ("DAC", 1968): ("spec_b", in_band)},
+        set(),
+        starts={"DAC": 1968},
+    )
+    assert ctx.async_spec("DAC").spec_id == "spec_b"
+    assert questions == [capture.LONG_BUILD.format(donors="DAC", year=1968)]
+
+
+def test_the_long_build_scans_start_after_the_recorded_picks() -> None:
+    """The records hold the DAC pick at 1967 and the OECD pick at 1968."""
+    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1968, "OECD": 1969}

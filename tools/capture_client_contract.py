@@ -110,6 +110,7 @@ from validate_client_contract import (
     header_warnings,
     held_spec,
     load_reading_columns,
+    load_selector_keys,
     may_retry,
     newest_plain,
     owns_body_file,
@@ -150,9 +151,6 @@ BINARY_BUDGET = 5_000_000
 # totals of open party roles left out, and so the rendering a ref it writes
 # records.
 RENDERING = fetch_rendering(None)
-# The reading slots of the reading-order rule, which orders each dataset's
-# columns as a client presents them, or None when the rule file cannot be read.
-READING_COLUMNS = load_reading_columns(PACKAGE_DIR)
 # The response headers a client reads, and so the ones a record keeps, beside
 # a `cache-control` that marks the response shared-cacheable, which excuses it
 # from carrying `x-dfo-trace-id`.
@@ -592,6 +590,7 @@ class Member:
 
 def dataset_outcome(
     members: Sequence[Member],
+    reading: Sequence[Sequence[str]],
     *,
     missing: Sequence[Mapping[str, Any]] = (),
     search_warning: bool | None = None,
@@ -610,13 +609,8 @@ def dataset_outcome(
         for member in members
     ]
     dataset: dict[str, Any] = {"rows": sum(member.rows for member in members)}
-    if READING_COLUMNS is None:
-        raise SystemExit(
-            "rules/reading-order.json is missing or holds no reading_columns, so "
-            "no dataset's columns can be ordered"
-        )
     dataset["columns"] = presented_columns(
-        [member.table for member in members], READING_COLUMNS
+        [member.table for member in members], reading
     )
     if len(members) > 1:
         dataset["part_rows"] = [
@@ -625,10 +619,6 @@ def dataset_outcome(
         ]
     summary = dataset_summary(summaries, missing, search_warning=search_warning)
     return {"dataset": {**dataset, **summary}}
-
-
-def parquet_shape(data: bytes) -> ServedTable:
-    return served_table(data)
 
 
 def _reached[T](results: list[T], step: str) -> T:
@@ -677,6 +667,36 @@ def _step_options(
     return step
 
 
+@dataclass(frozen=True, slots=True)
+class ClientRules:
+    """The rule tables a client reads from `rules/`: the reading-order rule's
+    reading slots and the file-selector rule's query keys."""
+
+    reading: Sequence[Sequence[str]]
+    selector_keys: Sequence[str]
+
+
+def load_client_rules(package_dir: Path) -> ClientRules:
+    """The rule tables under `package_dir`, read before any request.
+
+    Raises:
+        SystemExit: A rule file is missing or does not hold its table.
+    """
+    reading = load_reading_columns(package_dir)
+    if reading is None:
+        raise SystemExit(
+            f"{package_dir / 'rules' / 'reading-order.json'} is missing or holds no "
+            "reading_columns, so no dataset's columns can be ordered"
+        )
+    selector_keys = load_selector_keys(package_dir)
+    if selector_keys is None:
+        raise SystemExit(
+            f"{package_dir / 'rules' / 'file-selector.json'} is missing or holds no "
+            "query_keys, so no file selector query can be built"
+        )
+    return ClientRules(reading, selector_keys)
+
+
 @dataclass
 class Session:
     """A client over a recorder: each step appends to `call` and `expect`."""
@@ -684,7 +704,8 @@ class Session:
     recorder: Recorder
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
-    read_shape: Callable[[bytes], ServedTable] = parquet_shape
+    rules: ClientRules
+    read_shape: Callable[[bytes], ServedTable] = served_table
     sleep: Callable[[float], None] = time.sleep
     call: list[dict[str, Any]] = field(default_factory=list)
     expect: list[dict[str, Any]] = field(default_factory=list)
@@ -819,7 +840,9 @@ class Session:
                 self.build(parts, spec, None, rendering, strict=strict)
                 for parts, spec in readings
             ]
-            return dataset_outcome(members, missing=gaps, search_warning=warns)
+            return dataset_outcome(
+                members, self.rules.reading, missing=gaps, search_warning=warns
+            )
 
         options = _step_options(
             step, layout=layout, strict=strict, party_totals=party_totals
@@ -856,7 +879,7 @@ class Session:
         def run() -> dict[str, Any]:
             rendering = fetch_rendering(layout, party_totals=party_totals)
             built.append(self.build([], spec, scope, rendering, strict=strict))
-            return dataset_outcome(built)
+            return dataset_outcome(built, self.rules.reading)
 
         options = _step_options(
             step, layout=layout, strict=strict, party_totals=party_totals
@@ -868,7 +891,9 @@ class Session:
         """The exact versions a ref names, through the lookup order."""
 
         def run() -> dict[str, Any]:
-            return dataset_outcome([self._stored(member) for member in ref["members"]])
+            return dataset_outcome(
+                [self._stored(member) for member in ref["members"]], self.rules.reading
+            )
 
         self._step({"op": "fetch", "ref": ref}, run)
 
@@ -883,11 +908,13 @@ class Session:
         self._step({"op": "newest_version", "spec": spec.step()}, run)
         return found[0] if found else None
 
-    def mint(self, spec: Spec, *, layout: str | None = None) -> str:
+    def mint(
+        self, spec: Spec, *, layout: str | None = None, party_totals: bool = False
+    ) -> str:
         operation: list[str] = []
 
         def run() -> dict[str, Any]:
-            rendering = rendering_for(layout)
+            rendering = fetch_rendering(layout, party_totals=party_totals)
             body = _build_body(spec, None, rendering)
             response = self._api("POST", "/datasets", body)
             resource = self._acted(response)
@@ -900,7 +927,10 @@ class Session:
 
         self._step(
             _step_options(
-                {"op": "mint", "spec": spec.step()}, layout=layout, strict=False
+                {"op": "mint", "spec": spec.step()},
+                layout=layout,
+                strict=False,
+                party_totals=party_totals,
             ),
             run,
         )
@@ -930,7 +960,7 @@ class Session:
         def run() -> dict[str, Any]:
             manifest = self._wait(minted.resource, minted.headers, minted.request)
             member = self._member([], minted.spec, manifest, minted.rendering, False)
-            return dataset_outcome([member])
+            return dataset_outcome([member], self.rules.reading)
 
         self._step({"op": "result"}, run)
 
@@ -1136,6 +1166,7 @@ class Session:
             member["spec"]["spec_id"],
             member["content_version"],
             member["artifact"]["rendering"],
+            self.rules.selector_keys,
         )
         try:
             return self._download(path, digest, origin=False), None
@@ -1243,7 +1274,9 @@ CANDIDATES_BESIDE_ASSUMED = (
 # version the server has built answers inline, so each long build needs a spec
 # the server has not built, and the run takes the first start year in
 # LONG_BUILD_YEARS whose spec it has not. Each record builds both for good, so
-# the next record takes later start years. A flow side the question leaves unnamed
+# the next record starts the scan at the year after the one LONG_BUILD_RECORDS
+# holds, and a later start year estimates fewer rows, so the scan stops at the
+# first year below the band. A flow side the question leaves unnamed
 # reads as its source's whole total, so both sides name groups read as their
 # members: about 3,700 donor and recipient pairs of one variable over some 60
 # years. A variable broken down by sector would list thousands of variables in
@@ -1253,6 +1286,8 @@ LONG_BUILD = (
     " from {year} to 2024"
 )
 LONG_BUILD_YEARS = range(1960, 2001)
+# The record holding each donor group's last long build.
+LONG_BUILD_RECORDS = {"DAC": "mint-async-build", "OECD": "operation-resume"}
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
 # The DAC donors' flow to the G77, narrowed to one recipient and year with its
@@ -1274,7 +1309,10 @@ class Context:
     transport: Transport
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
-    read_shape: Callable[[bytes], ServedTable] = parquet_shape
+    rules: ClientRules
+    read_shape: Callable[[bytes], ServedTable] = served_table
+    # The first start year `async_spec` tries for each donor group.
+    long_build_starts: Mapping[str, int] = field(default_factory=dict)
     _cache: dict[str, Any] = field(default_factory=dict)
 
     def session(self, name: str, **recorder: Any) -> Session:
@@ -1282,6 +1320,7 @@ class Context:
             Recorder(name, self.base_url, self.transport, **recorder),
             self.actions,
             self.client_codes,
+            self.rules,
             read_shape=self.read_shape,
         )
 
@@ -1330,25 +1369,37 @@ class Context:
 
     def async_spec(self, donors: str) -> Spec:
         """The spec the LONG_BUILD question for `donors` answers at the first
-        start year in LONG_BUILD_YEARS whose answer is one definite part, whose
-        estimate is just above the sync budget, and whose spec no earlier year
-        or other donors answered and the server has not built. No such year
-        raises ShapeError."""
+        start year in LONG_BUILD_YEARS, from `long_build_starts`, whose answer
+        is one definite part, whose estimate is just above the sync budget,
+        and whose spec no earlier year or other donors answered and the server
+        has not built. A year whose estimate is at or below the budget ends
+        the scan, since later years estimate fewer rows.
+
+        Raises:
+            ShapeError: No year gives such a spec.
+        """
         picks: dict[str, Spec] = self._cache.setdefault("long builds", {})
         if donors not in picks:
             session = self.session("prerequisite")
             seen = {spec.spec_id for spec in picks.values()}
-            for year in LONG_BUILD_YEARS:
+            first = max(self.long_build_starts.get(donors, 0), LONG_BUILD_YEARS[0])
+            for year in range(first, LONG_BUILD_YEARS[-1] + 1):
                 answer = session.search(LONG_BUILD.format(donors=donors, year=year))
                 if answer.status != "definite" or len(answer.parts) != 1:
                     continue
                 (part,) = answer.parts
                 rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
                 spec = _part_spec(part["spec"])
+                if rows <= SYNC_ROWS:
+                    raise ShapeError(
+                        f"the {donors} donors have no long build left: from {year} "
+                        f"the estimate, {rows:,} rows, is within the {SYNC_ROWS:,}-row "
+                        "sync budget; change LONG_BUILD to a question with more rows"
+                    )
                 # A start year before the source's first year clips to the same
                 # spec as the years after it, so a spec already seen is built or
                 # is the other donors' pick.
-                if not SYNC_ROWS < rows < 2 * SYNC_ROWS or spec.spec_id in seen:
+                if rows >= 2 * SYNC_ROWS or spec.spec_id in seen:
                     continue
                 seen.add(spec.spec_id)
                 # `_newest` and not `newest_version`, which reads a refused
@@ -1358,7 +1409,7 @@ class Context:
                     break
             else:
                 raise ShapeError(
-                    f"no start year from {LONG_BUILD_YEARS[0]} to"
+                    f"no start year from {first} to"
                     f" {LONG_BUILD_YEARS[-1]} gives the {donors} donors a spec"
                     " just above the sync budget that the server has not built"
                 )
@@ -1540,7 +1591,7 @@ def _fetch_ref_unknown_version(s: Session, ctx: Context) -> None:
 
 
 def _mint_async(s: Session, ctx: Context) -> None:
-    s.mint(ctx.async_spec("DAC"))
+    s.mint(ctx.async_spec("DAC"), party_totals=True)
     s.result()
 
 
@@ -2490,6 +2541,7 @@ def _expired_file_selector(parent: dict[str, Any], ctx: Context) -> Derived:
         member["spec"]["spec_id"],
         member["content_version"],
         member["artifact"]["rendering"],
+        ctx.rules.selector_keys,
     )
     selector = {
         "request": {"method": "GET", "path": path},
@@ -2823,6 +2875,7 @@ def _artifact_unlisted(parent: dict[str, Any], ctx: Context) -> Derived:
         member["spec"]["spec_id"],
         member["content_version"],
         member["artifact"]["rendering"],
+        ctx.rules.selector_keys,
     )
     exchanges[index]["request"] = {"method": "GET", "path": path}
     return _same(parent, exchanges)
@@ -4426,6 +4479,15 @@ SYNTHETIC = (
         _choice_refused("Congo [Nowhere]"),
     ),
     Synthetic(
+        "choose-refused-label-in-two-groups",
+        "search-place-ambiguous-twice",
+        'A choice of "Congo [DRC]" follows the search.',
+        "Both entity_choice groups offer an option labelled Congo [DRC], so the label "
+        "matches two options and the choice raises InvalidRequestError with no request. "
+        "A choice in such a part names its option by index.",
+        _choice_refused("Congo [DRC]"),
+    ),
+    Synthetic(
         "choose-candidate-by-label",
         "answer-candidates-choose-fetch",
         "The choice names candidate 0 by its label.",
@@ -4690,6 +4752,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 session.mint(
                     _step_spec(spec),
                     layout=step.get("layout"),
+                    party_totals=step.get("party_totals", False),
                 )
             case {"op": "operation", "operation_id": operation_id}:
                 session.resume(operation_id, layout=step.get("layout"))
@@ -4709,6 +4772,7 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
         Recorder(name, served.base_url, served),
         ctx.actions,
         ctx.client_codes,
+        ctx.rules,
         read_shape=ctx.read_shape,
         sleep=lambda _: None,
     )
@@ -4728,6 +4792,37 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
     )
 
 
+def recorded_start_year(record: Mapping[str, Any]) -> int | None:
+    """The start year of the first window a record's spec definitions
+    request: a step's spec, then a manifest an exchange answers."""
+    definitions = [
+        step["spec"]["definition"] for step in record["call"] if "spec" in step
+    ]
+    for exchange in record["exchanges"]:
+        body = exchange["response"].get("json")
+        manifest = body.get("manifest", body) if isinstance(body, dict) else None
+        if isinstance(manifest, dict) and "definition" in manifest:
+            definitions.append(manifest["definition"])
+    for definition in definitions:
+        window = definition.get("identity", {}).get("requested_window") or {}
+        if "start_year" in window:
+            return window["start_year"]
+    return None
+
+
+def long_build_starts(directory: Path) -> dict[str, int]:
+    """The first start year to try for each donor group: the year after the
+    one its LONG_BUILD_RECORDS record built, which the server has built."""
+    starts = {}
+    for donors, name in LONG_BUILD_RECORDS.items():
+        path = directory / f"{name}.json"
+        if path.exists():
+            year = recorded_start_year(json.loads(path.read_text(encoding="utf-8")))
+            if year is not None:
+                starts[donors] = year + 1
+    return starts
+
+
 def run_record(args: argparse.Namespace) -> int:
     package_dir: Path = args.package_dir
     directory: Path = args.scenarios_dir or package_dir / "scenarios"
@@ -4741,7 +4836,18 @@ def run_record(args: argparse.Namespace) -> int:
         _offline if args.offline else urllib_transport,
         load_actions(package_dir),
         load_client_codes(package_dir),
+        load_client_rules(package_dir),
+        long_build_starts=long_build_starts(directory),
     )
+    if not args.offline:
+        # A long build's spec is the scan most likely to fail, so it runs
+        # before any scenario is recorded.
+        for donors, name in LONG_BUILD_RECORDS.items():
+            if name in chosen:
+                try:
+                    ctx.async_spec(donors)
+                except ShapeError as exc:
+                    raise SystemExit(f"{name}: {exc}") from exc
     count = 0
     for definition in RECORDED:
         if definition.name not in chosen:

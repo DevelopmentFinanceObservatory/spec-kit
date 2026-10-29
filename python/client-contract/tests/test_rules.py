@@ -8,6 +8,7 @@ disagrees with its rule fails here before a client replays it.
 from __future__ import annotations
 
 import ipaddress
+import math
 import ntpath
 import posixpath
 import re
@@ -133,13 +134,20 @@ def look_up_key(vector: dict[str, Any]) -> tuple[str, str | None]:
 _NON_DECIMAL_IPV4 = re.compile(r"(?:[^:]*\.)?(?:0x[0-9a-f]*|[0-9]+)")
 
 
+_PORT = re.compile(r"(?:\[[^\]]*\]|[^:]*)(?::([0-9]*))?")
+
+
 def is_valid_base_url(url: str) -> bool:
-    if re.search(r"[^\x21-\x7e]", url) or "?" in url or "#" in url:
+    if re.search(r"[^\x21-\x7e]|[?#\\]", url):
         return False
     parts = urlsplit(url)
     if parts.scheme not in ("http", "https") or "@" in parts.netloc:
         return False
-    if not parts.hostname or {".", ".."} & set(parts.path.split("/")):
+    segments = {s.lower().replace("%2e", ".") for s in parts.path.split("/")}
+    if not parts.hostname or {".", ".."} & segments:
+        return False
+    port = _PORT.fullmatch(parts.netloc)
+    if port is None or (port[1] is not None and not 1 <= int(port[1] or 0) <= 65535):
         return False
     host = parts.hostname.removesuffix(".")
     if _NON_DECIMAL_IPV4.fullmatch(host):
@@ -195,6 +203,19 @@ def cache_entry(vector: dict[str, Any]) -> str:
     return f"manifests/{vector['spec_id']}/{vector['content_version']}/{key}.json"
 
 
+def same_value(left: Any, right: Any) -> bool:
+    """Numbers by value, booleans apart from numbers, NaN as NaN."""
+    if isinstance(left, bool) or isinstance(right, bool):
+        return type(left) is type(right) and left == right
+    if isinstance(left, float) and isinstance(right, float):
+        return left == right or (math.isnan(left) and math.isnan(right))
+    return left == right
+
+
+def varies(column: str, rows: list[dict[str, Any]]) -> bool:
+    return any(not same_value(row.get(column), rows[0].get(column)) for row in rows)
+
+
 def reading_order(
     members: list[dict[str, Any]], reading: list[list[str]]
 ) -> tuple[list[str], list[list[Any]]]:
@@ -212,17 +233,17 @@ def reading_order(
         if (name := next((n for n in names if n in served), None)) is not None
     ]
     rest = [c for c in served if c not in first and c != "stat_var"]
-    varies = {c for c in rest if len({repr(row.get(c)) for row in stacked}) > 1}
+    varying = {c for c in rest if varies(c, stacked)}
     columns = [
         *(["part"] if len(members) > 1 else []),
         *first,
-        *[c for c in rest if c in varies],
-        *[c for c in rest if c not in varies],
+        *[c for c in rest if c in varying],
+        *[c for c in rest if c not in varying],
         *(["stat_var"] if "stat_var" in served else []),
     ]
     keys = [c for c in first if c not in ("value", "time_period")]
-    keys += [c for c in columns if c in varies]
-    if "stat_var" in served and len({repr(row.get("stat_var")) for row in stacked}) > 1:
+    keys += [c for c in columns if c in varying]
+    if "stat_var" in served and varies("stat_var", stacked):
         keys.append("stat_var")
     keys += ["time_period"] if "time_period" in first else []
     rows: list[list[Any]] = []
@@ -235,7 +256,7 @@ def reading_order(
 
 def client_identity(client: str, version: str, runtime: dict[str, str]) -> str:
     label = runtime["name"]
-    if label != "browser":
+    if label not in ("browser", "other"):
         match = _MAJOR_MINOR.match(runtime["version"])
         assert match, runtime
         label += f" {match[1]}.{match[2]}"
@@ -278,6 +299,14 @@ def posted_entities(
         else:
             posted[keys.get(key, key)] = dcids
     return posted
+
+
+def selector_query(rendering: dict[str, Any]) -> str:
+    return "&".join(
+        f"{key}={str(rendering[key]).lower()}"
+        for key in rule("file-selector")["query_keys"]
+        if key in rendering
+    )
 
 
 @pytest.mark.parametrize("name", RULES)
@@ -383,3 +412,8 @@ def test_role_keys(vector: dict[str, Any]) -> None:
     elif "entities" in vector:
         posted = posted_entities(vector["identity"], vector["entities"])
         assert posted == vector["posted"]
+
+
+@pytest.mark.parametrize("vector", _vectors("file-selector"), ids=_ids("file-selector"))
+def test_file_selector(vector: dict[str, Any]) -> None:
+    assert selector_query(vector["rendering"]) == vector["query"]

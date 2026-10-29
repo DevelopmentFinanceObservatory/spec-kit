@@ -34,6 +34,9 @@
     },
     {
       "$ref": "#/$defs/role_keys"
+    },
+    {
+      "$ref": "#/$defs/file_selector"
     }
   ],
   "$defs": {
@@ -90,6 +93,10 @@
         },
         "layout": {
           "const": "frame"
+        },
+        "without_party_totals": {
+          "description": "Present, and true, for a rendering with party totals left out.",
+          "const": true
         }
       }
     },
@@ -721,7 +728,7 @@
                 "$ref": "#/$defs/one_line"
               },
               "runtime": {
-                "description": "The runtime's name and its full version, or `browser` with no version.",
+                "description": "The runtime's name and its full version, or `browser` or `other` with no version.",
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
@@ -741,7 +748,10 @@
                 "if": {
                   "properties": {
                     "name": {
-                      "const": "browser"
+                      "enum": [
+                        "browser",
+                        "other"
+                      ]
                     }
                   }
                 },
@@ -1116,6 +1126,54 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "file_selector": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "required": [
+        "query_keys"
+      ],
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "file-selector"
+        },
+        "query_keys": {
+          "description": "The rendering keys the file selector reads, in the order a client writes them into its query.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "$ref": "#/$defs/one_line"
+          }
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "rendering",
+              "query"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "rendering": {
+                "$ref": "#/$defs/rendering"
+              },
+              "query": {
+                "description": "The selector's query a client sends for the rendering, without the leading `?`.",
+                "type": "string",
+                "minLength": 1
               }
             }
           }
