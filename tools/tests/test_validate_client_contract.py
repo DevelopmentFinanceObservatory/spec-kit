@@ -21,6 +21,7 @@ import importlib.util
 import json
 import os
 import shutil
+import struct
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -174,6 +175,15 @@ def _selector_query_with_cut(doc: Any) -> None:
         e for e in doc["exchanges"] if "/file?" in e["request"].get("path", "")
     )
     exchange["request"]["path"] += "&without_party_totals=true"
+
+
+def _time_period_written_as_text(vector: Any) -> None:
+    """The second member serves its years as text, a valid Arrow column of
+    its own that mixes types with the first member's in the stacked table."""
+    member = vector["members"][1]
+    at = member["columns"].index("time_period")
+    for row in member["rows"]:
+        row[at] = str(row[at])
 
 
 def _vector(name: str, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -1817,10 +1827,25 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         (
             "rules/reading-order.json",
             _vector(
-                "ties-keep-served-order",
-                lambda v: v["members"][0]["rows"][0].__setitem__(4, "2022"),
+                "nested-cells-compare-by-value",
+                lambda v: v["members"][0]["rows"][1].__setitem__(4, [1]),
             ),
-            "vector 'ties-keep-served-order' mixes JSON types in column",
+            "vector 'nested-cells-compare-by-value' member 0 column 'flags' is no "
+            "Arrow column",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "nested-cells-compare-by-value",
+                lambda v: v["members"][0]["rows"][1].__setitem__(2, {"a": "x", "b": 2}),
+            ),
+            "vector 'nested-cells-compare-by-value' member 0 column 'meta' is no "
+            "Arrow column",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector("stack-crs-and-dac2a", _time_period_written_as_text),
+            "vector 'stack-crs-and-dac2a' mixes JSON types in column",
         ),
         (
             "scenarios/fetch-ref-expired-file-selector.json",
@@ -2117,6 +2142,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "reading-order-null-sorted-first",
         "reading-order-without-reading-columns",
         "reading-order-vector-row-ragged",
+        "reading-order-vector-list-items-mix-types",
+        "reading-order-vector-struct-field-mixes-types",
         "reading-order-vector-column-mixes-types",
         "selector-query-carries-the-cut",
         "unlisted-artifact-selector-query-carries-the-cut",
@@ -2164,6 +2191,32 @@ def _parquet(table: pa.Table) -> bytes:
     sink = pa.BufferOutputStream()
     pq.write_table(table, sink)
     return sink.getvalue().to_pybytes()
+
+
+def _nan(payload: int) -> float:
+    return struct.unpack("<d", struct.pack("<Q", 0x7FF8000000000000 | payload))[0]
+
+
+@pytest.mark.parametrize(
+    "cells",
+    [[0.0, -0.0], [_nan(0), _nan(1)]],
+    ids=["signed-zeros", "nan-payloads"],
+)
+def test_a_vector_and_its_parquet_file_group_columns_alike(cells: list[float]) -> None:
+    """Cells `same_value` holds the same, which Arrow's `unique` tells apart,
+    are one value on both paths."""
+    rows = [[2021 - i, "x", cell] for i, cell in enumerate(cells)]
+    columns = ["time_period", "label", "amount"]
+    vector = validator.table_from_rows(columns, rows)
+    served = validator.served_table(
+        _parquet(
+            pa.table({name: [row[i] for row in rows] for i, name in enumerate(columns)})
+        )
+    )
+    assert "amount" in served.same
+    assert validator.column_groups([served], []) == validator.column_groups(
+        [vector], []
+    )
 
 
 def test_a_served_table_reads_list_struct_and_nan_columns() -> None:
