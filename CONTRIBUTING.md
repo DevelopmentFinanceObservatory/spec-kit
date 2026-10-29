@@ -41,7 +41,7 @@ uv run tools/validate_unit_vectors.py
 uv run tools/validate_provenance_docs_vectors.py
 uv run tools/validate_descriptions_vectors.py
 uv run tools/validate_client_contract.py
-uv run --with jsonschema --with pytest pytest tools/tests -q
+uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 ```
 
 The last command tests the validators themselves. [tools/README.md](tools/README.md) says what each validator checks. Each package's tests drive its implementation against the same vectors or fixtures, and `uv run pytest` runs them.

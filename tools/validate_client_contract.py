@@ -63,14 +63,15 @@ document validates against its schema, then what the schemas cannot express:
   REPLAY_ORIGIN with the recorded origin a response names moved there. A
   dataset's columns are the downloaded files' columns, read with pyarrow
   by `served_table` and ordered by `presented_columns`, which puts the
-  columns whose values vary before those that hold one value, its rows and
+  columns whose values vary, as `same_value` judges cells, before those
+  that hold one value, its rows and
   per-part row counts are left to the Parquet bodies, and each
   download hashes to its artifact's digest or the outcome says it does not. Each Search request a
   record holds posts the input the steps derive: the question, a choice's
   data_query or dataset_resubmit entries, or a member's identity with the
   entity groups of the roles its build left bound as they were, and each
   build posts the body `build_body` gives for the spec the step builds, its
-  narrowing, its layout and, for a fetch, its party totals, and each Search request the whole body
+  narrowing, its layout and, for a fetch or a mint, its party totals, and each Search request the whole body
   `search_body` gives. A POST carries its body, a refused request repeated is
   a retry only as `may_retry` allows, a record that ends a run of retries
   while `may_retry` holds does not fit, each poll names the operation the
@@ -100,13 +101,13 @@ document validates against its schema, then what the schemas cannot express:
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once, each
   reading-order vector's `columns` and `rows` are what `presented_rows`
+  gives, each file-selector vector's `query` is what `selector_query`
   gives, each output-digest vector's document holds its frame's rows, each
   operation's variable read as the name its `variables` give it, and
   its digest hashes that document, each minted name hashes its name
   document and each name it or a name document holds has one, and each
-  growth vector's window starts
-  before it ends. A missing or
-  unreadable `rules/reading-order.json` is a problem.
+  growth vector's window starts before it ends. A missing or unreadable
+  `rules/reading-order.json` or `rules/file-selector.json` is a problem.
 
 It does not import `dfo_client_contract`, whose tests replay
 the rule vectors. `tools/capture_client_contract.py` imports the outcome
@@ -117,6 +118,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import sys
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
@@ -1849,19 +1851,33 @@ OPERATION_FAILED = "operation_failed"
 
 
 def rendering_for(layout: str | None) -> dict[str, Any]:
-    """The build request's `options` for a mint's or an operation's
-    `layout`, long by default."""
+    """The rendering for `layout`, long by default, with party totals
+    kept."""
     return dict(LAYOUT_RENDERINGS[layout or "long"])
 
 
 def fetch_rendering(
     layout: str | None, *, party_totals: bool = False
 ) -> dict[str, Any]:
-    """The build request's `options` for a fetch of an answer or a spec:
-    the layout's rendering, with `without_party_totals` unless the caller
-    keeps party totals."""
+    """The build request's `options` for a fetch of an answer or a spec, or
+    a mint: the layout's rendering, with `without_party_totals` unless the
+    caller keeps party totals."""
     rendering = rendering_for(layout)
     if not party_totals:
+        rendering[WITHOUT_PARTY_TOTALS] = True
+    return rendering
+
+
+def resumed_rendering(
+    layout: str | None, manifest: Mapping[str, Any]
+) -> dict[str, Any]:
+    """The rendering a resumed operation's build posted, as its done
+    manifest records it: the layout's rendering, with `without_party_totals`
+    when the artifact for that rendering carries the cut."""
+    rendering = rendering_for(layout)
+    artifact = pick_artifact(manifest, rendering)
+    found = artifact.get("rendering") if artifact is not None else None
+    if isinstance(found, dict) and found.get(WITHOUT_PARTY_TOTALS) is True:
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -1870,11 +1886,37 @@ def fetch_rendering(
 class ServedTable:
     """A served table as the reading-order rule reads it: its columns in the
     order the server wrote them, its row count, and the value of each column
-    that holds one value in every row. A column `same` leaves out varies."""
+    that holds one value in every row. A column `same` leaves out varies.
+    `nested` names the columns holding lists or structs, which no row is
+    sorted by."""
 
     columns: tuple[str, ...]
     rows: int
     same: Mapping[str, Any]
+    nested: frozenset[str] = frozenset()
+
+
+def same_value(left: Any, right: Any) -> bool:
+    """Whether two cells hold the same value, as the reading-order rule
+    judges it: numbers by value, so 1 and 1.0 are the same, booleans apart
+    from numbers, NaN the same as NaN, null the same as null, lists item by
+    item in order, and structs field by field in any order."""
+    if isinstance(left, bool) or isinstance(right, bool):
+        return type(left) is type(right) and left == right
+    if isinstance(left, float) and isinstance(right, float):
+        return left == right or (math.isnan(left) and math.isnan(right))
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(map(same_value, left, right))
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            same_value(value, right[key]) for key, value in left.items()
+        )
+    return left == right
+
+
+def _one_value(values: Sequence[Any]) -> bool:
+    """Whether `values` hold one value as `same_value` judges it."""
+    return all(same_value(value, values[0]) for value in values[1:])
 
 
 def table_from_rows(
@@ -1884,9 +1926,14 @@ def table_from_rows(
     same = {
         name: rows[0][index]
         for index, name in enumerate(columns)
-        if rows and all(row[index] == rows[0][index] for row in rows)
+        if rows and _one_value([row[index] for row in rows])
     }
-    return ServedTable(tuple(columns), len(rows), same)
+    nested = frozenset(
+        name
+        for index, name in enumerate(columns)
+        if any(isinstance(row[index], list | dict) for row in rows)
+    )
+    return ServedTable(tuple(columns), len(rows), same, nested)
 
 
 @lru_cache(maxsize=64)
@@ -1904,12 +1951,17 @@ def served_table(data: bytes) -> ServedTable:
         raise _UnfitError(
             f"a downloaded file is unreadable: not Parquet: {exc}"
         ) from exc
+    nested = frozenset(
+        field.name for field in table.schema if pa.types.is_nested(field.type)
+    )
+    # Every column is judged by `same_value`, as `table_from_rows` judges a
+    # vector's, so a vector and its Parquet file group their columns alike.
     same = {}
     for name in table.column_names if table.num_rows else ():
-        values = table.column(name).unique()
-        if len(values) == 1:
-            same[name] = values[0].as_py()
-    return ServedTable(tuple(table.column_names), table.num_rows, same)
+        values = table.column(name).to_pylist()
+        if _one_value(values):
+            same[name] = values[0]
+    return ServedTable(tuple(table.column_names), table.num_rows, same, nested)
 
 
 def filled_slots(
@@ -1934,7 +1986,7 @@ def _varies(name: str, tables: Sequence[ServedTable]) -> bool:
         if name in table.columns and name not in table.same:
             return True
         values.append(table.same.get(name))
-    return any(value != values[0] for value in values[1:])
+    return not _one_value(values)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1951,6 +2003,7 @@ class ColumnGroups:
     same: tuple[str, ...]
     last: tuple[str, ...]
     last_varies: bool
+    nested: frozenset[str] = frozenset()
 
     @property
     def columns(self) -> list[str]:
@@ -1962,10 +2015,12 @@ class ColumnGroups:
         reading slots in slot order without `value`, a measure, and without
         the time period, then the varying columns in presented order,
         `stat_var` among them when it varies, then the time period, so each
-        series' years read together."""
+        series' years read together. A column of lists or structs is no
+        key."""
         keys = [c for c in self.first if c not in (VALUE, TIME_PERIOD)]
         keys += [*self.varying, *(self.last if self.last_varies else ())]
-        return keys + [TIME_PERIOD] * (TIME_PERIOD in self.first)
+        keys += [TIME_PERIOD] * (TIME_PERIOD in self.first)
+        return [key for key in keys if key not in self.nested]
 
 
 def column_groups(
@@ -1985,6 +2040,7 @@ def column_groups(
         same=tuple(c for c in rest if c not in varying),
         last=(STAT_VAR,) if STAT_VAR in gathered else (),
         last_varies=STAT_VAR in gathered and _varies(STAT_VAR, tables),
+        nested=frozenset().union(*(table.nested for table in tables)),
     )
 
 
@@ -2035,6 +2091,18 @@ def load_reading_columns(package_dir: Path) -> list[list[str]] | None:
         for names in reading
     ):
         return reading
+    return None
+
+
+def load_selector_keys(package_dir: Path) -> list[str] | None:
+    """The query keys `rules/file-selector.json` lists, or None when the file
+    does not hold them, which the validator reports."""
+    try:
+        keys = _load(package_dir / "rules" / "file-selector.json")["query_keys"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if isinstance(keys, list) and keys and all(isinstance(k, str) for k in keys):
+        return keys
     return None
 
 
@@ -2222,16 +2290,32 @@ def digest_of(data: bytes) -> str:
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
-def selector_path(
-    spec_id: str, content_version: str, rendering: Mapping[str, Any]
-) -> str:
-    """The file selector's path for a stored version, its rendering as the
-    query."""
-    query = "&".join(
-        f"{name}={str(value).lower() if isinstance(value, bool) else value}"
-        for name, value in rendering.items()
+def selector_query(rendering: Mapping[str, Any], keys: Sequence[str]) -> str:
+    """The file selector's query for `rendering`, as the file-selector rule
+    builds it: each of `keys` the rendering holds, in that order."""
+    return "&".join(
+        f"{key}={_query_value(rendering[key])}" for key in keys if key in rendering
     )
-    return f"/datasets/{spec_id}/{content_version}/file?{query}"
+
+
+def _query_value(value: Any) -> str:
+    """A query value, a boolean written `true` or `false`."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def selector_path(
+    spec_id: str,
+    content_version: str,
+    rendering: Mapping[str, Any],
+    keys: Sequence[str],
+) -> str:
+    """The file selector's path for a stored version in `rendering`, its
+    query from `selector_query`."""
+    return (
+        f"/datasets/{spec_id}/{content_version}/file?{selector_query(rendering, keys)}"
+    )
 
 
 # The storage host a signed download names, the only host outside the API a
@@ -2463,13 +2547,16 @@ class _Minted:
     """An operation a mint started or a resume read, for the result step:
     its resource, the headers that came with it, the build request a failed
     operation resubmits (None for a resumed one), the spec the client holds,
-    and the rendering it downloads."""
+    and the rendering the build posted, or for a resumed operation None and
+    the layout whose rendering `resumed_rendering` reads from the done
+    manifest."""
 
     resource: dict[str, Any]
     headers: dict[str, str]
     request: dict[str, Any] | None
     spec: dict[str, Any] | None
-    rendering: dict[str, Any]
+    rendering: dict[str, Any] | None
+    layout: str | None = None
 
 
 @dataclass
@@ -2485,6 +2572,7 @@ class _Replay:
     client_codes: Mapping[str, Mapping[str, Any]]
     body_dir: Path
     reading: Sequence[Sequence[str]] | None
+    selector_keys: Sequence[str] | None
     cursor: int = 0
     answer: Answer | None = None
     minted: _Minted | None = None
@@ -2837,10 +2925,13 @@ class _Replay:
                 if error.code not in FILE_GONE:
                     raise
                 refusal = error
+        if self.selector_keys is None:
+            raise _UnfitError("rules/file-selector.json lists no query_keys")
         path = selector_path(
             member["spec"]["spec_id"],
             member["content_version"],
             member["artifact"]["rendering"],
+            self.selector_keys,
         )
         try:
             return self.download(path, digest, origin=False), None
@@ -2963,7 +3054,9 @@ class _Replay:
         return self.dataset(members, [])
 
     def _mint(self, step: dict[str, Any]) -> dict[str, Any]:
-        rendering = rendering_for(step.get("layout"))
+        rendering = fetch_rendering(
+            step.get("layout"), party_totals=step.get("party_totals", False)
+        )
         exchange = self.posted_build(step["spec"], rendering, None)
         if exchange["response"]["status"] == 200:
             raise _UnfitError(
@@ -2980,8 +3073,7 @@ class _Replay:
         exchange = self.call("GET", POLL_PATH.format(operation_id=step["operation_id"]))
         resource = self.acted_on(exchange, _OPERATION)
         headers = exchange["response"].get("headers", {})
-        rendering = rendering_for(step.get("layout"))
-        self.minted = _Minted(resource, headers, None, None, rendering)
+        self.minted = _Minted(resource, headers, None, None, None, step.get("layout"))
         return _operation_outcome(resource)
 
     def _newest_version(self, step: dict[str, Any]) -> dict[str, Any]:
@@ -2994,7 +3086,8 @@ class _Replay:
             raise _UnfitError("result follows no mint or operation")
         minted = self.minted
         manifest = self.long_build(minted.resource, minted.headers, minted.request)
-        member = self.member([], minted.spec, manifest, minted.rendering, False)
+        rendering = minted.rendering or resumed_rendering(minted.layout, manifest)
+        member = self.member([], minted.spec, manifest, rendering, False)
         return self.dataset([member], [])
 
     def dataset(
@@ -3051,6 +3144,7 @@ def expected_outcomes(
     client_codes: Mapping[str, Mapping[str, Any]],
     body_dir: Path,
     reading: Sequence[Sequence[str]] | None,
+    selector_keys: Sequence[str] | None,
 ) -> list[dict[str, Any]]:
     """The outcome each of `record`'s steps reaches over its exchanges, its
     binary bodies read from `body_dir`, over
@@ -3073,6 +3167,7 @@ def expected_outcomes(
         client_codes,
         body_dir,
         reading,
+        selector_keys,
     )
     try:
         outcomes = [replay.step(step) for step in record["call"]]
@@ -3328,6 +3423,7 @@ def _check_scenarios(
     proxy_codes: Mapping[str, Mapping[str, Any]],
     served_commit: str | None,
     reading: Sequence[Sequence[str]] | None,
+    selector_keys: Sequence[str] | None,
 ) -> list[str]:
     directory = PACKAGE_DIR / "scenarios"
     paths = sorted(directory.glob("*.json"))
@@ -3425,6 +3521,7 @@ def _check_scenarios(
             client_codes=client_codes,
             body_dir=directory,
             reading=reading,
+            selector_keys=selector_keys,
         )
         try:
             derived = replay(record, base_url=base_url)
@@ -3621,11 +3718,10 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
     return problems
 
 
-def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, Any]:
-    """The rendering each build in `scenario` posted as its `options`, by
-    the spec_id the build answered: a manifest's own, or for a 202 the
-    manifest the poll of its operation answered done."""
-    renderings: dict[str, Any] = {}
+def _answered_builds(scenario: Mapping[str, Any]) -> Iterator[tuple[Any, Any]]:
+    """Each build in `scenario` that answered a manifest, as the manifest and
+    the `options` the build posted: a manifest's own, or for a 202 the
+    manifest the poll of its operation answered done, in build order."""
     by_operation: dict[str, Any] = {}
     for exchange in read_objects(scenario, "exchanges"):
         request = read_object(exchange, "request") or {}
@@ -3636,70 +3732,105 @@ def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, Any]:
             options = (read_object(request, "json") or {}).get("options")
             if operation_id is not None:
                 by_operation[operation_id] = options
-            spec_id = read_string(read_object(manifest, "definition"), "spec_id")
-            if spec_id is not None:
-                renderings[spec_id] = options
         elif operation_id in by_operation and "manifest" in body:
-            spec_id = read_string(read_object(manifest, "definition"), "spec_id")
-            if spec_id is not None:
-                renderings[spec_id] = by_operation[operation_id]
+            options = by_operation[operation_id]
+        else:
+            continue
+        yield manifest, options
+
+
+def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
+    """The renderings the builds in `scenario` posted as their `options`, by
+    the digest of the artifact each build's manifest lists for them. Builds
+    that answered the same file list each rendering in build order."""
+    renderings: dict[str, list[Any]] = {}
+    for manifest, options in _answered_builds(scenario):
+        digest = _artifact_digest(manifest, options)
+        if digest is not None:
+            renderings.setdefault(digest, []).append(options)
     return renderings
 
 
+def _spec_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
+    """The renderings the builds in `scenario` posted as their `options`, by
+    the spec_id each build's manifest answered, in build order."""
+    renderings: dict[str, list[Any]] = {}
+    for manifest, options in _answered_builds(scenario):
+        spec_id = read_string(read_object(manifest, "definition"), "spec_id")
+        if spec_id is not None:
+            renderings.setdefault(spec_id, []).append(options)
+    return renderings
+
+
+def _artifact_digest(manifest: Any, options: Any) -> str | None:
+    """The digest of the artifact `manifest` lists for the posted `options`,
+    or None when either does not read."""
+    if not isinstance(options, dict) or not {"format", "bundle"} <= options.keys():
+        return None
+    artifacts = read_objects(manifest, "artifacts")
+    artifact = pick_artifact({"artifacts": artifacts}, options)
+    return read_string(artifact, "artifact_digest")
+
+
+def _root_rendering(posted: Any, rendering: Any) -> Any:
+    """The rendering a derived member's root records for a build that posted
+    `posted`: DFO reads an analysis root in the frame layout, and a root read
+    summed also records the `groupby` DFO rendered it with, which no recorded
+    build posts."""
+    if not isinstance(posted, dict):
+        return posted
+    wanted = {**posted, "layout": "frame"}
+    if isinstance(rendering, dict) and "groupby" in rendering:
+        wanted.setdefault("groupby", rendering["groupby"])
+    return wanted
+
+
 def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
-    """Where a ref example's member, or a derived member's root, records a
-    rendering other than the one the build of its spec in its `scenario`
-    posted, since a ref records the rendering its fetch posted. DFO reads an
-    analysis root in the frame layout, so a derived member's root records the
-    posted rendering with `layout` `frame`. A root read summed also records the
-    `groupby` DFO rendered it with, which no recorded build posts, so the
-    schema alone checks that member."""
+    """Where a ref example's member records a rendering other than the one
+    the build that answered its file in its `scenario` posted, since a ref
+    records the rendering its fetch posted, or a derived member's root
+    records one no build of its spec there posted, read as `_root_rendering`
+    gives. A root's `groupby` is the schema's alone to check."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
     path = PACKAGE_DIR / "scenarios" / f"{name}.json"
     if not isinstance(members, list) or not isinstance(name, str) or not path.is_file():
         return []  # `_served_by` reports a ref that names no scenario
-    posted = posted_renderings(_load(path))
-    read: list[tuple[str, str | None, dict[str, Any] | None, bool]] = []
+    scenario = _load(path)
+    posted = posted_renderings(scenario)
+    by_spec = _spec_renderings(scenario)
+    problems = []
     for index, member in enumerate(members):
         if _derived(member):
-            read.extend(
-                (
-                    f"member {index} root {position}",
-                    read_string(root, "spec_id"),
-                    read_object(root, "rendering"),
-                    True,
-                )
-                for position, root in enumerate(read_objects(member, "roots"))
-            )
-        else:
-            read.append(
-                (
-                    f"member {index}",
-                    read_string(read_object(member, "spec"), "spec_id"),
-                    read_object(read_object(member, "artifact"), "rendering"),
-                    False,
-                )
-            )
-    problems = []
-    for where, spec_id, rendering, analysed in read:
-        if spec_id not in posted:
-            problems.append(f"{label}: {where}'s spec is built by no {name} build")
+            for position, root in enumerate(read_objects(member, "roots")):
+                where = f"member {index} root {position}"
+                spec_id = read_string(root, "spec_id")
+                rendering = read_object(root, "rendering")
+                if spec_id not in by_spec:
+                    problems.append(
+                        f"{label}: {where}'s spec is built by no {name} build"
+                    )
+                    continue
+                wanted = [_root_rendering(o, rendering) for o in by_spec[spec_id]]
+                if rendering not in wanted:
+                    problems.append(
+                        f"{label}: {where} records rendering {json.dumps(rendering)}, "
+                        f"but {name}'s builds give "
+                        f"{' and '.join(map(json.dumps, wanted))}"
+                    )
             continue
-        wanted = posted[spec_id]
-        if analysed and isinstance(wanted, dict):
-            wanted = {**wanted, "layout": "frame"}
-            if (
-                isinstance(rendering, dict)
-                and "groupby" in rendering
-                and "groupby" not in wanted
-            ):
-                wanted["groupby"] = rendering["groupby"]
-        if rendering != wanted:
+        artifact = read_object(member, "artifact")
+        digest = read_string(artifact, "digest")
+        rendering = read_object(artifact, "rendering")
+        if digest not in posted:
             problems.append(
-                f"{label}: {where} records rendering {json.dumps(rendering)}, "
-                f"but {name}'s build gives {json.dumps(wanted)}"
+                f"{label}: member {index}'s file is answered by no {name} build"
+            )
+        elif rendering not in posted[digest]:
+            problems.append(
+                f"{label}: member {index} records rendering {json.dumps(rendering)}, "
+                f"but {name} posted {' and '.join(map(json.dumps, posted[digest]))}"
             )
     return problems
 
@@ -3975,6 +4106,41 @@ def name_document_problems(label: str, vector: Mapping[str, Any]) -> list[str]:
     return problems
 
 
+def _json_type(value: Any) -> str:
+    if isinstance(value, bool):
+        return "boolean"
+    return "number" if isinstance(value, int | float) else type(value).__name__
+
+
+def _unorderable(members: Sequence[Mapping[str, Any]]) -> str | None:
+    """Why a reading-order vector's members cannot be ordered, or None: a
+    row whose cells do not match its member's columns, a member's column
+    whose cells cannot form one Arrow column, as a served Parquet file holds
+    them, or a column whose cells, nulls aside, mix JSON types across the
+    stacked members, which the rule gives no order."""
+    types: dict[str, set[str]] = {}
+    for index, member in enumerate(members):
+        columns = member["columns"]
+        for row in member["rows"]:
+            if len(row) != len(columns):
+                return (
+                    f"member {index} has a row of {len(row)} cells for "
+                    f"{len(columns)} columns"
+                )
+            for name, cell in zip(columns, row, strict=True):
+                if cell is not None:
+                    types.setdefault(name, set()).add(_json_type(cell))
+        for position, name in enumerate(columns):
+            try:
+                pa.array([row[position] for row in member["rows"]])
+            except pa.ArrowException as exc:
+                return f"member {index} column {name!r} is no Arrow column: {exc}"
+    mixed = sorted(name for name, found in types.items() if len(found) > 1)
+    if mixed:
+        return f"mixes JSON types in column {mixed[0]!r}"
+    return None
+
+
 def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
     paths = sorted(
         p
@@ -4008,18 +4174,28 @@ def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
             for vector in document["vectors"]:
                 problems.extend(output_digest_problems(label, vector))
         if document["rule"] == "reading-order":
-            problems.extend(
-                f"{label}: vector {vector['name']!r} orders its columns or rows "
-                f"otherwise than presented_rows"
-                for vector in document["vectors"]
-                if presented_rows(
+            for vector in document["vectors"]:
+                unfit = _unorderable(vector["members"])
+                if unfit is not None:
+                    problems.append(f"{label}: vector {vector['name']!r} {unfit}")
+                elif presented_rows(
                     [
                         (member.get("part"), member["columns"], member["rows"])
                         for member in vector["members"]
                     ],
                     document["reading_columns"],
-                )
-                != (vector["columns"], vector["rows"])
+                ) != (vector["columns"], vector["rows"]):
+                    problems.append(
+                        f"{label}: vector {vector['name']!r} orders its columns or "
+                        f"rows otherwise than presented_rows"
+                    )
+        if document["rule"] == "file-selector":
+            problems.extend(
+                f"{label}: vector {vector['name']!r} gives a query other than "
+                f"selector_query's"
+                for vector in document["vectors"]
+                if selector_query(vector["rendering"], document["query_keys"])
+                != vector["query"]
             )
     return problems
 
@@ -4106,6 +4282,12 @@ def validate() -> list[str]:
             "reading_columns list of column-name lists, so no dataset's columns "
             "are checked"
         )
+    selector_keys = load_selector_keys(PACKAGE_DIR)
+    if selector_keys is None:
+        problems.append(
+            "rules/file-selector.json: missing or unreadable, or holds no "
+            "query_keys list of names, so no file selector request is checked"
+        )
     problems.extend(
         _check_scenarios(
             validators["scenario.schema.json"],
@@ -4117,6 +4299,7 @@ def validate() -> list[str]:
             proxy_codes={row["code"]: row for row in proxy_rows},
             served_commit=source.get("commit") if isinstance(source, dict) else None,
             reading=reading,
+            selector_keys=selector_keys,
         )
     )
     size = scenarios_size(PACKAGE_DIR / "scenarios")

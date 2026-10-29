@@ -1,0 +1,47 @@
+{
+  "format_version": 1,
+  "rule": "file-selector",
+  "query_keys": [
+    "format",
+    "bundle",
+    "layout"
+  ],
+  "vectors": [
+    {
+      "name": "long-cut",
+      "rendering": {
+        "format": "parquet",
+        "bundle": false,
+        "without_party_totals": true
+      },
+      "query": "format=parquet&bundle=false"
+    },
+    {
+      "name": "long-plain",
+      "rendering": {
+        "format": "parquet",
+        "bundle": false
+      },
+      "query": "format=parquet&bundle=false"
+    },
+    {
+      "name": "frame-cut",
+      "rendering": {
+        "format": "parquet",
+        "bundle": false,
+        "layout": "frame",
+        "without_party_totals": true
+      },
+      "query": "format=parquet&bundle=false&layout=frame"
+    },
+    {
+      "name": "keys-in-listed-order",
+      "rendering": {
+        "layout": "frame",
+        "bundle": true,
+        "format": "csv"
+      },
+      "query": "format=csv&bundle=true&layout=frame"
+    }
+  ]
+}

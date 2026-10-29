@@ -105,8 +105,11 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `release_mismatch` at 503, the statuses the Presentation write routes
   serve. `presentation.render` keeps 422 for the first two and 409 for the
   rest. `frame_unavailable` covers a frame that is not held in a state
-  Presentation can load, and its definition names each case. A frame store
-  that fails to answer is `service_unavailable`.
+  Presentation can load, and its definition names each case. A frame whose
+  stored artifact the store fails to read is also `frame_unavailable`, served
+  at 503 and retryable; the registry holds one status for each endpoint and
+  channel, so it records the 404 the write routes serve for every other
+  case.
 - Code `edit_conflict` maps to `presentation.render` at 409, for a render
   of a component that has no current revision, and its definition names
   that case.

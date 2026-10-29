@@ -20,6 +20,7 @@ RULES = (
     "reading-order",
     "client-identity",
     "role-keys",
+    "file-selector",
     "series-left-out",
     "output-digest",
     "output-comparison",

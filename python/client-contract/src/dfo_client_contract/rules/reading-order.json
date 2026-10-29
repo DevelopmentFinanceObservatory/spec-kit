@@ -1394,6 +1394,134 @@
           "dc/sv/gdp"
         ]
       ]
+    },
+    {
+      "name": "integer-and-float-are-one-value",
+      "members": [
+        {
+          "columns": [
+            "time_period",
+            "value",
+            "currency",
+            "base_year"
+          ],
+          "rows": [
+            [
+              2021,
+              5,
+              "USD",
+              2020
+            ],
+            [
+              2020,
+              4,
+              "USD",
+              2020.0
+            ]
+          ]
+        }
+      ],
+      "columns": [
+        "time_period",
+        "value",
+        "currency",
+        "base_year"
+      ],
+      "rows": [
+        [
+          2020,
+          4,
+          "USD",
+          2020.0
+        ],
+        [
+          2021,
+          5,
+          "USD",
+          2020
+        ]
+      ]
+    },
+    {
+      "name": "nested-cells-compare-by-value",
+      "members": [
+        {
+          "columns": [
+            "time_period",
+            "value",
+            "meta",
+            "tags",
+            "flags"
+          ],
+          "rows": [
+            [
+              2021,
+              5,
+              {
+                "a": 1,
+                "b": 2
+              },
+              [
+                1
+              ],
+              [
+                true
+              ]
+            ],
+            [
+              2020,
+              4,
+              {
+                "b": 2,
+                "a": 1
+              },
+              [
+                1.0
+              ],
+              [
+                false
+              ]
+            ]
+          ]
+        }
+      ],
+      "columns": [
+        "time_period",
+        "value",
+        "flags",
+        "meta",
+        "tags"
+      ],
+      "rows": [
+        [
+          2020,
+          4,
+          [
+            false
+          ],
+          {
+            "b": 2,
+            "a": 1
+          },
+          [
+            1.0
+          ]
+        ],
+        [
+          2021,
+          5,
+          [
+            true
+          ],
+          {
+            "a": 1,
+            "b": 2
+          },
+          [
+            1
+          ]
+        ]
+      ]
     }
   ]
 }
