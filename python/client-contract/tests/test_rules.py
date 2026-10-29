@@ -312,6 +312,15 @@ def posted_entities(
     return posted
 
 
+def series_left_out(members: list[dict[str, Any]]) -> bool:
+    """Whether a fetch of derived members with these derived manifests issues
+    `series_left_out`: once, when any manifest lists a left-out series or says
+    `left_out_complete` false. A null `left_out` issues nothing."""
+    return any(
+        member["left_out"] or member["left_out_complete"] is False for member in members
+    )
+
+
 def selector_query(rendering: dict[str, Any]) -> str:
     def written(value: Any) -> str:
         return ("true" if value else "false") if isinstance(value, bool) else value
@@ -447,6 +456,17 @@ def test_role_keys(vector: dict[str, Any]) -> None:
     elif "entities" in vector:
         posted = posted_entities(vector["identity"], vector["entities"])
         assert posted == vector["posted"]
+
+
+@pytest.mark.parametrize(
+    "vector", _vectors("series-left-out"), ids=_ids("series-left-out")
+)
+def test_series_left_out(vector: dict[str, Any]) -> None:
+    issued = ["series_left_out"] if series_left_out(vector["members"]) else []
+    if vector["strict"] and issued:
+        assert vector.get("raises") == issued[0]
+    else:
+        assert vector.get("warnings") == issued
 
 
 @pytest.mark.parametrize("vector", _vectors("file-selector"), ids=_ids("file-selector"))

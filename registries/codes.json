@@ -2,6 +2,32 @@
   "format_version": 1,
   "entries": [
     {
+      "code": "allowance_exhausted",
+      "classification": "refusal",
+      "definition": "The caller has spent its daily allowance for this kind of write, shares, cards or pins, so the write is refused until the allowance resets, which the response's Retry-After header names. The problem document says retryable false, so a client raises at once and waits for no reset.",
+      "owning_contract": "platform",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.pin",
+          "channel": "problem_details",
+          "http_status": 429
+        },
+        {
+          "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 429
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 429
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "alternates_unevaluated",
       "classification": "warning",
       "definition": "An alternate reading of the question that passed admission was not evaluated because the presence read its default scope needs did not complete (no worker free, an upstream failure, or a timeout). The elected answer is served, a near-neighbour tie with that reading stays stated, the message states the cause in plain words, and the response is not cached.",
@@ -45,6 +71,11 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 410
         }
@@ -186,6 +217,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -286,6 +322,11 @@
         },
         {
           "endpoint": "datasets.files",
+          "channel": "problem_details",
+          "http_status": 501
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 501
         }
@@ -429,6 +470,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -469,6 +515,54 @@
         },
         {
           "endpoint": "datasets.definition",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "compare_no_key_matched",
+      "classification": "refusal",
+      "definition": "No member of a compare step's data side pairs with a member of its other side through the step's on mapping, so there is nothing to compare.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "comparison_periods_disjoint",
+      "classification": "refusal",
+      "definition": "The two sides of a compare, quotient or sum_of step have no period in common.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "composed_unit_sum_unsupported",
+      "classification": "refusal",
+      "definition": "An analysis step adds values whose unit is a quotient, and quotients added together are not a quotient in that unit.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -587,6 +681,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -614,6 +713,70 @@
         {
           "endpoint": "datasets.snapshot",
           "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "coverage_insufficient",
+      "classification": "refusal",
+      "definition": "The grid an aggregate step groups over is too sparse: the share of expected cells with a value is below the floor the step requires.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "cross_frame_facet_mismatch",
+      "classification": "refusal",
+      "definition": "The two sides of an analysis step hold one StatVar read under different values of a facet, whose values do not combine.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "cross_frame_unit_mismatch",
+      "classification": "refusal",
+      "definition": "The two sides of an analysis step resolve to different units, and combining their values would be wrong.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "cross_frame_unit_unbound",
+      "classification": "refusal",
+      "definition": "One side of an analysis step declares no unit while the other declares one, so the sides cannot be combined.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -691,6 +854,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -740,6 +908,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -868,6 +1041,38 @@
       "lifecycle": "active"
     },
     {
+      "code": "derived_input_ordinal",
+      "classification": "refusal",
+      "definition": "An analysis step reads a derived result whose values are rank positions, and a ratio or growth rate over a rank position has no meaning.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "derived_input_unusable",
+      "classification": "refusal",
+      "definition": "An analysis step reads a derived result whose rows hold spans of periods, which a growth step cannot window over.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "direction_discarded",
       "classification": "warning",
       "definition": "A named place's flow direction could not be carried by the elected shape, so the direction was dropped and the place answered as the shape's own subject. The warning is minted only by the text pipeline's place-binding phase, which dataset_resubmit's identity and candidates entries do not run; those entries refuse with role_incompatible instead of discarding a direction.",
@@ -941,6 +1146,11 @@
         },
         {
           "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 409
         }
@@ -1285,6 +1495,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1340,6 +1555,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1367,6 +1587,22 @@
         {
           "endpoint": "datasets.snapshot",
           "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "facet_heterogeneous",
+      "classification": "refusal",
+      "definition": "An analysis step reads an input that carries more than one value of a facet, such as the measurement method, and the response lists the candidates.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1427,6 +1663,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1468,6 +1709,38 @@
       "lifecycle": "active"
     },
     {
+      "code": "filter_predicate_type_mismatch",
+      "classification": "refusal",
+      "definition": "A filter step names a predicate of a kind, or with a value of a type, that does not fit the column it applies to.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "filter_unit_conversion_unsupported",
+      "classification": "refusal",
+      "definition": "A filter step puts a unit predicate on an input whose units are converted, which the step cannot match.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "frame_not_refreshable",
       "classification": "refusal",
       "definition": "The named frame is a derived frame, published by an analysis service from its own computation. No dataset definition stands behind it, so it cannot be rebuilt here on current data; the service that computed it replays it.",
@@ -1477,6 +1750,22 @@
       "mappings": [
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "frame_too_large",
+      "classification": "refusal",
+      "definition": "The result of an analysis step is too large to store, so the step is refused and nothing is stored.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -1500,6 +1789,27 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "growth_gap_year",
+      "classification": "refusal",
+      "definition": "No entity has a value in both endpoint years of a growth step, so the step has no growth to compute.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -1539,6 +1849,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -1605,6 +1920,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -1688,6 +2008,16 @@
           "endpoint": "datasets.files",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -1735,6 +2065,38 @@
       "lifecycle": "active"
     },
     {
+      "code": "join_no_common_key_columns",
+      "classification": "refusal",
+      "definition": "A join step names no key columns and the two sides share no role column to join on.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "join_output_collision",
+      "classification": "refusal",
+      "definition": "The two sides of a join step have the same StatVar, unit and facets, so the rows a matched key emits cannot be told apart.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "member_not_resolvable",
       "classification": "refusal",
       "definition": "A StatVar did not resolve to exactly one registered shape.",
@@ -1764,6 +2126,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -1834,6 +2201,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -1889,6 +2261,22 @@
           ],
           "channel": "problem_details",
           "http_status": 400
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "mixed_time_grain",
+      "classification": "refusal",
+      "definition": "An input frame holds periods of more than one grain, or a mix of points and spans, so no analysis step can read it, and reading it again gives the same periods.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2058,6 +2446,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "non_finite_result",
+      "classification": "refusal",
+      "definition": "An analysis step overflows to a value that is not finite, so repeating the step with the same input reaches the same result.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "not_found",
       "classification": "refusal",
       "definition": "No route matches the request path, or the referenced resource is not visible to this caller.",
@@ -2077,6 +2481,11 @@
         },
         {
           "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -2437,6 +2846,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "op_spec_invalid",
+      "classification": "refusal",
+      "definition": "The recipe holds an analysis step whose op-spec is not valid, such as an unknown field, a missing argument or a value out of range.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "open_role_unavailable",
       "classification": "refusal",
       "definition": "A resubmitted identity names an open role, and the StatVars the definition elects declare no role on that axis, so the definition cannot give one series per member.",
@@ -2483,6 +2908,22 @@
           "endpoint": "datasets.operations",
           "channel": "problem_details",
           "http_status": 404
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "operation_uncovered",
+      "classification": "refusal",
+      "definition": "An aggregate step names an aggregation the analysis does not support.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2612,6 +3053,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2666,6 +3112,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "payload_too_large",
+      "classification": "refusal",
+      "definition": "A share's request body is larger than the share routes accept.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 413
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "pin_not_permitted",
       "classification": "refusal",
       "definition": "The authenticated caller lacks the pin permission, or programmatic pinning is not live on this deployment.",
@@ -2679,7 +3141,7 @@
           "http_status": 403
         }
       ],
-      "lifecycle": "active"
+      "lifecycle": "retired"
     },
     {
       "code": "pivot_not_homogeneous",
@@ -2780,6 +3242,22 @@
             "parsed"
           ],
           "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "place_levels_mixed",
+      "classification": "refusal",
+      "definition": "A sum step pools parties whose totals contain one another, such as a region and its countries, which would count members twice.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -2988,6 +3466,54 @@
       "lifecycle": "active"
     },
     {
+      "code": "quotient_of_no_key_matched",
+      "classification": "refusal",
+      "definition": "No key of a quotient step's numerator matches a key of its denominator, so no quotient can be computed.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "quotient_of_side_unit_unsupported",
+      "classification": "refusal",
+      "definition": "A side of a quotient step cannot be a part of the result's unit: it is a share or growth rate, already a composed unit, or a sum_of result with no unit.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "quotient_of_zero_denominator",
+      "classification": "refusal",
+      "definition": "The denominator of a quotient step sums to zero in every matched cell, so the step has no quotient to return.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "rate_coverage_gap",
       "classification": "refusal",
       "definition": "The declared conversion recipe is missing rate or deflator inputs for part of this slice.",
@@ -3028,6 +3554,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3085,6 +3616,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3099,6 +3635,11 @@
       "mappings": [
         {
           "endpoint": "datasets.recipe",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 404
         }
@@ -3162,6 +3703,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 503
         }
       ],
       "lifecycle": "active"
@@ -3192,6 +3738,11 @@
       "mappings": [
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -3328,6 +3879,16 @@
           "endpoint": "datasets.snapshot",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -3402,6 +3963,11 @@
           "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -3448,6 +4014,22 @@
         {
           "endpoint": "datasets.snapshot",
           "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "role_ambiguous",
+      "classification": "refusal",
+      "definition": "A column an analysis step names, to group, rank, join or filter on, is not one its input has a grain for.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3618,6 +4200,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3636,6 +4223,54 @@
             "parsed"
           ],
           "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rolling_anchor_unresolved",
+      "classification": "refusal",
+      "definition": "The latest period a rolling step counts from is not established, so the step cannot resolve its periods.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rolling_grain_unsupported",
+      "classification": "refusal",
+      "definition": "A rolling step counts the latest period over data whose periods are not calendar years, which it does not support.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rolling_populations_differ",
+      "classification": "refusal",
+      "definition": "The rolling steps of one analysis recipe count the latest period over different populations of series, so the recipe is refused before it runs, whether or not the periods they would settle on agree.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3686,6 +4321,11 @@
         },
         {
           "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 400
         }
@@ -3865,6 +4505,32 @@
           "endpoint": "graph.documentation",
           "channel": "problem_details",
           "http_status": 503
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 503
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "several_members",
+      "classification": "refusal",
+      "definition": "An analysis step takes one reading for each input, and an input names a dataset that holds several.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -3882,6 +4548,86 @@
           "doors": [
             "dataset_resubmit"
           ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_not_replaceable",
+      "classification": "refusal",
+      "definition": "A replace names a snapshot share, whose cards are fixed for good. Only a live share takes new cards.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_of_grain_mismatch",
+      "classification": "refusal",
+      "definition": "No key of a share step has a period its numerator and denominator both report, so there is no period to divide.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_of_key_unknown",
+      "classification": "refusal",
+      "definition": "The denominator mapping of a share step covers only some of the numerator's key columns, which leaves the pairing of the others undefined.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_of_key_unmatched",
+      "classification": "refusal",
+      "definition": "No key of a share step's numerator has a denominator group, so no share can be computed.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_of_zero_denominator",
+      "classification": "refusal",
+      "definition": "The denominator of a share step sums to zero in a period, so the share is undefined.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
         }
@@ -4309,6 +5055,11 @@
           "endpoint": "datasets.description",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -4368,6 +5119,11 @@
         },
         {
           "endpoint": "datasets.description",
+          "channel": "problem_details",
+          "http_status": 410
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 410
         }
@@ -4537,6 +5293,11 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 409
         }
       ],
       "lifecycle": "active"
@@ -4598,6 +5359,11 @@
           "endpoint": "datasets.description",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
@@ -4642,6 +5408,22 @@
       "lifecycle": "retired"
     },
     {
+      "code": "stat_var_unresolved",
+      "classification": "refusal",
+      "definition": "An analysis step needs one StatVar and its input holds several, or none the step can use. A composite input read with one series per StatVar is the common case.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "stat_vars_summed",
       "classification": "warning",
       "definition": "The series sums observations from more than one StatVar in the requested family, and carries the family's reference as its stat_var.",
@@ -4664,6 +5446,22 @@
         {
           "endpoint": "datasets.snapshot",
           "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "sum_of_no_key_matched",
+      "classification": "refusal",
+      "definition": "No member of a sum_of step's data side pairs with a member of its other side through the step's on mapping, so there is nothing to add.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -4785,6 +5583,16 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 504
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 504
         }
       ],
       "lifecycle": "active"
@@ -4831,6 +5639,22 @@
         {
           "endpoint": "search.resolve",
           "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "unit_heterogeneous",
+      "classification": "refusal",
+      "definition": "An analysis step reads an input that carries more than one unit, or a pinned unit the input does not declare, and the response lists the candidates to pin.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
         }
       ],
       "lifecycle": "active"
@@ -5040,6 +5864,11 @@
           "endpoint": "graph.members",
           "channel": "problem_details",
           "http_status": 502
+        },
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 502
         }
       ],
       "lifecycle": "active"
@@ -5079,6 +5908,11 @@
         },
         {
           "endpoint": "datasets.refresh",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 503
         }
@@ -5203,6 +6037,38 @@
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "write_token_invalid",
+      "classification": "refusal",
+      "definition": "A replace or delete of a share carries a write token other than the share's, or names a share created without one, which no token can change.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "write_token_required",
+      "classification": "refusal",
+      "definition": "A replace or delete of a share carries no write token.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 403
         }

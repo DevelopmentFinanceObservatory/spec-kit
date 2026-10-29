@@ -36,8 +36,8 @@ document validates against its schema, then what the schemas cannot express:
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
   none of them a code another table or `registries/codes.json` holds, and the
   warning codes are those the client rules issue: `ref_digest_changed`,
-  `route_deprecated`, `server_warning`, and one `key_<reason>` per key-format
-  reason.
+  `route_deprecated`, `server_warning`, one `key_<reason>` per key-format
+  reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
   one, a synthetic scenario derives from a recorded one, and every body file
@@ -86,19 +86,28 @@ document validates against its schema, then what the schemas cannot express:
   SCENARIOS_BUDGET bytes.
 - Each ref example's file name matches its `name` and gets the verdict it
   states: from `dataset-ref.schema.json`, then from the rules that each
-  member's definition carries its own `spec_id` and that members hold
+  dataset member's definition carries its own `spec_id` and that members hold
   distinct `spec_id`s. A ref example whose ref holds members names the
   recorded `scenario` that serves them, and each member's `spec_id`, `parts`,
   `content_version` and `sentence` are a dataset member's of that scenario,
   and its artifact digest is the digest of a file the scenario downloads.
-  Each member of an example the schema accepts records the rendering the
-  scenario's build of its spec posted.
+  Each root of a derived member is a dataset member's `spec_id` and
+  `content_version` of that scenario. Each member of an example the schema
+  accepts records the rendering the scenario's build of its spec posted, and
+  each root of a derived one that rendering in the frame layout.
+- The derived members of the ref examples the schema accepts and of the
+  output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
+  identity fixes another, so one `ocv_` names one op-spec and one output.
 - Each rule file under `rules/` validates against `rules.schema.json`, names
-  the rule its file name names, and names each vector once, and each
+  the rule its file name names, and names each vector once, each
   reading-order vector's `columns` and `rows` are what `presented_rows`
-  gives, and each file-selector vector's `query` is what `selector_query`
-  gives. A missing or unreadable `rules/reading-order.json` or
-  `rules/file-selector.json` is a problem.
+  gives, each file-selector vector's `query` is what `selector_query`
+  gives, each output-digest vector's document holds its frame's rows, each
+  operation's variable read as the name its `variables` give it, and
+  its digest hashes that document, each minted name hashes its name
+  document and each name it or a name document holds has one, and each
+  growth vector's window starts before it ends. A missing or unreadable
+  `rules/reading-order.json` or `rules/file-selector.json` is a problem.
 
 It does not import `dfo_client_contract`, whose tests replay
 the rule vectors. `tools/capture_client_contract.py` imports the outcome
@@ -503,18 +512,20 @@ def _check_other_codes(
 def _check_warning_codes(
     document: dict[str, Any],
     taken: Mapping[str, set[str]],
-    key_reasons: Sequence[str],
+    rules_schema: Mapping[str, Any],
 ) -> list[str]:
     """As `_check_other_codes`, and the codes are those a client's rules
-    issue: `ref_digest_changed`, each header warning, and one `key_<reason>`
-    warning per key-format reason."""
+    issue: `ref_digest_changed`, each header warning, one `key_<reason>`
+    warning per key-format reason, and each warning the series-left-out
+    rule issues."""
     codes = [row["code"] for row in document["codes"]]
     problems = _check_other_codes("warning-codes.json", codes, taken)
     wanted = {
         REF_DIGEST_CHANGED,
         ROUTE_DEPRECATED,
         SERVER_WARNING,
-        *(f"key_{r}" for r in key_reasons),
+        *(f"key_{r}" for r in key_format_reasons(rules_schema)),
+        *series_left_out_warnings(rules_schema),
     }
     problems.extend(
         f"warning-codes.json: no row for {code!r}, a warning a client issues"
@@ -531,6 +542,13 @@ def key_format_reasons(rules_schema: Mapping[str, Any]) -> list[str]:
     """The reasons the key-format rule warns with."""
     vectors = rules_schema["$defs"]["key_format"]["properties"]["vectors"]
     return vectors["items"]["properties"]["reason"]["enum"]
+
+
+def series_left_out_warnings(rules_schema: Mapping[str, Any]) -> set[str]:
+    """The warnings the series-left-out rule issues, or raises under strict."""
+    vectors = rules_schema["$defs"]["series_left_out"]["properties"]["vectors"]
+    members = vectors["items"]["properties"]
+    return {*members["warnings"]["items"]["enum"], *members["raises"]["enum"]}
 
 
 # The class of every error the key-lookup rule raises.
@@ -773,6 +791,7 @@ ACTION_CLASSES = {
     "take_newest_version": "VersionUnavailableError",
     "log_in": "AuthenticationError",
     "request_scope": "PermissionDeniedError",
+    "stop": "PermissionDeniedError",
     "wait": "RateLimitError",
     "wait_for_reset": "QuotaExceededError",
     "report": "ServerError",
@@ -794,22 +813,33 @@ STATUS_CLASSES = {
 RETRYABLE_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 # The retries a client makes by default after a retryable refusal.
 MAX_RETRIES = 2
+# The longest `Retry-After`, in seconds, a client waits before it tries again.
+# A refusal that asks for longer raises at once.
+RETRY_AFTER_MAX_S = 60.0
+# The action of the refusals a client never retries, whatever their document
+# and status say: a spent allowance clears only when it resets.
+NOT_RETRIED_ACTION = "wait_for_reset"
 # The status that cuts a synchronous build off at the server's limit.
 BUILD_CUT_OFF = 504
 
 
 def may_retry(
-    request: Mapping[str, Any], responses: Sequence[Mapping[str, Any]]
+    request: Mapping[str, Any],
+    responses: Sequence[Mapping[str, Any]],
+    actions: Mapping[str, Mapping[str, Any]],
 ) -> bool:
     """Whether a client sends `request` again after `responses`, the answers
-    to it so far in order: the last is a retryable refusal, the retries made
-    stay under MAX_RETRIES, and for a build, no earlier answer was a 504
-    cut-off, after which the build is posted once more only. So a build
-    refused 504 then 503 raises the 503, and one refused 503 then 504 is
-    posted once more after the 504."""
+    to it so far in order: the last is a refusal `tries_again` allows, the
+    retries made stay under MAX_RETRIES, and for a build, no earlier answer
+    was a 504 cut-off, after which the build is posted once more only. So a
+    build refused 504 then 503 raises the 503, and one refused 503 then 504
+    is posted once more after the 504."""
     *earlier, response = responses
     status = response["status"]
-    if status < 400 or not retryable(status, problem_body(response)):
+    headers = response.get("headers", {})
+    if status < 400 or not tries_again(
+        status, problem_body(response), headers, actions
+    ):
         return False
     if len(earlier) >= MAX_RETRIES:
         return False
@@ -854,12 +884,30 @@ def error_class(
     return STATUS_CLASSES.get(status, fallback)
 
 
-def retryable(status: int, body: Any) -> bool:
-    """Whether a client retries a refusal: as its problem document's
-    `retryable` says, and otherwise by its status."""
+def retryable(status: int, body: Any, actions: Mapping[str, Mapping[str, Any]]) -> bool:
+    """Whether a client retries a refusal: never when its code's action is
+    NOT_RETRIED_ACTION, else as its problem document's `retryable` says, and
+    otherwise by its status."""
+    row = actions.get(refusal_code(body) or "")
+    if row is not None and row["action"] == NOT_RETRIED_ACTION:
+        return False
     if isinstance(body, dict) and isinstance(body.get("retryable"), bool):
         return body["retryable"]
     return status in RETRYABLE_STATUSES
+
+
+def tries_again(
+    status: int,
+    body: Any,
+    headers: Mapping[str, str],
+    actions: Mapping[str, Mapping[str, Any]],
+) -> bool:
+    """Whether a client sends a refused request again, a poll included: the
+    refusal is `retryable` and its `Retry-After`, when it carries one, is at
+    most RETRY_AFTER_MAX_S."""
+    wait = retry_after(headers)
+    over_cap = wait is not None and wait > RETRY_AFTER_MAX_S
+    return retryable(status, body, actions) and not over_cap
 
 
 def retry_after(headers: Mapping[str, str]) -> float | None:
@@ -2397,11 +2445,11 @@ def failed_operation(
             error=error_class(500, OPERATION_FAILED, actions),
             trace_id=trace_id(None, headers),
         )
-        return error, retryable(500, None)
+        return error, retryable(500, None, actions)
     status = problem.get("status")
     status = status if isinstance(status, int) else 500
     error = refusal_error(status, problem, actions, headers)
-    return error, retryable(status, problem)
+    return error, retryable(status, problem, actions)
 
 
 class LongBuild:
@@ -2467,9 +2515,9 @@ class LongBuild:
             error, again = failed_operation(body, self.actions, headers)
         else:
             error = refusal_error(status, body, self.actions, headers)
-            again = retryable(status, body)
+            again = retryable(status, body, self.actions)
             if error.code != OPERATION_FAILED:
-                if not again:
+                if not tries_again(status, body, headers, self.actions):
                     raise error
                 if status != 429:
                     if self.retries >= MAX_RETRIES:
@@ -2571,7 +2619,7 @@ class _Replay:
             retries
             and self.cursor < len(self.exchanges)
             and self.exchanges[self.cursor]["request"] == request
-            and may_retry(request, answers)
+            and may_retry(request, answers, self.actions)
         ):
             headers = exchange["response"].get("headers", {})
             self.retry_waits.append(retry_wait(headers, len(answers) - 1))
@@ -2579,7 +2627,7 @@ class _Replay:
             self.cursor += 1
             self.took(exchange)
             answers.append(exchange["response"])
-        if retries and may_retry(request, answers):
+        if retries and may_retry(request, answers, self.actions):
             raise _UnfitError(
                 f"exchange {self.cursor - 1} is a retryable refusal with retries "
                 f"left, and the record holds no retry of {method} {target}"
@@ -3596,7 +3644,7 @@ def _ref_rule(ref: dict[str, Any]) -> str | None:
     seen: set[str] = set()
     for member in ref["members"]:
         spec = member["spec"]
-        if spec["definition"]["spec_id"] != spec["spec_id"]:
+        if "definition" in spec and spec["definition"]["spec_id"] != spec["spec_id"]:
             return "definition_spec_id_mismatch"
         if spec["spec_id"] in seen:
             return "repeated_spec_id"
@@ -3604,12 +3652,19 @@ def _ref_rule(ref: dict[str, Any]) -> str | None:
     return None
 
 
+def _derived(member: Any) -> bool:
+    """Whether a ref member is a derived member, which names its roots."""
+    return isinstance(member, dict) and "roots" in member
+
+
 def _served_by(label: str, record: dict[str, Any]) -> list[str]:
     """Where a ref example's members differ from the members its `scenario`
     serves: a `spec_id` no dataset member of it has, other `parts`, another
     `content_version` or `sentence`, or an artifact digest that is not the
-    digest of a file the scenario downloads. A ref with no members names no
-    scenario."""
+    digest of a file the scenario downloads. A derived member's roots are
+    checked instead, each a dataset member's `spec_id` and `content_version`,
+    since no scenario serves the derived member itself. A ref with no members
+    names no scenario."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     if not isinstance(members, list) or not members:
@@ -3636,6 +3691,14 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
             digests.add(digest_of(path.read_bytes()))
     problems = []
     for index, member in enumerate(members):
+        if _derived(member):
+            problems.extend(
+                f"{label}: member {index} root {position} is no member {name} serves"
+                for position, root in enumerate(read_objects(member, "roots"))
+                if (found := served.get(root.get("spec_id"))) is None
+                or found.get("content_version") != root.get("content_version")
+            )
+            continue
         spec = member.get("spec") if isinstance(member, dict) else None
         found = served.get(spec.get("spec_id") if isinstance(spec, dict) else None)
         if found is None:
@@ -3655,13 +3718,10 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
     return problems
 
 
-def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the digest of the artifact each build's manifest lists for them: a
-    manifest's own, or for a 202 the manifest the poll of its operation
-    answered done. Builds that answered the same file list each rendering in
-    build order."""
-    renderings: dict[str, list[Any]] = {}
+def _answered_builds(scenario: Mapping[str, Any]) -> Iterator[tuple[Any, Any]]:
+    """Each build in `scenario` that answered a manifest, as the manifest and
+    the `options` the build posted: a manifest's own, or for a 202 the
+    manifest the poll of its operation answered done, in build order."""
     by_operation: dict[str, Any] = {}
     for exchange in read_objects(scenario, "exchanges"):
         request = read_object(exchange, "request") or {}
@@ -3676,9 +3736,29 @@ def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
             options = by_operation[operation_id]
         else:
             continue
+        yield manifest, options
+
+
+def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
+    """The renderings the builds in `scenario` posted as their `options`, by
+    the digest of the artifact each build's manifest lists for them. Builds
+    that answered the same file list each rendering in build order."""
+    renderings: dict[str, list[Any]] = {}
+    for manifest, options in _answered_builds(scenario):
         digest = _artifact_digest(manifest, options)
         if digest is not None:
             renderings.setdefault(digest, []).append(options)
+    return renderings
+
+
+def _spec_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
+    """The renderings the builds in `scenario` posted as their `options`, by
+    the spec_id each build's manifest answered, in build order."""
+    renderings: dict[str, list[Any]] = {}
+    for manifest, options in _answered_builds(scenario):
+        spec_id = read_string(read_object(manifest, "definition"), "spec_id")
+        if spec_id is not None:
+            renderings.setdefault(spec_id, []).append(options)
     return renderings
 
 
@@ -3692,19 +3772,54 @@ def _artifact_digest(manifest: Any, options: Any) -> str | None:
     return read_string(artifact, "artifact_digest")
 
 
+def _root_rendering(posted: Any, rendering: Any) -> Any:
+    """The rendering a derived member's root records for a build that posted
+    `posted`: DFO reads an analysis root in the frame layout, and a root read
+    summed also records the `groupby` DFO rendered it with, which no recorded
+    build posts."""
+    if not isinstance(posted, dict):
+        return posted
+    wanted = {**posted, "layout": "frame"}
+    if isinstance(rendering, dict) and "groupby" in rendering:
+        wanted.setdefault("groupby", rendering["groupby"])
+    return wanted
+
+
 def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     """Where a ref example's member records a rendering other than the one
     the build that answered its file in its `scenario` posted, since a ref
-    records the rendering its fetch posted."""
+    records the rendering its fetch posted, or a derived member's root
+    records one no build of its spec there posted, read as `_root_rendering`
+    gives. A root's `groupby` is the schema's alone to check."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
     path = PACKAGE_DIR / "scenarios" / f"{name}.json"
     if not isinstance(members, list) or not isinstance(name, str) or not path.is_file():
         return []  # `_served_by` reports a ref that names no scenario
-    posted = posted_renderings(_load(path))
+    scenario = _load(path)
+    posted = posted_renderings(scenario)
+    by_spec = _spec_renderings(scenario)
     problems = []
     for index, member in enumerate(members):
+        if _derived(member):
+            for position, root in enumerate(read_objects(member, "roots")):
+                where = f"member {index} root {position}"
+                spec_id = read_string(root, "spec_id")
+                rendering = read_object(root, "rendering")
+                if spec_id not in by_spec:
+                    problems.append(
+                        f"{label}: {where}'s spec is built by no {name} build"
+                    )
+                    continue
+                wanted = [_root_rendering(o, rendering) for o in by_spec[spec_id]]
+                if rendering not in wanted:
+                    problems.append(
+                        f"{label}: {where} records rendering {json.dumps(rendering)}, "
+                        f"but {name}'s builds give "
+                        f"{' and '.join(map(json.dumps, wanted))}"
+                    )
+            continue
         artifact = read_object(member, "artifact")
         digest = read_string(artifact, "digest")
         rendering = read_object(artifact, "rendering")
@@ -3759,7 +3874,236 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
     return problems
 
 
+# --- derived identities -----------------------------------------------------
+
+# What fixes what among a derived member's identities. Two members that agree
+# on every field of a key agree on every field it determines: `ocv_` hashes
+# the `ops_` id, the root versions and the execution identity, and names one
+# output; `rpk_` hashes the normal form, the root versions and the execution
+# identities, so one replay computes one op-spec, version and output; the
+# normal form, the root versions and the execution identity give one `rpk_`;
+# and one file holds one output in one format. `roots` holds each root's
+# version with the rendering it was read with, since a root read summed
+# under a groupby is another input.
+DERIVED_IDENTITY_RULES: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (
+        ("content_version",),
+        ("spec_id", "roots", "execution_identity", "output_digest"),
+    ),
+    (
+        ("replay_key",),
+        (
+            "normal_form_hash",
+            "roots",
+            "execution_identity",
+            "spec_id",
+            "content_version",
+            "output_digest",
+            "resolved_periods",
+        ),
+    ),
+    (("normal_form_hash", "roots", "execution_identity"), ("replay_key",)),
+    (("artifact_digest",), ("artifact_format", "output_digest")),
+)
+
+
+def derived_identities(member: Mapping[str, Any]) -> dict[str, str | None]:
+    """The identities of a derived member that `DERIVED_IDENTITY_RULES` read,
+    each as text, None where the member lacks it."""
+    spec = read_object(member, "spec")
+    recipe = read_object(spec, "recipe")
+    artifact = read_object(member, "artifact")
+    roots = [
+        [
+            read_string(root, "spec_id"),
+            read_string(root, "content_version"),
+            read_object(root, "rendering"),
+        ]
+        for root in read_objects(member, "roots")
+    ]
+    periods = member.get("resolved_periods")
+    return {
+        "spec_id": read_string(spec, "spec_id"),
+        "normal_form_hash": read_string(recipe, "normal_form_hash"),
+        "replay_key": read_string(recipe, "replay_key"),
+        "content_version": read_string(member, "content_version"),
+        "output_digest": read_string(member, "output_digest"),
+        "roots": json.dumps(roots, sort_keys=True),
+        "execution_identity": read_string(member, "execution_identity"),
+        "resolved_periods": None
+        if periods is None
+        else json.dumps(periods, sort_keys=True),
+        "artifact_digest": read_string(artifact, "digest"),
+        "artifact_format": read_string(read_object(artifact, "rendering"), "format"),
+    }
+
+
+def derived_identity_problems(
+    members: Sequence[tuple[str, Mapping[str, Any]]],
+) -> list[str]:
+    """Where two labelled derived members agree on a key of
+    `DERIVED_IDENTITY_RULES` but differ in a field it determines."""
+    identities = [(label, derived_identities(member)) for label, member in members]
+    problems = []
+    for key, determined in DERIVED_IDENTITY_RULES:
+        first: dict[tuple[str | None, ...], tuple[str, dict[str, str | None]]] = {}
+        for label, facts in identities:
+            values = tuple(facts[name] for name in key)
+            if None in values:
+                continue
+            if values not in first:
+                first[values] = (label, facts)
+                continue
+            other_label, other = first[values]
+            problems.extend(
+                f"{label} and {other_label} share {' and '.join(key)} "
+                f"but differ in {name}"
+                for name in determined
+                if facts[name] != other[name]
+            )
+    return problems
+
+
+def _check_derived_identities() -> list[str]:
+    """Every derived member of a ref example the schema accepts and of the
+    output-comparison vectors, checked together, since the examples name one
+    computation in several places."""
+    members: list[tuple[str, Mapping[str, Any]]] = []
+    for path in sorted((PACKAGE_DIR / "refs").glob("*.json")):
+        record = _load(path)
+        if not isinstance(record, dict) or read_object(record, "error") == {
+            "by": "schema"
+        }:
+            continue
+        members.extend(
+            (f"refs/{path.name} member {index}", member)
+            for index, member in enumerate(
+                read_objects(read_object(record, "ref"), "members")
+            )
+            if _derived(member)
+        )
+    comparison = _load(PACKAGE_DIR / "rules" / "output-comparison.json")
+    for vector in read_objects(comparison, "vectors"):
+        for side in ("left", "right"):
+            members.extend(
+                (
+                    f"rules/output-comparison.json {vector.get('name')} {side} member {index}",
+                    member,
+                )
+                for index, member in enumerate(
+                    read_objects(read_object(vector, side), "members")
+                )
+                if _derived(member)
+            )
+    return derived_identity_problems(members)
+
+
 # --- rules ------------------------------------------------------------------
+
+
+# The frame columns that name no role (docs/frame-grammar-v1.md).
+FRAME_FIXED_COLUMNS = frozenset(
+    {
+        "stat_var",
+        "time_period",
+        "value",
+        "unit",
+        "measurementMethod",
+        "provenance",
+        "status",
+    }
+)
+
+
+def _without_recipe(unit: Any) -> Any:
+    """A unit cell with `recipe` dropped from every unit-request object."""
+    if not isinstance(unit, dict):
+        return unit
+    if "numerator" in unit or "denominator" in unit:
+        return {side: _without_recipe(part) for side, part in unit.items()}
+    return {name: item for name, item in unit.items() if name != "recipe"}
+
+
+def output_digest_problems(label: str, vector: Mapping[str, Any]) -> list[str]:
+    """Where an output-digest vector's `document` is not its frame's, read as
+    JSON, or its `digest` is not the document's: the columns `stat_var`, the
+    role columns, `time_period`, `value` and `unit`, each frame row once in
+    those columns with no unit `recipe` and a `stat_var` of `dcid:` and an
+    `ops_` id its `variables` names read as that name, digest version `out2`,
+    and `out_` and 32 hex digits of the document's SHA-256. The JCS bytes
+    themselves are the reference implementation's to check."""
+    frame = vector["frame"]
+    variables = vector.get("variables", {})
+    roles = [name for name in frame["columns"] if name not in FRAME_FIXED_COLUMNS]
+    columns = ["stat_var", *roles, "time_period", "value", "unit"]
+    rows = []
+    for row in frame["rows"]:
+        cells = dict(zip(frame["columns"], row, strict=True))
+        cells["unit"] = _without_recipe(cells.get("unit"))
+        stat_var = cells["stat_var"]
+        cells["stat_var"] = variables.get(stat_var.removeprefix("dcid:"), stat_var)
+        rows.append([cells.get(name) for name in columns])
+    document = json.loads(vector["document"])
+    problems = []
+    wanted = {"digest_version": "out2", "columns": columns}
+    unmatched = list(document.get("rows", []))
+    for row in rows:
+        if row in unmatched:
+            unmatched.remove(row)
+        else:
+            unmatched.append(None)
+    if {key: document.get(key) for key in wanted} != wanted or unmatched:
+        problems.append(
+            f"{label}: vector {vector['name']!r} document is not its frame's"
+        )
+    hashed = "out_" + hashlib.sha256(vector["document"].encode()).hexdigest()[:32]
+    if vector["digest"] != hashed:
+        problems.append(
+            f"{label}: vector {vector['name']!r} digest is not its document's, {hashed}"
+        )
+    return problems + name_document_problems(label, vector)
+
+
+def name_document_problems(label: str, vector: Mapping[str, Any]) -> list[str]:
+    """Where an output-digest vector's `name_documents` misname a minted
+    variable: a name that is not `mv_` and 32 hex digits of its document's
+    SHA-256, or a name in `variables` or in a document's slots with no
+    document of its own. So a nested step's document holds its input's
+    `mv_` name, which has its own document."""
+    documents = vector.get("name_documents", {})
+    problems = [
+        f"{label}: vector {vector['name']!r} name {name} is not its document's"
+        for name, text in documents.items()
+        if name != "mv_" + hashlib.sha256(text.encode()).hexdigest()[:32]
+    ]
+    named = set(vector.get("variables", {}).values())
+    for name, text in documents.items():
+        try:
+            document = json.loads(text)
+        except ValueError:
+            document = None
+        slots = (
+            [items for slot, items in document.items() if slot != "verb"]
+            if isinstance(document, dict) and isinstance(document.get("verb"), str)
+            else None
+        )
+        if slots is None or not all(isinstance(items, list) for items in slots):
+            problems.append(
+                f"{label}: vector {vector['name']!r} name {name} document is not "
+                f"a verb and its slots"
+            )
+            continue
+        named.update(
+            held
+            for items in slots
+            for held in items
+            if isinstance(held, str) and held.startswith("mv_")
+        )
+    problems.extend(
+        f"{label}: vector {vector['name']!r} name {name} has no name document"
+        for name in sorted(named - set(documents))
+    )
+    return problems
 
 
 def _json_type(value: Any) -> str:
@@ -3818,6 +4162,17 @@ def _check_rules(validator: jsonschema.Draft202012Validator) -> list[str]:
             f"{label}: vector {name!r} repeats"
             for name in sorted({n for n in names if names.count(n) > 1})
         )
+        problems.extend(
+            f"{label}: vector {vector['name']!r} has a window that does not "
+            f"start before it ends"
+            for vector in document["vectors"]
+            if document["rule"] == "operation-outputs"
+            and (window := vector["arguments"].get("window")) is not None
+            and int(window[0]) >= int(window[1])
+        )
+        if document["rule"] == "output-digest":
+            for vector in document["vectors"]:
+                problems.extend(output_digest_problems(label, vector))
         if document["rule"] == "reading-order":
             for vector in document["vectors"]:
                 unfit = _unorderable(vector["members"])
@@ -3916,7 +4271,7 @@ def validate() -> list[str]:
         or _check_warning_codes(
             warning_codes,
             {**taken, "proxy-codes.json": {row["code"] for row in proxy_rows}},
-            key_format_reasons(rules_schema),
+            rules_schema,
         )
     )
 
@@ -3954,6 +4309,7 @@ def validate() -> list[str]:
         )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
+    problems.extend(_check_derived_identities())
     return problems
 
 

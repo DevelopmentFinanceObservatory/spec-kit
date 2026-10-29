@@ -2,26 +2,65 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/dataset-ref.schema.json",
   "title": "DatasetRef",
-  "description": "The frozen reference to the exact versions a dataset holds. Every DFO client writes and reads this format, so a ref saved by one language loads in another.",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "format_version",
-    "members"
-  ],
-  "properties": {
-    "format_version": {
-      "const": 1
-    },
-    "members": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/member"
+  "description": "The frozen reference to the exact versions a dataset holds. Every DFO client writes and reads this format, so a ref saved by one language loads in another. Format 1 holds dataset members, format 2 derived members, each the result of an analysis recipe.",
+  "if": {
+    "type": "object",
+    "required": [
+      "format_version"
+    ],
+    "properties": {
+      "format_version": {
+        "const": 2
       }
     }
   },
+  "then": {
+    "$ref": "#/$defs/format_2"
+  },
+  "else": {
+    "$ref": "#/$defs/format_1"
+  },
   "$defs": {
+    "format_1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format_version",
+        "members"
+      ],
+      "properties": {
+        "format_version": {
+          "const": 1
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        }
+      }
+    },
+    "format_2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format_version",
+        "members"
+      ],
+      "properties": {
+        "format_version": {
+          "const": 2
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/derived_member"
+          }
+        }
+      }
+    },
     "member": {
       "type": "object",
       "additionalProperties": false,
@@ -97,40 +136,244 @@
               "pattern": "^sha256:[0-9a-f]{64}$"
             },
             "rendering": {
-              "description": "The selector a client matches an artifact's rendering on. Never the server's rendering object.",
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "format",
-                "bundle"
-              ],
-              "properties": {
-                "format": {
-                  "enum": [
-                    "csv",
-                    "xlsx",
-                    "parquet"
-                  ]
-                },
-                "bundle": {
-                  "type": "boolean"
-                },
-                "layout": {
-                  "const": "frame"
-                },
-                "without_party_totals": {
-                  "description": "Selects the artifact rendered with party totals left out. The key is absent for a plain rendering, so `false` is not a valid value.",
-                  "const": true
-                }
-              }
+              "$ref": "#/$defs/rendering"
             }
           }
         }
       }
     },
+    "derived_member": {
+      "description": "The frame an analysis recipe computed. DFO computes every member below; a client copies them from the server's answer and computes none of them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parts",
+        "sentence",
+        "spec",
+        "content_version",
+        "output_digest",
+        "roots",
+        "execution_identity",
+        "resolved_periods",
+        "artifact"
+      ],
+      "properties": {
+        "parts": {
+          "description": "Empty, since no answer part names a derived frame.",
+          "type": "array",
+          "maxItems": 0
+        },
+        "sentence": {
+          "description": "The server's sentence for the derived frame.",
+          "type": "string",
+          "minLength": 1
+        },
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "spec_id",
+            "recipe"
+          ],
+          "properties": {
+            "spec_id": {
+              "$ref": "#/$defs/ops_id"
+            },
+            "recipe": {
+              "description": "The recipe's two hashes. `normal_form_hash` names the computation whatever data it ran on; `replay_key` names it on these roots under this execution identity.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "normal_form_hash",
+                "replay_key"
+              ],
+              "properties": {
+                "normal_form_hash": {
+                  "type": "string",
+                  "pattern": "^rnf_[0-9a-f]{32}$"
+                },
+                "replay_key": {
+                  "type": "string",
+                  "pattern": "^rpk_[0-9a-f]{32}$"
+                }
+              }
+            }
+          }
+        },
+        "content_version": {
+          "type": "string",
+          "pattern": "^ocv_[0-9a-f]{32}$"
+        },
+        "output_digest": {
+          "description": "The digest of the frame's output alone, as rules/README.md defines it. `same_data` compares it.",
+          "type": "string",
+          "pattern": "^out_[0-9a-f]{32}$"
+        },
+        "roots": {
+          "description": "The dataset versions the recipe ran on, each with the rendering it read.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/root"
+          }
+        },
+        "execution_identity": {
+          "description": "The engine, frame grammar and reduction policy versions that ran the recipe, joined by `|`.",
+          "type": "string",
+          "pattern": "^[0-9A-Za-z.+-]+\\|[0-9A-Za-z.+-]+\\|[0-9A-Za-z.+-]+$"
+        },
+        "resolved_periods": {
+          "description": "Each period the recipe states relative to the latest period, with the period it resolved to. Empty for a recipe that states none.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "anchor",
+              "offset",
+              "rule",
+              "period"
+            ],
+            "properties": {
+              "anchor": {
+                "const": "latest"
+              },
+              "offset": {
+                "type": "integer",
+                "maximum": 0
+              },
+              "rule": {
+                "const": "half1"
+              },
+              "period": {
+                "type": "string",
+                "pattern": "^[0-9]{4}$"
+              }
+            }
+          }
+        },
+        "artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "digest",
+            "rendering"
+          ],
+          "properties": {
+            "digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "rendering": {
+              "$ref": "#/$defs/rendering"
+            }
+          }
+        }
+      }
+    },
+    "root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "content_version",
+        "rendering"
+      ],
+      "properties": {
+        "spec_id": {
+          "$ref": "#/$defs/spec_id"
+        },
+        "content_version": {
+          "$ref": "#/$defs/member/properties/content_version"
+        },
+        "rendering": {
+          "$ref": "#/$defs/root_rendering"
+        }
+      }
+    },
+    "root_rendering": {
+      "description": "The rendering an analysis read a root in: the members of the artifact selector, and `groupby` when the analysis read the root summed. `rendering`, the artifact selector, has no `groupby`.",
+      "$ref": "#/$defs/selector",
+      "properties": {
+        "groupby": {
+          "$ref": "#/$defs/groupby"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "groupby": {
+      "description": "The sum the root was read with, the mint option `options.groupby` as DFO records it: one row per distinct combination of the columns `by` keeps, every other summable axis summed away. `levels` rolls each kept hierarchical axis it names up to the ancestor at that depth before the sum, 0 being the root codes. The key is absent when no level is set.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "by",
+        "op"
+      ],
+      "properties": {
+        "by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "op": {
+          "const": "sum"
+        },
+        "levels": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          }
+        }
+      }
+    },
+    "selector": {
+      "description": "The members of the selector a client matches an artifact's rendering on, shared by an artifact's rendering and a derived member's root rendering.",
+      "type": "object",
+      "required": [
+        "format",
+        "bundle"
+      ],
+      "properties": {
+        "format": {
+          "enum": [
+            "csv",
+            "xlsx",
+            "parquet"
+          ]
+        },
+        "bundle": {
+          "type": "boolean"
+        },
+        "layout": {
+          "const": "frame"
+        },
+        "without_party_totals": {
+          "description": "Selects the artifact rendered with party totals left out. The key is absent for a plain rendering, so `false` is not a valid value.",
+          "const": true
+        }
+      }
+    },
+    "rendering": {
+      "description": "The selector a client matches an artifact's rendering on. Never the server's rendering object.",
+      "$ref": "#/$defs/selector",
+      "unevaluatedProperties": false
+    },
     "spec_id": {
       "type": "string",
       "pattern": "^spec_[0-9a-f]{32}$"
+    },
+    "ops_id": {
+      "type": "string",
+      "pattern": "^ops_[0-9a-f]{32}$"
     }
   }
 }

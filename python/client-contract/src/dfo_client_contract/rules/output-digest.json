@@ -1,0 +1,900 @@
+{
+  "format_version": 1,
+  "rule": "output-digest",
+  "vectors": [
+    {
+      "name": "two-rows",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.25,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"country/DEU\",\"2022\",98.25,\"USDollar\"]]}",
+      "digest": "out_fb35c1b4f4a67b6ca2ecd8f334220dfa"
+    },
+    {
+      "name": "another-stat-var",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.25,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,\"USDollar\"],[\"dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c\",\"country/NGA\",\"country/DEU\",\"2022\",98.25,\"USDollar\"]]}",
+      "digest": "out_2753cf795f19e151b39cc9c6d14e698d"
+    },
+    {
+      "name": "rows-in-another-order",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.25,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"country/DEU\",\"2022\",98.25,\"USDollar\"]]}",
+      "digest": "out_fb35c1b4f4a67b6ca2ecd8f334220dfa"
+    },
+    {
+      "name": "facets-left-out",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "measurementMethod",
+          "provenance",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            "USDollar",
+            "dcid:OECDReported",
+            "dcid:OECD_DAC2a",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.25,
+            "USDollar",
+            "dcid:OECDReported",
+            "dcid:OECD_DAC2a",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"country/DEU\",\"2022\",98.25,\"USDollar\"]]}",
+      "digest": "out_fb35c1b4f4a67b6ca2ecd8f334220dfa"
+    },
+    {
+      "name": "another-value",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.5,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"country/DEU\",\"2022\",98.5,\"USDollar\"]]}",
+      "digest": "out_a2e2612bf1d8ec3e5e94ccb9d601e028"
+    },
+    {
+      "name": "another-unit",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            "Euro",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.25,
+            "Euro",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,\"Euro\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"country/DEU\",\"2022\",98.25,\"Euro\"]]}",
+      "digest": "out_f79a304d277ad9a080a37d71f4e5af39"
+    },
+    {
+      "name": "another-period",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2023",
+            120.5,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "country/DEU",
+            "2022",
+            98.25,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2023\",120.5,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"country/DEU\",\"2022\",98.25,\"USDollar\"]]}",
+      "digest": "out_51e11cc3d1e0228562e557a15a9ed8cf"
+    },
+    {
+      "name": "another-role-name",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "observationAbout",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"observationAbout\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2022\",120.5,\"USDollar\"]]}",
+      "digest": "out_1694c016b8cd08bb08e68151d4c2a9bc"
+    },
+    {
+      "name": "converted-unit",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            {
+              "currency": "EUR",
+              "prices": "constant",
+              "base_year": 2021
+            },
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,{\"base_year\":2021,\"currency\":\"EUR\",\"prices\":\"constant\"}]]}",
+      "digest": "out_e7f45286159d090b59d8c07efba3311c"
+    },
+    {
+      "name": "converted-unit-recipe-left-out",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "country/DEU",
+            "2022",
+            120.5,
+            {
+              "currency": "EUR",
+              "prices": "constant",
+              "base_year": 2021,
+              "recipe": "fx_oecd_2025_10"
+            },
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"country/DEU\",\"2022\",120.5,{\"base_year\":2021,\"currency\":\"EUR\",\"prices\":\"constant\"}]]}",
+      "digest": "out_e7f45286159d090b59d8c07efba3311c"
+    },
+    {
+      "name": "composed-unit-recipe-left-out",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c",
+            "country/KEN",
+            "2022",
+            2.25,
+            {
+              "numerator": {
+                "currency": "EUR",
+                "prices": "constant",
+                "base_year": 2021,
+                "recipe": "fx_oecd_2025_10"
+              },
+              "denominator": {
+                "stat_var": "dcid:Count_Person"
+              }
+            },
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c\",\"country/KEN\",\"2022\",2.25,{\"denominator\":{\"stat_var\":\"dcid:Count_Person\"},\"numerator\":{\"base_year\":2021,\"currency\":\"EUR\",\"prices\":\"constant\"}}]]}",
+      "digest": "out_9dcf831992537dbf2dd2cabe816ee483"
+    },
+    {
+      "name": "composed-unit",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c",
+            "country/KEN",
+            "2022",
+            2.25,
+            {
+              "numerator": {
+                "currency": "EUR",
+                "prices": "constant",
+                "base_year": 2021
+              },
+              "denominator": {
+                "stat_var": "dcid:Count_Person"
+              }
+            },
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:ops_4b1e0c9a7d2f3e5b6a8c9d0e1f2a3b4c\",\"country/KEN\",\"2022\",2.25,{\"denominator\":{\"stat_var\":\"dcid:Count_Person\"},\"numerator\":{\"base_year\":2021,\"currency\":\"EUR\",\"prices\":\"constant\"}}]]}",
+      "digest": "out_9dcf831992537dbf2dd2cabe816ee483"
+    },
+    {
+      "name": "join-of-two-variables",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_EconomicActivity_GrossNationalIncome",
+            "country/KEN",
+            "2022",
+            104000.0,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_EconomicActivity_GrossNationalIncome\",\"country/KEN\",\"2022\",104000,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2022\",120.5,\"USDollar\"]]}",
+      "digest": "out_e010a9208379d7d1acec4994d4218d18"
+    },
+    {
+      "name": "join-sides-swapped",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_EconomicActivity_GrossNationalIncome",
+            "country/KEN",
+            "2022",
+            104000.0,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_EconomicActivity_GrossNationalIncome\",\"country/KEN\",\"2022\",104000,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2022\",120.5,\"USDollar\"]]}",
+      "digest": "out_e010a9208379d7d1acec4994d4218d18"
+    },
+    {
+      "name": "join-values-under-swapped-variables",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_EconomicActivity_GrossNationalIncome",
+            "country/KEN",
+            "2022",
+            120.5,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2022",
+            104000.0,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_EconomicActivity_GrossNationalIncome\",\"country/KEN\",\"2022\",120.5,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2022\",104000,\"USDollar\"]]}",
+      "digest": "out_ef49e17ee52f27ccdccb6709fe12a404"
+    },
+    {
+      "name": "quotient-of-variable-named",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "financingRecipient",
+          "financingRecipient_party_kind",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/KEN",
+            "party",
+            "2021",
+            0.2,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/KEN",
+            "party",
+            "2022",
+            0.2,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/NGA",
+            "party",
+            "2021",
+            0.1,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/NGA",
+            "party",
+            "2022",
+            0.14285714285714285,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ]
+        ]
+      },
+      "variables": {
+        "ops_f72f69cb463d4fdbeb6751800ba2544a": "mv_d355e59c50ff8cf07e86a4da12b64297"
+      },
+      "name_documents": {
+        "mv_d355e59c50ff8cf07e86a4da12b64297": "{\"denominator_frame_ref\":[\"dcid:Count_Person\"],\"frame_ref\":[\"dcid:Amount_ODA\"],\"verb\":\"quotient_of\"}"
+      },
+      "document": "{\"columns\":[\"stat_var\",\"financingRecipient\",\"financingRecipient_party_kind\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/KEN\",\"party\",\"2021\",0.2,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/KEN\",\"party\",\"2022\",0.2,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/NGA\",\"party\",\"2021\",0.1,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/NGA\",\"party\",\"2022\",0.14285714285714285,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}]]}",
+      "digest": "out_e64e2b613cf8ceb4e3b0cd93a54cf5ce"
+    },
+    {
+      "name": "filter-then-quotient-of",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "financingRecipient",
+          "financingRecipient_party_kind",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_664db264b67e0ba2cec6b95c18ea4635",
+            "country/KEN",
+            "party",
+            "2021",
+            0.2,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_664db264b67e0ba2cec6b95c18ea4635",
+            "country/KEN",
+            "party",
+            "2022",
+            0.2,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_664db264b67e0ba2cec6b95c18ea4635",
+            "country/NGA",
+            "party",
+            "2021",
+            0.1,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_664db264b67e0ba2cec6b95c18ea4635",
+            "country/NGA",
+            "party",
+            "2022",
+            0.14285714285714285,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ]
+        ]
+      },
+      "variables": {
+        "ops_664db264b67e0ba2cec6b95c18ea4635": "mv_d355e59c50ff8cf07e86a4da12b64297"
+      },
+      "name_documents": {
+        "mv_d355e59c50ff8cf07e86a4da12b64297": "{\"denominator_frame_ref\":[\"dcid:Count_Person\"],\"frame_ref\":[\"dcid:Amount_ODA\"],\"verb\":\"quotient_of\"}"
+      },
+      "document": "{\"columns\":[\"stat_var\",\"financingRecipient\",\"financingRecipient_party_kind\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/KEN\",\"party\",\"2021\",0.2,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/KEN\",\"party\",\"2022\",0.2,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/NGA\",\"party\",\"2021\",0.1,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_d355e59c50ff8cf07e86a4da12b64297\",\"country/NGA\",\"party\",\"2022\",0.14285714285714285,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}]]}",
+      "digest": "out_e64e2b613cf8ceb4e3b0cd93a54cf5ce"
+    },
+    {
+      "name": "quotient-of-sides-swapped",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "financingRecipient",
+          "financingRecipient_party_kind",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/KEN",
+            "party",
+            "2021",
+            0.2,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/KEN",
+            "party",
+            "2022",
+            0.2,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/NGA",
+            "party",
+            "2021",
+            0.1,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_f72f69cb463d4fdbeb6751800ba2544a",
+            "country/NGA",
+            "party",
+            "2022",
+            0.14285714285714285,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ]
+        ]
+      },
+      "variables": {
+        "ops_f72f69cb463d4fdbeb6751800ba2544a": "mv_df0088e6b8552d16ee6000c8b7da3814"
+      },
+      "name_documents": {
+        "mv_df0088e6b8552d16ee6000c8b7da3814": "{\"denominator_frame_ref\":[\"dcid:Amount_ODA\"],\"frame_ref\":[\"dcid:Count_Person\"],\"verb\":\"quotient_of\"}"
+      },
+      "document": "{\"columns\":[\"stat_var\",\"financingRecipient\",\"financingRecipient_party_kind\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"mv_df0088e6b8552d16ee6000c8b7da3814\",\"country/KEN\",\"party\",\"2021\",0.2,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_df0088e6b8552d16ee6000c8b7da3814\",\"country/KEN\",\"party\",\"2022\",0.2,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_df0088e6b8552d16ee6000c8b7da3814\",\"country/NGA\",\"party\",\"2021\",0.1,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_df0088e6b8552d16ee6000c8b7da3814\",\"country/NGA\",\"party\",\"2022\",0.14285714285714285,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}]]}",
+      "digest": "out_7b765553f4377c65a8c7799c070be936"
+    },
+    {
+      "name": "quotient-of-a-sum-of",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "financingRecipient",
+          "financingRecipient_party_kind",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:ops_a3a85219d81e742e831d19c7966e562f",
+            "country/KEN",
+            "party",
+            "2021",
+            0.6,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_a3a85219d81e742e831d19c7966e562f",
+            "country/KEN",
+            "party",
+            "2022",
+            0.6,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_a3a85219d81e742e831d19c7966e562f",
+            "country/NGA",
+            "party",
+            "2021",
+            0.3,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ],
+          [
+            "dcid:ops_a3a85219d81e742e831d19c7966e562f",
+            "country/NGA",
+            "party",
+            "2022",
+            0.42857142857142855,
+            {
+              "numerator": "USDollar",
+              "denominator": "Person"
+            },
+            null
+          ]
+        ]
+      },
+      "variables": {
+        "ops_a3a85219d81e742e831d19c7966e562f": "mv_288cc4adaed3cc3195d7e8c6cc4f87aa"
+      },
+      "name_documents": {
+        "mv_ae90cefe711d4addb439f873f2010dba": "{\"frame_ref\":[\"dcid:Amount_ODA\"],\"right_frame_ref\":[\"dcid:Amount_ODA\"],\"verb\":\"sum_of\"}",
+        "mv_288cc4adaed3cc3195d7e8c6cc4f87aa": "{\"denominator_frame_ref\":[\"dcid:Count_Person\"],\"frame_ref\":[\"mv_ae90cefe711d4addb439f873f2010dba\"],\"verb\":\"quotient_of\"}"
+      },
+      "document": "{\"columns\":[\"stat_var\",\"financingRecipient\",\"financingRecipient_party_kind\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"mv_288cc4adaed3cc3195d7e8c6cc4f87aa\",\"country/KEN\",\"party\",\"2021\",0.6,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_288cc4adaed3cc3195d7e8c6cc4f87aa\",\"country/KEN\",\"party\",\"2022\",0.6,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_288cc4adaed3cc3195d7e8c6cc4f87aa\",\"country/NGA\",\"party\",\"2021\",0.3,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}],[\"mv_288cc4adaed3cc3195d7e8c6cc4f87aa\",\"country/NGA\",\"party\",\"2022\",0.42857142857142855,{\"denominator\":\"Person\",\"numerator\":\"USDollar\"}]]}",
+      "digest": "out_61999d3b24a82e4c28621d0fe434959a"
+    },
+    {
+      "name": "relative-growth",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2018/2022",
+            0.25,
+            null,
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/NGA",
+            "2018/2022",
+            -0.125,
+            null,
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2018/2022\",0.25,null],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/NGA\",\"2018/2022\",-0.125,null]]}",
+      "digest": "out_f648b4fa7a61f8a10daf34eb6b1e8e01"
+    },
+    {
+      "name": "number-spellings",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": [
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2020",
+            1e+21,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2021",
+            1.5e-07,
+            "USDollar",
+            null
+          ],
+          [
+            "dcid:Amount_FinancialFlow_ODA_Disbursement",
+            "country/KEN",
+            "2022",
+            3.0,
+            "USDollar",
+            null
+          ]
+        ]
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2020\",1e+21,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2021\",1.5e-7,\"USDollar\"],[\"dcid:Amount_FinancialFlow_ODA_Disbursement\",\"country/KEN\",\"2022\",3,\"USDollar\"]]}",
+      "digest": "out_c02c263d6ff798a41efd17e1872382d5"
+    },
+    {
+      "name": "empty-frame",
+      "frame": {
+        "columns": [
+          "stat_var",
+          "destination",
+          "origin",
+          "time_period",
+          "value",
+          "unit",
+          "status"
+        ],
+        "rows": []
+      },
+      "document": "{\"columns\":[\"stat_var\",\"destination\",\"origin\",\"time_period\",\"value\",\"unit\"],\"digest_version\":\"out2\",\"rows\":[]}",
+      "digest": "out_a8fab64c203e3de84f95af840aa6257c"
+    }
+  ]
+}

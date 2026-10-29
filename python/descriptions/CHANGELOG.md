@@ -136,5 +136,18 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repeated drawn `ref` and a card drawn from a computed version carrying a
   measure. The card-revision and live-rendering vectors carry the measure,
   fixed values and drawn values with graph definitions.
+- `operations.json` names each analysis operation's `verb`, the function a
+  client calls, and its `output`, the shape of the rows it writes; an
+  operation that takes inputs by role carries `arguments`, the roles a
+  client's `data` and `other` fill and how `on` pairs them, so `sum` and
+  `compare` pair by role as `quotient`, `share` and `join` do. `compare` gives
+  `data` minus `other`, with `data` in the `right` role. The `percent` unit
+  rule names its unit, `Percent`, in `ref`, and a relative growth has no unit.
+  `tools/validate_descriptions_vectors.py` checks each verb is listed once and
+  the arguments fill the op's two roles.
+- `sum`, `share` and `compare` list `unmatched_key` under `left_out`, the
+  members of one side with no partner on the other. The `sum` and `compare`
+  descriptions cover the paired form: members of `data` and `other` pair by
+  role through `on`, and a call to `compare` returns `data` minus `other`.
 
 [unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python

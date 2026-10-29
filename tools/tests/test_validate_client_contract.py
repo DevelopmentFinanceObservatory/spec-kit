@@ -96,6 +96,17 @@ def _edit(path: Path, change: Callable[[Any], None]) -> None:
     path.write_text(json.dumps(document), encoding="utf-8")
 
 
+def _comparison_member(document: Any, name: str, side: str, index: int) -> Any:
+    """A member of the output-comparison vector `name` on `side`."""
+    vector = next(vector for vector in document["vectors"] if vector["name"] == name)
+    return vector[side]["members"][index]
+
+
+def _digest_vector(document: Any, name: str) -> Any:
+    """The output-digest vector `name`."""
+    return next(vector for vector in document["vectors"] if vector["name"] == name)
+
+
 def test_the_real_contract_is_valid(package_dir: Path) -> None:
     assert validator.validate() == []
     assert validator.main() == 0
@@ -188,6 +199,21 @@ def _time_period_written_as_text(vector: Any) -> None:
 
 def _vector(name: str, change: Callable[[Any], None]) -> Callable[[Any], None]:
     return lambda doc: change(next(v for v in doc["vectors"] if v["name"] == name))
+
+
+def _allowance_exhausted(doc: Any) -> None:
+    """The first search's refusal becomes a 429 `allowance_exhausted`, which
+    a client raises unretried whatever its document's `retryable` says."""
+    response = doc["exchanges"][0]["response"]
+    response["status"] = 429
+    response["json"].update(
+        code="allowance_exhausted", status=429, type="/codes/allowance_exhausted"
+    )
+
+
+def _rename_series_left_out(doc: Any) -> None:
+    vectors = doc["$defs"]["series_left_out"]["properties"]["vectors"]
+    vectors["items"]["properties"]["warnings"]["items"]["enum"] = ["series_omitted"]
 
 
 def _served_order_after_reading_columns(holder: Any) -> None:
@@ -963,6 +989,107 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "refs/ref-without-party-totals.json: member 0 records rendering",
         ),
         (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0]["roots"][0].update(
+                content_version="cv_" + "0" * 32
+            ),
+            "member 0 root 0 is no member fetch-spec-known-sentence serves",
+        ),
+        (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0]["roots"][0]["rendering"].pop(
+                "without_party_totals"
+            ),
+            "refs/ref-derived-member.json: member 0 root 0 records rendering",
+        ),
+        (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0]["roots"][0]["rendering"].pop("layout"),
+            "refs/ref-derived-member.json: member 0 root 0 records rendering",
+        ),
+        (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0]["resolved_periods"][0].update(
+                period="2019"
+            ),
+            "share replay_key but differ in resolved_periods",
+        ),
+        (
+            "rules/output-comparison.json",
+            lambda doc: _comparison_member(
+                doc, "member-count-differs", "right", 1
+            ).update(
+                content_version=_comparison_member(
+                    doc, "member-count-differs", "right", 0
+                )["content_version"]
+            ),
+            "share content_version but differ in spec_id",
+        ),
+        (
+            "rules/output-comparison.json",
+            lambda doc: _comparison_member(
+                doc, "derived-file-format-differs", "right", 0
+            )["artifact"].update(
+                digest=_comparison_member(
+                    doc, "derived-file-format-differs", "left", 0
+                )["artifact"]["digest"]
+            ),
+            "share artifact_digest but differ in artifact_format",
+        ),
+        (
+            "rules/output-comparison.json",
+            lambda doc: _comparison_member(doc, "same-derived-ref", "right", 0)[
+                "roots"
+            ][0]["rendering"].update(
+                groupby={"by": ["time_period"], "op": "sum", "levels": {}}
+            ),
+            "share content_version but differ in roots",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: doc["vectors"][0]["frame"]["rows"][0].__setitem__(
+                0, "dcid:Count_Person"
+            ),
+            "vector 'two-rows' document is not its frame's",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: doc["vectors"][0].update(digest=doc["vectors"][1]["digest"]),
+            "vector 'two-rows' digest is not its document's",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: next(
+                vector
+                for vector in doc["vectors"]
+                if vector["name"] == "quotient-of-sides-swapped"
+            ).update(
+                variables=next(
+                    vector
+                    for vector in doc["vectors"]
+                    if vector["name"] == "quotient-of-variable-named"
+                )["variables"]
+            ),
+            "vector 'quotient-of-sides-swapped' document is not its frame's",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: _digest_vector(doc, "quotient-of-a-sum-of")[
+                "name_documents"
+            ].pop("mv_ae90cefe711d4addb439f873f2010dba"),
+            "mv_ae90cefe711d4addb439f873f2010dba has no name document",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: _digest_vector(doc, "quotient-of-variable-named")[
+                "name_documents"
+            ].update(
+                mv_d355e59c50ff8cf07e86a4da12b64297='{"frame_ref":["dcid:Amount_ODA"],'
+                '"verb":"quotient_of"}'
+            ),
+            "mv_d355e59c50ff8cf07e86a4da12b64297 is not its document's",
+        ),
+        (
             "rules/key-format.json",
             lambda doc: doc["vectors"].append(doc["vectors"][0]),
             "vector 'secret-key-passes' repeats",
@@ -1306,6 +1433,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "warning-codes.json",
             _drop_action("route_deprecated"),
             "no row for 'route_deprecated'",
+        ),
+        (
+            "warning-codes.json",
+            _drop_action("series_left_out"),
+            "no row for 'series_left_out'",
         ),
         (
             "warning-codes.json",
@@ -1818,6 +1950,41 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             ),
         ),
         (
+            "rules/operation-outputs.json",
+            _vector(
+                "growth-as-a-fraction",
+                lambda v: v["arguments"].update(window=["2018", "2018"]),
+            ),
+            "vector 'growth-as-a-fraction' has a window that does not start before",
+        ),
+        (
+            "rules/rules.schema.json",
+            _rename_series_left_out,
+            "warning-codes.json: no row for 'series_omitted'",
+        ),
+        (
+            "refs/ref-derived-member.json",
+            lambda doc: doc["ref"]["members"][0].update(parts=["ODA to Kenya"]),
+            "refs/ref-derived-member.json: ref fails the schema at members/0/parts",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            lambda doc: doc["call"][0]["ref"].update(format_version=2),
+            "scenarios/fetch-ref.json: schema: call/0/ref/format_version: 1 was",
+        ),
+        (
+            "scenarios/search-retry-after-past-cap.json",
+            lambda doc: doc["exchanges"][0]["response"]["headers"].update(
+                {"retry-after": "60"}
+            ),
+            "the record holds no retry of POST /search/resolve",
+        ),
+        (
+            "scenarios/search-retry-after-503.json",
+            _allowance_exhausted,
+            "scenarios/search-retry-after-503.json: the steps never make exchanges",
+        ),
+        (
             "rules/reading-order.json",
             _vector(
                 "ties-keep-served-order", lambda v: v["members"][0]["rows"][0].pop()
@@ -1965,6 +2132,18 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "ref-without-scenario",
         "ref-parts-not-served",
         "ref-rendering-not-posted",
+        "ref-derived-root-not-served",
+        "ref-derived-root-rendering-not-posted",
+        "ref-derived-root-not-in-frame-layout",
+        "ref-derived-replay-with-other-periods",
+        "derived-version-with-other-op-spec",
+        "derived-file-in-two-formats",
+        "derived-version-with-other-root-rendering",
+        "output-digest-document-not-frames",
+        "output-digest-not-documents",
+        "output-digest-variable-not-named",
+        "output-digest-inner-name-without-document",
+        "output-digest-name-not-its-documents",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",
@@ -2030,6 +2209,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "proxy-code-is-a-registry-code",
         "warning-code-ref-digest-changed-missing",
         "warning-code-missing",
+        "warning-code-series-left-out-missing",
         "warning-code-no-rule-issues",
         "warning-code-is-a-client-code",
         "location-localhost-alias",
@@ -2141,6 +2321,12 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "reading-order-series-interleaved-by-year",
         "reading-order-null-sorted-first",
         "reading-order-without-reading-columns",
+        "growth-window-that-does-not-advance",
+        "series-left-out-warning-renamed-in-its-rule",
+        "derived-member-with-parts",
+        "fetch-of-a-format-2-ref",
+        "retry-after-at-the-cap-waited",
+        "allowance-exhausted-not-retried",
         "reading-order-vector-row-ragged",
         "reading-order-vector-list-items-mix-types",
         "reading-order-vector-struct-field-mixes-types",

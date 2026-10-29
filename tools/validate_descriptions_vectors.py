@@ -12,8 +12,9 @@ Usage:
 
 Checks that the three schemas are valid draft 2020-12, that `operations.json`
 validates against `operations.schema.json` and names each op once, the nine
-analysis operations exactly, each reason once per op, and roles exactly when
-an op takes them. Checks every vector against `descriptions-vector.schema.json`
+analysis operations exactly, each reason once per op, roles exactly when an
+op takes them, each verb once, and a client call's `data` and `other` filling
+the two roles of the op they name. Checks every vector against `descriptions-vector.schema.json`
 and its input against the schema it names: an accepted vector and a vector the
 structure rules reject must validate, and a vector the schema rejects must not.
 Then what the record schema cannot express: each file name matches its `id`,
@@ -122,6 +123,19 @@ def _check_operations(validator: jsonschema.Draft202012Validator) -> list[str]:
                 f"operations.json: {entry['op']}: roles must be listed exactly when "
                 "input is 'roles'"
             )
+        arguments = entry.get("arguments")
+        if arguments and sorted((arguments["data"], arguments["other"])) != sorted(
+            entry["roles"]
+        ):
+            problems.append(
+                f"operations.json: {entry['op']}: arguments' data and other must "
+                f"fill its two roles {entry['roles']}"
+            )
+    verbs = [entry["verb"] for entry in entries if "verb" in entry]
+    problems.extend(
+        f"operations.json: verb {verb!r} is listed twice"
+        for verb in sorted({v for v in verbs if verbs.count(v) > 1})
+    )
     return problems
 
 

@@ -64,6 +64,32 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differ from the published figure. Its params name the total (`total`,
   `total_label`) and the party classes it covers (`whole_of`: `official`,
   `private` or `residual`, comma-joined).
+- Code `allowance_exhausted` in `registries/codes.json` and its bundled
+  mirror: a 429 refusal on `datasets.pin`, `presentation.shares` and
+  `presentation.write` once the caller has spent its daily allowance of
+  pins, shares or cards. Its problem document says `retryable: false`, and
+  its `Retry-After` header names the reset.
+- Endpoint `datasets.analysis` in the registry schema, with its refusals in
+  `registries/codes.json` and its bundled mirror: 36 new codes at 422,
+  `rolling_populations_differ`, `several_members` and the 34 the analysis
+  engine serves, among them `unit_heterogeneous`, `cross_frame_unit_mismatch`,
+  `join_output_collision`, `rolling_anchor_unresolved`, `role_ambiguous`,
+  `compare_no_key_matched` and `sum_of_no_key_matched`; `timeout` at 504; and
+  27 existing codes at the status each has on `datasets.mint`,
+  `datasets.snapshot` or the platform rows, among them `request_invalid`
+  (400), `snapshot_revoked` (410), `over_ceiling` (422), `upstream_error`
+  (502) and `service_unavailable` (503).
+- Endpoint `presentation.shares` in the registry schema, with its refusals in
+  `registries/codes.json` and its bundled mirror: `write_token_required` (403)
+  for a replace or delete without a write token; `write_token_invalid` (403)
+  for one whose token is not the share's, or that names a share created
+  without a token; `share_not_replaceable` (409); `payload_too_large` (413)
+  for a body larger than the share routes accept; and `binding_invalid`,
+  `schema_invalid`, `constraint_violation`, `resource_exhausted` and
+  `request_invalid` (400), `not_found` and `frame_unavailable` (404),
+  `edit_conflict` (409), `internal_error` (500), `release_mismatch` and
+  `service_unavailable` (503), and `timeout` (504), at the statuses the
+  components routes give them.
 
 ### Changed
 
@@ -95,6 +121,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code `upstream_error` maps to `graph.members` at 502, the status the
   members route answers when the read that checks whether the graph holds
   the node fails upstream, as `graph.node` answers for the same read.
+- `pin_not_permitted` is retired in `registries/codes.json` and its bundled
+  mirror: the pin route admits every caller under its allowance, so nothing
+  raises it. Its `datasets.pin` mapping stays.
 - `starved_axis_binding_restored` is retired in `registries/codes.json` and
   its bundled mirror: Search no longer restores a starved constraint axis, so
   nothing raises it.
