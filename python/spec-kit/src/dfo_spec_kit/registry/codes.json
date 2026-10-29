@@ -4555,6 +4555,38 @@
       "lifecycle": "active"
     },
     {
+      "code": "share_id_taken",
+      "classification": "refusal",
+      "definition": "An import names a share id that holds another share, or the same share stored with a different write-token digest.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "share_import_not_permitted",
+      "classification": "refusal",
+      "definition": "The caller of a share import did not send the import principal, or no import principal is set on this deployment.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "share_not_replaceable",
       "classification": "refusal",
       "definition": "A replace names a snapshot share, whose cards are fixed for good. Only a live share takes new cards.",

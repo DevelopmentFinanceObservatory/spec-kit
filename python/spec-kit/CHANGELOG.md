@@ -8,6 +8,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Codes `share_id_taken` (409) and `share_import_not_permitted` (403) on
+  `presentation.shares` in `registries/codes.json` and its bundled mirror,
+  for the share import route. `share_id_taken` covers an id that holds
+  another share, or the same share stored with a different write-token
+  digest. `share_import_not_permitted` covers a caller that did not send the
+  import principal, and a deployment with no import principal set. Neither is
+  retryable. The client contract gives them the `fix_request` and
+  `request_scope` actions.
 - `dfo_spec_kit.units` reads a unit ref into one typed value: `Money`
   (`currency`, `prices`, `base_year`, `chained`), `UnpricedMoney`
   (`currency`), `Percent`, `Count` or `Other` (`ref`). A ref that leaves
