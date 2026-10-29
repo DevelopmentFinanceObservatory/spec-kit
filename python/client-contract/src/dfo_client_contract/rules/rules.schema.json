@@ -1158,6 +1158,11 @@
               "document",
               "digest"
             ],
+            "dependentRequired": {
+              "variables": [
+                "name_documents"
+              ]
+            },
             "properties": {
               "name": {
                 "$ref": "#/$defs/name"
@@ -1207,6 +1212,18 @@
                 "additionalProperties": {
                   "type": "string",
                   "pattern": "^mv_[0-9a-f]{32}$"
+                }
+              },
+              "name_documents": {
+                "description": "The name document of each name in variables and of each mv_ name those documents hold, as the UTF-8 text the name hashes, keyed by the name.",
+                "type": "object",
+                "minProperties": 1,
+                "propertyNames": {
+                  "pattern": "^mv_[0-9a-f]{32}$"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
                 }
               },
               "document": {

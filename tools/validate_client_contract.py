@@ -102,7 +102,9 @@ document validates against its schema, then what the schemas cannot express:
   reading-order vector's `columns` and `rows` are what `presented_rows`
   gives, each output-digest vector's document holds its frame's rows, each
   operation's variable read as the name its `variables` give it, and
-  its digest hashes that document, and each growth vector's window starts
+  its digest hashes that document, each minted name hashes its name
+  document and each name it or a name document holds has one, and each
+  growth vector's window starts
   before it ends. A missing or
   unreadable `rules/reading-order.json` is a problem.
 
@@ -3688,7 +3690,11 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
         wanted = posted[spec_id]
         if analysed and isinstance(wanted, dict):
             wanted = {**wanted, "layout": "frame"}
-            if isinstance(rendering, dict) and "groupby" in rendering and "groupby" not in wanted:
+            if (
+                isinstance(rendering, dict)
+                and "groupby" in rendering
+                and "groupby" not in wanted
+            ):
                 wanted["groupby"] = rendering["groupby"]
         if rendering != wanted:
             problems.append(
@@ -3745,7 +3751,9 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
 # output; `rpk_` hashes the normal form, the root versions and the execution
 # identities, so one replay computes one op-spec, version and output; the
 # normal form, the root versions and the execution identity give one `rpk_`;
-# and one file holds one output in one format.
+# and one file holds one output in one format. `roots` holds each root's
+# version with the rendering it was read with, since a root read summed
+# under a groupby is another input.
 DERIVED_IDENTITY_RULES: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
     (
         ("content_version",),
@@ -3775,7 +3783,11 @@ def derived_identities(member: Mapping[str, Any]) -> dict[str, str | None]:
     recipe = read_object(spec, "recipe")
     artifact = read_object(member, "artifact")
     roots = [
-        [read_string(root, "spec_id"), read_string(root, "content_version")]
+        [
+            read_string(root, "spec_id"),
+            read_string(root, "content_version"),
+            read_object(root, "rendering"),
+        ]
         for root in read_objects(member, "roots")
     ]
     periods = member.get("resolved_periods")
@@ -3785,7 +3797,7 @@ def derived_identities(member: Mapping[str, Any]) -> dict[str, str | None]:
         "replay_key": read_string(recipe, "replay_key"),
         "content_version": read_string(member, "content_version"),
         "output_digest": read_string(member, "output_digest"),
-        "roots": json.dumps(roots),
+        "roots": json.dumps(roots, sort_keys=True),
         "execution_identity": read_string(member, "execution_identity"),
         "resolved_periods": None
         if periods is None
@@ -3918,6 +3930,48 @@ def output_digest_problems(label: str, vector: Mapping[str, Any]) -> list[str]:
         problems.append(
             f"{label}: vector {vector['name']!r} digest is not its document's, {hashed}"
         )
+    return problems + name_document_problems(label, vector)
+
+
+def name_document_problems(label: str, vector: Mapping[str, Any]) -> list[str]:
+    """Where an output-digest vector's `name_documents` misname a minted
+    variable: a name that is not `mv_` and 32 hex digits of its document's
+    SHA-256, or a name in `variables` or in a document's slots with no
+    document of its own. So a nested step's document holds its input's
+    `mv_` name, which has its own document."""
+    documents = vector.get("name_documents", {})
+    problems = [
+        f"{label}: vector {vector['name']!r} name {name} is not its document's"
+        for name, text in documents.items()
+        if name != "mv_" + hashlib.sha256(text.encode()).hexdigest()[:32]
+    ]
+    named = set(vector.get("variables", {}).values())
+    for name, text in documents.items():
+        try:
+            document = json.loads(text)
+        except ValueError:
+            document = None
+        slots = (
+            [items for slot, items in document.items() if slot != "verb"]
+            if isinstance(document, dict) and isinstance(document.get("verb"), str)
+            else None
+        )
+        if slots is None or not all(isinstance(items, list) for items in slots):
+            problems.append(
+                f"{label}: vector {vector['name']!r} name {name} document is not "
+                f"a verb and its slots"
+            )
+            continue
+        named.update(
+            held
+            for items in slots
+            for held in items
+            if isinstance(held, str) and held.startswith("mv_")
+        )
+    problems.extend(
+        f"{label}: vector {vector['name']!r} name {name} has no name document"
+        for name in sorted(named - set(documents))
+    )
     return problems
 
 

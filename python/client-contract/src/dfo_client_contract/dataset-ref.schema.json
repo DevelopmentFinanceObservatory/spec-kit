@@ -295,29 +295,13 @@
     },
     "root_rendering": {
       "description": "The rendering an analysis read a root in: the members of the artifact selector, and `groupby` when the analysis read the root summed. `rendering`, the artifact selector, has no `groupby`.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "format",
-        "bundle"
-      ],
+      "$ref": "#/$defs/selector",
       "properties": {
-        "format": {
-          "$ref": "#/$defs/rendering/properties/format"
-        },
-        "bundle": {
-          "$ref": "#/$defs/rendering/properties/bundle"
-        },
-        "layout": {
-          "$ref": "#/$defs/rendering/properties/layout"
-        },
-        "without_party_totals": {
-          "$ref": "#/$defs/rendering/properties/without_party_totals"
-        },
         "groupby": {
           "$ref": "#/$defs/groupby"
         }
-      }
+      },
+      "unevaluatedProperties": false
     },
     "groupby": {
       "description": "The sum the root was read with, the mint option `options.groupby` as DFO records it: one row per distinct combination of the columns `by` keeps, every other summable axis summed away. `levels` rolls each kept hierarchical axis it names up to the ancestor at that depth before the sum, 0 being the root codes. The key is absent when no level is set.",
@@ -351,10 +335,9 @@
         }
       }
     },
-    "rendering": {
-      "description": "The selector a client matches an artifact's rendering on. Never the server's rendering object.",
+    "selector": {
+      "description": "The members of the selector a client matches an artifact's rendering on, shared by an artifact's rendering and a derived member's root rendering.",
       "type": "object",
-      "additionalProperties": false,
       "required": [
         "format",
         "bundle"
@@ -378,6 +361,11 @@
           "const": true
         }
       }
+    },
+    "rendering": {
+      "description": "The selector a client matches an artifact's rendering on. Never the server's rendering object.",
+      "$ref": "#/$defs/selector",
+      "unevaluatedProperties": false
     },
     "spec_id": {
       "type": "string",

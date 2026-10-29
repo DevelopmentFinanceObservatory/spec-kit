@@ -99,6 +99,11 @@ def _comparison_member(document: Any, name: str, side: str, index: int) -> Any:
     return vector[side]["members"][index]
 
 
+def _digest_vector(document: Any, name: str) -> Any:
+    """The output-digest vector `name`."""
+    return next(vector for vector in document["vectors"] if vector["name"] == name)
+
+
 def test_the_real_contract_is_valid(package_dir: Path) -> None:
     assert validator.validate() == []
     assert validator.main() == 0
@@ -1011,6 +1016,15 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "share artifact_digest but differ in artifact_format",
         ),
         (
+            "rules/output-comparison.json",
+            lambda doc: _comparison_member(doc, "same-derived-ref", "right", 0)[
+                "roots"
+            ][0]["rendering"].update(
+                groupby={"by": ["time_period"], "op": "sum", "levels": {}}
+            ),
+            "share content_version but differ in roots",
+        ),
+        (
             "rules/output-digest.json",
             lambda doc: doc["vectors"][0]["frame"]["rows"][0].__setitem__(
                 0, "dcid:Count_Person"
@@ -1036,6 +1050,23 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
                 )["variables"]
             ),
             "vector 'quotient-of-sides-swapped' document is not its frame's",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: _digest_vector(doc, "quotient-of-a-sum-of")[
+                "name_documents"
+            ].pop("mv_ae90cefe711d4addb439f873f2010dba"),
+            "mv_ae90cefe711d4addb439f873f2010dba has no name document",
+        ),
+        (
+            "rules/output-digest.json",
+            lambda doc: _digest_vector(doc, "quotient-of-variable-named")[
+                "name_documents"
+            ].update(
+                mv_d355e59c50ff8cf07e86a4da12b64297='{"frame_ref":["dcid:Amount_ODA"],'
+                '"verb":"quotient_of"}'
+            ),
+            "mv_d355e59c50ff8cf07e86a4da12b64297 is not its document's",
         ),
         (
             "rules/key-format.json",
@@ -2009,9 +2040,12 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "ref-derived-replay-with-other-periods",
         "derived-version-with-other-op-spec",
         "derived-file-in-two-formats",
+        "derived-version-with-other-root-rendering",
         "output-digest-document-not-frames",
         "output-digest-not-documents",
         "output-digest-variable-not-named",
+        "output-digest-inner-name-without-document",
+        "output-digest-name-not-its-documents",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",
