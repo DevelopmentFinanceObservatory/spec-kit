@@ -1906,17 +1906,13 @@ def served_table(data: bytes) -> ServedTable:
     nested = frozenset(
         field.name for field in table.schema if pa.types.is_nested(field.type)
     )
+    # Every column is judged by `same_value`, as `table_from_rows` judges a
+    # vector's, so a vector and its Parquet file group their columns alike.
     same = {}
     for name in table.column_names if table.num_rows else ():
-        column = table.column(name)
-        # Arrow's `unique` counts NaN once and cannot hash a nested type,
-        # whose cells `same_value` compares.
-        if name in nested:
-            values = column.to_pylist()
-            if _one_value(values):
-                same[name] = values[0]
-        elif len(distinct := column.unique()) == 1:
-            same[name] = distinct[0].as_py()
+        values = table.column(name).to_pylist()
+        if _one_value(values):
+            same[name] = values[0]
     return ServedTable(tuple(table.column_names), table.num_rows, same, nested)
 
 
@@ -3774,8 +3770,10 @@ def _json_type(value: Any) -> str:
 
 def _unorderable(members: Sequence[Mapping[str, Any]]) -> str | None:
     """Why a reading-order vector's members cannot be ordered, or None: a
-    row whose cells do not match its member's columns, or a column whose
-    cells, nulls aside, mix JSON types, which the rule gives no order."""
+    row whose cells do not match its member's columns, a member's column
+    whose cells cannot form one Arrow column, as a served Parquet file holds
+    them, or a column whose cells, nulls aside, mix JSON types across the
+    stacked members, which the rule gives no order."""
     types: dict[str, set[str]] = {}
     for index, member in enumerate(members):
         columns = member["columns"]
@@ -3788,6 +3786,11 @@ def _unorderable(members: Sequence[Mapping[str, Any]]) -> str | None:
             for name, cell in zip(columns, row, strict=True):
                 if cell is not None:
                     types.setdefault(name, set()).add(_json_type(cell))
+        for position, name in enumerate(columns):
+            try:
+                pa.array([row[position] for row in member["rows"]])
+            except pa.ArrowException as exc:
+                return f"member {index} column {name!r} is no Arrow column: {exc}"
     mixed = sorted(name for name, found in types.items() if len(found) > 1)
     if mixed:
         return f"mixes JSON types in column {mixed[0]!r}"
