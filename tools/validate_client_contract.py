@@ -1803,8 +1803,8 @@ OPERATION_FAILED = "operation_failed"
 
 
 def rendering_for(layout: str | None) -> dict[str, Any]:
-    """The rendering a build posts for `layout`, long by default, with
-    party totals kept: what a resumed operation downloads."""
+    """The rendering for `layout`, long by default, with party totals
+    kept."""
     return dict(LAYOUT_RENDERINGS[layout or "long"])
 
 
@@ -1820,22 +1820,39 @@ def fetch_rendering(
     return rendering
 
 
+def resumed_rendering(
+    layout: str | None, manifest: Mapping[str, Any]
+) -> dict[str, Any]:
+    """The rendering a resumed operation's build posted, as its done
+    manifest records it: the layout's rendering, with `without_party_totals`
+    when the artifact for that rendering carries the cut."""
+    rendering = rendering_for(layout)
+    artifact = pick_artifact(manifest, rendering)
+    found = artifact.get("rendering") if artifact is not None else None
+    if isinstance(found, dict) and found.get(WITHOUT_PARTY_TOTALS) is True:
+        rendering[WITHOUT_PARTY_TOTALS] = True
+    return rendering
+
+
 @dataclass(frozen=True, slots=True)
 class ServedTable:
     """A served table as the reading-order rule reads it: its columns in the
     order the server wrote them, its row count, and the value of each column
-    that holds one value in every row. A column `same` leaves out varies."""
+    that holds one value in every row. A column `same` leaves out varies.
+    `nested` names the columns holding lists or structs, which no row is
+    sorted by."""
 
     columns: tuple[str, ...]
     rows: int
     same: Mapping[str, Any]
+    nested: frozenset[str] = frozenset()
 
 
 def same_value(left: Any, right: Any) -> bool:
     """Whether two cells hold the same value, as the reading-order rule
     judges it: numbers by value, so 1 and 1.0 are the same, booleans apart
-    from numbers, NaN the same as NaN, null the same as null, and lists and
-    structs item by item."""
+    from numbers, NaN the same as NaN, null the same as null, lists item by
+    item in order, and structs field by field in any order."""
     if isinstance(left, bool) or isinstance(right, bool):
         return type(left) is type(right) and left == right
     if isinstance(left, float) and isinstance(right, float):
@@ -1863,7 +1880,12 @@ def table_from_rows(
         for index, name in enumerate(columns)
         if rows and _one_value([row[index] for row in rows])
     }
-    return ServedTable(tuple(columns), len(rows), same)
+    nested = frozenset(
+        name
+        for index, name in enumerate(columns)
+        if any(isinstance(row[index], list | dict) for row in rows)
+    )
+    return ServedTable(tuple(columns), len(rows), same, nested)
 
 
 @lru_cache(maxsize=64)
@@ -1881,12 +1903,21 @@ def served_table(data: bytes) -> ServedTable:
         raise _UnfitError(
             f"a downloaded file is unreadable: not Parquet: {exc}"
         ) from exc
+    nested = frozenset(
+        field.name for field in table.schema if pa.types.is_nested(field.type)
+    )
     same = {}
     for name in table.column_names if table.num_rows else ():
-        values = table.column(name).to_pylist()
-        if _one_value(values):
-            same[name] = values[0]
-    return ServedTable(tuple(table.column_names), table.num_rows, same)
+        column = table.column(name)
+        # Arrow's `unique` counts NaN once and cannot hash a nested type,
+        # whose cells `same_value` compares.
+        if name in nested:
+            values = column.to_pylist()
+            if _one_value(values):
+                same[name] = values[0]
+        elif len(distinct := column.unique()) == 1:
+            same[name] = distinct[0].as_py()
+    return ServedTable(tuple(table.column_names), table.num_rows, same, nested)
 
 
 def filled_slots(
@@ -1928,6 +1959,7 @@ class ColumnGroups:
     same: tuple[str, ...]
     last: tuple[str, ...]
     last_varies: bool
+    nested: frozenset[str] = frozenset()
 
     @property
     def columns(self) -> list[str]:
@@ -1939,10 +1971,12 @@ class ColumnGroups:
         reading slots in slot order without `value`, a measure, and without
         the time period, then the varying columns in presented order,
         `stat_var` among them when it varies, then the time period, so each
-        series' years read together."""
+        series' years read together. A column of lists or structs is no
+        key."""
         keys = [c for c in self.first if c not in (VALUE, TIME_PERIOD)]
         keys += [*self.varying, *(self.last if self.last_varies else ())]
-        return keys + [TIME_PERIOD] * (TIME_PERIOD in self.first)
+        keys += [TIME_PERIOD] * (TIME_PERIOD in self.first)
+        return [key for key in keys if key not in self.nested]
 
 
 def column_groups(
@@ -1962,6 +1996,7 @@ def column_groups(
         same=tuple(c for c in rest if c not in varying),
         last=(STAT_VAR,) if STAT_VAR in gathered else (),
         last_varies=STAT_VAR in gathered and _varies(STAT_VAR, tables),
+        nested=frozenset().union(*(table.nested for table in tables)),
     )
 
 
@@ -2215,8 +2250,15 @@ def selector_query(rendering: Mapping[str, Any], keys: Sequence[str]) -> str:
     """The file selector's query for `rendering`, as the file-selector rule
     builds it: each of `keys` the rendering holds, in that order."""
     return "&".join(
-        f"{key}={str(rendering[key]).lower()}" for key in keys if key in rendering
+        f"{key}={_query_value(rendering[key])}" for key in keys if key in rendering
     )
+
+
+def _query_value(value: Any) -> str:
+    """A query value, a boolean written `true` or `false`."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
 
 
 def selector_path(
@@ -2461,13 +2503,16 @@ class _Minted:
     """An operation a mint started or a resume read, for the result step:
     its resource, the headers that came with it, the build request a failed
     operation resubmits (None for a resumed one), the spec the client holds,
-    and the rendering it downloads."""
+    and the rendering the build posted, or for a resumed operation None and
+    the layout whose rendering `resumed_rendering` reads from the done
+    manifest."""
 
     resource: dict[str, Any]
     headers: dict[str, str]
     request: dict[str, Any] | None
     spec: dict[str, Any] | None
-    rendering: dict[str, Any]
+    rendering: dict[str, Any] | None
+    layout: str | None = None
 
 
 @dataclass
@@ -2984,8 +3029,7 @@ class _Replay:
         exchange = self.call("GET", POLL_PATH.format(operation_id=step["operation_id"]))
         resource = self.acted_on(exchange, _OPERATION)
         headers = exchange["response"].get("headers", {})
-        rendering = rendering_for(step.get("layout"))
-        self.minted = _Minted(resource, headers, None, None, rendering)
+        self.minted = _Minted(resource, headers, None, None, None, step.get("layout"))
         return _operation_outcome(resource)
 
     def _newest_version(self, step: dict[str, Any]) -> dict[str, Any]:
@@ -2998,7 +3042,8 @@ class _Replay:
             raise _UnfitError("result follows no mint or operation")
         minted = self.minted
         manifest = self.long_build(minted.resource, minted.headers, minted.request)
-        member = self.member([], minted.spec, manifest, minted.rendering, False)
+        rendering = minted.rendering or resumed_rendering(minted.layout, manifest)
+        member = self.member([], minted.spec, manifest, rendering, False)
         return self.dataset([member], [])
 
     def dataset(
@@ -3616,9 +3661,10 @@ def _served_by(label: str, record: dict[str, Any]) -> list[str]:
 
 def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
     """The renderings the builds in `scenario` posted as their `options`, by
-    the spec_id each build answered: a manifest's own, or for a 202 the
-    manifest the poll of its operation answered done. A spec built in
-    several renderings lists each in build order."""
+    the digest of the artifact each build's manifest lists for them: a
+    manifest's own, or for a 202 the manifest the poll of its operation
+    answered done. Builds that answered the same file list each rendering in
+    build order."""
     renderings: dict[str, list[Any]] = {}
     by_operation: dict[str, Any] = {}
     for exchange in read_objects(scenario, "exchanges"):
@@ -3630,20 +3676,30 @@ def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
             options = (read_object(request, "json") or {}).get("options")
             if operation_id is not None:
                 by_operation[operation_id] = options
-            spec_id = read_string(read_object(manifest, "definition"), "spec_id")
-            if spec_id is not None:
-                renderings.setdefault(spec_id, []).append(options)
         elif operation_id in by_operation and "manifest" in body:
-            spec_id = read_string(read_object(manifest, "definition"), "spec_id")
-            if spec_id is not None:
-                renderings.setdefault(spec_id, []).append(by_operation[operation_id])
+            options = by_operation[operation_id]
+        else:
+            continue
+        digest = _artifact_digest(manifest, options)
+        if digest is not None:
+            renderings.setdefault(digest, []).append(options)
     return renderings
+
+
+def _artifact_digest(manifest: Any, options: Any) -> str | None:
+    """The digest of the artifact `manifest` lists for the posted `options`,
+    or None when either does not read."""
+    if not isinstance(options, dict) or not {"format", "bundle"} <= options.keys():
+        return None
+    artifacts = read_objects(manifest, "artifacts")
+    artifact = pick_artifact({"artifacts": artifacts}, options)
+    return read_string(artifact, "artifact_digest")
 
 
 def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     """Where a ref example's member records a rendering other than the one
-    the build of its spec in its `scenario` posted, since a ref records the
-    rendering its fetch posted."""
+    the build that answered its file in its `scenario` posted, since a ref
+    records the rendering its fetch posted."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
@@ -3653,17 +3709,17 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     posted = posted_renderings(_load(path))
     problems = []
     for index, member in enumerate(members):
-        spec = read_object(member, "spec")
-        spec_id = read_string(spec, "spec_id")
-        rendering = read_object(read_object(member, "artifact"), "rendering")
-        if spec_id not in posted:
+        artifact = read_object(member, "artifact")
+        digest = read_string(artifact, "digest")
+        rendering = read_object(artifact, "rendering")
+        if digest not in posted:
             problems.append(
-                f"{label}: member {index}'s spec is built by no {name} build"
+                f"{label}: member {index}'s file is answered by no {name} build"
             )
-        elif rendering not in posted[spec_id]:
+        elif rendering not in posted[digest]:
             problems.append(
                 f"{label}: member {index} records rendering {json.dumps(rendering)}, "
-                f"but {name} posted {' and '.join(map(json.dumps, posted[spec_id]))}"
+                f"but {name} posted {' and '.join(map(json.dumps, posted[digest]))}"
             )
     return problems
 

@@ -2138,13 +2138,18 @@ def test_a_broken_contract_is_reported(
 
 @pytest.mark.parametrize(
     ("left", "right", "same"),
+    # The same cases as python/client-contract/tests/test_rules.py.
     [
         (1, 1.0, True),
         (True, 1, False),
         (float("nan"), float("nan"), True),
         (None, None, True),
         ("1", 1, False),
-        ([1, True], [1.0, True], True),
+        ([True], [1], False),
+        ([float("nan")], [float("nan")], True),
+        ([1], [1.0], True),
+        ({"a": 1, "b": 2}, {"b": 2, "a": 1.0}, True),
+        ({"a": True}, {"a": 1}, False),
     ],
 )
 def test_cells_are_the_same_value_as_json_values(
@@ -2175,31 +2180,51 @@ def test_a_served_table_reads_list_struct_and_nan_columns() -> None:
     )
     table = validator.served_table(data)
     assert set(table.same) == {"listed", "nan"}
+    assert table.nested == {"listed", "struct"}
+    groups = validator.column_groups([table], [])
+    assert groups.varying == ("struct",) and groups.sort_keys == []
     assert not validator._varies("nan", [table, table])
     assert validator._varies("struct", [table])
 
 
-def test_a_spec_built_in_two_renderings_keeps_both() -> None:
-    """A ref member may record either rendering a scenario built its spec in."""
+def test_a_spec_built_in_two_renderings_keys_each_by_its_file() -> None:
+    """A ref member's rendering is checked against the build that answered
+    its file, so each of a spec's two builds keeps its own rendering."""
     cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
     plain = {"format": "parquet", "bundle": False}
-    scenario = {
-        "exchanges": [
-            {
-                "request": {
-                    "method": "POST",
-                    "path": "/datasets",
-                    "json": {"options": o},
-                },
-                "response": {
-                    "status": 200,
-                    "json": {"definition": {"spec_id": "spec_a"}},
-                },
-            }
-            for o in (cut, plain)
-        ]
-    }
-    assert validator.posted_renderings(scenario) == {"spec_a": [cut, plain]}
+
+    def build(options: dict[str, Any], digest: str) -> dict[str, Any]:
+        artifact = {"artifact_digest": digest, "rendering": options}
+        return {
+            "request": {
+                "method": "POST",
+                "path": "/datasets",
+                "json": {"options": options},
+            },
+            "response": {
+                "status": 200,
+                "json": {"definition": {"spec_id": "spec_a"}, "artifacts": [artifact]},
+            },
+        }
+
+    scenario = {"exchanges": [build(cut, "sha256:a"), build(plain, "sha256:b")]}
+    posted = validator.posted_renderings(scenario)
+    assert posted == {"sha256:a": [cut], "sha256:b": [plain]}
+
+
+def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
+    query = validator.selector_query(
+        {"format": "CSV", "bundle": True}, ["format", "bundle"]
+    )
+    assert query == "format=CSV&bundle=true"
+
+
+def test_a_resumed_result_takes_the_rendering_its_build_posted() -> None:
+    cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
+    manifest = {"artifacts": [{"artifact_digest": "sha256:a", "rendering": cut}]}
+    assert validator.resumed_rendering(None, manifest) == cut
+    manifest["artifacts"][0]["rendering"] = {"format": "parquet", "bundle": False}
+    assert validator.resumed_rendering(None, manifest) == validator.rendering_for(None)
 
 
 @pytest.mark.parametrize("rule", ["reading-order", "file-selector"])

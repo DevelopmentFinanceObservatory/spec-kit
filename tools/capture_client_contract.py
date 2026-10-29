@@ -121,7 +121,7 @@ from validate_client_contract import (
     problem_body,
     read_from,
     refusal_error,
-    rendering_for,
+    resumed_rendering,
     resubmitted_sentence,
     retry_wait,
     scenarios_size,
@@ -642,13 +642,16 @@ class Minted:
     """The operation a mint started or a resume read: its resource, the
     headers that came with it, the build request a failed operation posts
     again (None for a resumed one), the spec the client holds, and the
-    rendering it downloads."""
+    rendering the build posted, or for a resumed operation None and the
+    layout whose rendering `resumed_rendering` reads from the done
+    manifest."""
 
     resource: dict[str, Any]
     headers: dict[str, str]
     request: dict[str, Any] | None
     spec: Spec | None
-    rendering: dict[str, Any]
+    rendering: dict[str, Any] | None
+    layout: str | None = None
 
 
 def _step_options(
@@ -943,9 +946,7 @@ class Session:
             path = POLL_PATH.format(operation_id=operation_id)
             response = self._api("GET", path)
             resource = self._acted(response)
-            self.minted = Minted(
-                resource, response.headers, None, None, rendering_for(layout)
-            )
+            self.minted = Minted(resource, response.headers, None, None, None, layout)
             return _operation_outcome(resource)
 
         step = {"op": "operation", "operation_id": operation_id}
@@ -959,7 +960,8 @@ class Session:
 
         def run() -> dict[str, Any]:
             manifest = self._wait(minted.resource, minted.headers, minted.request)
-            member = self._member([], minted.spec, manifest, minted.rendering, False)
+            rendering = minted.rendering or resumed_rendering(minted.layout, manifest)
+            member = self._member([], minted.spec, manifest, rendering, False)
             return dataset_outcome([member], self.rules.reading)
 
         self._step({"op": "result"}, run)
@@ -1388,7 +1390,9 @@ class Context:
                 if answer.status != "definite" or len(answer.parts) != 1:
                     continue
                 (part,) = answer.parts
-                rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
+                rows = part["spec"]["resolved"].get("download", {}).get("rows")
+                if rows is None:
+                    continue
                 spec = _part_spec(part["spec"])
                 if rows <= SYNC_ROWS:
                     raise ShapeError(
@@ -1419,7 +1423,7 @@ class Context:
         """The id of a long build another process started."""
         if "operation" not in self._cache:
             self._cache["operation"] = self.session("prerequisite").mint(
-                self.async_spec("OECD")
+                self.async_spec("OECD"), party_totals=True
             )
         return self._cache["operation"]
 

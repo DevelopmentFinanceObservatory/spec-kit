@@ -593,7 +593,7 @@ def test_a_record_run_without_a_rule_table_stops_before_any_request(
 
 def _long_build_ctx(
     monkeypatch: pytest.MonkeyPatch,
-    answers: Mapping[tuple[str, int], tuple[str, int]],
+    answers: Mapping[tuple[str, int], tuple[str, int | None]],
     built: set[str],
     starts: Mapping[str, int] | None = None,
 ) -> tuple[Any, list[str], list[str]]:
@@ -706,3 +706,36 @@ def test_a_long_build_scan_starts_after_the_recorded_year(
 def test_the_long_build_scans_start_after_the_recorded_picks() -> None:
     """The records hold the DAC pick at 1967 and the OECD pick at 1968."""
     assert capture.long_build_starts(SCENARIOS) == {"DAC": 1968, "OECD": 1969}
+
+
+def test_a_long_build_scan_skips_a_year_without_an_estimate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ctx, _, _ = _long_build_ctx(
+        monkeypatch,
+        {
+            ("DAC", 1960): ("spec_a", None),
+            ("DAC", 1961): ("spec_b", capture.SYNC_ROWS + 1),
+        },
+        set(),
+    )
+    assert ctx.async_spec("DAC").spec_id == "spec_b"
+
+
+def test_the_running_operation_keeps_party_totals(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The operation another process starts posts the plain rendering, which
+    the recorded resume and result read."""
+    ctx, _, _ = _long_build_ctx(
+        monkeypatch, {("OECD", 1960): ("spec_oecd", capture.SYNC_ROWS + 1)}, set()
+    )
+    minted: list[dict[str, Any]] = []
+
+    def mint(self: Any, spec: Any, **options: Any) -> str:
+        minted.append(options)
+        return "op_x"
+
+    monkeypatch.setattr(capture.Session, "mint", mint)
+    assert ctx.running_operation() == "op_x"
+    assert minted == [{"party_totals": True}]

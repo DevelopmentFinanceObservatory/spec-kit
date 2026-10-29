@@ -204,11 +204,18 @@ def cache_entry(vector: dict[str, Any]) -> str:
 
 
 def same_value(left: Any, right: Any) -> bool:
-    """Numbers by value, booleans apart from numbers, NaN as NaN."""
+    """Numbers by value, booleans apart from numbers, NaN as NaN, lists item
+    by item in order, structs field by field in any order."""
     if isinstance(left, bool) or isinstance(right, bool):
         return type(left) is type(right) and left == right
     if isinstance(left, float) and isinstance(right, float):
         return left == right or (math.isnan(left) and math.isnan(right))
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(map(same_value, left, right))
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            same_value(value, right[key]) for key, value in left.items()
+        )
     return left == right
 
 
@@ -246,6 +253,10 @@ def reading_order(
     if "stat_var" in served and varies("stat_var", stacked):
         keys.append("stat_var")
     keys += ["time_period"] if "time_period" in first else []
+    nested = {
+        c for row in stacked for c, v in row.items() if isinstance(v, list | dict)
+    }
+    keys = [k for k in keys if k not in nested]
     rows: list[list[Any]] = []
     for part in dict.fromkeys(row["part"] for row in stacked):
         block = [row for row in stacked if row["part"] == part]
@@ -302,11 +313,35 @@ def posted_entities(
 
 
 def selector_query(rendering: dict[str, Any]) -> str:
+    def written(value: Any) -> str:
+        return ("true" if value else "false") if isinstance(value, bool) else value
+
     return "&".join(
-        f"{key}={str(rendering[key]).lower()}"
+        f"{key}={written(rendering[key])}"
         for key in rule("file-selector")["query_keys"]
         if key in rendering
     )
+
+
+# The cells `same_value` judges, the same cases as the validator's tests;
+# NaN has no JSON form, so no vector can carry it.
+SAME_VALUE_CASES = [
+    (1, 1.0, True),
+    (True, 1, False),
+    (float("nan"), float("nan"), True),
+    (None, None, True),
+    ("1", 1, False),
+    ([True], [1], False),
+    ([float("nan")], [float("nan")], True),
+    ([1], [1.0], True),
+    ({"a": 1, "b": 2}, {"b": 2, "a": 1.0}, True),
+    ({"a": True}, {"a": 1}, False),
+]
+
+
+@pytest.mark.parametrize(("left", "right", "same"), SAME_VALUE_CASES)
+def test_same_value(left: Any, right: Any, same: bool) -> None:
+    assert same_value(left, right) is same
 
 
 @pytest.mark.parametrize("name", RULES)
