@@ -11,11 +11,11 @@ or a client replays it.
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 from typing import Any
 
 import pytest
+import rfc8785
 
 from dfo_client_contract import rule
 
@@ -48,44 +48,9 @@ def _ids(name: str) -> list[str]:
     return [vector["name"] for vector in _vectors(name)]
 
 
-def _number(number: float) -> str:
-    """ECMAScript's `Number::toString`, which RFC 8785 spells numbers with."""
-    if not math.isfinite(number):
-        raise ValueError(f"{number!r} has no JSON spelling")
-    if number == 0:
-        return "0"
-    mantissa, _, exponent = repr(abs(number)).partition("e")
-    whole, _, fraction = mantissa.partition(".")
-    if whole == "0":
-        point = int(exponent or 0) - (len(fraction) - len(fraction.lstrip("0")))
-    else:
-        point = len(whole) + int(exponent or 0)
-    digits = (whole + fraction).strip("0")
-    count = len(digits)
-    if count <= point <= 21:
-        text = digits + "0" * (point - count)
-    elif 0 < point <= 21:
-        text = f"{digits[:point]}.{digits[point:]}"
-    elif -6 < point <= 0:
-        text = "0." + "0" * -point + digits
-    else:
-        rest = f".{digits[1:]}" if count > 1 else ""
-        text = f"{digits[0]}{rest}e{'+' if point > 0 else '-'}{abs(point - 1)}"
-    return ("-" if number < 0 else "") + text
-
-
 def jcs(value: Any) -> str:
     """The RFC 8785 serialisation of a JSON value."""
-    if value is None or isinstance(value, bool):
-        return json.dumps(value)
-    if isinstance(value, str):
-        return json.dumps(value, ensure_ascii=False)
-    if isinstance(value, int | float):
-        return _number(float(value))
-    if isinstance(value, list):
-        return "[" + ",".join(jcs(item) for item in value) + "]"
-    items = sorted(value.items(), key=lambda item: item[0].encode("utf-16-be"))
-    return "{" + ",".join(f"{jcs(name)}:{jcs(item)}" for name, item in items) + "}"
+    return rfc8785.dumps(value).decode("utf-8")
 
 
 def _without_recipe(unit: Any) -> Any:
@@ -99,14 +64,14 @@ def _without_recipe(unit: Any) -> Any:
 def output_digest(frame: dict[str, Any]) -> tuple[str, str]:
     """The output digest document of a frame, and its token."""
     roles = [column for column in frame["columns"] if column not in _NOT_ROLES]
-    columns = [*roles, "time_period", "value", "unit"]
+    columns = ["stat_var", *roles, "time_period", "value", "unit"]
     rows = []
     for row in frame["rows"]:
         cells = dict(zip(frame["columns"], row, strict=True))
         cells["unit"] = _without_recipe(cells["unit"])
         rows.append([cells[column] for column in columns])
     rows.sort(key=lambda cells: jcs(cells).encode("utf-8"))
-    document = jcs({"digest_version": "out1", "columns": columns, "rows": rows})
+    document = jcs({"digest_version": "out2", "columns": columns, "rows": rows})
     digest = hashlib.sha256(document.encode("utf-8")).hexdigest()
     return document, f"out_{digest[:32]}"
 
@@ -159,25 +124,41 @@ def _paired(
 
 
 def _growth(vector: dict[str, Any]) -> list[dict[str, Any]]:
+    """Each member's change over the window. Two rows of one member in one
+    period of the window refuse with `role_ambiguous`. A member is left out
+    without a value at both ends (`endpoint_missing`), for a relative change
+    with a zero or sign-crossing base (`zero_or_sign_crossing_base`), and
+    for a change that is not finite (`non_finite`)."""
     arguments = vector["arguments"]
     start, end = arguments["window"]
     by = arguments["by"]
     relative = arguments.get("change", "relative") == "relative"
     groups: dict[tuple[str, ...], dict[str, dict[str, Any]]] = {}
     for row in vector["data"]:
-        groups.setdefault(tuple(row[r] for r in by), {})[row["time_period"]] = row
+        period = row["time_period"]
+        if not start <= period <= end:
+            continue
+        periods = groups.setdefault(tuple(row[r] for r in by), {})
+        if period in periods:
+            raise RuleError("role_ambiguous")
+        periods[period] = row
     rows = []
     for key, periods in groups.items():
         if start not in periods or end not in periods:
             continue
         first, last = periods[start], periods[end]
-        change = last["value"] - first["value"]
+        base, final = first["value"], last["value"]
+        if relative and (base == 0 or final == 0 or (base < 0) != (final < 0)):
+            continue
+        change = (final - base) / base if relative else final - base
+        if not math.isfinite(change):
+            continue
         rows.append(
             {
                 "stat_var": first["stat_var"],
                 **dict(zip(by, key, strict=True)),
                 "time_period": f"{start}/{end}",
-                "value": change / first["value"] if relative else change,
+                "value": change,
                 "unit": None if relative else first["unit"],
             }
         )
@@ -349,6 +330,11 @@ def test_output_comparison(vector: dict[str, Any]) -> None:
     "vector", _vectors("operation-outputs"), ids=_ids("operation-outputs")
 )
 def test_operation_outputs(vector: dict[str, Any]) -> None:
+    if "error" in vector:
+        with pytest.raises(RuleError) as excinfo:
+            operation_output(vector)
+        assert excinfo.value.code == vector["error"]
+        return
     assert _rows(operation_output(vector)) == _rows(vector["rows"])
 
 
@@ -367,23 +353,3 @@ def test_rolling_composition(vector: dict[str, Any]) -> None:
 @pytest.mark.parametrize("vector", _vectors("publication"), ids=_ids("publication"))
 def test_publication(vector: dict[str, Any]) -> None:
     assert publish(vector["steps"]) == vector["outcomes"]
-
-
-@pytest.mark.parametrize(
-    ("number", "spelling"),
-    [
-        (0.1, "0.1"),
-        (-0.0, "0"),
-        (25.0, "25"),
-        (1e21, "1e+21"),
-        (1e20, "100000000000000000000"),
-        (1.5e-7, "1.5e-7"),
-        (0.000001, "0.000001"),
-        (123.456, "123.456"),
-        (-2.5e-10, "-2.5e-10"),
-    ],
-)
-def test_numbers_are_spelled_as_rfc_8785_spells_them(
-    number: float, spelling: str
-) -> None:
-    assert jcs(number) == spelling

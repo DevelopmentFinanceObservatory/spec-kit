@@ -8,9 +8,6 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `registries/codes.json` and its bundled mirror map `allowance_exhausted` to
-  429 on `presentation.write`, the endpoint that creates and revises
-  components (cards), and its definition now reads "shares, cards or pins".
 - `dfo_spec_kit.units` reads a unit ref into one typed value: `Money`
   (`currency`, `prices`, `base_year`, `chained`), `UnpricedMoney`
   (`currency`), `Percent`, `Count` or `Other` (`ref`). A ref that leaves
@@ -67,38 +64,32 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differ from the published figure. Its params name the total (`total`,
   `total_label`) and the party classes it covers (`whole_of`: `official`,
   `private` or `residual`, comma-joined).
-- `registries/codes.json` and its bundled mirror register
-  `allowance_exhausted` (429 on `datasets.pin` and `presentation.shares`),
-  `rolling_populations_differ` and `several_members` (422 on
-  `datasets.analysis`), `share_not_replaceable` (409), and
-  `write_token_required` and `write_token_invalid` (403 on
-  `presentation.shares`). The registry schema adds the `datasets.analysis` and
-  `presentation.shares` endpoints.
-- `registries/codes.json` and its bundled mirror register on `datasets.analysis`
-  (422) the 34 refusal codes the analysis engine serves, among them
-  `unit_heterogeneous`, `cross_frame_unit_mismatch`, `join_output_collision`,
-  `rolling_anchor_unresolved` and the paired-step codes `compare_no_key_matched`
-  and `sum_of_no_key_matched`.
-- `registries/codes.json` and its bundled mirror add a `datasets.analysis`
-  mapping to 27 existing codes the analysis route also serves, each with the
-  status it has on `datasets.mint`, `datasets.snapshot` or the platform rows,
-  among them `request_invalid` (400), `snapshot_revoked` (410),
-  `over_ceiling` (422), `upstream_error` (502) and `service_unavailable` (503).
-- `registries/codes.json` and its bundled mirror map `timeout` (504) on
-  `datasets.analysis`, and `not_found` (404), `request_invalid` (400),
-  `frame_unavailable` (404), `edit_conflict` (409), `service_unavailable` (503),
-  `internal_error` (500) and `timeout` (504) on `presentation.shares`.
-- `registries/codes.json` and its bundled mirror map `binding_invalid`,
-  `schema_invalid`, `constraint_violation` and `resource_exhausted` (400
-  each) and `release_mismatch` (503) on `presentation.shares`, the statuses
-  the components door gives them.
-- Code `payload_too_large` in `registries/codes.json` and its bundled mirror:
-  a `presentation.shares` refusal at 413 for a request body larger than the
-  share routes accept.
-- Code `series_left_out` in `python/client-contract`'s `warning-codes.json`,
-  class `SeriesLeftOutWarning`, issued when a derived frame leaves series out
-  for missing data. `warning-codes.schema.json` admits the class and
-  `tools/validate_client_contract.py` expects the row.
+- Code `allowance_exhausted` in `registries/codes.json` and its bundled
+  mirror: a 429 refusal on `datasets.pin`, `presentation.shares` and
+  `presentation.write` once the caller has spent its daily allowance of
+  pins, shares or cards. Its problem document says `retryable: false`, and
+  its `Retry-After` header names the reset.
+- Endpoint `datasets.analysis` in the registry schema, with its refusals in
+  `registries/codes.json` and its bundled mirror: 36 new codes at 422,
+  `rolling_populations_differ`, `several_members` and the 34 the analysis
+  engine serves, among them `unit_heterogeneous`, `cross_frame_unit_mismatch`,
+  `join_output_collision`, `rolling_anchor_unresolved`, `role_ambiguous`,
+  `compare_no_key_matched` and `sum_of_no_key_matched`; `timeout` at 504; and
+  27 existing codes at the status each has on `datasets.mint`,
+  `datasets.snapshot` or the platform rows, among them `request_invalid`
+  (400), `snapshot_revoked` (410), `over_ceiling` (422), `upstream_error`
+  (502) and `service_unavailable` (503).
+- Endpoint `presentation.shares` in the registry schema, with its refusals in
+  `registries/codes.json` and its bundled mirror: `write_token_required` (403)
+  for a replace or delete without a write token; `write_token_invalid` (403)
+  for one whose token is not the share's, or that names a share created
+  without a token; `share_not_replaceable` (409); `payload_too_large` (413)
+  for a body larger than the share routes accept; and `binding_invalid`,
+  `schema_invalid`, `constraint_violation`, `resource_exhausted` and
+  `request_invalid` (400), `not_found` and `frame_unavailable` (404),
+  `edit_conflict` (409), `internal_error` (500), `release_mismatch` and
+  `service_unavailable` (503), and `timeout` (504), at the statuses the
+  components routes give them.
 
 ### Changed
 
@@ -128,8 +119,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   members route answers when the read that checks whether the graph holds
   the node fails upstream, as `graph.node` answers for the same read.
 - `pin_not_permitted` is retired in `registries/codes.json` and its bundled
-  mirror: the pin route admits every caller and no longer raises it. Its
-  `datasets.pin` mapping stays.
+  mirror: the pin route admits every caller under its allowance, so nothing
+  raises it. Its `datasets.pin` mapping stays.
 - `starved_axis_binding_restored` is retired in `registries/codes.json` and
   its bundled mirror: Search no longer restores a starved constraint axis, so
   nothing raises it.

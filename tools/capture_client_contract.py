@@ -80,6 +80,7 @@ from validate_client_contract import (
     POLL_BACKOFF_CAP,
     POLL_BACKOFF_FIRST,
     POLL_PATH,
+    RETRY_AFTER_MAX_S,
     SCENARIOS_BUDGET,
     SIGNED_FETCH_STATUS,
     STORAGE_ORIGIN,
@@ -725,7 +726,7 @@ class Session:
         `may_retry` allows, waiting `retry_wait` before each retry."""
         response = send()
         answers = [_read(response)]
-        while may_retry(request, answers):
+        while may_retry(request, answers, self.actions):
             wait = retry_wait(response.headers, len(answers) - 1)
             self.retry_waits.append(wait)
             self.sleep(wait)
@@ -2127,6 +2128,18 @@ def _retry_after_503(parent: dict[str, Any], ctx: Context) -> Derived:
     first = parent["exchanges"][0]
     refused = _refusal(first["request"], 503, _BUSY, {"retry-after": "1"})
     return _refused_first(parent, 0, refused)
+
+
+def _retry_after_past_cap(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A retryable 503 whose Retry-After is one second past RETRY_AFTER_MAX_S
+    answers the search, which raises it unretried."""
+    first = parent["exchanges"][0]
+    headers = {"retry-after": str(int(RETRY_AFTER_MAX_S) + 1)}
+    refused = _refusal(first["request"], 503, _BUSY, headers)
+    error = refusal_error(
+        503, _BUSY, ctx.actions, refused["response"]["headers"]
+    ).outcome(ctx.client_codes)
+    return Derived(copy.deepcopy(parent["call"]), [refused], [error])
 
 
 def _proxy_429(parent: dict[str, Any], ctx: Context) -> Derived:
@@ -3668,6 +3681,14 @@ SYNTHETIC = (
         "A retryable 503 problem with Retry-After is retried after the wait it names, and the "
         "search then reaches the same answer; the retry spends one of the two default retries.",
         _retry_after_503,
+    ),
+    Synthetic(
+        "search-retry-after-past-cap",
+        "search-place-ambiguous",
+        "A 503 service_unavailable with retryable true and Retry-After 61 answers the search.",
+        "A retryable refusal whose Retry-After is past the 60-second cap raises at once, with "
+        "no wait and no retry: ServerError with its code, service_unavailable, and its trace id.",
+        _retry_after_past_cap,
     ),
     Synthetic(
         "search-proxy-rate-limited",

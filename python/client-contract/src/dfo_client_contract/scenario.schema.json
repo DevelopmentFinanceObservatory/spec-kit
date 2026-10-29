@@ -222,35 +222,44 @@
       ]
     },
     "step": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/search_step"
-        },
-        {
-          "$ref": "#/$defs/choose_step"
-        },
-        {
-          "$ref": "#/$defs/fetch_answer_step"
-        },
-        {
-          "$ref": "#/$defs/fetch_spec_step"
-        },
-        {
-          "$ref": "#/$defs/fetch_ref_step"
-        },
-        {
-          "$ref": "#/$defs/newest_version_step"
-        },
-        {
-          "$ref": "#/$defs/mint_step"
-        },
-        {
-          "$ref": "#/$defs/operation_step"
-        },
-        {
-          "$ref": "#/$defs/result_step"
-        }
-      ]
+      "description": "A step with a `ref` is a fetch of that ref, so a broken ref is reported at the member that breaks it; any other step is one of the other kinds.",
+      "if": {
+        "type": "object",
+        "required": [
+          "ref"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/fetch_ref_step"
+      },
+      "else": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/search_step"
+          },
+          {
+            "$ref": "#/$defs/choose_step"
+          },
+          {
+            "$ref": "#/$defs/fetch_answer_step"
+          },
+          {
+            "$ref": "#/$defs/fetch_spec_step"
+          },
+          {
+            "$ref": "#/$defs/newest_version_step"
+          },
+          {
+            "$ref": "#/$defs/mint_step"
+          },
+          {
+            "$ref": "#/$defs/operation_step"
+          },
+          {
+            "$ref": "#/$defs/result_step"
+          }
+        ]
+      }
     },
     "search_step": {
       "type": "object",
@@ -376,7 +385,19 @@
           "const": "fetch"
         },
         "ref": {
-          "$ref": "dataset-ref.schema.json"
+          "allOf": [
+            {
+              "$ref": "dataset-ref.schema.json"
+            },
+            {
+              "properties": {
+                "format_version": {
+                  "description": "Format 1, a ref of dataset members. No scenario serves a derived member yet, so a format 2 ref fails here.",
+                  "const": 1
+                }
+              }
+            }
+          ]
         }
       }
     },

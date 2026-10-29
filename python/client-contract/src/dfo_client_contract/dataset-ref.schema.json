@@ -3,14 +3,23 @@
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/dataset-ref.schema.json",
   "title": "DatasetRef",
   "description": "The frozen reference to the exact versions a dataset holds. Every DFO client writes and reads this format, so a ref saved by one language loads in another. Format 1 holds dataset members, format 2 derived members, each the result of an analysis recipe.",
-  "oneOf": [
-    {
-      "$ref": "#/$defs/format_1"
-    },
-    {
-      "$ref": "#/$defs/format_2"
+  "if": {
+    "type": "object",
+    "required": [
+      "format_version"
+    ],
+    "properties": {
+      "format_version": {
+        "const": 2
+      }
     }
-  ],
+  },
+  "then": {
+    "$ref": "#/$defs/format_2"
+  },
+  "else": {
+    "$ref": "#/$defs/format_1"
+  },
   "$defs": {
     "format_1": {
       "type": "object",
@@ -150,7 +159,9 @@
       ],
       "properties": {
         "parts": {
-          "$ref": "#/$defs/member/properties/parts"
+          "description": "Empty, since no answer part names a derived frame.",
+          "type": "array",
+          "maxItems": 0
         },
         "sentence": {
           "description": "The server's sentence for the derived frame.",

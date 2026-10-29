@@ -49,6 +49,9 @@
     },
     {
       "$ref": "#/$defs/publication"
+    },
+    {
+      "$ref": "#/$defs/series_left_out"
     }
   ],
   "$defs": {
@@ -1268,8 +1271,7 @@
               "description",
               "verb",
               "arguments",
-              "data",
-              "rows"
+              "data"
             ],
             "properties": {
               "name": {
@@ -1438,8 +1440,26 @@
                   }
                 },
                 "description": "The output rows, in any order. A row leaves out stat_var when the operation writes a variable of its own."
+              },
+              "error": {
+                "description": "The code the operation refuses with in place of rows.",
+                "enum": [
+                  "role_ambiguous"
+                ]
               }
-            }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "rows"
+                ]
+              },
+              {
+                "required": [
+                  "error"
+                ]
+              }
+            ]
           }
         }
       }
@@ -1807,6 +1827,173 @@
                     }
                   ]
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "series_left_out": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "series-left-out"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "description",
+              "members",
+              "strict"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "warnings"
+                ]
+              },
+              {
+                "required": [
+                  "raises"
+                ]
+              }
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "$ref": "#/$defs/one_line"
+              },
+              "members": {
+                "description": "The left-out series of each derived member one fetch returns, in member order, as its derived manifest serves them.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "left_out",
+                    "left_out_complete"
+                  ],
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "left_out": {
+                          "type": "null"
+                        },
+                        "left_out_complete": {
+                          "type": "null"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "left_out": {
+                          "type": "array"
+                        },
+                        "left_out_complete": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ],
+                  "properties": {
+                    "left_out": {
+                      "description": "Every series a step of the recipe dropped for a data gap; null for a recipe stored without them.",
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "coordinates",
+                          "step",
+                          "side",
+                          "reason",
+                          "rows"
+                        ],
+                        "properties": {
+                          "coordinates": {
+                            "type": "object",
+                            "minProperties": 1,
+                            "additionalProperties": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "step": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "verb",
+                              "node"
+                            ],
+                            "properties": {
+                              "verb": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "node": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            }
+                          },
+                          "side": {
+                            "enum": [
+                              "data",
+                              "other"
+                            ]
+                          },
+                          "reason": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "rows": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    },
+                    "left_out_complete": {
+                      "description": "False when the steps dropped more series than `left_out` lists; null with a null `left_out`.",
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              },
+              "strict": {
+                "type": "boolean"
+              },
+              "warnings": {
+                "description": "The warnings the fetch issues, each once.",
+                "type": "array",
+                "maxItems": 1,
+                "items": {
+                  "enum": [
+                    "series_left_out"
+                  ]
+                }
+              },
+              "raises": {
+                "description": "The warning a strict fetch raises in place of its data.",
+                "enum": [
+                  "series_left_out"
+                ]
               }
             }
           }

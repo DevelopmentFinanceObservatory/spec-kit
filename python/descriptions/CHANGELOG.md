@@ -145,9 +145,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rule names its unit, `Percent`, in `ref`, and a relative growth has no unit.
   `tools/validate_descriptions_vectors.py` checks each verb is listed once and
   the arguments fill the op's two roles.
-- `sum` and `compare` list `unmatched_key` under `left_out`, the members of one
-  side with no partner on the other, and their descriptions cover the paired
-  form: members of `data` and `other` pair by role through `on`, and a call to
-  `compare` returns `data` minus `other`.
+- `sum`, `share` and `compare` list `unmatched_key` under `left_out`, the
+  members of one side with no partner on the other. The `sum` and `compare`
+  descriptions cover the paired form: members of `data` and `other` pair by
+  role through `on`, and a call to `compare` returns `data` minus `other`.
 
 [unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python
