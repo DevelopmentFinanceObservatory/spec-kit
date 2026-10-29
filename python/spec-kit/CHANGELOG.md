@@ -282,8 +282,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `rollup_not_summable` (422). `datasets.export_link` is
   `GET /api/datasets/exports/{export_id}`, which answers a 302 redirect to the
   file's download link. It carries `not_found` (404),
-  `licence_not_redistributable` (403), `service_unavailable` (503) and
-  `internal_error` (500).
+  `snapshot_revoked` (410), `licence_not_redistributable` (403),
+  `service_unavailable` (503) and `internal_error` (500).
 - Codes `requested_option_unavailable` and `conflicting_requested_options` in
   `registries/codes.json` and its bundled mirror: 422 refusals on
   `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.
