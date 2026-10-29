@@ -3649,7 +3649,9 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     rendering other than the one the build of its spec in its `scenario`
     posted, since a ref records the rendering its fetch posted. DFO reads an
     analysis root in the frame layout, so a derived member's root records the
-    posted rendering with `layout` `frame`."""
+    posted rendering with `layout` `frame`. A root read summed also records the
+    `groupby` DFO rendered it with, which no recorded build posts, so the
+    schema alone checks that member."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
@@ -3686,6 +3688,8 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
         wanted = posted[spec_id]
         if analysed and isinstance(wanted, dict):
             wanted = {**wanted, "layout": "frame"}
+            if isinstance(rendering, dict) and "groupby" in rendering and "groupby" not in wanted:
+                wanted["groupby"] = rendering["groupby"]
         if rendering != wanted:
             problems.append(
                 f"{label}: {where} records rendering {json.dumps(rendering)}, "

@@ -1,0 +1,72 @@
+{
+  "format_version": 1,
+  "name": "ref-derived-root-groupby-op-rejected",
+  "description": "A root's groupby sums, so any other op is not a ref.",
+  "scenario": "fetch-spec-known-sentence",
+  "ref": {
+    "format_version": 2,
+    "members": [
+      {
+        "parts": [],
+        "sentence": "Change in Germany's gross ODA disbursements to Nigeria by top-level purpose, 2020 to 2023. Computed by DFO from OECD Creditor Reporting System (CRS).",
+        "spec": {
+          "spec_id": "ops_063b9ec6a06aa966e670b88538dfe5ab",
+          "recipe": {
+            "normal_form_hash": "rnf_f7768bca5a208a18f8073b1470a7df5f",
+            "replay_key": "rpk_fed63ce97d48cdd9db01e85ae59fb777"
+          }
+        },
+        "content_version": "ocv_04c45d5abc72b09b656893400830c501",
+        "output_digest": "out_becbae91bcfa00753f23c5b41c8c98ab",
+        "roots": [
+          {
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
+            "rendering": {
+              "format": "parquet",
+              "bundle": false,
+              "layout": "frame",
+              "without_party_totals": true,
+              "groupby": {
+                "by": [
+                  "time_period",
+                  "crsPurpose"
+                ],
+                "op": "mean",
+                "levels": {
+                  "crsPurpose": 0
+                }
+              }
+            }
+          }
+        ],
+        "execution_identity": "0.9.0|1.1.0|0.2.0",
+        "resolved_periods": [
+          {
+            "anchor": "latest",
+            "offset": -3,
+            "rule": "half1",
+            "period": "2020"
+          },
+          {
+            "anchor": "latest",
+            "offset": 0,
+            "rule": "half1",
+            "period": "2023"
+          }
+        ],
+        "artifact": {
+          "digest": "sha256:e91fd8d6627cd65039be228ab6d8ad2595116afb34f86bff1812a6182ccc7b26",
+          "rendering": {
+            "format": "parquet",
+            "bundle": false,
+            "layout": "frame"
+          }
+        }
+      }
+    ]
+  },
+  "error": {
+    "by": "schema"
+  }
+}

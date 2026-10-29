@@ -289,7 +289,65 @@
           "$ref": "#/$defs/member/properties/content_version"
         },
         "rendering": {
-          "$ref": "#/$defs/rendering"
+          "$ref": "#/$defs/root_rendering"
+        }
+      }
+    },
+    "root_rendering": {
+      "description": "The rendering an analysis read a root in: the members of the artifact selector, and `groupby` when the analysis read the root summed. `rendering`, the artifact selector, has no `groupby`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "bundle"
+      ],
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/rendering/properties/format"
+        },
+        "bundle": {
+          "$ref": "#/$defs/rendering/properties/bundle"
+        },
+        "layout": {
+          "$ref": "#/$defs/rendering/properties/layout"
+        },
+        "without_party_totals": {
+          "$ref": "#/$defs/rendering/properties/without_party_totals"
+        },
+        "groupby": {
+          "$ref": "#/$defs/groupby"
+        }
+      }
+    },
+    "groupby": {
+      "description": "The sum the root was read with, the mint option `options.groupby` as DFO records it: one row per distinct combination of the columns `by` keeps, every other summable axis summed away. `levels` rolls each kept hierarchical axis it names up to the ancestor at that depth before the sum, 0 being the root codes. The key is absent when no level is set.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "by",
+        "op"
+      ],
+      "properties": {
+        "by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "op": {
+          "const": "sum"
+        },
+        "levels": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          }
         }
       }
     },
