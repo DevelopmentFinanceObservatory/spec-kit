@@ -61,14 +61,17 @@ def _without_recipe(unit: Any) -> Any:
     return {name: item for name, item in unit.items() if name != "recipe"}
 
 
-def output_digest(frame: dict[str, Any]) -> tuple[str, str]:
-    """The output digest document of a frame, and its token."""
+def output_digest(frame: dict[str, Any], variables: dict[str, str]) -> tuple[str, str]:
+    """The output digest document of a frame, and its token, with `variables`
+    naming each variable an operation wrote by its `ops_` id."""
     roles = [column for column in frame["columns"] if column not in _NOT_ROLES]
     columns = ["stat_var", *roles, "time_period", "value", "unit"]
     rows = []
     for row in frame["rows"]:
         cells = dict(zip(frame["columns"], row, strict=True))
         cells["unit"] = _without_recipe(cells["unit"])
+        stat_var = cells["stat_var"]
+        cells["stat_var"] = variables.get(stat_var.removeprefix("dcid:"), stat_var)
         rows.append([cells[column] for column in columns])
     rows.sort(key=lambda cells: jcs(cells).encode("utf-8"))
     document = jcs({"digest_version": "out2", "columns": columns, "rows": rows})
@@ -312,7 +315,10 @@ def _rows(rows: list[dict[str, Any]]) -> list[str]:
 
 @pytest.mark.parametrize("vector", _vectors("output-digest"), ids=_ids("output-digest"))
 def test_output_digest(vector: dict[str, Any]) -> None:
-    assert output_digest(vector["frame"]) == (vector["document"], vector["digest"])
+    assert output_digest(vector["frame"], vector.get("variables", {})) == (
+        vector["document"],
+        vector["digest"],
+    )
 
 
 @pytest.mark.parametrize(

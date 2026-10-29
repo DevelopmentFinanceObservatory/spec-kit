@@ -100,7 +100,8 @@ document validates against its schema, then what the schemas cannot express:
 - Each rule file under `rules/` validates against `rules.schema.json`, names
   the rule its file name names, and names each vector once, each
   reading-order vector's `columns` and `rows` are what `presented_rows`
-  gives, each output-digest vector's document holds its frame's rows and
+  gives, each output-digest vector's document holds its frame's rows, each
+  operation's variable read as the name its `variables` give it, and
   its digest hashes that document, and each growth vector's window starts
   before it ends. A missing or
   unreadable `rules/reading-order.json` is a problem.
@@ -3880,16 +3881,20 @@ def output_digest_problems(label: str, vector: Mapping[str, Any]) -> list[str]:
     """Where an output-digest vector's `document` is not its frame's, read as
     JSON, or its `digest` is not the document's: the columns `stat_var`, the
     role columns, `time_period`, `value` and `unit`, each frame row once in
-    those columns with no unit `recipe`, digest version `out2`, and `out_` and
-    32 hex digits of the document's SHA-256. The JCS bytes themselves are the
-    reference implementation's to check."""
+    those columns with no unit `recipe` and a `stat_var` of `dcid:` and an
+    `ops_` id its `variables` names read as that name, digest version `out2`,
+    and `out_` and 32 hex digits of the document's SHA-256. The JCS bytes
+    themselves are the reference implementation's to check."""
     frame = vector["frame"]
+    variables = vector.get("variables", {})
     roles = [name for name in frame["columns"] if name not in FRAME_FIXED_COLUMNS]
     columns = ["stat_var", *roles, "time_period", "value", "unit"]
     rows = []
     for row in frame["rows"]:
         cells = dict(zip(frame["columns"], row, strict=True))
         cells["unit"] = _without_recipe(cells.get("unit"))
+        stat_var = cells["stat_var"]
+        cells["stat_var"] = variables.get(stat_var.removeprefix("dcid:"), stat_var)
         rows.append([cells.get(name) for name in columns])
     document = json.loads(vector["document"])
     problems = []

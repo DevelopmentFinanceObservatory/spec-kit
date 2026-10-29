@@ -1198,6 +1198,17 @@
                 },
                 "description": "A frame as docs/frame-grammar-v1.md defines it, each row in its column order."
               },
+              "variables": {
+                "description": "The name of each variable an operation of the frame's recipe wrote, keyed by the operation's ops_ id, which the frame's stat_var cells spell after dcid:.",
+                "type": "object",
+                "propertyNames": {
+                  "pattern": "^ops_[0-9a-f]{32}$"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
               "document": {
                 "description": "The output digest document, as the UTF-8 text the digest hashes.",
                 "type": "string",

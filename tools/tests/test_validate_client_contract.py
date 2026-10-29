@@ -1023,6 +1023,21 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "vector 'two-rows' digest is not its document's",
         ),
         (
+            "rules/output-digest.json",
+            lambda doc: next(
+                vector
+                for vector in doc["vectors"]
+                if vector["name"] == "quotient-of-sides-swapped"
+            ).update(
+                variables=next(
+                    vector
+                    for vector in doc["vectors"]
+                    if vector["name"] == "quotient-of-variable-named"
+                )["variables"]
+            ),
+            "vector 'quotient-of-sides-swapped' document is not its frame's",
+        ),
+        (
             "rules/key-format.json",
             lambda doc: doc["vectors"].append(doc["vectors"][0]),
             "vector 'secret-key-passes' repeats",
@@ -1996,6 +2011,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "derived-file-in-two-formats",
         "output-digest-document-not-frames",
         "output-digest-not-documents",
+        "output-digest-variable-not-named",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",
