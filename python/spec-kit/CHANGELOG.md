@@ -289,15 +289,15 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `excel_illegal_character` (422), `parquet_size_bound` (422) and
   `rollup_not_summable` (422). A prepare that names only a `spec_id`
   resolves its newest version, which can rebuild it, so the endpoint also
-  carries the codes `datasets.definition` answers for a rebuild, at the same
+  carries the codes a rebuild raises on `datasets.definition`, at the same
   statuses: `spec_not_exportable` (409), `identity_collision` and
   `members_not_held` (500), `upstream_error` (502),
   `upstream_version_changed` (503), `timeout` (504), and
   `collection_probe_ceiling`, `column_unknown`, `default_facet_undefined`,
-  `definition_not_reproducible`, `entities_unbound`, `excluded_by_registry`,
+  `definition_not_reproducible`, `excluded_by_registry`,
   `facet_binding_unsupported`, `facet_not_available`, `invalid_role_ref`,
   `member_not_resolvable`, `rate_coverage_gap`, `recipe_not_declared`,
-  `resolution_ambiguous`, `role_incompatible` and
+  `role_incompatible` and
   `role_signature_incompatible` (422). `datasets.export_link` is
   `GET /api/datasets/exports/{export_id}`, which answers a 302 redirect to the
   file's download link. It carries `not_found` (404),
