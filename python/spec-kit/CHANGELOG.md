@@ -264,19 +264,21 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `frame_expired`, `rolling_reanchor_unavailable`, `provenance_unavailable`
   and `licence_not_redistributable` in `registries/codes.json` and its bundled
   mirror, all refusals. The first five are refusals an MCP tool result
-  carries, on endpoint `mcp.tools` and channel `mcp_refusal`: an unknown or
-  removed tool, a frame reference that lacks its content version, a frame
-  never stored, a frame aged out of the working tier, and a derived frame that
-  follows the latest data and has no stored computation tree to replay under a
-  shared period. `provenance_unavailable` (422) and
+  carries, on endpoint `mcp.tools` and channel `mcp_refusal`. They cover an
+  unknown or removed tool, a frame reference that lacks its content version, a
+  frame never stored, a frame aged out of the working tier, and a derived frame
+  that follows the latest data and has no stored computation tree to replay
+  under a shared period. `provenance_unavailable` (422) and
   `licence_not_redistributable` (403) are on `datasets.exports`, the latter
-  also on `datasets.export_link`: an export of a derived frame with no stored
-  recipe, and an export whose source licence forbids redistribution.
+  also on `datasets.export_link`. They cover an export of a derived frame with
+  no stored recipe, and an export whose source licence forbids
+  redistribution.
 - Endpoint `mcp.tools` and channel `mcp_refusal` in
   `schemas/registry/code-registry.schema.json`, its README and
-  `tools/validate_registry.py`: the refusal envelope of an MCP tool result
-  (dfo-ai data-mcp, analysis-mcp, presentation-mcp). A mapping on it carries no
-  `http_status`, and `mcp_refusal` is a refusal-only channel.
+  `tools/validate_registry.py`. They describe the refusal envelope of an MCP
+  tool result (dfo-ai data-mcp, analysis-mcp, presentation-mcp). A mapping on
+  the endpoint carries no `http_status`, and `mcp_refusal` is a refusal-only
+  channel.
 - Endpoints `datasets.exports` and `datasets.export_link` in
   `schemas/registry/code-registry.schema.json` and its README.
   `datasets.exports` is `POST /api/datasets/exports`, which prepares an export

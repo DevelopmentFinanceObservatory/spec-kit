@@ -88,7 +88,7 @@ Retiring a door is a schema change, reviewed as one: dropping a value from `code
   - `flagged_match_gate` is the 200 `no_data` status's `gate`, the failed quality-gate code that produced a flagged nearest-real match in place of a confident answer.
   - `skills_warning` is an entry in a Skills API list body's or skill body's `warnings` array.
   - `observations_omission_reason` is a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series. The Datasets observations body carries the same `omitted` object.
-  - `mcp_refusal` is the refusal envelope an MCP tool result carries: a `code`, a `retry_mode`, a message and a `fix`. It has no HTTP status.
+  - `mcp_refusal` is the refusal envelope an MCP tool result carries, made of a `code`, a `retry_mode`, a message and a `fix`. It has no HTTP status.
 
   `http_status` is present only when `channel` is `problem_details`.
 
