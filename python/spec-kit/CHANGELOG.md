@@ -263,22 +263,31 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codes `tool_not_found`, `frame_ref_incomplete`, `frame_not_held`,
   `frame_expired`, `rolling_reanchor_unavailable`, `provenance_unavailable`
   and `licence_not_redistributable` in `registries/codes.json` and its bundled
-  mirror, all refusals. The first five are refusals an MCP tool result
+  mirror, all refusals. The first five are refusals only an MCP tool result
   carries, on endpoint `mcp.tools` and channel `mcp_refusal`. They cover an
   unknown or removed tool, a frame reference that lacks its content version, a
-  frame never stored, a frame aged out of the working tier, and a derived frame
-  that follows the latest data and has no stored computation tree to replay
-  under a shared period. `provenance_unavailable` (422) and
-  `licence_not_redistributable` (403) are on `datasets.exports`, the latter
-  also on `datasets.export_link`. They cover an export of a derived frame with
-  no stored recipe, and an export whose source licence forbids
-  redistribution.
+  frame not held, a frame aged out, and a rolling computation with a derived
+  input that has no stored recipe to compute again under the shared latest
+  period. `provenance_unavailable` (422) and `licence_not_redistributable`
+  (403) are on `datasets.exports`, the latter also on `datasets.export_link`.
+  They cover an export of a frame whose sources and licences cannot be named,
+  and an export whose source licence forbids redistribution.
+- Codes `definition_not_held`, `derived_input_unrecoverable`,
+  `entity_not_found`, `frame_integrity_failed`, `operation_still_processing`,
+  `publish_not_configured`, `rate_limited` and `transient_unavailable` in
+  `registries/codes.json` and its bundled
+  mirror, all refusals on `mcp.tools` and `mcp_refusal`. They cover an id with
+  no registered definition, an input frame whose period labels do not state
+  their years, a scope name that gives no entity, a stored frame that fails an
+  integrity check, a build unfinished when the call's wait ended, a deployment
+  with no principal to publish a frame as, a server at its limit of calls, and
+  a service behind the server that failed or a lost frame not yet computable.
 - Endpoint `mcp.tools` and channel `mcp_refusal` in
   `schemas/registry/code-registry.schema.json`, its README and
   `tools/validate_registry.py`. They describe the refusal envelope of an MCP
   tool result (dfo-ai data-mcp, analysis-mcp, presentation-mcp). A mapping on
-  the endpoint carries no `http_status`, and `mcp_refusal` is a refusal-only
-  channel.
+  the endpoint carries no `http_status`, `mcp_refusal` is a refusal-only
+  channel, and the schema requires each of the two for the other.
 - Endpoints `datasets.exports` and `datasets.export_link` in
   `schemas/registry/code-registry.schema.json` and its README.
   `datasets.exports` is `POST /api/datasets/exports`, which prepares an export
@@ -304,7 +313,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `GET /api/datasets/exports/{export_id}`, which answers a 302 redirect to the
   file's download link. It carries `not_found` (404),
   `snapshot_revoked` (410), `licence_not_redistributable` (403),
-  `service_unavailable` (503) and `internal_error` (500).
+  `identity_quarantined` (500), `service_unavailable` (503) and
+  `internal_error` (500).
 - Codes `requested_option_unavailable` and `conflicting_requested_options` in
   `registries/codes.json` and its bundled mirror: 422 refusals on
   `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.

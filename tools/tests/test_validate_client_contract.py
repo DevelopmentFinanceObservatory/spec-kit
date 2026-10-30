@@ -1425,6 +1425,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "'spec_not_found' is also a code in registries/codes.json",
         ),
         (
+            "proxy-codes.json",
+            _add_action({"code": "binding_mismatch", "status": 404, "condition": "x"}),
+            "'binding_mismatch' is also a code in registries/codes.json",
+        ),
+        (
             "warning-codes.json",
             _drop_action("ref_digest_changed"),
             "no row for 'ref_digest_changed'",
@@ -2206,7 +2211,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "proxy-problem-without-retryable",
         "proxy-problem-in-plain-json",
         "accepted-operation-reads-done",
-        "proxy-code-is-a-registry-code",
+        "proxy-code-is-a-problem-registry-code",
+        "proxy-code-is-a-no-data-registry-code",
         "warning-code-ref-digest-changed-missing",
         "warning-code-missing",
         "warning-code-series-left-out-missing",

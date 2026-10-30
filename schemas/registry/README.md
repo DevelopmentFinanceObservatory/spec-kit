@@ -2,7 +2,7 @@
 
 The code registry assigns one permanent, language-neutral meaning to every warning and refusal code, so that every consumer of a contract, the engine, the harness, a website, a partner integration, reads the same meaning for the same code.
 
-The registry holds wire codes from Search, Presentation, Datasets, Graph, and Skills, plus the platform-generic codes any contract can render. The platform's `GET /codes/{code}` lookup, mounted on every surface, serves only codes this registry carries. `schemas/registry/code-registry.schema.json` (draft 2020-12, `$id` `https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/schemas/registry/code-registry.schema.json`) validates `registries/codes.json`. The `$id` sits under the repo's raw-content path because the kit has no schema-hosting service. Should one exist later, the `$id` moves and the old one is retired like any other schema identifier.
+The registry holds wire codes from Search, Presentation, Datasets, Graph, Skills, and MCP tool results, plus the platform-generic codes any contract can render. The platform's `GET /codes/{code}` lookup, mounted on every surface, serves only codes this registry carries. `schemas/registry/code-registry.schema.json` (draft 2020-12, `$id` `https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/schemas/registry/code-registry.schema.json`) validates `registries/codes.json`. The `$id` sits under the repo's raw-content path because the kit has no schema-hosting service. Should one exist later, the `$id` moves and the old one is retired like any other schema identifier.
 
 `registries/codes.json` is canonical. `python/spec-kit/src/dfo_spec_kit/registry/codes.json` is a byte-identical package mirror because `uv_build` only includes files within a package directory. `dfo_spec_kit.registry` loads the mirror through `CodeRegistry`, `CodeEntry`, and `CodeMapping`. `uv run tools/validate_registry.py` fails if the files diverge.
 
@@ -39,7 +39,7 @@ Each entry:
 - **`refusal`** covers a request that cannot be answered. It appears in an MCP tool result's refusal envelope, in a non-2xx RFC 9457 problem-details body, a 200 response's `no_data` reason, a 200 response's `unsupported` reason, a 200 `no_data` response's `flagged_match.gate`, the quality gate that failed and left a flagged nearest-real match in place of a confident answer, or a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series.
 - **`warning`** covers a diagnostic attached to an otherwise-answered request. It appears in `diagnostics.warnings`, an SSE stream's terminal `done` event, a Datasets manifest's `warnings` array, a Datasets options envelope's `warnings` array, or a Skills API list or skill body's `warnings` array.
 
-A code can appear on more than one surface. For example, `facet_not_available` is a 422 problem-details refusal through a structured door and a `no_data` reason for a text query. It has one registry entry with multiple mappings. A mapping records every permitted surface for that meaning. `(endpoint, channel)` is unique within an entry's `mappings`. A code that varies by door on one endpoint and channel uses one mapping with every permitted door.
+A code can appear on more than one surface. For example, `facet_not_available` is a 422 problem-details refusal through a structured door and a `no_data` reason for a text query. It has one registry entry with multiple mappings. A mapping records every permitted surface for that meaning, with one exception: an MCP tool result may also carry a code an HTTP route serves, and that code has no `mcp.tools` mapping (see `mcp.tools` below). `(endpoint, channel)` is unique within an entry's `mappings`. A code that varies by door on one endpoint and channel uses one mapping with every permitted door.
 
 `observations_omission_reason` is `tools/validate_registry.py`'s one channel legal under both classifications, because three `observations.omitted.reason` codes are warning-classified: `observations_preview_too_large`, `observations_windowed_scope_unsupported` and `observations_converted_scope_unsupported`. The first is also minted as a `diagnostics_warning`/`done_event_warning`. The other two also ride `diagnostics_warning`. Every other `observations.omitted.reason` code is `refusal`-classified and reaches this channel alone, never `diagnostics.warnings`, since nothing else on this list is ever minted as a Warning.
 
@@ -67,7 +67,7 @@ Retiring a door is a schema change, reviewed as one: dropping a value from `code
 
   The Skills endpoints are `skills.list` (`GET /api/skills`), `skills.fetch` (`GET /api/skills/{skill_id}`), and `skills.resource` (`GET /api/skills/{skill_id}/resources/{path}`). All three carry `service_unavailable`, which is how they report an index that has not finished its first build. `skills.fetch` and `skills.resource` carry `skill_not_found` and `request_invalid`, and `skills.resource` alone carries `skill_resource_not_found`. Every skills warning code appears on `skills.list`, and each one describing a single skill also appears on `skills.fetch`. Skills' `capabilities` route carries no permanent codes.
 
-  The MCP endpoint is `mcp.tools`, a refusal an MCP tool result carries (dfo-ai data-mcp, analysis-mcp, presentation-mcp). It uses the `mcp_refusal` channel alone, so its mappings carry no `http_status`, and a code on it is not returned by any HTTP route.
+  The MCP endpoint is `mcp.tools`, which holds the codes only an MCP tool result carries. dfo-ai data-mcp, analysis-mcp and presentation-mcp write them, and so does the harness combined server, which writes `tool_not_found` and `rate_limited`. `mcp.tools` and the `mcp_refusal` channel go only with each other, which the schema enforces, so these mappings carry no `http_status` and no HTTP route returns a code that maps here alone. A code an HTTP route also serves keeps its HTTP mappings and appears in MCP refusals with no `mcp.tools` row, as `request_invalid` and `internal_error` do.
 
   The platform endpoints are `platform.any`, for requests no mounted surface classifies, and `platform.codes` (`GET /codes/{code}`). `platform.any` covers unmatched routes, disallowed methods, stalled deadlines, and uncaught exceptions. A code may map to a platform endpoint and a contract endpoint.
 
@@ -75,7 +75,7 @@ Retiring a door is a schema change, reviewed as one: dropping a value from `code
 
   `doors` and `endpoint` are coupled. The schema enforces the relationship. `search.resolve` accepts only `raw_text`, `parsed`, and `dataset_resubmit`. A `search.options` mapping with `doors` must use exactly `["options"]`. A code on two endpoints needs one mapping for each endpoint.
 
-  Datasets, Presentation, Graph, Skills, and platform mappings omit `doors`. Each endpoint value names one route or platform-wide concept.
+  Datasets, Presentation, Graph, Skills, MCP, and platform mappings omit `doors`. Each endpoint value names one route or platform-wide concept.
 
 - **`channel`** identifies where the code appears.
 
@@ -94,7 +94,7 @@ Retiring a door is a schema change, reviewed as one: dropping a value from `code
 
 ## Severity and human-facing messages
 
-The registry has no severity or message template. Each occurrence supplies them through the contract's `Warning` shape (`{code, severity, message}`) or problem-details body (`{code, title, detail, ...}`). The registry defines a code's meaning and permitted locations.
+The registry has no severity or message template. Each occurrence supplies them through the contract's `Warning` shape (`{code, severity, message}`), problem-details body (`{code, title, detail, ...}`), or the `message` in an `mcp_refusal` envelope, which carries no severity. The registry defines a code's meaning and permitted locations.
 
 ## Adding an entry
 

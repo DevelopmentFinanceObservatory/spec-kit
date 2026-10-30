@@ -70,7 +70,7 @@
           "minLength": 1
         },
         "mappings": {
-          "description": "Every endpoint/door/channel combination this code is allowed to appear on.",
+          "description": "Every endpoint/door/channel combination this code is allowed to appear on. An MCP tool result may also carry a code mapped to an HTTP route; see schemas/registry/README.md.",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -192,6 +192,44 @@
               "required": [
                 "http_status"
               ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "endpoint": {
+                "const": "mcp.tools"
+              }
+            },
+            "required": [
+              "endpoint"
+            ]
+          },
+          "then": {
+            "properties": {
+              "channel": {
+                "const": "mcp_refusal"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "channel": {
+                "const": "mcp_refusal"
+              }
+            },
+            "required": [
+              "channel"
+            ]
+          },
+          "then": {
+            "properties": {
+              "endpoint": {
+                "const": "mcp.tools"
+              }
             }
           }
         },

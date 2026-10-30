@@ -909,6 +909,21 @@
       "lifecycle": "active"
     },
     {
+      "code": "definition_not_held",
+      "classification": "refusal",
+      "definition": "No definition is registered under the id a request names. The definition store answered, so a new search finds an id it holds.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "definition_not_reproducible",
       "classification": "refusal",
       "definition": "A registered definition does not reproduce its own id against the graph's current account of its StatVar.",
@@ -1087,6 +1102,21 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "derived_input_unrecoverable",
+      "classification": "refusal",
+      "definition": "An input frame was computed by an engine whose period labels do not state the years they cover, so no verb can read its periods. Only running the analysis again from the source data gives a usable frame.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1342,6 +1372,21 @@
             "dataset_resubmit"
           ],
           "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "entity_not_found",
+      "classification": "refusal",
+      "definition": "A name in a request's scope gives no entity to fetch data for: it matches nothing, the graph holds no node for it, or it names a group with no member countries.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1803,7 +1848,22 @@
     {
       "code": "frame_expired",
       "classification": "refusal",
-      "definition": "The frame a reference names was stored and has since aged out of the working tier, so none of its artifacts remains servable.",
+      "definition": "The frame a reference names was stored and has since aged out: it passed an in-memory store's time limit, or the platform reports that every artifact of its version has expired.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "frame_integrity_failed",
+      "classification": "refusal",
+      "definition": "A stored frame failed an integrity check on read, so the object does not match what was recorded when it was written. The same reference reaches the same object, so only a fresh result under a new reference clears it.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1818,7 +1878,7 @@
     {
       "code": "frame_not_held",
       "classification": "refusal",
-      "definition": "The frame a reference names was never stored here, or the stored identity and version do not belong together.",
+      "definition": "The frame a reference names is not held: it was never stored, a durable store's lifecycle rule has deleted it, a live store evicted it, or the platform holds no such version. The same code answers a reference whose identity and version do not belong together.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -2040,6 +2100,11 @@
         },
         {
           "endpoint": "datasets.exports",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "datasets.export_link",
           "channel": "problem_details",
           "http_status": 500
         }
@@ -3079,6 +3144,21 @@
       "lifecycle": "active"
     },
     {
+      "code": "operation_still_processing",
+      "classification": "refusal",
+      "definition": "A long-running build did not give its result before the call's wait ended. The build continues, and repeating the call later collects it.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "operation_uncovered",
       "classification": "refusal",
       "definition": "An aggregate step names an aggregation the analysis does not support.",
@@ -3526,7 +3606,7 @@
     {
       "code": "provenance_unavailable",
       "classification": "refusal",
-      "definition": "A derived frame has no stored recipe, so its processing steps and input versions cannot be listed for an export.",
+      "definition": "The sources of the requested frame and their licences cannot be named, so no export file is served.",
       "owning_contract": "datasets",
       "owner": "platform",
       "introduced_in": "v1",
@@ -3575,6 +3655,21 @@
           "endpoint": "datasets.recipe",
           "channel": "problem_details",
           "http_status": 409
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "publish_not_configured",
+      "classification": "refusal",
+      "definition": "This deployment has no principal to publish a frame as, so it cannot publish a frame to the platform.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3758,6 +3853,21 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "rate_limited",
+      "classification": "refusal",
+      "definition": "The server is at its limit of calls, running at once or accepted over time, so it refused this one. The identical call is accepted after the wait the refusal names.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4495,7 +4605,7 @@
     {
       "code": "rolling_reanchor_unavailable",
       "classification": "refusal",
-      "definition": "A derived frame whose period follows the latest data cannot be computed again under the latest period shared with the other frames in the request, because its stored recipe has no computation tree to replay.",
+      "definition": "A rolling computation reads every input under one latest period, and no recipe is stored for a derived input, so that input cannot be computed again under that period.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -5910,6 +6020,21 @@
       "code": "tool_not_found",
       "classification": "refusal",
       "definition": "The request names a tool the server does not offer, either because the name is unknown or because the tool was removed from the public list in favour of another.",
+      "owning_contract": "mcp",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "transient_unavailable",
+      "classification": "refusal",
+      "definition": "A service behind the server could not be reached or failed, or a lost frame cannot be computed again yet, so the call has no answer now. The identical call is expected to succeed after a delay.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",

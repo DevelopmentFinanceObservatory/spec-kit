@@ -34,8 +34,10 @@ document validates against its schema, then what the schemas cannot express:
   retryable flag `by_status`. Each reason the key-lookup rule raises is a
   row of class `AuthenticationError`.
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
-  none of them a code another table or `registries/codes.json` holds, and the
-  warning codes are those the client rules issue: `ref_digest_changed`,
+  none of them a code another table or `registries/codes.json` holds, except
+  that a proxy code may share a registry code that reaches no problem document
+  or no_data reason, since neither has an `actions.json` row. The warning
+  codes are those the client rules issue: `ref_digest_changed`,
   `route_deprecated`, `server_warning`, one `key_<reason>` per key-format
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
@@ -4252,13 +4254,22 @@ def validate() -> list[str]:
         "client-codes.json": {row["code"] for row in client_rows},
     }
     proxy_codes = _load(PACKAGE_DIR / "proxy-codes.json")
+    # A client raises a proxy code by its status, so a registry code clashes only
+    # where it reaches a client with an action of its own.
+    with_actions = {
+        entry["code"]
+        for entry in registry["entries"]
+        if _ACTION_CHANNELS & {mapping["channel"] for mapping in entry["mappings"]}
+    }
     errors = _schema_problems(
         "proxy-codes.json", validators["proxy-codes.schema.json"], proxy_codes
     )
     problems.extend(
         errors
         or _check_other_codes(
-            "proxy-codes.json", [row["code"] for row in proxy_codes["codes"]], taken
+            "proxy-codes.json",
+            [row["code"] for row in proxy_codes["codes"]],
+            {**taken, "registries/codes.json": with_actions},
         )
     )
     proxy_rows = [] if errors else proxy_codes["codes"]
