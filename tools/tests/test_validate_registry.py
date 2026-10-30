@@ -14,6 +14,9 @@ in the enum may not shrink, even alongside a retired one in the same mapping.
 Also tests check_entries' precondition for that matching: an entry's
 `mappings` may not repeat an `(endpoint, channel)` pair.
 
+Also tests the schema's coupling of `mappings`: doors to endpoints, and
+`mcp.tools` to `mcp_refusal` in both directions.
+
 Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 (importing tools/validate_registry.py imports jsonschema at module scope,
 so a plain interpreter needs it on the path; `--with` provisions it for the
@@ -148,15 +151,24 @@ def test_new_mapping_with_channel_outside_classification_fails(check: CheckFn) -
 
 
 @pytest.mark.parametrize(
-    ("classification", "expected"),
-    [("warning", []), ("refusal", ["manifest_warning"])],
+    ("endpoint", "channel", "classification", "expected"),
+    [
+        ("datasets.mint", "manifest_warning", "warning", []),
+        ("datasets.mint", "manifest_warning", "refusal", ["manifest_warning"]),
+        ("mcp.tools", "mcp_refusal", "refusal", []),
+        ("mcp.tools", "mcp_refusal", "warning", ["mcp_refusal"]),
+    ],
 )
-def test_manifest_warning_mapping_requires_warning_entry(
-    check: CheckFn, classification: str, expected: list[str]
+def test_new_mapping_channel_suits_classification(
+    check: CheckFn,
+    endpoint: str,
+    channel: str,
+    classification: str,
+    expected: list[str],
 ) -> None:
     new_mappings = [
         *_OLD_MAPPINGS,
-        {"endpoint": "datasets.mint", "channel": "manifest_warning"},
+        {"endpoint": endpoint, "channel": channel},
     ]
     problems = check(
         _entry(new_mappings, classification=classification),
@@ -360,3 +372,25 @@ def test_schema_rejects_invalid_search_doors(
         "http_status": 400,
     }
     assert list(schema_validator.iter_errors(mapping))
+
+
+@pytest.mark.parametrize(
+    ("mapping", "valid"),
+    [
+        ({"endpoint": "mcp.tools", "channel": "mcp_refusal"}, True),
+        (
+            {
+                "endpoint": "mcp.tools",
+                "channel": "problem_details",
+                "http_status": 400,
+            },
+            False,
+        ),
+        ({"endpoint": "mcp.tools", "channel": "no_data_reason"}, False),
+        ({"endpoint": "datasets.mint", "channel": "mcp_refusal"}, False),
+    ],
+)
+def test_schema_couples_mcp_tools_and_mcp_refusal(
+    schema_validator: Draft202012Validator, mapping: dict[str, Any], valid: bool
+) -> None:
+    assert schema_validator.is_valid(mapping) is valid

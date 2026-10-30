@@ -34,8 +34,10 @@ document validates against its schema, then what the schemas cannot express:
   retryable flag `by_status`. Each reason the key-lookup rule raises is a
   row of class `AuthenticationError`.
 - `proxy-codes.json` and `warning-codes.json` list codes in order, each once,
-  none of them a code another table or `registries/codes.json` holds, and the
-  warning codes are those the client rules issue: `ref_digest_changed`,
+  none of them a code another table or `registries/codes.json` holds, except
+  that a proxy code may share a registry code whose every mapping is
+  `mcp_refusal`. The warning codes are those the client rules issue:
+  `ref_digest_changed`,
   `route_deprecated`, `server_warning`, one `key_<reason>` per key-format
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
@@ -498,8 +500,8 @@ def _sorted_once(label: str, codes: Sequence[str]) -> list[str]:
 def _check_other_codes(
     label: str, codes: Sequence[str], taken: Mapping[str, set[str]]
 ) -> list[str]:
-    """A code table's codes are sorted, listed once, and none is a code
-    another table or the registry holds."""
+    """A code table's codes are sorted, listed once, and none is a code in
+    `taken`, the code sets the table may not share."""
     problems = _sorted_once(label, codes)
     for source, others in taken.items():
         problems.extend(
@@ -4252,13 +4254,25 @@ def validate() -> list[str]:
         "client-codes.json": {row["code"] for row in client_rows},
     }
     proxy_codes = _load(PACKAGE_DIR / "proxy-codes.json")
+    # A client never meets a code carried only in MCP tool results, so a proxy code
+    # may share its spelling.
+    mcp_only = {
+        entry["code"]
+        for entry in registry["entries"]
+        if all(mapping["channel"] == "mcp_refusal" for mapping in entry["mappings"])
+    }
     errors = _schema_problems(
         "proxy-codes.json", validators["proxy-codes.schema.json"], proxy_codes
     )
     problems.extend(
         errors
         or _check_other_codes(
-            "proxy-codes.json", [row["code"] for row in proxy_codes["codes"]], taken
+            "proxy-codes.json",
+            [row["code"] for row in proxy_codes["codes"]],
+            {
+                **taken,
+                "registries/codes.json": taken["registries/codes.json"] - mcp_only,
+            },
         )
     )
     proxy_rows = [] if errors else proxy_codes["codes"]

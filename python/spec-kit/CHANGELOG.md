@@ -260,6 +260,68 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mirror: a 422 refusal on `search.resolve` for a `dataset_resubmit` whose
   identity names an open role, when the StatVars the definition elects declare
   no role on that axis, so the definition cannot give one series per member.
+- Codes `tool_not_found`, `frame_ref_incomplete`, `frame_not_held`,
+  `frame_expired`, `rolling_reanchor_unavailable`, `provenance_unavailable`
+  and `licence_not_redistributable` in `registries/codes.json` and its bundled
+  mirror, all refusals. The first five are refusals only an MCP tool result
+  carries, on endpoint `mcp.tools` and channel `mcp_refusal`. They cover an
+  unknown or removed tool, a frame reference that lacks its content version, a
+  frame not held, a frame aged out, and a rolling computation with a derived
+  input that has no stored recipe to compute again under the shared latest
+  period. `provenance_unavailable` (422) and `licence_not_redistributable`
+  (403) are on `datasets.exports`, the latter also on `datasets.export_link`.
+  They cover an export of a frame whose sources and licences cannot be named,
+  and an export whose source licence forbids redistribution.
+- Codes `definition_not_held`, `derived_input_unrecoverable`,
+  `entity_not_found`, `frame_integrity_failed`, `operation_still_processing`,
+  `publish_not_configured`, `rate_limited` and `transient_unavailable` in
+  `registries/codes.json` and its bundled
+  mirror, all refusals on `mcp.tools` and `mcp_refusal`. They cover an id with
+  no registered definition, an input frame whose period labels do not state
+  their years, a scope name that gives no entity, a stored frame that fails an
+  integrity check, a build unfinished when the call's wait ended, a deployment
+  with no identity to publish a frame under, a service at a limit on calls,
+  and a service behind the one called that failed or a lost frame not yet
+  computable. The website proxy's `proxy-codes.json` holds the proxy surface
+  of `rate_limited` and `transient_unavailable`.
+- `mcp.tools` mappings on the 54 existing codes the MCP servers also write, so
+  the endpoint holds every code they write: each value of the data-mcp and
+  analysis-mcp `ToolErrorCode` enums and each code presentation-mcp and the
+  harness combined server write. Platform codes presentation-mcp only forwards
+  stay on their `presentation.*` mappings.
+- Endpoint `mcp.tools` and channel `mcp_refusal` in
+  `schemas/registry/code-registry.schema.json`, its README and
+  `tools/validate_registry.py`. They describe the refusal envelope of an MCP
+  tool result (dfo-ai data-mcp, analysis-mcp, presentation-mcp). A mapping on
+  the endpoint carries no `http_status`, `mcp_refusal` is a refusal-only
+  channel, and the schema requires each of the two for the other.
+- Endpoints `datasets.exports` and `datasets.export_link` in
+  `schemas/registry/code-registry.schema.json` and its README.
+  `datasets.exports` is `POST /api/datasets/exports`, which prepares an export
+  file of a stored frame. It carries `request_invalid` (400), `spec_not_found`
+  (404), `snapshot_not_found` (404), `snapshot_revoked` (410),
+  `artifact_expired` (410), `identity_quarantined` (500), `over_ceiling`
+  (422), `provenance_unavailable` (422), `licence_not_redistributable` (403),
+  `allowance_exhausted` (429), `service_unavailable` (503), `internal_error`
+  (500), `capability_unavailable` (501), `excel_limit` (422),
+  `excel_illegal_character` (422), `parquet_size_bound` (422) and
+  `rollup_not_summable` (422). A prepare that names only a `spec_id`
+  resolves its newest version, which can rebuild it, so the endpoint also
+  carries the codes a rebuild raises on `datasets.definition`, at the same
+  statuses: `spec_not_exportable` (409), `identity_collision` and
+  `members_not_held` (500), `upstream_error` (502),
+  `upstream_version_changed` (503), `timeout` (504), and
+  `collection_probe_ceiling`, `column_unknown`, `default_facet_undefined`,
+  `definition_not_reproducible`, `excluded_by_registry`,
+  `facet_binding_unsupported`, `facet_not_available`, `invalid_role_ref`,
+  `member_not_resolvable`, `rate_coverage_gap`, `recipe_not_declared`,
+  `role_incompatible` and
+  `role_signature_incompatible` (422). `datasets.export_link` is
+  `GET /api/datasets/exports/{export_id}`, which answers a 302 redirect to the
+  file's download link. It carries `not_found` (404),
+  `snapshot_revoked` (410), `licence_not_redistributable` (403),
+  `identity_quarantined` (500), `service_unavailable` (503) and
+  `internal_error` (500).
 - Codes `requested_option_unavailable` and `conflicting_requested_options` in
   `registries/codes.json` and its bundled mirror: 422 refusals on
   `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.
