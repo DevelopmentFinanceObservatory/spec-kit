@@ -280,8 +280,15 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no registered definition, an input frame whose period labels do not state
   their years, a scope name that gives no entity, a stored frame that fails an
   integrity check, a build unfinished when the call's wait ended, a deployment
-  with no principal to publish a frame as, a server at its limit of calls, and
-  a service behind the server that failed or a lost frame not yet computable.
+  with no identity to publish a frame under, a service at a limit on calls,
+  and a service behind the one called that failed or a lost frame not yet
+  computable. The website proxy's `proxy-codes.json` holds the proxy surface
+  of `rate_limited` and `transient_unavailable`.
+- `mcp.tools` mappings on the 54 existing codes the MCP servers also write, so
+  the endpoint holds every code they write: each value of the data-mcp and
+  analysis-mcp `ToolErrorCode` enums and each code presentation-mcp and the
+  harness combined server write. Platform codes presentation-mcp only forwards
+  stay on their `presentation.*` mappings.
 - Endpoint `mcp.tools` and channel `mcp_refusal` in
   `schemas/registry/code-registry.schema.json`, its README and
   `tools/validate_registry.py`. They describe the refusal envelope of an MCP

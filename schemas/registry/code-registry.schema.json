@@ -70,7 +70,7 @@
           "minLength": 1
         },
         "mappings": {
-          "description": "Every endpoint/door/channel combination this code is allowed to appear on. An MCP tool result may also carry a code mapped to an HTTP route; see schemas/registry/README.md.",
+          "description": "Every endpoint/door/channel combination this code is allowed to appear on. An MCP tool result may also carry a platform code presentation-mcp forwards, and the website proxy's surface is in proxy-codes.json; see schemas/registry/README.md.",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -149,7 +149,7 @@
           }
         },
         "channel": {
-          "description": "problem_details is a non-2xx RFC 9457 body. no_data_reason is the 200 no_data status's `reason`. unsupported_code is the 200 unsupported status's `code`. diagnostics_warning is an entry in the response envelope's diagnostics.warnings. done_event_warning is an entry in the SSE stream's terminal done event, for trailing work that finishes after the response event has shipped. manifest_warning is an entry in a Datasets manifest's warnings array or a Datasets options envelope's warnings array. flagged_match_gate is the failed quality-gate code in a 200 no_data response's `flagged_match.gate`, naming why the nearest real match was flagged in place of a confident answer. skills_warning is an entry in a Skills API list body's or skill body's warnings array. observations_omission_reason is a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series. The Datasets observations body carries the same `omitted` object. mcp_refusal is the refusal envelope an MCP tool result carries, a `code` with a `retry_mode`, a message and a `fix`, which has no HTTP status.",
+          "description": "problem_details is a non-2xx RFC 9457 body. no_data_reason is the 200 no_data status's `reason`. unsupported_code is the 200 unsupported status's `code`. diagnostics_warning is an entry in the response envelope's diagnostics.warnings. done_event_warning is an entry in the SSE stream's terminal done event, for trailing work that finishes after the response event has shipped. manifest_warning is an entry in a Datasets manifest's warnings array or a Datasets options envelope's warnings array. flagged_match_gate is the failed quality-gate code in a 200 no_data response's `flagged_match.gate`, naming why the nearest real match was flagged in place of a confident answer. skills_warning is an entry in a Skills API list body's or skill body's warnings array. observations_omission_reason is a returned Spec's `observations.omitted.reason`, the 200 response's own explanation for why that Spec's observations preview carries no series. The Datasets observations body carries the same `omitted` object. mcp_refusal is the refusal envelope in an MCP tool result's structured content, a `code` with a `retry_mode`, a `message` and a `fix`, plus `retry_after_s`, `upstream_code` and `capability_version` where a server sends them, which has no HTTP status.",
           "enum": [
             "problem_details",
             "no_data_reason",

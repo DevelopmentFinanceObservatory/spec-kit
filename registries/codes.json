@@ -28,6 +28,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 429
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -344,6 +348,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 501
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -574,6 +582,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -590,6 +602,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -754,6 +770,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -770,6 +790,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -786,6 +810,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -802,6 +830,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -889,6 +921,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -911,7 +947,7 @@
     {
       "code": "definition_not_held",
       "classification": "refusal",
-      "definition": "No definition is registered under the id a request names. The definition store answered, so a new search finds an id it holds.",
+      "definition": "No definition is registered under the id a request names, and the service that holds definitions is up. A new search finds an id that is registered.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1102,6 +1138,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1109,7 +1149,7 @@
     {
       "code": "derived_input_unrecoverable",
       "classification": "refusal",
-      "definition": "An input frame was computed by an engine whose period labels do not state the years they cover, so no verb can read its periods. Only running the analysis again from the source data gives a usable frame.",
+      "definition": "An input frame has period labels that do not state the years they cover, so no verb can read its periods. Only running the analysis again from the source data gives a usable frame.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1133,6 +1173,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1352,6 +1396,10 @@
             "dataset_resubmit"
           ],
           "channel": "no_data_reason"
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1703,6 +1751,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1773,6 +1825,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1825,6 +1881,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1841,6 +1901,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1848,7 +1912,7 @@
     {
       "code": "frame_expired",
       "classification": "refusal",
-      "definition": "The frame a reference names was stored and has since aged out: it passed an in-memory store's time limit, or the platform reports that every artifact of its version has expired.",
+      "definition": "The frame a reference names was held and has aged out, and the server can still tell that it was.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1863,7 +1927,7 @@
     {
       "code": "frame_integrity_failed",
       "classification": "refusal",
-      "definition": "A stored frame failed an integrity check on read, so the object does not match what was recorded when it was written. The same reference reaches the same object, so only a fresh result under a new reference clears it.",
+      "definition": "A stored frame failed an integrity check, so it does not match what was recorded when it was written. The same reference reaches the same frame, so only a fresh result under a new reference clears it.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1878,7 +1942,7 @@
     {
       "code": "frame_not_held",
       "classification": "refusal",
-      "definition": "The frame a reference names is not held: it was never stored, a durable store's lifecycle rule has deleted it, a live store evicted it, or the platform holds no such version. The same code answers a reference whose identity and version do not belong together.",
+      "definition": "The frame a reference names is not held: it was never stored, it is no longer held and nothing records that it was, or no such version exists. The same code answers a reference whose identity and version do not belong together.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1933,6 +1997,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1959,6 +2027,10 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -1975,6 +2047,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2208,6 +2284,10 @@
           "endpoint": "datasets.export_link",
           "channel": "problem_details",
           "http_status": 500
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2271,6 +2351,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2287,6 +2371,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2308,6 +2396,10 @@
           "endpoint": "datasets.export_link",
           "channel": "problem_details",
           "http_status": 403
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2354,6 +2446,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2503,6 +2599,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2667,6 +2767,10 @@
           "endpoint": "graph.documentation",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -2683,6 +2787,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3088,6 +3196,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3107,6 +3219,10 @@
           ],
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3170,6 +3286,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3309,6 +3429,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3514,6 +3638,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3615,6 +3743,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3662,7 +3794,7 @@
     {
       "code": "publish_not_configured",
       "classification": "refusal",
-      "definition": "This deployment has no principal to publish a frame as, so it cannot publish a frame to the platform.",
+      "definition": "This deployment has no identity to publish a frame under, so it cannot publish a frame to the platform.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -3764,6 +3896,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3780,6 +3916,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3796,6 +3936,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -3860,7 +4004,7 @@
     {
       "code": "rate_limited",
       "classification": "refusal",
-      "definition": "The server is at its limit of calls, running at once or accepted over time, so it refused this one. The identical call is accepted after the wait the refusal names.",
+      "definition": "A limit on the calls a service accepts has been reached, so it refused this one. The identical call is accepted after the wait the refusal names.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -4057,6 +4201,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4206,6 +4354,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4347,6 +4499,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4566,6 +4722,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4582,6 +4742,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4649,6 +4813,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4872,6 +5040,10 @@
           "endpoint": "datasets.export_link",
           "channel": "problem_details",
           "http_status": 503
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4971,6 +5143,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -4987,6 +5163,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -5003,6 +5183,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -5019,6 +5203,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -5176,6 +5364,10 @@
           "endpoint": "skills.resource",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -5249,6 +5441,10 @@
           "endpoint": "skills.resource",
           "channel": "problem_details",
           "http_status": 404
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -5707,6 +5903,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -5833,6 +6033,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -6034,7 +6238,7 @@
     {
       "code": "transient_unavailable",
       "classification": "refusal",
-      "definition": "A service behind the server could not be reached or failed, or a lost frame cannot be computed again yet, so the call has no answer now. The identical call is expected to succeed after a delay.",
+      "definition": "A service behind the one called could not be reached or failed, or a lost frame cannot be computed again yet, so the call has no answer now. The identical call is expected to succeed after a delay.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -6104,6 +6308,10 @@
           "endpoint": "datasets.analysis",
           "channel": "problem_details",
           "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -6323,6 +6531,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 502
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
@@ -6374,6 +6586,10 @@
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 503
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
         }
       ],
       "lifecycle": "active"
