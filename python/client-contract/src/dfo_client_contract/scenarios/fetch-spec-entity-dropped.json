@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
-    "recorded_at": "2026-10-24T16:30:35Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:17Z"
   },
   "call": [
     {
@@ -174,7 +174,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -182,7 +183,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "1855a065f7494cd6ba7eecd9fd790858"
+          "x-dfo-trace-id": "dfa8f009e43a48bd9113306c1946b4b7"
         },
         "json": {
           "schema_version": 1,
@@ -584,7 +585,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261020T170016Z-691bf0da",
             "served_from": "head",
-            "confirmed_at": "2026-10-24T16:30:35.784659+00:00"
+            "confirmed_at": "2026-10-26T09:18:11.197140+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -596,17 +597,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9",
+              "artifact_digest": "sha256:e8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
-              "bytes": 13398,
+              "bytes": 13418,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-23T16:58:55.692876+00:00",
+              "created_at": "2026-10-25T14:19:44.744913+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9",
+              "url": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:e8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a",
               "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
             },
             {
@@ -623,7 +625,7 @@
           ],
           "series_count": 58,
           "output_options": {
-            "capability_version": "dset_cc753cefa9199881",
+            "capability_version": "dset_76f5fa7244511c58",
             "columns": [
               {
                 "name": "stat_var",
@@ -1024,7 +1026,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-20T06:50:59.874372Z"
@@ -1113,7 +1115,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "37247e5873b241a7aee7ac321de35814"
+          "x-dfo-trace-id": "de250b63d7d54077a2e7ced00745249b"
         },
         "json": {
           "schema_version": 1,
@@ -1122,11 +1124,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
-            "trace_id": "37247e5873b241a7aee7ac321de35814",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "de250b63d7d54077a2e7ced00745249b",
             "warnings": [],
             "timing_ms": {
-              "total": 442,
+              "total": 2,
               "by_step": {
                 "coverage": 0
               }
@@ -1141,23 +1143,13 @@
                 {
                   "code": "role_scope_defaulted",
                   "severity": "warn",
-                  "message": "no provider was named; the answer was resolved across every provider with data."
+                  "message": "No provider was named, so the answer covers every provider with data."
                 }
               ],
               "timing_ms": {
-                "total": 321,
+                "total": 0,
                 "by_step": {
-                  "validate": 3,
-                  "walk": 227,
-                  "reread_arcs": 1,
-                  "detect_edits": 0,
-                  "resolve_survivors": 0,
-                  "shape": 4,
-                  "bind": 0,
-                  "where_places": 0,
-                  "materialise": 33,
-                  "answer": 42,
-                  "options": 11
+                  "response_cache_part_memo": 0
                 }
               },
               "entity_refs": [],
@@ -1572,7 +1564,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2301,7 +2293,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_9deef72763b45f40"
+                    "capability_version": "cap_765c9d2a0c7529b9"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -2554,22 +2546,37 @@
                   ],
                   "open_axis_facts": [
                     {
+                      "property": "crsTypeOfFinance",
+                      "varies": true,
+                      "distinct_count": 2,
+                      "undeclared_count": 0,
+                      "values": [
+                        {
+                          "value": {
+                            "ref": "CRSTypeOfFinance110",
+                            "label": "standard grant"
+                          },
+                          "count": 9
+                        },
+                        {
+                          "value": {
+                            "ref": "CRSTypeOfFinance421",
+                            "label": "standard loan"
+                          },
+                          "count": 1
+                        }
+                      ]
+                    },
+                    {
                       "property": "crsCooperationModality",
                       "varies": true,
-                      "distinct_count": 14,
-                      "undeclared_count": 2,
+                      "distinct_count": 8,
+                      "undeclared_count": 1,
                       "values": [
                         {
                           "value": {
                             "ref": "CRSCooperationModalityC01",
                             "label": "project-type intervention"
-                          },
-                          "count": 5
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityA02",
-                            "label": "sector budget support"
                           },
                           "count": 2
                         },
@@ -2577,20 +2584,6 @@
                           "value": {
                             "ref": "CRSCooperationModalityB04",
                             "label": "basket fund and pooled funding"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB031",
-                            "label": "contribution to multi-donor and multi-entity funding mechanism"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityB032",
-                            "label": "contribution to multi-donor and single-entity funding mechanism"
                           },
                           "count": 1
                         },
@@ -2624,27 +2617,6 @@
                         },
                         {
                           "value": {
-                            "ref": "CRSCooperationModalityA01",
-                            "label": "general budget support"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityE02",
-                            "label": "imputed student cost"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityG01",
-                            "label": "other administrative cost"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
                             "ref": "CRSCooperationModalityD02",
                             "label": "other technical assistance"
                           },
@@ -2654,49 +2626,6 @@
                           "value": {
                             "ref": "CRSCooperationModalityE01",
                             "label": "scholarship and training in donor country"
-                          },
-                          "count": 1
-                        }
-                      ]
-                    },
-                    {
-                      "property": "crsTypeOfFinance",
-                      "varies": true,
-                      "distinct_count": 5,
-                      "undeclared_count": 0,
-                      "values": [
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance110",
-                            "label": "standard grant"
-                          },
-                          "count": 14
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance421",
-                            "label": "standard loan"
-                          },
-                          "count": 4
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance510",
-                            "label": "common equity"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance210",
-                            "label": "interest subsidy"
-                          },
-                          "count": 1
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSTypeOfFinance520",
-                            "label": "share in collective investment vehicle"
                           },
                           "count": 1
                         }
@@ -4926,21 +4855,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9"
+        "origin_path": "/api/datasets/spec_4c228c73be6c18efd0939eabb3b3c456/cv_1868d697e8e7d56da6a83740a940c2e5/files/sha256:e8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "c76ebbf49c774bb7acee93d8877f450d"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "3971fe2094964eb69642432194306145"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A582f586bcb05d6807c91e6b5d88779c13c5c0962cd42e793184e8c6c8c90d2d9?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae8092d8c75768ba31abe07fa60d85c1d13f7ed8b2159acb7785e0041f44e771a?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -4956,32 +4885,32 @@
       "dataset": {
         "rows": 309,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
-          "financingProvider_kind",
-          "financingRecipient",
           "financingRecipient_label",
-          "financingRecipient_kind",
+          "crsPurpose_label",
+          "value",
+          "unit_label",
+          "crsTypeOfFlow_label",
+          "provenance_label",
+          "financingProvider",
           "crsCooperationModality",
           "crsCooperationModality_label",
-          "crsPurpose",
-          "crsPurpose_label",
           "crsTypeOfFinance",
           "crsTypeOfFinance_label",
+          "financingProvider_kind",
+          "financingRecipient",
+          "financingRecipient_kind",
+          "crsPurpose",
           "crsTypeOfFlow",
-          "crsTypeOfFlow_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [

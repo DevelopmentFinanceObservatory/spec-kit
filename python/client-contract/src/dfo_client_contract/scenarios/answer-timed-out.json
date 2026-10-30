@@ -1,11 +1,11 @@
 {
   "format_version": 1,
   "name": "answer-timed-out",
-  "description": "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, whatever its reason, and fetching the answer raises IncompleteAnswerError, which describes the answer and carries its response's trace id.",
+  "description": "A no_data part with reason timed_out, the reason Search gives a part it left unresolved at its time limit, is a timed_out gap, and fetching the answer raises IncompleteAnswerError, which describes the answer and carries its response's trace id.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "answer-mixed-fetch-raises",
-    "edit": "The answer's diagnostics.timed_out becomes true, and its response carries x-dfo-trace-id 55555555555555555555555555555555."
+    "edit": "The answer's diagnostics.timed_out becomes true, part 1's no_data reason becomes timed_out with the message that reason renders, and its response carries x-dfo-trace-id 55555555555555555555555555555555."
   },
   "call": [
     {
@@ -44,21 +44,21 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
-            "trace_id": "1e95940d311043d0b63bd27a87996439",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "86b361f85db44a29b3d711350962ca73",
             "warnings": [],
             "timing_ms": {
-              "total": 2200,
+              "total": 456,
               "by_step": {
                 "coverage": 0,
-                "extract": 1432,
+                "extract": 0,
                 "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2232,
-              "output_tokens": 103,
-              "cached_tokens": 841,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cached_tokens": 0,
               "jev_input_tokens": 5250,
               "jev_output_tokens": 1104
             },
@@ -70,30 +70,30 @@
               "variable_text": "debt service",
               "warnings": [],
               "timing_ms": {
-                "total": 757,
+                "total": 452,
                 "by_step": {
-                  "recall": 316,
+                  "recall": 1,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 2,
-                  "shape_probe_coverage": 8,
-                  "shape_probe": 72,
-                  "shape_groups": 5,
-                  "shape_labels": 10,
+                  "shape_probe_coverage": 17,
+                  "shape_probe": 101,
+                  "shape_groups": 8,
+                  "shape_labels": 14,
                   "shape_admission": 0,
                   "phase_derive_shapes": 0,
-                  "shape": 179,
+                  "shape": 225,
                   "phase_prune_and_rank": 0,
-                  "bind": 89,
-                  "phase_bind": 10,
-                  "phase_settle": 13,
-                  "phase_place_bindings": 12,
+                  "bind": 77,
+                  "phase_bind": 17,
+                  "phase_settle": 5,
+                  "phase_place_bindings": 14,
                   "phase_facet_requests": 0,
-                  "materialise": 9,
-                  "phase_materialise": 0,
-                  "answer": 1,
-                  "options": 79,
-                  "phase_outcome": 49
+                  "materialise": 11,
+                  "phase_materialise": 23,
+                  "answer": 2,
+                  "options": 9,
+                  "phase_outcome": 68
                 }
               },
               "restatement": {
@@ -568,7 +568,7 @@
                       "label": "Creative Commons Attribution License"
                     }
                   },
-                  "coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1286,7 +1286,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_9deef72763b45f40",
+                    "capability_version": "cap_765c9d2a0c7529b9",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3271,26 +3271,26 @@
               "variable_text": "price of tea",
               "warnings": [],
               "timing_ms": {
-                "total": 330,
+                "total": 121,
                 "by_step": {
-                  "recall": 216,
-                  "phase_resolve_places": 1,
+                  "recall": 0,
+                  "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 1,
-                  "shape_probe": 108,
-                  "shape_groups": 2,
+                  "shape_probe": 96,
+                  "shape_groups": 1,
                   "shape_labels": 0,
                   "shape_admission": 0,
                   "phase_derive_shapes": 0,
-                  "shape": 113,
+                  "shape": 121,
                   "phase_prune_and_rank": 0
                 }
               },
-              "rendered_sentence": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+              "rendered_sentence": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
               "sentence_plan": [
                 {
                   "kind": "text",
-                  "text": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+                  "text": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -3302,9 +3302,9 @@
               "assumptions": [],
               "status": "no_data",
               "no_data": {
-                "reason": "variable_not_resolved",
+                "reason": "timed_out",
                 "category": "unresolved",
-                "message": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+                "message": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
                 "entity_terms": [],
                 "ambiguous_entities": [],
                 "source_terms": [],
@@ -3314,7 +3314,7 @@
               }
             }
           ],
-          "rendered_sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. No match for price of tea. Try a different wording or a related indicator.",
+          "rendered_sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. Search reached its time limit before answering this part. Try again, or ask a narrower question.",
           "sentence_plan": [
             {
               "kind": "text",
@@ -3600,24 +3600,7 @@
             },
             {
               "kind": "text",
-              "text": "No match for ",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 1
-            },
-            {
-              "kind": "slot",
-              "text": "price of tea",
-              "axis": "what",
-              "segment": "heading",
-              "entity_refs": [],
-              "states": [],
-              "part_index": 1
-            },
-            {
-              "kind": "text",
-              "text": ". Try a different wording or a related indicator.",
+              "text": "Search reached its time limit before answering this part. Try again, or ask a narrower question.",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -3634,7 +3617,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. No match for price of tea. Try a different wording or a related indicator.",
+        "sentence": "Answered 1 of 2 parts. Kenya's external debt service owed to all creditors, 1970 to 2024. Current US dollars · World Bank International Debt Statistics (IDS). Assumed: every creditor. Search reached its time limit before answering this part. Try again, or ask a narrower question.",
         "complete": false,
         "specs": [
           "spec_78d04fefc3b3f1ef71acd622957e4995"

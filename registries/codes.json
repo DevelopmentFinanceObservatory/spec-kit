@@ -180,7 +180,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 422
+          "http_status": 400
         },
         {
           "endpoint": "presentation.render",
@@ -476,6 +476,25 @@
       "lifecycle": "active"
     },
     {
+      "code": "conflicting_requested_options",
+      "classification": "refusal",
+      "definition": "The scope_entries posted for a part cannot all apply: two entries name different options on one axis, an option conflicts with an entry on another axis, or the entries rule out every option of an axis.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "conjunction_cross_shape",
       "classification": "warning",
       "definition": "The parts of a conjunction query grounded to different shapes, so the returned specs measure structurally distinct things.",
@@ -562,7 +581,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 422
+          "http_status": 400
         },
         {
           "endpoint": "presentation.render",
@@ -910,13 +929,18 @@
     {
       "code": "edit_conflict",
       "classification": "refusal",
-      "definition": "A revise_component request targets a revision that is no longer the component's current one.",
+      "definition": "The component's current revision is not the one the request reads or targets: a revise_component request names a revision that is no longer current, or the component has no current revision.",
       "owning_contract": "presentation",
       "owner": "platform",
       "introduced_in": "v1",
       "mappings": [
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "presentation.render",
           "channel": "problem_details",
           "http_status": 409
         }
@@ -1462,7 +1486,7 @@
     {
       "code": "frame_unavailable",
       "classification": "refusal",
-      "definition": "The frame the intent's frame_ref names cannot be read at request time.",
+      "definition": "The frame a request names is not held in a state Presentation can load: it was never stored or published, it has expired or been revoked, its spec is quarantined, or its stored artifact is missing, fails its digest check, does not decode, or holds more rows than Presentation loads.",
       "owning_contract": "presentation",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1470,7 +1494,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 409
+          "http_status": 404
         },
         {
           "endpoint": "presentation.render",
@@ -3132,7 +3156,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 409
+          "http_status": 503
         },
         {
           "endpoint": "presentation.render",
@@ -3309,6 +3333,25 @@
       "lifecycle": "active"
     },
     {
+      "code": "requested_option_unavailable",
+      "classification": "refusal",
+      "definition": "A scope_entries entry names an axis the part does not offer, an option the axis does not list, or an option that is unavailable for this part.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "dataset_resubmit"
+          ],
+          "channel": "problem_details",
+          "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "resolution_ambiguous",
       "classification": "refusal",
       "definition": "More than one tuple family satisfies the definition and no declared discriminator distinguishes them.",
@@ -3353,7 +3396,7 @@
         {
           "endpoint": "presentation.write",
           "channel": "problem_details",
-          "http_status": 409
+          "http_status": 400
         },
         {
           "endpoint": "presentation.render",

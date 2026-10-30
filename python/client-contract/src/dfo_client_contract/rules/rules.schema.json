@@ -18,10 +18,25 @@
       "$ref": "#/$defs/key_lookup"
     },
     {
+      "$ref": "#/$defs/base_url"
+    },
+    {
       "$ref": "#/$defs/cache_dir"
     },
     {
       "$ref": "#/$defs/cache_layout"
+    },
+    {
+      "$ref": "#/$defs/reading_order"
+    },
+    {
+      "$ref": "#/$defs/client_identity"
+    },
+    {
+      "$ref": "#/$defs/role_keys"
+    },
+    {
+      "$ref": "#/$defs/file_selector"
     }
   ],
   "$defs": {
@@ -78,6 +93,10 @@
         },
         "layout": {
           "const": "frame"
+        },
+        "without_party_totals": {
+          "description": "Present, and true, for a rendering with party totals left out.",
+          "const": true
         }
       }
     },
@@ -365,6 +384,74 @@
         }
       }
     },
+    "base_url": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "base-url"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "env"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "source",
+                  "url"
+                ]
+              },
+              {
+                "required": [
+                  "error"
+                ]
+              }
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "base_url": {
+                "description": "The base URL argument of the call or constructor, which may be the empty string a client refuses. Absent when the caller passes none.",
+                "type": "string"
+              },
+              "env": {
+                "$ref": "#/$defs/env"
+              },
+              "source": {
+                "enum": [
+                  "argument",
+                  "environment",
+                  "default"
+                ]
+              },
+              "url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "error": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "const": "base_url_invalid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "cache_dir": {
       "$ref": "#/$defs/suite",
       "additionalProperties": false,
@@ -509,6 +596,588 @@
                 "type": "string",
                 "pattern": "^[a-z]+(/[A-Za-z0-9_.-]+)+$",
                 "$ref": "#/$defs/one_line"
+              }
+            }
+          }
+        }
+      }
+    },
+    "client_identity": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "required": [
+        "header",
+        "pattern"
+      ],
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "client-identity"
+        },
+        "header": {
+          "const": "X-DFO-Client"
+        },
+        "pattern": {
+          "description": "A regular expression every well-formed header value matches in full.",
+          "type": "string",
+          "minLength": 1
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "client",
+                  "version",
+                  "runtime",
+                  "value"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "via"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "headers"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "verdict"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "via",
+                  "headers",
+                  "verdict"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "client"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "version"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "runtime"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "value"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "if": {
+              "properties": {
+                "verdict": {
+                  "const": "refuse"
+                }
+              },
+              "required": [
+                "verdict"
+              ]
+            },
+            "then": {
+              "required": [
+                "reason"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "reason"
+                ]
+              }
+            },
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "client": {
+                "enum": [
+                  "dfo-python",
+                  "dfo-ts"
+                ]
+              },
+              "version": {
+                "description": "The package version as the package states it.",
+                "type": "string",
+                "pattern": "^[0-9A-Za-z.+-]+$",
+                "$ref": "#/$defs/one_line"
+              },
+              "runtime": {
+                "description": "The runtime's name and its full version, or `browser` or `other` with no version.",
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z]+$",
+                    "$ref": "#/$defs/one_line"
+                  },
+                  "version": {
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+"
+                  }
+                },
+                "if": {
+                  "properties": {
+                    "name": {
+                      "enum": [
+                        "browser",
+                        "other"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "version"
+                    ]
+                  }
+                },
+                "else": {
+                  "required": [
+                    "version"
+                  ]
+                }
+              },
+              "value": {
+                "description": "The X-DFO-Client value the client sends.",
+                "type": "string",
+                "minLength": 1
+              },
+              "via": {
+                "description": "Where the caller's headers come from: the client's headers argument, or the header provider it calls before each request.",
+                "enum": [
+                  "argument",
+                  "provider"
+                ]
+              },
+              "headers": {
+                "description": "The caller's headers, by name as the caller writes it.",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "verdict": {
+                "enum": [
+                  "accept",
+                  "refuse"
+                ]
+              },
+              "reason": {
+                "const": "header_invalid"
+              }
+            }
+          }
+        }
+      }
+    },
+    "reading_order": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "required": [
+        "reading_columns"
+      ],
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "reading-order"
+        },
+        "reading_columns": {
+          "description": "The reading slots in order. Each slot lists the column names that fill it, each long layout's label before its frame layout's code; the first name a dataset holds fills the slot.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "$ref": "#/$defs/one_line"
+            },
+            "uniqueItems": true
+          }
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "members",
+              "columns",
+              "rows"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "members": {
+                "description": "The members a dataset stacks, in member order, each its served table: its `part` value when the dataset has several members, its columns and its rows in the order the server wrote them.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "columns",
+                    "rows"
+                  ],
+                  "properties": {
+                    "part": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "$ref": "#/$defs/one_line"
+                      },
+                      "uniqueItems": true
+                    },
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean",
+                            "null",
+                            "array",
+                            "object"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "$ref": "#/$defs/one_line"
+                },
+                "uniqueItems": true,
+                "description": "The columns a client presents, in its order."
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean",
+                      "null",
+                      "array",
+                      "object"
+                    ]
+                  }
+                },
+                "description": "The rows a client presents, in its order, each in the presented column order."
+              }
+            }
+          }
+        }
+      }
+    },
+    "role_keys": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "required": [
+        "keys",
+        "flow_keys"
+      ],
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "role-keys"
+        },
+        "keys": {
+          "description": "Each key a caller types in entities=, to the wire role it posts as.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "place",
+            "origin",
+            "destination"
+          ],
+          "properties": {
+            "place": {
+              "const": "observationAbout"
+            },
+            "origin": {
+              "const": "origin"
+            },
+            "destination": {
+              "const": "destination"
+            }
+          }
+        },
+        "flow_keys": {
+          "description": "The flow directions. A spec that names one takes both.",
+          "const": [
+            "origin",
+            "destination"
+          ]
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "identity",
+              "roles"
+            ],
+            "oneOf": [
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "entities"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "posted"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "error"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "entities",
+                  "posted"
+                ],
+                "not": {
+                  "required": [
+                    "error"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "entities",
+                  "error"
+                ],
+                "not": {
+                  "required": [
+                    "posted"
+                  ]
+                }
+              }
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "identity": {
+                "description": "The spec's definition.identity members that name roles, by wire role.",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "entities": {
+                    "type": "object",
+                    "propertyNames": {
+                      "enum": [
+                        "observationAbout",
+                        "origin",
+                        "destination"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "open_roles": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "observationAbout",
+                        "origin",
+                        "destination"
+                      ]
+                    },
+                    "uniqueItems": true
+                  }
+                }
+              },
+              "roles": {
+                "description": "The caller keys the spec takes, in order, each to the dcids it binds or null: Spec.roles in Python, specRoles(spec) in TypeScript.",
+                "type": "object",
+                "propertyNames": {
+                  "enum": [
+                    "place",
+                    "origin",
+                    "destination"
+                  ]
+                },
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "entities": {
+                "description": "The caller's entities=, each key to dcids or to null, which drops the role.",
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "posted": {
+                "description": "The build's scope.entities, by wire role.",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "error": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "reason",
+                  "names"
+                ],
+                "properties": {
+                  "reason": {
+                    "const": "invalid_argument"
+                  },
+                  "names": {
+                    "description": "The keys the message names: the key typed, then the spec's caller keys, or place for observationAbout on a spec that names no role.",
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "file_selector": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "required": [
+        "query_keys"
+      ],
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "file-selector"
+        },
+        "query_keys": {
+          "description": "The rendering keys the file selector reads, in the order a client writes them into its query.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "$ref": "#/$defs/one_line"
+          }
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "rendering",
+              "query"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "rendering": {
+                "$ref": "#/$defs/rendering"
+              },
+              "query": {
+                "description": "The selector's query a client sends for the rendering, without the leading `?`.",
+                "type": "string",
+                "minLength": 1
               }
             }
           }

@@ -3567,25 +3567,26 @@
           "kind": {
             "type": "string",
             "enum": [
+              "name_corrected",
               "declared_default",
               "open_role",
               "place_scope"
             ],
             "title": "Kind",
-            "description": "what the engine filled. 'declared_default' is a slot the request left open that its code system's or shape's declared default fixed. 'open_role' is a flow role no request word asked for, read across every entity on it with data, as one series per member where the role scope default filled it and the shape declares the role, else as the total over them. 'place_scope' is a request that named no place, read across every place with data"
+            "description": "what the engine filled. 'name_corrected' is an entity the request typed in words that are no listed name or alias of it, such as a misspelling, read as that entity. 'declared_default' is a slot the request left open that its code system's or shape's declared default fixed. 'open_role' is a flow role no request word asked for, read across every entity on it with data, as one series per member where the role scope default filled it and the shape declares the role, else as the total over them. 'place_scope' is a request that named no place, read across every place with data"
           },
           "binding_ref": {
             "type": "string",
             "maxLength": 1036,
             "title": "Binding Ref",
-            "description": "the identity binding whose edit replaces this assumption: 'how:<property dcid>' for a declared default, 'origin:' or 'where:' for a role or the place scope, as on the sentence's own tokens"
+            "description": "the identity binding whose edit replaces this assumption: 'how:<property dcid>' for a declared default, 'origin:' or 'where:' for a role, the place scope or the role a corrected name binds, as on the sentence's own tokens"
           },
           "text": {
             "type": "string",
             "maxLength": 200,
             "minLength": 1,
             "title": "Text",
-            "description": "the words the sentence's assumptions clause states for this fill: the bound code's full label for a declared default ('official development assistance' for CRSTypeOfFlow10, whose short name is 'ODA'), 'every' and the role's noun in the answer's flow family for an open role ('every provider', 'every creditor'), and 'every country', 'every place' or 'the world as a whole' for the place scope, as its members are typed"
+            "description": "the words the sentence's assumptions clause states for this fill: the typed words in quotes and the entity's label for a corrected name ('\"Germny\" read as Germany'), the bound code's full label for a declared default ('official development assistance' for CRSTypeOfFlow10, whose short name is 'ODA'), 'every' and the role's noun in the answer's flow family for an open role ('every provider', 'every creditor'), and 'every country', 'every place' or 'the world as a whole' for the place scope, as its members are typed"
           },
           "refs": {
             "items": {
@@ -3595,7 +3596,21 @@
             "type": "array",
             "maxItems": 1,
             "title": "Refs",
-            "description": "the value dcid a declared default bound its slot to, as the slot's trace.slot_filters[].refs list it (['CRSTypeOfFlow10'] for official development assistance). An open role and the place scope carry []. A dataset_resubmit echo matches a declared default to its slot by these values"
+            "description": "the value dcid a declared default bound its slot to, as the slot's trace.slot_filters[].refs list it (['CRSTypeOfFlow10'] for official development assistance), or the entity dcid a corrected name reads (['country/DEU']). An open role and the place scope carry []. A dataset_resubmit echo matches a declared default to its slot, and a corrected name to its role's entity, by these values"
+          },
+          "asked": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asked",
+            "description": "the words the request typed for a corrected name ('Germny'), which `text` quotes; absent on every other kind. A dataset_resubmit echo restates a corrected name with these words, and drops one that carries none"
           }
         },
         "additionalProperties": false,
@@ -4301,7 +4316,7 @@
             },
             "type": "array",
             "title": "Entity Refs",
-            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
+            "description": "the binding of each entity of `restatement`, one per restatement.entities row, in row order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
@@ -6115,6 +6130,56 @@
         "title": "ConvertedUnitModel",
         "description": "A converted unit, as the frame's `unit` cell states it."
       },
+      "CountedEntityYearsModel": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "how many entities there are"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/EntityYearsModel"
+            },
+            "type": "array",
+            "title": "Entities",
+            "description": "the first ten of them, sorted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "count",
+          "entities"
+        ],
+        "title": "CountedEntityYearsModel",
+        "description": "The entities a conversion left rows out of, each with its years: how many, and the\nfirst ten, sorted (`materialise.codes.CountedEntityYears`). The message states the count\nand names none, so a reader labels the refs."
+      },
+      "CountedRefsModel": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "how many there are"
+          },
+          "refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refs",
+            "description": "the `dcid:` refs of the first five of them, ten for omitted_entities: a group's members in request order, entities sorted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "count",
+          "refs"
+        ],
+        "title": "CountedRefsModel",
+        "description": "The things of one kind a warning counts: how many, and the `dcid:` refs of the first\nfive, or ten for a conversion's left-out entities (`materialise.codes.CountedRefs`). The message states the count and names none, so a\nreader labels the refs."
+      },
       "CountedStatVarModel": {
         "properties": {
           "stat_var": {
@@ -7281,7 +7346,7 @@
             },
             "type": "array",
             "title": "Entity Refs",
-            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
+            "description": "the binding of each entity of `restatement`, one per restatement.entities row, in row order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
@@ -8244,7 +8309,7 @@
           "text": {
             "type": "string",
             "title": "Text",
-            "description": "the entity text, equal to some restatement.entities[i].text"
+            "description": "the entity text, equal to restatement.entities[i].text, where i is this entry's position in Part.entity_refs"
           },
           "refs": {
             "items": {
@@ -8262,7 +8327,32 @@
           "refs"
         ],
         "title": "EntityRefs",
-        "description": "The graph nodes one entity text of a part's restatement binds in the answer."
+        "description": "The graph nodes one entity row of a part's restatement binds in the answer."
+      },
+      "EntityYearsModel": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref",
+            "description": "the entity's `dcid:` ref"
+          },
+          "years": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Years",
+            "description": "the years left out, as runs of consecutive years, `1990-2001` or `2004`"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ref",
+          "years"
+        ],
+        "title": "EntityYearsModel",
+        "description": "One entity a conversion left rows out of, and the years of those rows\n(`materialise.codes.EntityYears`)."
       },
       "Exclusion": {
         "properties": {
@@ -10799,6 +10889,19 @@
           "data_query": {
             "$ref": "#/components/schemas/ParsedInput",
             "description": "a one-part parsed input settling this choice only. Post it unchanged as the input of /api/search/resolve; its one part is a dataset_resubmit parsed entry's part. A second ambiguous wording refuses again. Whether data exists for it is not checked"
+          },
+          "entity_choice": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Choice",
+            "description": "for an entity_ambiguous option, the index into NoData.ambiguous_entities of the group this option settles; null on every other option. Two groups can share one wording ('aid from Congo to Congo' asks 'Congo' for each end), so a client groups an entity menu by this index, never by mentions, and joins it to the sentence slot token with the same entity_choice"
           }
         },
         "additionalProperties": false,
@@ -10894,7 +10997,7 @@
             },
             "type": "array",
             "title": "Entity Refs",
-            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
+            "description": "the binding of each entity of `restatement`, one per restatement.entities row, in row order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
@@ -12101,7 +12204,21 @@
             "maxLength": 128,
             "minLength": 1,
             "title": "Text",
-            "description": "the entity's text as the caller identified it"
+            "description": "the entity's text as the caller identified it: the request's own words for it, which name resolution reads and a rendered sentence quotes"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "the entity's name, when its words (`text`) could name more than one entity and no `dcid` pins it: the row's identity, which keys its role and members within the part. Name resolution reads `text` with `name` beside it, as the raw-text door reads a query's words beside the name extraction gave them, so two rows whose words are alike stay two entities. Words that differ from `name` only in case read as `name`, and one `name` posted with two texts that differ beyond case in a part refuses `request_invalid`. Without it, `text` is the identity; a `name` equal to `text` is the field left out, and a `name` beside a `dcid` is invalid. A row no dcid pins whose identity, its `name` or else its `text`, is a dcid another row of the part pins refuses `request_invalid` at the row"
           },
           "role_text": {
             "anyOf": [
@@ -12128,7 +12245,7 @@
               }
             ],
             "title": "Dcid",
-            "description": "an optional caller-pinned dcid for this entity, naming exactly which graph node `text` refers to -- the door a client with a candidate's dcid in hand (e.g. from NoData.ambiguous_entities) posts through, instead of relying on name resolution to disambiguate `text` on its own. When present, this entity's name resolution is skipped: the pinned dcid seeds the entry's pre_resolved map directly, still confirmed against the graph. An unconfirmable dcid (absent from the graph, or present but type-less) refuses invalid_role_ref (422). `text` stays required and is not re-derived from the dcid; it is still what a rendered sentence and any further restatement echo back."
+            "description": "an optional caller-pinned dcid for this entity, naming exactly which graph node `text` refers to -- the door a client with a candidate's dcid in hand (e.g. from NoData.ambiguous_entities) posts through, instead of relying on name resolution to disambiguate `text` on its own. When present, this entity's name resolution is skipped: the pinned dcid seeds the entry's pre_resolved map directly, still confirmed against the graph. An unconfirmable dcid (absent from the graph, or present but type-less) refuses invalid_role_ref (422). `text` stays required and is not re-derived from the dcid; it is still what a rendered sentence and any further restatement echo back. The dcid is the row's identity, so rows pinning one dcid under different texts are one entity, whose words are the first row's. A row no dcid pins whose `name`, or else `text`, is this dcid refuses request_invalid at that row."
           },
           "members": {
             "anyOf": [
@@ -12140,7 +12257,7 @@
               }
             ],
             "title": "Members",
-            "description": "true asks for the members of the set `text` names, each as its own series: the countries of a continent or UN subregion, or the members of a group. It has no effect on a single place. Text whose wording names members, such as 'EU member states', reads as true without the flag. With a pinned `dcid` it is honoured for a continent or subregion that the membership policy holds or omits, whatever the node's graph type, and refuses request_invalid for a group's own node, whose members a pin cannot supply. One part names a set once: the same `text` posted with both values refuses request_invalid"
+            "description": "true asks for the members of the set `text` names, each as its own series: the countries of a continent or UN subregion, or the members of a group. It has no effect on a single place. Text whose wording names members, such as 'EU member states', reads as true without the flag. With a pinned `dcid` it is honoured for a continent or subregion that the membership policy holds or omits, whatever the node's graph type, and refuses request_invalid for a group's own node, whose members a pin cannot supply. One part names a set once: the same entity posted with both values refuses request_invalid"
           }
         },
         "additionalProperties": false,
@@ -14155,7 +14272,7 @@
           "near_matches"
         ],
         "title": "GraphResolveResult",
-        "description": "One text's outcome. `input` echoes the text; fields a status does not use are `null`.\n\n- `resolved`: `entity`, `matched` and `reading`. A group or region adds `projection`,\n  `member_count` and `members`: the list route's link, or the members inline (at most\n  256) when the request expanded them. The three are `null` for a region the membership\n  policy does not hold.\n- `ambiguous`: `candidates`, in the resolver's order.\n- `not_found`: `near_matches`, hints for a person; a program should pick none by id.\n- `not_held`: `entity`, the id the resolver named, which does not open on the node route.\n\n`reading` is `members` when the text names a group's members (\"EU countries\"), else\n`entity`."
+        "description": "One text's outcome. `input` echoes the text; fields a status does not use are `null`.\n\n- `resolved`: `entity`, `matched` and `reading`. A group or region adds `projection`,\n  `member_count` and `members`: the list route's link, or the members inline (at most\n  256) when the request expanded them. The three are `null` for a region the membership\n  policy does not hold. `near_matches` lists up to 3 other places or organisations of the\n  requested kinds that share the name (\"Georgia\" resolves to the country, with the US\n  state `geoId/13` here), else `null`. When `kinds` removed the first match, a node of a\n  requested kind sharing the name resolves in its place and `near_matches` lists the\n  removed match (\"Georgia\" with `kinds: [\"place_other\"]` resolves to `geoId/13`, with\n  the country here).\n- `ambiguous`: `candidates`, in the resolver's order. When `kinds` removed the first\n  match and up to 3 nodes of a requested kind share the name, `near_matches` lists the\n  removed match, else `null`.\n- `not_found`: `near_matches`, hints for a person; a program should pick none by id.\n- `not_held`: `entity`, the id the resolver named, which does not open on the node route.\n\n`reading` is `members` when the text names a group's members (\"EU countries\"), else\n`entity`."
       },
       "ResolvedEntity": {
         "properties": {
@@ -14421,7 +14538,7 @@
             },
             "type": "array",
             "title": "Named",
-            "description": "every code row the span names in the packaged index, any code system; empty when none did"
+            "description": "every code row the span names in the packaged index, any code system, and every measure value it names that the answer does not carry; empty when none did"
           },
           "slot": {
             "anyOf": [
@@ -14443,7 +14560,7 @@
               "no_vocabulary"
             ],
             "title": "Disposition",
-            "description": "\"bound\" when a final binding covers a named row (or a descendant of one); \"unbound\" when a row was named but no binding covers it; \"no_vocabulary\" when the term names no code at all"
+            "description": "\"bound\" when a final binding covers a named row (or a descendant of one); \"unbound\" when a code row was named but no binding covers it, or a measure value was named that the answer does not carry; \"no_vocabulary\" when the term names neither"
           },
           "start": {
             "anyOf": [
@@ -14487,7 +14604,7 @@
               }
             ],
             "title": "Evidence",
-            "description": "what read the term: a code label or synonym, the bind model, \"uncovered\" for words no reader covers on the elected shape, unbound beside a recognised code and no_vocabulary beside none when the binder rated them as not stated by its series, \"unavailable\" for a code no table holds, \"unsupported\" for a distinction no binding expresses"
+            "description": "what read the term: a code label or synonym, the bind model, \"uncovered\" for words no reader covers on the elected shape, unbound beside a recognised code or naming a measure value the answer does not carry, and no_vocabulary beside none when the binder rated them as not stated by its series, \"unavailable\" for a code no table holds, \"unsupported\" for a distinction no binding expresses"
           },
           "operation": {
             "anyOf": [
@@ -14522,7 +14639,7 @@
           "disposition"
         ],
         "title": "ResolvedQualifier",
-        "description": "One narrowing term the request's text named, and what became of it.\n\nThe term's text can come from the variable phrase, from the verbatim\n`query_text`, or from an admitted qualifier tie (see\n`_resolve_query_qualifiers`). `text` is the verbatim span of whichever\nsource named it. `named` is every code row -- any system -- that span\nnames in the packaged index;\nempty when the text names no code at all (a `no_vocabulary` term). `slot`\nis the constraint property dcid of the `slot_filters` entry whose\nbinding consumed the term, or, on an `\"unbound\"` value the answer's shape\nhas a slot for but leaves unmet, that slot's property; `None` otherwise.\n`disposition` is\n`\"bound\"` when some final binding on a named row's code system covers\nit (that row or a descendant), `\"unbound\"` when a row was named but no\nbinding covers it, and `\"no_vocabulary\"` when the term names no code at\nall: an LLM-reported phrase (`bind`'s own `unplaced` output) that no\ntaxonomy in this deployment's index can express, an exclusion or comparison\nphrase (`\"unsupported\"`), or words beside no code the binder rated as not\nstated on the elected shape (`\"uncovered\"`).\n\n`start` and `end` locate the term in the part's variable phrase. `evidence` says what\nread it, and `None` means a code's label or synonym matched the term as the query\nspelled it, the reading every recognised span records:\n\n- `\"label\"` and `\"synonym\"` name a match on a code's label or synonym; no record sets\n  them, since a recognised span records `None`.\n- `\"model\"` marks a phrase the bind model read through a code it chose from the\n  phrase's candidate menu, a lexical hit of the menu or a descendant of one\n  (`phase_rank_bind._model_records`); `named` holds the chosen codes.\n- `\"uncovered\"` marks words no reader covers on the elected shape\n  (`phase_rank_bind._coverage_records`). Beside a recognised code they are recorded\n  `\"unbound\"` with that code's rows as `named`. Beside no code they are recorded\n  `\"no_vocabulary\"` with `named` empty when the binder rates them below\n  `SearchSettings.stated_word_bar` as not stated by the shape's series; a word it rates\n  at the bar or above, or leaves unrated, reads as stated.\n- `\"unavailable\"` marks a code term the elected shape cannot apply: one naming only\n  codes no shape can bind, or, on a part naming a dataset, one no row of that dataset\n  holds (`phase_rank_bind._unavailable_qualifiers`), recorded `\"unbound\"`.\n- `\"unsupported\"` marks an exclusion or comparison phrase no binding expresses\n  (`phase_rank_bind._unsupported_records`), recorded `\"no_vocabulary\"`.\n\n`operation` and `selected` describe how the term's codes combine with\nanother term's on one code system, and the codes it asked for before that\ncombination simplified."
+        "description": "One narrowing term the request's text named, and what became of it.\n\nThe term's text can come from the variable phrase, from the verbatim\n`query_text`, or from an admitted qualifier tie (see\n`_resolve_query_qualifiers`). `text` is the verbatim span of whichever\nsource named it. `named` is every code row -- any system -- that span\nnames in the packaged index, and every measure value it names that the\nanswer does not carry (a dcid of the index's measure values, such as\n`amountMobilised`);\nempty when the text names neither (a `no_vocabulary` term). `slot`\nis the constraint property dcid of the `slot_filters` entry whose\nbinding consumed the term, or, on an `\"unbound\"` value the answer's shape\nhas a slot for but leaves unmet, that slot's property; `None` otherwise.\n`disposition` is\n`\"bound\"` when some final binding on a named row's code system covers\nit (that row or a descendant), `\"unbound\"` when a code row was named but\nno binding covers it or a measure value was named that the answer does not\ncarry, and `\"no_vocabulary\"` when the term names neither: an LLM-reported\nphrase (`bind`'s own `unplaced` output) that no taxonomy in this\ndeployment's index can express, an exclusion or comparison phrase\n(`\"unsupported\"`), or words beside no code the binder rated as not stated\non the elected shape (`\"uncovered\"`).\n\n`start` and `end` locate the term in the part's variable phrase. `evidence` says what\nread it, and `None` means a code's label or synonym matched the term as the query\nspelled it, the reading every recognised span records:\n\n- `\"label\"` and `\"synonym\"` name a match on a code's label or synonym; no record sets\n  them, since a recognised span records `None`.\n- `\"model\"` marks a phrase the bind model read through a code it chose from the\n  phrase's candidate menu, a lexical hit of the menu or a descendant of one\n  (`phase_rank_bind._model_records`); `named` holds the chosen codes.\n- `\"uncovered\"` marks words no reader covers on the elected shape\n  (`phase_rank_bind._coverage_records`). Beside a recognised code they are recorded\n  `\"unbound\"` with that code's rows as `named`. On a shape the measure index describes,\n  a word that every name of a measure value's reading holds names that value when no\n  span names it and the answer does not carry it, and its record adds the value to\n  `named`. Beside no code such a word is recorded `\"unbound\"` naming the value, whatever\n  the binder rates it; \"mobilised\" names `amountMobilised` on an amount series. Other\n  words beside no code are recorded `\"no_vocabulary\"` with `named` empty when the\n  binder rates them below `SearchSettings.stated_word_bar` as not stated by the shape's\n  series; a word it rates at the bar or above, or leaves unrated, reads as stated.\n- `\"unavailable\"` marks a code term the elected shape cannot apply: one naming only\n  codes no shape can bind, or, on a part naming a dataset, one no row of that dataset\n  holds (`phase_rank_bind._unavailable_qualifiers`), recorded `\"unbound\"`.\n- `\"unsupported\"` marks an exclusion or comparison phrase no binding expresses\n  (`phase_rank_bind._unsupported_records`), recorded `\"no_vocabulary\"`.\n\n`operation` and `selected` describe how the term's codes combine with\nanother term's on one code system, and the codes it asked for before that\ncombination simplified."
       },
       "ResolvedScope": {
         "properties": {
@@ -15383,7 +15500,7 @@
               }
             ],
             "title": "Member Count",
-            "description": "how many entities this axis' open scope resolves to. None when the count could not be established without a read this response chose not to make (e.g. a discovered opposite axis whose own role index was omitted after a cap trip); the fact still publishes in that case, naming the axis as open with an explicit unknown rather than staying silent about it"
+            "description": "how many entities this axis' open scope resolves to, leaving out the group totals the code index declares beside their members (party_kind total), as the default download leaves them out; a scope of totals alone counts them all. None when the count could not be established without a read this response chose not to make (e.g. a discovered opposite axis whose own role index was omitted after a cap trip); the fact still publishes in that case, naming the axis as open with an explicit unknown rather than staying silent about it"
           },
           "members_available": {
             "type": "boolean",
@@ -15725,7 +15842,20 @@
                 "type": "null"
               }
             ],
-            "description": "origin/destination when this token renders a directional entity role (the flow's two endpoints read back), or the directional scope an unbound where slot resolved to. entity_refs is the discriminator: non-empty on the entity read-back, empty on the unbound-where-slot fallback. binding_ref is not: an entity read-back carries binding_ref too whenever the shape declares a where slot backing the 'destination' axis (e.g. dev-finance), the same condition under which the unbound-where-slot fallback always carries it, so a present binding_ref value never separates the two. Both kinds join to the Spec.resolved.entity_options entry on the same role. A third token sits on an entity_ambiguous no_data plan, which has no Spec: the ambiguous wording, with the role the request gave it (null when it gave none), no entity_refs and no binding_ref, and text equal to one NoData.ambiguous_entities[i].text on the same part. The client titles that wording's candidate menu by this role and posts the pick's entry of NoData.options."
+            "description": "origin/destination when this token renders a directional entity role (the flow's two endpoints read back), or the directional scope an unbound where slot resolved to. entity_refs is the discriminator: non-empty on the entity read-back, empty on the unbound-where-slot fallback. binding_ref is not: an entity read-back carries binding_ref too whenever the shape declares a where slot backing the 'destination' axis (e.g. dev-finance), the same condition under which the unbound-where-slot fallback always carries it, so a present binding_ref value never separates the two. Both kinds join to the Spec.resolved.entity_options entry on the same role. A third token sits on an entity_ambiguous no_data plan, which has no Spec: the ambiguous wording, with the role the request gave it (null when it gave none), no entity_refs and no binding_ref, and text equal to one NoData.ambiguous_entities[i].text on the same part, the i its entity_choice names. The client titles that wording's candidate menu by this role and posts the pick's entry of NoData.options."
+          },
+          "entity_choice": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Choice",
+            "description": "on the slot token an entity_ambiguous no_data plan marks for an ambiguous wording, the index into NoData.ambiguous_entities of the group it asks, on the part its part_index names in an envelope plan. The NoData.options with the same entity_choice form that slot's menu. Null on every other token"
           },
           "binding_ref": {
             "anyOf": [
@@ -18902,7 +19032,7 @@
             },
             "type": "array",
             "title": "Entity Refs",
-            "description": "the binding of each entity text of `restatement`, once per text in restatement order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
+            "description": "the binding of each entity of `restatement`, one per restatement.entities row, in row order, so a client can tell which node a text such as 'G7' bound. A response field kept off `restatement`, which posts back unchanged. The binding is the one the answer reads: for a candidates part, the elected reading's; for a part folded into an earlier part's spec, its own. [] when `restatement` is null or names no entity"
           },
           "operations": {
             "items": {
@@ -19282,7 +19412,7 @@
               }
             ],
             "title": "Params",
-            "description": "the counts and labels the message states, for a client to compose its own text. observations_series_truncated: {shown, total, order}, the series shown, the confirmed series behind them, and how the shown series were chosen: 'ranked' (the most recent and largest) or 'fixed' (a selection made before values were read, not ranked by value). elected_shape_no_data: {no_data, elected}, the labels of the readings with no data and of the readings answered instead. un_system_unavailable: {places, variables, variable_labels}, the place dcids the UN front door refused, the variables of the UN reads that failed, each empty when none, and each variable's graph name, in variables order, '' where the graph holds none; a warning without params says the UN search itself was unavailable. whole_total_available: {total, total_label, whole_of}, the dcid and label of the total the source publishes for the side the answer lists member by member, and the classes of party it covers, comma-joined (official, private, residual). Omitted for every other code"
+            "description": "the counts and labels the message states, for a client to compose its own text. observations_series_truncated: {shown, total, order}, the series shown, the confirmed series behind them, and how the shown series were chosen: 'ranked' (the most recent and largest) or 'fixed' (a selection made before values were read, not ranked by value). elected_shape_no_data: {no_data, elected}, the labels of the readings with no data and of the readings answered instead. un_system_unavailable: {places, variables, variable_labels}, the place dcids the UN front door refused, the variables of the UN reads that failed, each empty when none, and each variable's graph name, in variables order, '' where the graph holds none; a warning without params says the UN search itself was unavailable. whole_total_available: {total, total_label, whole_of}, the dcid and label of the total the source publishes for the side the answer lists member by member, and the classes of party it covers, comma-joined (official, private, residual). currency_unmapped_omitted: {count, entities, entity_labels}, how many entities the conversion left out, the dcids of the first ten, sorted, and each one's name, in entities order, '' where the conversion tables hold none, which is usual here, since an entity no currency names, such as a regional aggregate, is rarely in those tables; its dcid stays in entities. deflator_missing_omitted: the same with entity_years, the years each entity's rows were left out, as runs of consecutive years ('1990-2001, 2004'), in entities order; a warning without params says the loaded tables cannot tell which entities. Omitted for every other code"
           }
         },
         "additionalProperties": false,
@@ -19293,7 +19423,7 @@
           "message"
         ],
         "title": "Warning",
-        "description": "A run-health signal. Note: this name shadows the Python builtin Warning.\n\nOnly `observations_series_truncated`, `elected_shape_no_data`, `un_system_unavailable`\nand `whole_total_available` set `params`. A `None` `params` is left out of every dump, so other codes' warnings stay\nexactly `{code, severity, message}` plus `spec_id` where one applies."
+        "description": "A run-health signal. Note: this name shadows the Python builtin Warning.\n\nOnly `observations_series_truncated`, `elected_shape_no_data`, `un_system_unavailable`,\n`whole_total_available`, `currency_unmapped_omitted` and `deflator_missing_omitted` set\n`params`. A `None` `params` is left out of every dump, so other codes' warnings stay\nexactly `{code, severity, message}` plus `spec_id` where one applies."
       },
       "WarningModel": {
         "properties": {
@@ -19344,6 +19474,95 @@
             ],
             "title": "Stat Var Label",
             "description": "stat_vars_summed only: the family's label, the string the presentation door gives `stat_var_ref` on a chart (`code_index.labels.family_label` over the spec identity: its measure partition label, then its bound slots' labels); absent when neither has a label"
+          },
+          "member_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Member Count",
+            "description": "coverage_below_scope only, when it names a group member: how many series the group requested"
+          },
+          "off_cadence_members": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CountedRefsModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "coverage_below_scope only: the group members holding observations in the requested years at another frequency than the group serves, which the figures leave out; absent when there are none"
+          },
+          "out_of_window_members": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CountedRefsModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "coverage_below_scope only: the group members holding no observation in the requested years; absent when there are none, and when the served provenance reads an absent member as zero"
+          },
+          "unserved_entities": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CountedRefsModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "coverage_below_scope only: the entities the request binds that served no observation, sorted; absent when there are none"
+          },
+          "requested_years": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/YearRangeModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "coverage_below_scope only: the year range the request asked for, when the data covers fewer of its years; absent otherwise"
+          },
+          "served_years": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/YearRangeModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "coverage_below_scope only: the years the data covers, both bounds set, beside requested_years; absent otherwise"
+          },
+          "omitted_entities": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CountedRefsModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "currency_unmapped_omitted only: the entities whose rows the conversion left out, sorted"
+          },
+          "omitted_entity_years": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CountedEntityYearsModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "deflator_missing_omitted only: the entities whose rows the conversion left out for a missing deflator, sorted, each with the years of those rows"
           }
         },
         "additionalProperties": false,
@@ -19354,7 +19573,7 @@
           "message"
         ],
         "title": "WarningModel",
-        "description": "One manifest warning. Only `stat_vars_summed` sets the three structured fields. A `None`\nfield is left out of every dump, so other codes' warnings, on the wire and in stored version\nbodies, stay exactly `{code, severity, message}`."
+        "description": "One manifest warning. Only `stat_vars_summed` sets its three structured fields, a\ngroup's `coverage_below_scope` its three member fields, `coverage_below_scope`\n`unserved_entities`, `requested_years` and `served_years`, `currency_unmapped_omitted`\n`omitted_entities`, and\n`deflator_missing_omitted` `omitted_entity_years`. A `None` field is left out of every dump, so other codes' warnings, on\nthe wire and in stored version bodies, stay exactly `{code, severity, message}`."
       },
       "WindowAll": {
         "properties": {
@@ -19560,6 +19779,38 @@
           "last"
         ],
         "title": "YearRange"
+      },
+      "YearRangeModel": {
+        "properties": {
+          "start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start",
+            "description": "the first year; absent when the request left it open"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End",
+            "description": "the last year; absent when the request left it open"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "YearRangeModel",
+        "description": "A run of years, both bounds included (`materialise.codes.YearRange`)."
       },
       "datasets_api__capabilities__Capabilities": {
         "properties": {

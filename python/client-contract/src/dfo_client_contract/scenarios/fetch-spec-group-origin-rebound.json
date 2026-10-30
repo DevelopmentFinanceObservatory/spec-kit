@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
-    "recorded_at": "2026-10-24T16:30:44Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:27Z"
   },
   "call": [
     {
@@ -288,7 +288,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -296,7 +297,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "be9bb0e6abf54384a9226f44f6f09902"
+          "x-dfo-trace-id": "e32f376d58684753b9bc195b1429569b"
         },
         "json": {
           "schema_version": 1,
@@ -580,7 +581,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261021T070020Z-7262111e",
             "served_from": "head",
-            "confirmed_at": "2026-10-24T16:30:44.568363+00:00"
+            "confirmed_at": "2026-10-26T09:18:36.478834+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -592,17 +593,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:a382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993",
+              "artifact_digest": "sha256:e9513ce3953896d5b833a71546a5987a82e3f18219cd43eb987fc69dfab80321",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
-              "bytes": 21088,
+              "bytes": 21121,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-23T16:59:11.517434+00:00",
+              "created_at": "2026-10-25T14:20:06.098634+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:a382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993",
+              "url": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:e9513ce3953896d5b833a71546a5987a82e3f18219cd43eb987fc69dfab80321",
               "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
             },
             {
@@ -619,7 +621,7 @@
           ],
           "series_count": 44,
           "output_options": {
-            "capability_version": "dset_cc753cefa9199881",
+            "capability_version": "dset_76f5fa7244511c58",
             "columns": [
               {
                 "name": "stat_var",
@@ -908,7 +910,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-20T07:08:52.858156Z"
@@ -1036,7 +1038,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "de81189cf3d441c69f9bc70f4786a3d4"
+          "x-dfo-trace-id": "76155faedf434e46b697c5bd58c318f8"
         },
         "json": {
           "schema_version": 1,
@@ -1045,11 +1047,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
-            "trace_id": "de81189cf3d441c69f9bc70f4786a3d4",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "76155faedf434e46b697c5bd58c318f8",
             "warnings": [],
             "timing_ms": {
-              "total": 2566,
+              "total": 2,
               "by_step": {
                 "coverage": 0
               }
@@ -1062,19 +1064,9 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 2493,
+                "total": 0,
                 "by_step": {
-                  "validate": 1,
-                  "walk": 10,
-                  "reread_arcs": 1,
-                  "detect_edits": 0,
-                  "resolve_survivors": 0,
-                  "shape": 1756,
-                  "bind": 1,
-                  "where_places": 0,
-                  "materialise": 20,
-                  "answer": 702,
-                  "options": 2
+                  "response_cache_part_memo": 0
                 }
               },
               "entity_refs": [],
@@ -2045,7 +2037,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2883,7 +2875,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_9deef72763b45f40"
+                    "capability_version": "cap_765c9d2a0c7529b9"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5304,21 +5296,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:a382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993"
+        "origin_path": "/api/datasets/spec_c2f21170dfa9f31705e47ed60c8fa305/cv_66a0a4a0331d59b519aa1629dade3d99/files/sha256:e9513ce3953896d5b833a71546a5987a82e3f18219cd43eb987fc69dfab80321"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "d62572e0146a43f89d89c138493238e1"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae9513ce3953896d5b833a71546a5987a82e3f18219cd43eb987fc69dfab80321?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "75d565fbb9c948c8b131be201b1cf923"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aa382b8f9e3ba634c150c6588e21f79413722d53f7bcdcb9dfd4e929aa4f80993?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae9513ce3953896d5b833a71546a5987a82e3f18219cd43eb987fc69dfab80321?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -5334,26 +5326,26 @@
       "dataset": {
         "rows": 2114,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
-          "financingProvider_kind",
-          "financingRecipient",
           "financingRecipient_label",
+          "value",
+          "unit_label",
+          "dac2aAidType_label",
+          "provenance_label",
+          "financingRecipient",
+          "financingProvider",
+          "financingProvider_kind",
           "financingRecipient_kind",
           "dac2aAidType",
-          "dac2aAidType_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [

@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
-    "recorded_at": "2026-10-24T16:31:33Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:23:20Z"
   },
   "call": [
     {
@@ -38,7 +38,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "50172d3089cd486e929895f6865985bb"
+          "x-dfo-trace-id": "6cfb1ed8ec3e430a91c10329304d9af4"
         },
         "json": {
           "schema_version": 1,
@@ -49,15 +49,15 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "0ba344270784ae9929a369da8acd00b399dfced8",
-            "trace_id": "50172d3089cd486e929895f6865985bb",
+            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
+            "trace_id": "6cfb1ed8ec3e430a91c10329304d9af4",
             "warnings": [],
             "timing_ms": {
-              "total": 1979,
+              "total": 1831,
               "by_step": {
                 "coverage": 0,
-                "extract": 1147,
-                "cache_lookup": 1
+                "extract": 1224,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
@@ -82,7 +82,7 @@
                 {
                   "code": "role_scope_defaulted",
                   "severity": "warn",
-                  "message": "no provider was named; the answer was resolved across every provider with data."
+                  "message": "No provider was named, so the answer covers every provider with data."
                 },
                 {
                   "code": "whole_total_available",
@@ -97,30 +97,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 829,
+                "total": 603,
                 "by_step": {
-                  "recall": 300,
+                  "recall": 81,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 3,
-                  "shape_probe_coverage": 5,
-                  "shape_probe": 152,
-                  "shape_groups": 4,
+                  "shape_probe_coverage": 11,
+                  "shape_probe": 116,
+                  "shape_groups": 9,
                   "shape_labels": 0,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 264,
+                  "shape": 227,
                   "phase_prune_and_rank": 0,
-                  "bind": 97,
-                  "phase_bind": 14,
-                  "phase_settle": 9,
+                  "bind": 106,
+                  "phase_bind": 16,
+                  "phase_settle": 8,
                   "phase_place_bindings": 1,
                   "phase_facet_requests": 0,
-                  "materialise": 34,
-                  "phase_materialise": 0,
-                  "answer": 16,
-                  "options": 36,
-                  "phase_outcome": 58
+                  "materialise": 38,
+                  "phase_materialise": 5,
+                  "answer": 19,
+                  "options": 11,
+                  "phase_outcome": 91
                 }
               },
               "restatement": {
@@ -533,7 +533,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -682,7 +682,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Gross disbursements to Ethiopia from 110 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Gross disbursements to Ethiopia from 95 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -727,7 +727,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "110 providers",
+                      "text": "95 providers",
                       "segment": "heading",
                       "role": "origin",
                       "binding_ref": "origin:",
@@ -911,7 +911,7 @@
                             "label": "disbursement"
                           }
                         ],
-                        "provenance": "measure_elected"
+                        "provenance": "binder"
                       },
                       {
                         "key": {
@@ -982,7 +982,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_9deef72763b45f40",
+                    "capability_version": "cap_765c9d2a0c7529b9",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -1136,7 +1136,7 @@
                   "role_axis_facts": [
                     {
                       "role": "origin",
-                      "member_count": 110,
+                      "member_count": 95,
                       "members_available": true
                     }
                   ],
@@ -3091,7 +3091,7 @@
               }
             }
           ],
-          "rendered_sentence": "Gross disbursements to Ethiopia from 110 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
+          "rendered_sentence": "Gross disbursements to Ethiopia from 95 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -3140,7 +3140,7 @@
             },
             {
               "kind": "slot",
-              "text": "110 providers",
+              "text": "95 providers",
               "segment": "heading",
               "role": "origin",
               "binding_ref": "origin:",
@@ -3393,7 +3393,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -3401,7 +3402,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "66eb538f1f7943f8a03a5c3500185e5a"
+          "x-dfo-trace-id": "003f90ea7c3b4c0ea7414ee5a282c0f4"
         },
         "json": {
           "schema_version": 1,
@@ -3461,14 +3462,14 @@
               }
             }
           },
-          "content_version": "cv_534dd4c2bf9bdafc837d51a3ba4bcf3e",
+          "content_version": "cv_c17d6a131cb4556543b91556e46814e9",
           "prepared_at": "2026-10-20T16:52:43Z",
           "coverage": {
-            "rows": 110,
+            "rows": 95,
             "dimensions": [
               {
                 "label": "financingProvider",
-                "count": 110,
+                "count": 95,
                 "axis": "origin",
                 "noun": {
                   "singular": "provider",
@@ -3642,9 +3643,31 @@
             "family_member_count": 1,
             "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
             "frame_grammar_version": "1.1.0",
+            "party_totals_left_out": [
+              {
+                "role": "financingProvider",
+                "entities": [
+                  "AfricanDevelopmentBankGroup",
+                  "DACCountriesTotal",
+                  "DACEUMembers",
+                  "DACEUMembersAndEUInstitutions",
+                  "DACMultilaterals",
+                  "DACNonDACCountries",
+                  "DACOfficialDonors",
+                  "DACOtherMultilateralOrganisations",
+                  "DACPrivateDonors",
+                  "DACRegionalDevelopmentBanks",
+                  "DACUnitedNations",
+                  "DACWorldBank",
+                  "GroupOfSeven",
+                  "PostcodeLotteryGroup",
+                  "WorldBankGroup"
+                ]
+              }
+            ],
             "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
             "served_from": "head",
-            "confirmed_at": "2026-10-24T16:31:36.102594+00:00"
+            "confirmed_at": "2026-10-26T09:23:22.526168+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -3656,34 +3679,35 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:f0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a",
+              "artifact_digest": "sha256:d2ea67ebd67a84915c8e97a7ef4b66733e2d624a1cc5d1c927d6673c8c2f668e",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
-              "bytes": 10927,
+              "bytes": 10329,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-23T16:59:51.176407+00:00",
+              "created_at": "2026-10-24T20:59:40.869991+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:f0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a",
+              "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_c17d6a131cb4556543b91556e46814e9/files/sha256:d2ea67ebd67a84915c8e97a7ef4b66733e2d624a1cc5d1c927d6673c8c2f668e",
               "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
             },
             {
-              "artifact_digest": "sha256:5b508be6b46ce8e01315f9c89a1837e17ed7b49d7d2554011cfdba9f32203084",
+              "artifact_digest": "sha256:d59c03c57a8ea2d1da95b4fb2b1131919e8a13b2003ef51fc1b3801ca46be960",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 10167,
+              "bytes": 9527,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-20T16:52:44.112078+00:00",
+              "created_at": "2026-10-23T22:01:14.760267+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:5b508be6b46ce8e01315f9c89a1837e17ed7b49d7d2554011cfdba9f32203084"
+              "url": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_c17d6a131cb4556543b91556e46814e9/files/sha256:d59c03c57a8ea2d1da95b4fb2b1131919e8a13b2003ef51fc1b3801ca46be960"
             }
           ],
-          "series_count": 110,
+          "series_count": 95,
           "output_options": {
-            "capability_version": "dset_cc753cefa9199881",
+            "capability_version": "dset_76f5fa7244511c58",
             "columns": [
               {
                 "name": "stat_var",
@@ -3695,7 +3719,7 @@
                 "name": "financingProvider",
                 "kind": "role",
                 "droppable": false,
-                "distinct": 110
+                "distinct": 95
               },
               {
                 "name": "financingRecipient",
@@ -3763,17 +3787,13 @@
                 "state": "partial",
                 "reason": "enrichment_unavailable",
                 "coverage": {
-                  "entities": 110,
+                  "entities": 95,
                   "covered": 40
                 },
                 "missing": [
                   {
                     "ref": "AdaptationFund",
                     "label": "Adaptation Fund"
-                  },
-                  {
-                    "ref": "AfricanDevelopmentBankGroup",
-                    "label": "African Development Bank Group"
                   },
                   {
                     "ref": "AfricanDevelopmentFund",
@@ -3804,8 +3824,12 @@
                     "label": "Conrad N. Hilton Foundation"
                   },
                   {
-                    "ref": "DACCountriesTotal",
-                    "label": "DAC countries"
+                    "ref": "DavidAndLucilePackardFoundation",
+                    "label": "David and Lucile Packard Foundation"
+                  },
+                  {
+                    "ref": "DutchPostcodeLottery",
+                    "label": "Dutch Postcode Lottery"
                   }
                 ],
                 "truncated": true
@@ -3817,17 +3841,13 @@
                 "state": "partial",
                 "reason": "enrichment_unavailable",
                 "coverage": {
-                  "entities": 110,
+                  "entities": 95,
                   "covered": 40
                 },
                 "missing": [
                   {
                     "ref": "AdaptationFund",
                     "label": "Adaptation Fund"
-                  },
-                  {
-                    "ref": "AfricanDevelopmentBankGroup",
-                    "label": "African Development Bank Group"
                   },
                   {
                     "ref": "AfricanDevelopmentFund",
@@ -3858,8 +3878,12 @@
                     "label": "Conrad N. Hilton Foundation"
                   },
                   {
-                    "ref": "DACCountriesTotal",
-                    "label": "DAC countries"
+                    "ref": "DavidAndLucilePackardFoundation",
+                    "label": "David and Lucile Packard Foundation"
+                  },
+                  {
+                    "ref": "DutchPostcodeLottery",
+                    "label": "Dutch Postcode Lottery"
                   }
                 ],
                 "truncated": true
@@ -3870,8 +3894,8 @@
                 "token": "financingProvider_label",
                 "state": "available",
                 "coverage": {
-                  "entities": 110,
-                  "covered": 110
+                  "entities": 95,
+                  "covered": 95
                 },
                 "missing": [],
                 "truncated": false
@@ -3882,8 +3906,8 @@
                 "token": "financingProvider_type",
                 "state": "available",
                 "coverage": {
-                  "entities": 110,
-                  "covered": 110
+                  "entities": 95,
+                  "covered": 95
                 },
                 "missing": [],
                 "truncated": false
@@ -3894,8 +3918,8 @@
                 "token": "financingProvider_party_kind",
                 "state": "available",
                 "coverage": {
-                  "entities": 110,
-                  "covered": 110
+                  "entities": 95,
+                  "covered": 95
                 },
                 "missing": [],
                 "truncated": false
@@ -3906,8 +3930,8 @@
                 "token": "financingProvider_party_class",
                 "state": "available",
                 "coverage": {
-                  "entities": 110,
-                  "covered": 110
+                  "entities": 95,
+                  "covered": 95
                 },
                 "missing": [],
                 "truncated": false
@@ -3918,8 +3942,8 @@
                 "token": "financingProvider_party_whole",
                 "state": "available",
                 "coverage": {
-                  "entities": 110,
-                  "covered": 110
+                  "entities": 95,
+                  "covered": 95
                 },
                 "missing": [],
                 "truncated": false
@@ -4037,10 +4061,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-19T16:52:44.112184Z"
+            "held_until": "2026-11-22T22:01:14.671345Z"
           }
         }
       }
@@ -4048,21 +4072,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_534dd4c2bf9bdafc837d51a3ba4bcf3e/files/sha256:f0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a"
+        "origin_path": "/api/datasets/spec_7778beed72f8433bb7fde4293acfd175/cv_c17d6a131cb4556543b91556e46814e9/files/sha256:d2ea67ebd67a84915c8e97a7ef4b66733e2d624a1cc5d1c927d6673c8c2f668e"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Af0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "cf517ecd99ac4157ab7d54003b5771a5"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ad2ea67ebd67a84915c8e97a7ef4b66733e2d624a1cc5d1c927d6673c8c2f668e?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "014016fd216a48729c10484f342a83a6"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Af0ac1a058c4addb59b1974b73706b12ddc112b409aac006d6a561279f61f0c6a?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ad2ea67ebd67a84915c8e97a7ef4b66733e2d624a1cc5d1c927d6673c8c2f668e?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -4078,7 +4102,7 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Gross disbursements to Ethiopia from 110 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
+        "sentence": "Gross disbursements to Ethiopia from 95 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
         "complete": true,
         "specs": [
           "spec_7778beed72f8433bb7fde4293acfd175"
@@ -4090,33 +4114,33 @@
       "error": {
         "class": "SearchWarning",
         "code": null,
-        "trace_id": "50172d3089cd486e929895f6865985bb"
+        "trace_id": "6cfb1ed8ec3e430a91c10329304d9af4"
       }
     },
     {
       "dataset": {
-        "rows": 110,
+        "rows": 95,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
+          "financingRecipient_label",
+          "value",
+          "unit_label",
+          "dac2aAidType_label",
+          "provenance_label",
+          "financingProvider",
           "financingProvider_kind",
           "financingRecipient",
-          "financingRecipient_label",
           "financingRecipient_kind",
           "dac2aAidType",
-          "dac2aAidType_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [
@@ -4125,8 +4149,8 @@
               "aid"
             ],
             "spec_id": "spec_7778beed72f8433bb7fde4293acfd175",
-            "content_version": "cv_534dd4c2bf9bdafc837d51a3ba4bcf3e",
-            "sentence": "Gross disbursements to Ethiopia from 110 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
+            "content_version": "cv_c17d6a131cb4556543b91556e46814e9",
+            "sentence": "Gross disbursements to Ethiopia from 95 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": [],

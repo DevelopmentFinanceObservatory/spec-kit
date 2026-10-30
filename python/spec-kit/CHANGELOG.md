@@ -74,6 +74,19 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/`,
   with each file's path unchanged. The previous prefix named a private
   repository and did not resolve.
+- On `presentation.write`, codes `binding_invalid`, `constraint_violation`
+  and `resource_exhausted` map at 400, `frame_unavailable` at 404 and
+  `release_mismatch` at 503, the statuses the Presentation write routes
+  serve. `presentation.render` keeps 422 for the first two and 409 for the
+  rest. `frame_unavailable` covers a frame that is not held in a state
+  Presentation can load, and its definition names each case. A frame whose
+  stored artifact the store fails to read is also `frame_unavailable`, served
+  at 503 and retryable; the registry holds one status for each endpoint and
+  channel, so it records the 404 the write routes serve for every other
+  case.
+- Code `edit_conflict` maps to `presentation.render` at 409, for a render
+  of a component that has no current revision, and its definition names
+  that case.
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.
@@ -210,6 +223,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mirror: a 422 refusal on `search.resolve` for a `dataset_resubmit` whose
   identity names an open role, when the StatVars the definition elects declare
   no role on that axis, so the definition cannot give one series per member.
+- Codes `requested_option_unavailable` and `conflicting_requested_options` in
+  `registries/codes.json` and its bundled mirror: 422 refusals on
+  `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.
+  `requested_option_unavailable` covers an entry that names an axis the part
+  does not offer, an option the axis does not list, or an unavailable option.
+  `conflicting_requested_options` covers entries that cannot all apply: two
+  options on one axis, an option that conflicts with an entry on another
+  axis, or entries that rule out every option of an axis.
 - Optional top-level identity member `open_roles` in
   `dfo_spec_kit.identity`: a list of flow roles, from `origin` and
   `destination`, whose every member the request asks for, as distinct from an

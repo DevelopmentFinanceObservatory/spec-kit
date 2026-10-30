@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "0ba344270784ae9929a369da8acd00b399dfced8",
-    "recorded_at": "2026-10-24T16:30:48Z"
+    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
+    "recorded_at": "2026-10-26T09:22:29Z"
   },
   "call": [
     {
@@ -168,7 +168,8 @@
           },
           "options": {
             "format": "parquet",
-            "bundle": false
+            "bundle": false,
+            "without_party_totals": true
           }
         }
       },
@@ -176,7 +177,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "bfc5cc090c4347f489fffcc62fc3d2bf"
+          "x-dfo-trace-id": "b89cda3bb794448abf06b56c955d754e"
         },
         "json": {
           "schema_version": 1,
@@ -583,7 +584,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
             "served_from": "head",
-            "confirmed_at": "2026-10-24T16:30:31.570035+00:00"
+            "confirmed_at": "2026-10-26T09:18:06.976633+00:00"
           },
           "warnings": [
             {
@@ -605,7 +606,8 @@
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 4,
+                "without_party_totals": true
               },
               "bytes": 9599,
               "media_type": "application/vnd.apache.parquet",
@@ -628,7 +630,7 @@
           ],
           "series_count": 1,
           "output_options": {
-            "capability_version": "dset_cc753cefa9199881",
+            "capability_version": "dset_76f5fa7244511c58",
             "columns": [
               {
                 "name": "stat_var",
@@ -896,7 +898,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "45bdd65f2fd33ac77a897180047080d33ed9db812afe0cbb887bf22e2ac52690",
+          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-19T13:59:18.051742Z"
@@ -914,7 +916,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ac44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "8261c9be5a7c406a80692fac6b28ee05"
+          "x-dfo-trace-id": "cf3f86713afb44c98d21fbf9731d66e3"
         }
       }
     },
@@ -937,32 +939,32 @@
       "dataset": {
         "rows": 4,
         "columns": [
-          "stat_var",
-          "financingProvider",
+          "time_period",
           "financingProvider_label",
+          "financingRecipient_label",
+          "crsPurpose_label",
+          "value",
+          "unit_label",
+          "crsTypeOfFlow_label",
+          "provenance_label",
+          "financingProvider",
           "financingProvider_kind",
           "financingRecipient",
-          "financingRecipient_label",
           "financingRecipient_kind",
           "crsCooperationModality",
           "crsCooperationModality_label",
           "crsPurpose",
-          "crsPurpose_label",
           "crsTypeOfFinance",
           "crsTypeOfFinance_label",
           "crsTypeOfFlow",
-          "crsTypeOfFlow_label",
-          "time_period",
-          "value",
           "unit",
-          "unit_label",
           "currency",
           "price_basis",
           "base_year",
           "measurementMethod",
           "measurementMethod_label",
           "provenance",
-          "provenance_label"
+          "stat_var"
         ],
         "complete": true,
         "members": [

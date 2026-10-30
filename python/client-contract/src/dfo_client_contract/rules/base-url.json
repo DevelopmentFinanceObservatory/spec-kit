@@ -1,0 +1,255 @@
+{
+  "format_version": 1,
+  "rule": "base-url",
+  "vectors": [
+    {
+      "name": "argument-wins",
+      "base_url": "https://arg.example.org/api/v1",
+      "env": {
+        "DFO_BASE_URL": "https://env.example.org/api/v1"
+      },
+      "source": "argument",
+      "url": "https://arg.example.org/api/v1"
+    },
+    {
+      "name": "environment-beats-default",
+      "env": {
+        "DFO_BASE_URL": "https://env.example.org/api/v1"
+      },
+      "source": "environment",
+      "url": "https://env.example.org/api/v1"
+    },
+    {
+      "name": "default",
+      "env": {},
+      "source": "default",
+      "url": "https://developmentfinance.org/api/v1"
+    },
+    {
+      "name": "empty-environment-counts-as-unset",
+      "env": {
+        "DFO_BASE_URL": ""
+      },
+      "source": "default",
+      "url": "https://developmentfinance.org/api/v1"
+    },
+    {
+      "name": "loopback-http-is-valid",
+      "base_url": "http://127.0.0.1:8083/api",
+      "env": {},
+      "source": "argument",
+      "url": "http://127.0.0.1:8083/api"
+    },
+    {
+      "name": "empty-argument-raises",
+      "base_url": "",
+      "env": {
+        "DFO_BASE_URL": "https://env.example.org/api/v1"
+      },
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "invalid-argument-raises-despite-valid-environment",
+      "base_url": "not a url",
+      "env": {
+        "DFO_BASE_URL": "https://env.example.org/api/v1"
+      },
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "relative-argument-raises",
+      "base_url": "/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "schemeless-argument-raises",
+      "base_url": "developmentfinance.org/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "other-scheme-raises",
+      "base_url": "ftp://developmentfinance.org/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "hostless-argument-raises",
+      "base_url": "https:///api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "userinfo-raises",
+      "base_url": "https://ana:secret@developmentfinance.org/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "invalid-environment-raises",
+      "env": {
+        "DFO_BASE_URL": "developmentfinance.org"
+      },
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "invalid-environment-is-not-read-when-the-argument-wins",
+      "base_url": "https://arg.example.org/api/v1",
+      "env": {
+        "DFO_BASE_URL": "developmentfinance.org"
+      },
+      "source": "argument",
+      "url": "https://arg.example.org/api/v1"
+    },
+    {
+      "name": "query-raises",
+      "base_url": "https://developmentfinance.org/api/v1?key=1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "fragment-raises",
+      "base_url": "https://developmentfinance.org/api/v1#top",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/../v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "control-character-raises",
+      "base_url": "https://developmentfinance.org/api\n/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "non-decimal-ipv4-raises",
+      "base_url": "http://0x7f.1:8083/api",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "empty-userinfo-raises",
+      "base_url": "https://@developmentfinance.org/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "trailing-slash-is-dropped",
+      "base_url": "https://developmentfinance.org/api/v1/",
+      "env": {},
+      "source": "argument",
+      "url": "https://developmentfinance.org/api/v1"
+    },
+    {
+      "name": "encoded-dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/%2e%2e/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "mixed-encoded-dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/.%2E/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "encoded-single-dot-segment-raises",
+      "base_url": "https://developmentfinance.org/api/%2E/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "backslash-raises",
+      "base_url": "https://developmentfinance.org\\api\\v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "port-out-of-range-raises",
+      "base_url": "https://developmentfinance.org:99999/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "port-zero-raises",
+      "base_url": "https://developmentfinance.org:0/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "port-not-decimal-raises",
+      "base_url": "https://developmentfinance.org:abc/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "empty-port-raises",
+      "base_url": "https://developmentfinance.org:/api/v1",
+      "env": {},
+      "error": {
+        "reason": "base_url_invalid"
+      }
+    },
+    {
+      "name": "highest-port-is-valid",
+      "base_url": "https://developmentfinance.org:65535/api/v1",
+      "env": {},
+      "source": "argument",
+      "url": "https://developmentfinance.org:65535/api/v1"
+    },
+    {
+      "name": "dot-inside-a-segment-is-valid",
+      "base_url": "https://developmentfinance.org/api/v1.%2e",
+      "env": {},
+      "source": "argument",
+      "url": "https://developmentfinance.org/api/v1.%2e"
+    }
+  ]
+}

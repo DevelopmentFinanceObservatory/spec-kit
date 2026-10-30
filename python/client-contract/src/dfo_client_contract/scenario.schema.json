@@ -326,6 +326,10 @@
         },
         "strict": {
           "type": "boolean"
+        },
+        "party_totals": {
+          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "type": "boolean"
         }
       }
     },
@@ -348,6 +352,10 @@
           "$ref": "#/$defs/layout"
         },
         "strict": {
+          "type": "boolean"
+        },
+        "party_totals": {
+          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
           "type": "boolean"
         },
         "window": true,
@@ -390,7 +398,7 @@
       }
     },
     "mint_step": {
-      "description": "A mint of a spec, which starts its build and answers the operation; it takes a layout and no narrowing.",
+      "description": "A mint of a spec, which starts its build and answers the operation; it takes a layout and party totals as a fetch of a spec does, and no narrowing.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -406,6 +414,10 @@
         },
         "layout": {
           "$ref": "#/$defs/layout"
+        },
+        "party_totals": {
+          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "type": "boolean"
         }
       }
     },

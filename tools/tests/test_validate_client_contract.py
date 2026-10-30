@@ -11,7 +11,7 @@ Each case validates a whole copy of the contract, the served document's
 bodies included, which takes about a third of a second. The copy hard-links
 the package's files, so it writes no data where the file system allows.
 
-Run with: uv run --with jsonschema --with pytest pytest tools/tests -q
+Run with: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 """
 
 from __future__ import annotations
@@ -21,12 +21,15 @@ import importlib.util
 import json
 import os
 import shutil
+import struct
 import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 _MODULE_PATH = Path(__file__).resolve().parent.parent / "validate_client_contract.py"
@@ -154,6 +157,49 @@ def _first_gap(**fields: Any) -> Callable[[Any], None]:
 
 def _part_rows(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return _set_outcome(1, lambda o: change(o["dataset"]))
+
+
+def _swap_columns(first: str, second: str) -> Callable[[Any], None]:
+    def change(outcome: Any) -> None:
+        columns = outcome["dataset"]["columns"]
+        i, j = columns.index(first), columns.index(second)
+        columns[i], columns[j] = columns[j], columns[i]
+
+    return change
+
+
+def _selector_query_with_cut(doc: Any) -> None:
+    """The file selector request asks for the ref member's whole rendering,
+    `without_party_totals` included, which the server refuses."""
+    exchange = next(
+        e for e in doc["exchanges"] if "/file?" in e["request"].get("path", "")
+    )
+    exchange["request"]["path"] += "&without_party_totals=true"
+
+
+def _time_period_written_as_text(vector: Any) -> None:
+    """The second member serves its years as text, a valid Arrow column of
+    its own that mixes types with the first member's in the stacked table."""
+    member = vector["members"][1]
+    at = member["columns"].index("time_period")
+    for row in member["rows"]:
+        row[at] = str(row[at])
+
+
+def _vector(name: str, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    return lambda doc: change(next(v for v in doc["vectors"] if v["name"] == name))
+
+
+def _served_order_after_reading_columns(holder: Any) -> None:
+    """Moves the varying co-operation modality pair back to its served place,
+    just before `crsPurpose`, an order that ignores whether a column
+    varies."""
+    columns = holder["dataset"]["columns"] if "dataset" in holder else holder["columns"]
+    varying = ["crsCooperationModality", "crsCooperationModality_label"]
+    for name in varying:
+        columns.remove(name)
+    at = columns.index("crsPurpose")
+    columns[at:at] = varying
 
 
 def _set_step(index: int, **fields: Any) -> Callable[[Any], None]:
@@ -716,6 +762,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "step 0 expects",
         ),
         (
+            "scenarios/answer-timed-out-keeps-reasons.json",
+            _first_gap(kind="timed_out"),
+            "step 0 expects",
+        ),
+        (
             "scenarios/answer-unsupported-part.json",
             _first_gap(kind="unknown"),
             "step 0 expects",
@@ -887,7 +938,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             lambda doc: doc["ref"]["members"][0].update(
                 content_version="cv_" + "0" * 32
             ),
-            "member 0 content_version is not fetch-spec-known-sentence's",
+            "member 0 content_version is not fetch-spec-party-totals-kept's",
         ),
         (
             "refs/ref-one-member.json",
@@ -898,6 +949,18 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "refs/ref-one-member.json",
             lambda doc: doc.pop("scenario"),
             "names no scenario that serves its members",
+        ),
+        (
+            "refs/ref-answer-member.json",
+            lambda doc: doc["ref"]["members"][0].update(parts=[]),
+            "refs/ref-answer-member.json: member 0 parts is not answer-definite-fetch's",
+        ),
+        (
+            "refs/ref-without-party-totals.json",
+            lambda doc: doc["ref"]["members"][0]["artifact"]["rendering"].pop(
+                "without_party_totals"
+            ),
+            "refs/ref-without-party-totals.json: member 0 records rendering",
         ),
         (
             "rules/key-format.json",
@@ -1649,11 +1712,6 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "the steps never make exchanges 1 to 1",
         ),
         (
-            "scenarios/answer-timed-out.json",
-            _set_body(0, lambda body: body.update(diagnostics="timed out")),
-            "step 0 expects",
-        ),
-        (
             "scenarios/answer-candidates-choose-fetch.json",
             _set_body(
                 0,
@@ -1662,6 +1720,171 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
                 ),
             ),
             "the step follows no answer",
+        ),
+        (
+            _FETCH,
+            lambda doc: doc["exchanges"][0]["request"]["json"]["options"].pop(
+                "without_party_totals"
+            ),
+            f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-kept.json",
+            lambda doc: doc["call"][0].pop("party_totals"),
+            (
+                "scenarios/fetch-spec-party-totals-kept.json: the exchanges do not fit "
+                "the steps: _UnfitError('exchange 0 posts"
+            ),
+        ),
+        (
+            "scenarios/mint-async-build.json",
+            lambda doc: doc["call"][0].pop("party_totals"),
+            (
+                "scenarios/mint-async-build.json: the exchanges do not fit the "
+                "steps: _UnfitError('exchange 0 posts"
+            ),
+        ),
+        (
+            _FETCH,
+            _set_outcome(0, lambda o: o["dataset"]["columns"].reverse()),
+            f"{_FETCH}: step 0: columns",
+        ),
+        (
+            _FOLDED,
+            _part_rows(lambda d: d["columns"].append(d["columns"].pop(1))),
+            f"{_FOLDED}: step 1: columns",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            _set_outcome(0, _swap_columns("currency", "base_year")),
+            "scenarios/fetch-ref.json: step 0: columns",
+        ),
+        (
+            "scenarios/fetch-ref.json",
+            _set_outcome(0, lambda o: o["dataset"]["columns"].remove("price_basis")),
+            "scenarios/fetch-ref.json: step 0: columns",
+        ),
+        (
+            "scenarios/answer-definite-fetch.json",
+            _set_outcome(1, _served_order_after_reading_columns),
+            "scenarios/answer-definite-fetch.json: step 1: columns",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "varying-column-follows-reading-columns",
+                _served_order_after_reading_columns,
+            ),
+            (
+                "vector 'varying-column-follows-reading-columns' orders its "
+                "columns or rows otherwise"
+            ),
+        ),
+        (
+            "rules/reading-order.json",
+            _vector("stack-crs-and-dac2a", lambda v: v["columns"].remove("part")),
+            "vector 'stack-crs-and-dac2a' orders its columns or rows otherwise",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "ties-keep-served-order",
+                lambda v: v["rows"].insert(1, v["rows"].pop(2)),
+            ),
+            "vector 'ties-keep-served-order' orders its columns or rows otherwise",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "varying-column-follows-reading-columns",
+                lambda v: v["rows"].insert(1, v["rows"].pop(2)),
+            ),
+            (
+                "vector 'varying-column-follows-reading-columns' orders its "
+                "columns or rows otherwise"
+            ),
+        ),
+        (
+            "rules/reading-order.json",
+            _vector("null-sorts-last", lambda v: v["rows"].insert(0, v["rows"].pop())),
+            "vector 'null-sorts-last' orders its columns or rows otherwise",
+        ),
+        (
+            "rules/reading-order.json",
+            lambda doc: doc.pop("reading_columns"),
+            (
+                "rules/reading-order.json: missing or unreadable, or holds no "
+                "reading_columns"
+            ),
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "ties-keep-served-order", lambda v: v["members"][0]["rows"][0].pop()
+            ),
+            "vector 'ties-keep-served-order' member 0 has a row of",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "nested-cells-compare-by-value",
+                lambda v: v["members"][0]["rows"][1].__setitem__(4, [1]),
+            ),
+            "vector 'nested-cells-compare-by-value' member 0 column 'flags' is no "
+            "Arrow column",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector(
+                "nested-cells-compare-by-value",
+                lambda v: v["members"][0]["rows"][1].__setitem__(2, {"a": "x", "b": 2}),
+            ),
+            "vector 'nested-cells-compare-by-value' member 0 column 'meta' is no "
+            "Arrow column",
+        ),
+        (
+            "rules/reading-order.json",
+            _vector("stack-crs-and-dac2a", _time_period_written_as_text),
+            "vector 'stack-crs-and-dac2a' mixes JSON types in column",
+        ),
+        (
+            "scenarios/fetch-ref-expired-file-selector.json",
+            _selector_query_with_cut,
+            (
+                "scenarios/fetch-ref-expired-file-selector.json: the exchanges do "
+                "not fit the steps"
+            ),
+        ),
+        (
+            "scenarios/fetch-ref-artifact-unlisted.json",
+            _selector_query_with_cut,
+            (
+                "scenarios/fetch-ref-artifact-unlisted.json: the exchanges do not "
+                "fit the steps"
+            ),
+        ),
+        (
+            "rules/file-selector.json",
+            _vector(
+                "long-cut",
+                lambda v: v.update(
+                    query="format=parquet&bundle=false&without_party_totals=true"
+                ),
+            ),
+            "vector 'long-cut' gives a query other than selector_query's",
+        ),
+        (
+            "rules/file-selector.json",
+            _vector(
+                "keys-in-listed-order",
+                lambda v: v.update(query="layout=frame&bundle=true&format=csv"),
+            ),
+            "vector 'keys-in-listed-order' gives a query other than selector_query's",
+        ),
+        (
+            "rules/file-selector.json",
+            lambda doc: doc.pop("query_keys"),
+            "rules/file-selector.json: missing or unreadable, or holds no query_keys",
         ),
     ],
     ids=[
@@ -1703,6 +1926,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "strict-fetch-made-lenient",
         "warn-notice-raises-on-strict",
         "expect-wrong-timed-out-gap",
+        "expect-timed-out-gap-over-the-reason",
         "expect-wrong-unsupported-gap",
         "known-kind-raises-nothing",
         "partial-fetch-nothing-answered",
@@ -1739,6 +1963,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "ref-content-version-stale",
         "ref-member-not-served",
         "ref-without-scenario",
+        "ref-parts-not-served",
+        "ref-rendering-not-posted",
         "rule-vector-repeated",
         "client-code-without-condition",
         "client-codes-unsorted",
@@ -1900,8 +2126,30 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "no-data-options-null-counted",
         "bound-entities-as-objects-compared",
         "mentions-as-a-string-matched",
-        "diagnostics-not-an-object-read",
         "candidate-spec-not-an-object-read",
+        "party-totals-left-in-by-default",
+        "party-totals-kept-without-the-option",
+        "mint-party-totals-left-in-by-default",
+        "columns-out-of-reading-order",
+        "stacked-columns-out-of-reading-order",
+        "served-order-of-other-columns-swapped",
+        "served-column-dropped",
+        "constant-columns-before-varying-ones",
+        "reading-order-vector-in-served-order",
+        "reading-order-stacked-vector-without-part",
+        "reading-order-ties-reordered",
+        "reading-order-series-interleaved-by-year",
+        "reading-order-null-sorted-first",
+        "reading-order-without-reading-columns",
+        "reading-order-vector-row-ragged",
+        "reading-order-vector-list-items-mix-types",
+        "reading-order-vector-struct-field-mixes-types",
+        "reading-order-vector-column-mixes-types",
+        "selector-query-carries-the-cut",
+        "unlisted-artifact-selector-query-carries-the-cut",
+        "file-selector-vector-carries-the-cut",
+        "file-selector-vector-out-of-key-order",
+        "file-selector-without-query-keys",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -1913,6 +2161,132 @@ def test_a_broken_contract_is_reported(
     _edit(package_dir / target, change)
     problems = validator.validate()
     assert any(expected in problem for problem in problems), problems
+
+
+@pytest.mark.parametrize(
+    ("left", "right", "same"),
+    # The same cases as python/client-contract/tests/test_rules.py.
+    [
+        (1, 1.0, True),
+        (True, 1, False),
+        (float("nan"), float("nan"), True),
+        (None, None, True),
+        ("1", 1, False),
+        ([True], [1], False),
+        ([float("nan")], [float("nan")], True),
+        ([1], [1.0], True),
+        ({"a": 1, "b": 2}, {"b": 2, "a": 1.0}, True),
+        ({"a": True}, {"a": 1}, False),
+    ],
+)
+def test_cells_are_the_same_value_as_json_values(
+    left: Any, right: Any, same: bool
+) -> None:
+    assert validator.same_value(left, right) is same
+    table = validator.table_from_rows(["c"], [[left], [right]])
+    assert ("c" in table.same) is same
+
+
+def _parquet(table: pa.Table) -> bytes:
+    sink = pa.BufferOutputStream()
+    pq.write_table(table, sink)
+    return sink.getvalue().to_pybytes()
+
+
+def _nan(payload: int) -> float:
+    return struct.unpack("<d", struct.pack("<Q", 0x7FF8000000000000 | payload))[0]
+
+
+@pytest.mark.parametrize(
+    "cells",
+    [[0.0, -0.0], [_nan(0), _nan(1)]],
+    ids=["signed-zeros", "nan-payloads"],
+)
+def test_a_vector_and_its_parquet_file_group_columns_alike(cells: list[float]) -> None:
+    """Cells `same_value` holds the same, which Arrow's `unique` tells apart,
+    are one value on both paths."""
+    rows = [[2021 - i, "x", cell] for i, cell in enumerate(cells)]
+    columns = ["time_period", "label", "amount"]
+    vector = validator.table_from_rows(columns, rows)
+    served = validator.served_table(
+        _parquet(
+            pa.table({name: [row[i] for row in rows] for i, name in enumerate(columns)})
+        )
+    )
+    assert "amount" in served.same
+    assert validator.column_groups([served], []) == validator.column_groups(
+        [vector], []
+    )
+
+
+def test_a_served_table_reads_list_struct_and_nan_columns() -> None:
+    """Columns `unique` cannot hash are judged cell by cell, and a NaN column
+    holds one value, in one table and over stacked ones."""
+    data = _parquet(
+        pa.table(
+            {
+                "listed": [[1, 2], [1, 2]],
+                "struct": [{"a": 1}, {"a": 2}],
+                "nan": [float("nan"), float("nan")],
+            }
+        )
+    )
+    table = validator.served_table(data)
+    assert set(table.same) == {"listed", "nan"}
+    assert table.nested == {"listed", "struct"}
+    groups = validator.column_groups([table], [])
+    assert groups.varying == ("struct",) and groups.sort_keys == []
+    assert not validator._varies("nan", [table, table])
+    assert validator._varies("struct", [table])
+
+
+def test_a_spec_built_in_two_renderings_keys_each_by_its_file() -> None:
+    """A ref member's rendering is checked against the build that answered
+    its file, so each of a spec's two builds keeps its own rendering."""
+    cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
+    plain = {"format": "parquet", "bundle": False}
+
+    def build(options: dict[str, Any], digest: str) -> dict[str, Any]:
+        artifact = {"artifact_digest": digest, "rendering": options}
+        return {
+            "request": {
+                "method": "POST",
+                "path": "/datasets",
+                "json": {"options": options},
+            },
+            "response": {
+                "status": 200,
+                "json": {"definition": {"spec_id": "spec_a"}, "artifacts": [artifact]},
+            },
+        }
+
+    scenario = {"exchanges": [build(cut, "sha256:a"), build(plain, "sha256:b")]}
+    posted = validator.posted_renderings(scenario)
+    assert posted == {"sha256:a": [cut], "sha256:b": [plain]}
+
+
+def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
+    query = validator.selector_query(
+        {"format": "CSV", "bundle": True}, ["format", "bundle"]
+    )
+    assert query == "format=CSV&bundle=true"
+
+
+def test_a_resumed_result_takes_the_rendering_its_build_posted() -> None:
+    cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
+    manifest = {"artifacts": [{"artifact_digest": "sha256:a", "rendering": cut}]}
+    assert validator.resumed_rendering(None, manifest) == cut
+    manifest["artifacts"][0]["rendering"] = {"format": "parquet", "bundle": False}
+    assert validator.resumed_rendering(None, manifest) == validator.rendering_for(None)
+
+
+@pytest.mark.parametrize("rule", ["reading-order", "file-selector"])
+def test_a_missing_rule_table_is_reported(package_dir: Path, rule: str) -> None:
+    (package_dir / "rules" / f"{rule}.json").unlink()
+    assert any(
+        problem.startswith(f"rules/{rule}.json: missing")
+        for problem in validator.validate()
+    )
 
 
 def test_a_record_that_holds_only_under_its_recorded_host_is_reported(
@@ -1947,6 +2321,36 @@ def test_a_body_trace_id_that_is_not_a_non_empty_string_reads_as_absent(
     _edit(package_dir / _CODELESS, change)
     problems = validator.validate()
     assert not [p for p in problems if _CODELESS in p], problems
+
+
+_DEGRADED = {"code": "engine_degraded", "severity": "degraded", "message": "slow"}
+
+
+@pytest.mark.parametrize(
+    ("diagnostics", "warns"),
+    [
+        ("timed out", False),
+        ([_DEGRADED], False),
+        ({"warnings": [_DEGRADED]}, True),
+    ],
+    ids=["a-string", "a-list-of-warnings", "an-object-as-control"],
+)
+def test_diagnostics_that_is_not_an_object_holds_no_warnings(
+    package_dir: Path, diagnostics: Any, warns: bool
+) -> None:
+    """The served schema rejects the body, which is a separate problem. The
+    replay reads the answer, and a fetch that expects no SearchWarning holds
+    when diagnostics is a string or a list, even a list of warnings, and
+    differs from the expectation when it is an object whose warnings read."""
+    target = "scenarios/answer-definite-fetch.json"
+    _edit(
+        package_dir / target,
+        _set_body(0, lambda body: body.update(diagnostics=diagnostics)),
+    )
+    replayed = [
+        p for p in validator.validate() if target in p and "response body:" not in p
+    ]
+    assert bool(replayed) is warns, replayed
 
 
 def test_one_record_that_crashes_its_derivation_is_its_own_problem(

@@ -38,24 +38,23 @@ a signed download or a `location` header, keeps its path and has its query
 replaced by `X-Goog-Signature=redacted`. A local app's blob URL becomes the
 storage URL a deployment signs. A record holding any other absolute URL,
 outside a `location` under the base URL, is refused. The long builds need
-two specs the server has not built, so a local recording starts on a fresh
-datasets database. `--scenarios-dir` writes outside the package,
-unvalidated. The run ends by validating the whole contract with
+two specs the server has not built, and the run picks each from the first
+start year whose spec the server has not built, so each record moves both
+start years up. `--scenarios-dir` writes outside the package, unvalidated.
+The run ends by validating the whole contract with
 `tools/validate_client_contract.py`, and fails when it reports a problem,
 when the binary bodies pass 5 MB, or when the records and bodies together pass
 `SCENARIOS_BUDGET`, 16 MB.
 
 The outcome rules, error classes, gap kinds and long-build pacing come
 from `tools/validate_client_contract.py`, so a record's `expect` is written
-by the code that checks it. pyarrow loads only when a Parquet body is read, so
-the tests run without it.
+by the code that checks it.
 """
 
 from __future__ import annotations
 
 import argparse
 import copy
-import io
 import json
 import os
 import re
@@ -89,6 +88,7 @@ from validate_client_contract import (
     Answer,
     ClientError,
     LongBuild,
+    ServedTable,
     absolute_url_problems,
     answer_from_body,
     answer_gaps,
@@ -105,19 +105,23 @@ from validate_client_contract import (
     digest_of,
     download_target,
     failed_operation,
+    fetch_rendering,
     gap_kinds,
     header_warnings,
     held_spec,
+    load_reading_columns,
+    load_selector_keys,
     may_retry,
     newest_plain,
     owns_body_file,
     part_label,
     pick_artifact,
     posted_scope,
+    presented_columns,
     problem_body,
     read_from,
     refusal_error,
-    rendering_for,
+    resumed_rendering,
     resubmitted_sentence,
     retry_wait,
     scenarios_size,
@@ -126,6 +130,7 @@ from validate_client_contract import (
     search_warns,
     selector_path,
     sentence_entry,
+    served_table,
     shared_cacheable,
     stored_version,
     surface_problems,
@@ -142,8 +147,10 @@ DEV_BASE_URL = "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api"
 REPOSITORY = "DevelopmentFinanceObservatory/apis"
 BINARY_BUDGET = 5_000_000
 
-# The rendering both clients ask for, bare long Parquet.
-RENDERING = {"format": "parquet", "bundle": False}
+# The rendering a fetch asks for by default, bare long Parquet with the party
+# totals of open party roles left out, and so the rendering a ref it writes
+# records.
+RENDERING = fetch_rendering(None)
 # The response headers a client reads, and so the ones a record keeps, beside
 # a `cache-control` that marks the response shared-cacheable, which excuses it
 # from carrying `x-dfo-trace-id`.
@@ -560,6 +567,12 @@ class Member:
     rows: int
     columns: list[str]
     rendering: dict[str, Any] = field(default_factory=lambda: dict(RENDERING))
+    # The value of each column that holds one value in every row.
+    same: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def table(self) -> ServedTable:
+        return ServedTable(tuple(self.columns), self.rows, self.same)
 
     @property
     def spec_id(self) -> str:
@@ -577,13 +590,15 @@ class Member:
 
 def dataset_outcome(
     members: Sequence[Member],
+    reading: Sequence[Sequence[str]],
     *,
     missing: Sequence[Mapping[str, Any]] = (),
     search_warning: bool | None = None,
 ) -> dict[str, Any]:
     """A dataset outcome. Several members stack into one long table with a
     `part` column first, holding each member's `part_label`, then every
-    member's columns in member order."""
+    member's columns in member order. The columns are in the order the
+    reading-order rule gives."""
     summaries = [
         {
             "parts": member.parts,
@@ -594,24 +609,16 @@ def dataset_outcome(
         for member in members
     ]
     dataset: dict[str, Any] = {"rows": sum(member.rows for member in members)}
-    if len(members) == 1:
-        dataset["columns"] = list(members[0].columns)
-    else:
-        columns = dict.fromkeys(c for m in members for c in m.columns)
-        dataset["columns"] = ["part", *columns]
+    dataset["columns"] = presented_columns(
+        [member.table for member in members], reading
+    )
+    if len(members) > 1:
         dataset["part_rows"] = [
             {"part": part_label(summary), "rows": member.rows}
             for summary, member in zip(summaries, members, strict=True)
         ]
     summary = dataset_summary(summaries, missing, search_warning=search_warning)
     return {"dataset": {**dataset, **summary}}
-
-
-def parquet_shape(data: bytes) -> tuple[int, list[str]]:
-    import pyarrow.parquet as pq  # noqa: PLC0415 - optional, so the tests run without it
-
-    parquet = pq.ParquetFile(io.BytesIO(data))
-    return parquet.metadata.num_rows, list(parquet.schema_arrow.names)
 
 
 def _reached[T](results: list[T], step: str) -> T:
@@ -635,23 +642,62 @@ class Minted:
     """The operation a mint started or a resume read: its resource, the
     headers that came with it, the build request a failed operation posts
     again (None for a resumed one), the spec the client holds, and the
-    rendering it downloads."""
+    rendering the build posted, or for a resumed operation None and the
+    layout whose rendering `resumed_rendering` reads from the done
+    manifest."""
 
     resource: dict[str, Any]
     headers: dict[str, str]
     request: dict[str, Any] | None
     spec: Spec | None
-    rendering: dict[str, Any]
+    rendering: dict[str, Any] | None
+    layout: str | None = None
 
 
 def _step_options(
-    step: dict[str, Any], *, layout: str | None, strict: bool
+    step: dict[str, Any],
+    *,
+    layout: str | None,
+    strict: bool,
+    party_totals: bool = False,
 ) -> dict[str, Any]:
     if layout is not None:
         step["layout"] = layout
     if strict:
         step["strict"] = True
+    if party_totals:
+        step["party_totals"] = True
     return step
+
+
+@dataclass(frozen=True, slots=True)
+class ClientRules:
+    """The rule tables a client reads from `rules/`: the reading-order rule's
+    reading slots and the file-selector rule's query keys."""
+
+    reading: Sequence[Sequence[str]]
+    selector_keys: Sequence[str]
+
+
+def load_client_rules(package_dir: Path) -> ClientRules:
+    """The rule tables under `package_dir`, read before any request.
+
+    Raises:
+        SystemExit: A rule file is missing or does not hold its table.
+    """
+    reading = load_reading_columns(package_dir)
+    if reading is None:
+        raise SystemExit(
+            f"{package_dir / 'rules' / 'reading-order.json'} is missing or holds no "
+            "reading_columns, so no dataset's columns can be ordered"
+        )
+    selector_keys = load_selector_keys(package_dir)
+    if selector_keys is None:
+        raise SystemExit(
+            f"{package_dir / 'rules' / 'file-selector.json'} is missing or holds no "
+            "query_keys, so no file selector query can be built"
+        )
+    return ClientRules(reading, selector_keys)
 
 
 @dataclass
@@ -661,7 +707,8 @@ class Session:
     recorder: Recorder
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
-    read_shape: Callable[[bytes], tuple[int, list[str]]] = parquet_shape
+    rules: ClientRules
+    read_shape: Callable[[bytes], ServedTable] = served_table
     sleep: Callable[[float], None] = time.sleep
     call: list[dict[str, Any]] = field(default_factory=list)
     expect: list[dict[str, Any]] = field(default_factory=list)
@@ -765,11 +812,13 @@ class Session:
         partial: bool = False,
         strict: bool = False,
         layout: str | None = None,
+        party_totals: bool = False,
     ) -> None:
-        """Builds the answer's readings. A declined or catalogue answer, a gap
-        outside a partial fetch, a partial fetch with no reading, a strict
-        fetch whose readings depart from the question, and the frame layout
-        with several readings each raise before any request."""
+        """Builds the answer's readings, leaving out party totals unless
+        `party_totals`. A declined or catalogue answer, a gap outside a
+        partial fetch, a partial fetch with no reading, a strict fetch whose
+        readings depart from the question, and the frame layout with several
+        readings each raise before any request."""
         step: dict[str, Any] = {"op": "fetch"}
         if partial:
             step["partial"] = True
@@ -787,16 +836,21 @@ class Session:
                     ClientError(search_warning_code(answer), error="SearchWarning"),
                     answer.trace_id,
                 )
-            rendering = rendering_for(layout)
+            rendering = fetch_rendering(layout, party_totals=party_totals)
             if "layout" in rendering and len(readings) > 1:
                 raise ClientError("invalid_argument")
             members = [
                 self.build(parts, spec, None, rendering, strict=strict)
                 for parts, spec in readings
             ]
-            return dataset_outcome(members, missing=gaps, search_warning=warns)
+            return dataset_outcome(
+                members, self.rules.reading, missing=gaps, search_warning=warns
+            )
 
-        self._step(_step_options(step, layout=layout, strict=strict), run)
+        options = _step_options(
+            step, layout=layout, strict=strict, party_totals=party_totals
+        )
+        self._step(options, run)
 
     def fetch_spec(
         self,
@@ -807,10 +861,11 @@ class Session:
         facets: Mapping[str, str] | None = None,
         layout: str | None = None,
         strict: bool = False,
+        party_totals: bool = False,
     ) -> list[Member]:
-        """Builds `spec` narrowed by `window`, `entities` and `facets`. A
-        role in `entities` replaces the spec's binding of it, or drops it
-        when null."""
+        """Builds `spec` narrowed by `window`, `entities` and `facets`,
+        leaving out party totals unless `party_totals`. A role in `entities`
+        replaces the spec's binding of it, or drops it when null."""
         step: dict[str, Any] = {"op": "fetch", "spec": spec.step()}
         if window is not None:
             step["window"] = list(window) if isinstance(window, tuple) else window
@@ -825,18 +880,23 @@ class Session:
         built: list[Member] = []
 
         def run() -> dict[str, Any]:
-            rendering = rendering_for(layout)
+            rendering = fetch_rendering(layout, party_totals=party_totals)
             built.append(self.build([], spec, scope, rendering, strict=strict))
-            return dataset_outcome(built)
+            return dataset_outcome(built, self.rules.reading)
 
-        self._step(_step_options(step, layout=layout, strict=strict), run)
+        options = _step_options(
+            step, layout=layout, strict=strict, party_totals=party_totals
+        )
+        self._step(options, run)
         return built
 
     def fetch_ref(self, ref: dict[str, Any]) -> None:
         """The exact versions a ref names, through the lookup order."""
 
         def run() -> dict[str, Any]:
-            return dataset_outcome([self._stored(member) for member in ref["members"]])
+            return dataset_outcome(
+                [self._stored(member) for member in ref["members"]], self.rules.reading
+            )
 
         self._step({"op": "fetch", "ref": ref}, run)
 
@@ -851,11 +911,13 @@ class Session:
         self._step({"op": "newest_version", "spec": spec.step()}, run)
         return found[0] if found else None
 
-    def mint(self, spec: Spec, *, layout: str | None = None) -> str:
+    def mint(
+        self, spec: Spec, *, layout: str | None = None, party_totals: bool = False
+    ) -> str:
         operation: list[str] = []
 
         def run() -> dict[str, Any]:
-            rendering = rendering_for(layout)
+            rendering = fetch_rendering(layout, party_totals=party_totals)
             body = _build_body(spec, None, rendering)
             response = self._api("POST", "/datasets", body)
             resource = self._acted(response)
@@ -868,7 +930,10 @@ class Session:
 
         self._step(
             _step_options(
-                {"op": "mint", "spec": spec.step()}, layout=layout, strict=False
+                {"op": "mint", "spec": spec.step()},
+                layout=layout,
+                strict=False,
+                party_totals=party_totals,
             ),
             run,
         )
@@ -881,9 +946,7 @@ class Session:
             path = POLL_PATH.format(operation_id=operation_id)
             response = self._api("GET", path)
             resource = self._acted(response)
-            self.minted = Minted(
-                resource, response.headers, None, None, rendering_for(layout)
-            )
+            self.minted = Minted(resource, response.headers, None, None, None, layout)
             return _operation_outcome(resource)
 
         step = {"op": "operation", "operation_id": operation_id}
@@ -897,8 +960,9 @@ class Session:
 
         def run() -> dict[str, Any]:
             manifest = self._wait(minted.resource, minted.headers, minted.request)
-            member = self._member([], minted.spec, manifest, minted.rendering, False)
-            return dataset_outcome([member])
+            rendering = minted.rendering or resumed_rendering(minted.layout, manifest)
+            member = self._member([], minted.spec, manifest, rendering, False)
+            return dataset_outcome([member], self.rules.reading)
 
         self._step({"op": "result"}, run)
 
@@ -946,16 +1010,17 @@ class Session:
             held = None if spec is None else spec.step()
             sentence = self._identity_sentence(parts, definition, held)
         digest = artifact["artifact_digest"]
-        rows, columns = self.read_shape(self._download(route, digest))
+        table = self.read_shape(self._download(route, digest))
         return Member(
             parts,
             definition,
             manifest["content_version"],
             sentence,
             digest,
-            rows,
-            columns,
+            table.rows,
+            list(table.columns),
             dict(rendering),
+            table.same,
         )
 
     def _identity_sentence(
@@ -1055,16 +1120,17 @@ class Session:
             data, refusal = self._stored_file(member, manifest)
             if data is None:
                 return None, refusal
-            rows, columns = self.read_shape(data)
+            table = self.read_shape(data)
             stored = Member(
                 member["parts"],
                 spec["definition"],
                 version,
                 member["sentence"],
                 member["artifact"]["digest"],
-                rows,
-                columns,
+                table.rows,
+                list(table.columns),
                 dict(rendering),
+                table.same,
             )
             return stored, None
 
@@ -1102,6 +1168,7 @@ class Session:
             member["spec"]["spec_id"],
             member["content_version"],
             member["artifact"]["rendering"],
+            self.rules.selector_keys,
         )
         try:
             return self._download(path, digest, origin=False), None
@@ -1182,6 +1249,7 @@ MIXED = "debt service of Kenya and the price of tea in Kenya"
 FOLDED = "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya"
 PLACE = "ODA disbursements from Germany to Congo in 2018"
 TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
+PLACE_TWICE = "aid from Congo to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
 TOP5 = "top 5 donors to Ethiopia in 2022"
@@ -1203,21 +1271,35 @@ GROUPED_FLOW = "Germany's ODA to the least developed countries"
 CANDIDATES_BESIDE_ASSUMED = (
     "mortality in Kenya and aid flows to Kenya from 2013 to 2022"
 )
-# Two specs just above the 100,000-row sync budget, one for the mint and one
-# for the operation another process started: a version the server has built
-# answers inline, so each long build needs a spec the server has not built.
-# A flow side the question leaves unnamed reads as its source's whole total, so
-# both sides name groups read as their members: about 3,700 donor and
-# recipient pairs of one variable over 60 years. A variable broken down by
-# sector would list thousands of variables in the done manifest.
-ASYNC = (
-    "ODA disbursements from the DAC countries to the G77 countries from 1963 to 2024"
+# Two specs just above the 100,000-row sync budget, the DAC donors' for the
+# mint and the OECD donors' for the operation another process started: a
+# version the server has built answers inline, so each long build needs a spec
+# the server has not built, and the run takes the first start year in
+# LONG_BUILD_YEARS whose spec it has not. Each record builds both for good, so
+# the next record starts the scan at the year after the one LONG_BUILD_RECORDS
+# holds, and a later start year estimates fewer rows, so the scan stops at the
+# first year below the band. A flow side the question leaves unnamed
+# reads as its source's whole total, so both sides name groups read as their
+# members: about 3,700 donor and recipient pairs of one variable over some 60
+# years. A variable broken down by sector would list thousands of variables in
+# the done manifest.
+LONG_BUILD = (
+    "ODA disbursements from the {donors} countries to the G77 countries"
+    " from {year} to 2024"
 )
-ASYNC_RESUMED = (
-    "ODA disbursements from the OECD countries to the G77 countries from 1966 to 2024"
-)
+LONG_BUILD_YEARS = range(1960, 2001)
+# The record holding each donor group's last long build.
+LONG_BUILD_RECORDS = {"DAC": "mint-async-build", "OECD": "operation-resume"}
 NARROW_WINDOW = (2020, 2023)
 REBOUND_ORIGIN = "country/FRA"
+# The DAC donors' flow to the G77, narrowed to one recipient and year with its
+# origin open: the DAC2a table lists the donor group totals beside their
+# members, about 110 rows with them and 95 without.
+PARTY_TOTALS_FLOW = (
+    "ODA disbursements from the DAC countries to the G77 countries from 1967 to 2024"
+)
+PARTY_TOTALS_WINDOW = (2022, 2022)
+PARTY_TOTALS_ENTITIES = {"origin": None, "destination": ["country/KEN"]}
 SYNC_ROWS = 100_000
 
 
@@ -1229,7 +1311,10 @@ class Context:
     transport: Transport
     actions: Mapping[str, Mapping[str, Any]]
     client_codes: Mapping[str, Mapping[str, Any]]
-    read_shape: Callable[[bytes], tuple[int, list[str]]] = parquet_shape
+    rules: ClientRules
+    read_shape: Callable[[bytes], ServedTable] = served_table
+    # The first start year `async_spec` tries for each donor group.
+    long_build_starts: Mapping[str, int] = field(default_factory=dict)
     _cache: dict[str, Any] = field(default_factory=dict)
 
     def session(self, name: str, **recorder: Any) -> Session:
@@ -1237,6 +1322,7 @@ class Context:
             Recorder(name, self.base_url, self.transport, **recorder),
             self.actions,
             self.client_codes,
+            self.rules,
             read_shape=self.read_shape,
         )
 
@@ -1283,22 +1369,61 @@ class Context:
             self._cache["ref"] = {"format_version": 1, "members": [member.ref()]}
         return self._cache["ref"]
 
-    def async_spec(self, question: str = ASYNC) -> Spec:
-        """The spec `question` answers, whose estimate is just above the sync
-        budget."""
-        (part,) = self.definite_answer(question).parts
-        rows = part["spec"]["resolved"].get("download", {}).get("rows") or 0
-        require(
-            SYNC_ROWS < rows < 2 * SYNC_ROWS,
-            f"{rows} rows is just above the sync budget",
-        )
-        return _part_spec(part["spec"])
+    def async_spec(self, donors: str) -> Spec:
+        """The spec the LONG_BUILD question for `donors` answers at the first
+        start year in LONG_BUILD_YEARS, from `long_build_starts`, whose answer
+        is one definite part, whose estimate is just above the sync budget,
+        and whose spec no earlier year or other donors answered and the server
+        has not built. A year whose estimate is at or below the budget ends
+        the scan, since later years estimate fewer rows.
+
+        Raises:
+            ShapeError: No year gives such a spec.
+        """
+        picks: dict[str, Spec] = self._cache.setdefault("long builds", {})
+        if donors not in picks:
+            session = self.session("prerequisite")
+            seen = {spec.spec_id for spec in picks.values()}
+            first = max(self.long_build_starts.get(donors, 0), LONG_BUILD_YEARS[0])
+            for year in range(first, LONG_BUILD_YEARS[-1] + 1):
+                answer = session.search(LONG_BUILD.format(donors=donors, year=year))
+                if answer.status != "definite" or len(answer.parts) != 1:
+                    continue
+                (part,) = answer.parts
+                rows = part["spec"]["resolved"].get("download", {}).get("rows")
+                if rows is None:
+                    continue
+                spec = _part_spec(part["spec"])
+                if rows <= SYNC_ROWS:
+                    raise ShapeError(
+                        f"the {donors} donors have no long build left: from {year} "
+                        f"the estimate, {rows:,} rows, is within the {SYNC_ROWS:,}-row "
+                        "sync budget; change LONG_BUILD to a question with more rows"
+                    )
+                # A start year before the source's first year clips to the same
+                # spec as the years after it, so a spec already seen is built or
+                # is the other donors' pick.
+                if rows >= 2 * SYNC_ROWS or spec.spec_id in seen:
+                    continue
+                seen.add(spec.spec_id)
+                # `_newest` and not `newest_version`, which reads a refused
+                # versions request as no version.
+                if session._newest(spec.spec_id) is None:
+                    picks[donors] = spec
+                    break
+            else:
+                raise ShapeError(
+                    f"no start year from {first} to"
+                    f" {LONG_BUILD_YEARS[-1]} gives the {donors} donors a spec"
+                    " just above the sync budget that the server has not built"
+                )
+        return picks[donors]
 
     def running_operation(self) -> str:
         """The id of a long build another process started."""
         if "operation" not in self._cache:
             self._cache["operation"] = self.session("prerequisite").mint(
-                self.async_spec(ASYNC_RESUMED)
+                self.async_spec("OECD"), party_totals=True
             )
         return self._cache["operation"]
 
@@ -1388,6 +1513,36 @@ def _fetch_spec_entities(
     return run
 
 
+def _fetch_spec_party_totals(*, keep: bool) -> Callable[[Session, Context], None]:
+    """Fetches the PARTY_TOTALS_FLOW spec narrowed to PARTY_TOTALS_ENTITIES in
+    PARTY_TOTALS_WINDOW, keeping party totals when `keep`, and checks
+    against a fetch with the other setting that leaving them out drops rows
+    and answers a version of its own."""
+
+    def run(s: Session, ctx: Context) -> None:
+        spec = ctx.definite_spec(PARTY_TOTALS_FLOW)
+
+        def fetched(session: Session, party_totals: bool) -> Member:
+            (member,) = session.fetch_spec(
+                spec,
+                window=PARTY_TOTALS_WINDOW,
+                entities=PARTY_TOTALS_ENTITIES,
+                party_totals=party_totals,
+            )
+            return member
+
+        member = fetched(s, keep)
+        other = fetched(ctx.session("prerequisite"), not keep)
+        kept, cut = (member, other) if keep else (other, member)
+        require(kept.rows > cut.rows, "leaving out party totals drops rows")
+        require(
+            kept.content_version != cut.content_version,
+            "the version without party totals is a version of its own",
+        )
+
+    return run
+
+
 def _fetch_spec_grouped(
     *,
     window: tuple[int, int] | None = None,
@@ -1440,7 +1595,7 @@ def _fetch_ref_unknown_version(s: Session, ctx: Context) -> None:
 
 
 def _mint_async(s: Session, ctx: Context) -> None:
-    s.mint(ctx.async_spec(ASYNC))
+    s.mint(ctx.async_spec("DAC"), party_totals=True)
     s.result()
 
 
@@ -1480,6 +1635,35 @@ def _place_answer(s: Session, question: str, parts: int) -> Answer:
         f"each part offers {PLACE_LABELS}",
     )
     return answer
+
+
+def _search_place_twice(s: Session, ctx: Context) -> None:
+    """One entity_ambiguous part asking "Congo" for each end of the flow: two
+    groups with one text, each option and slot token naming its group."""
+    answer = s.search(PLACE_TWICE)
+    require(len(answer.parts) == 1, "one part")
+    (part,) = answer.parts
+    no_data = part.get("no_data", {})
+    require(no_data.get("reason") == "entity_ambiguous", "an entity_ambiguous part")
+    require(
+        [group["text"] for group in no_data.get("ambiguous_entities", [])]
+        == ["Congo", "Congo"],
+        'two ambiguous groups, each "Congo"',
+    )
+    require(
+        [(o["entity_choice"], o["label"]) for o in no_data.get("options", [])]
+        == [(choice, label) for choice in (0, 1) for label in PLACE_LABELS],
+        f"each group offers {PLACE_LABELS} under its own entity_choice",
+    )
+    require(
+        [
+            token["entity_choice"]
+            for token in part.get("sentence_plan") or []
+            if token.get("entity_choice") is not None
+        ]
+        == [0, 1],
+        "one slot token per group",
+    )
 
 
 def _search_place(question: str, parts: int) -> Callable[[Session, Context], None]:
@@ -1678,6 +1862,21 @@ RECORDED = (
         _fetch_spec_entities({"origin": None}),
     ),
     Recorded(
+        "fetch-spec-party-totals-left-out",
+        "Fetching a spec of DAC2a ODA to Kenya in 2022 with its origin open posts "
+        "without_party_totals: true in the build's options, as every fetch does by default, so "
+        "the build leaves out the donor group totals beside their members and answers a "
+        "version of its own, with fewer rows than fetch-spec-party-totals-kept.",
+        _fetch_spec_party_totals(keep=False),
+    ),
+    Recorded(
+        "fetch-spec-party-totals-kept",
+        "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no "
+        "without_party_totals, so the build keeps the donor group totals and answers the plain "
+        "version, with more rows.",
+        _fetch_spec_party_totals(keep=True),
+    ),
+    Recorded(
         "fetch-spec-group-narrowed",
         "Fetching a spec whose destination is the least developed countries group with "
         "window=(2020, 2023) answers a new spec_id. The identity entry that asks Search for its "
@@ -1769,6 +1968,13 @@ RECORDED = (
         "A two-part question naming a place that matches two countries answers no_data on both "
         "parts, each an entity_ambiguous choice gap with one option per country.",
         _search_place(TWO_PLACES, 2),
+    ),
+    Recorded(
+        "search-place-ambiguous-twice",
+        "A flow naming one ambiguous place at both ends answers one no_data part with two "
+        "entity_ambiguous groups of the same text: each option and slot token names its group "
+        "by entity_choice, so a menu groups options by entity_choice, never by mentions.",
+        _search_place_twice,
     ),
     Recorded(
         "choose-place-one-part",
@@ -2339,6 +2545,7 @@ def _expired_file_selector(parent: dict[str, Any], ctx: Context) -> Derived:
         member["spec"]["spec_id"],
         member["content_version"],
         member["artifact"]["rendering"],
+        ctx.rules.selector_keys,
     )
     selector = {
         "request": {"method": "GET", "path": path},
@@ -2359,8 +2566,9 @@ def _poll_index(exchanges: Sequence[dict[str, Any]]) -> int:
 def _async_fetch(
     change: Callable[[list[dict[str, Any]], dict[str, Any]], None] | None = None,
 ) -> Callable[[dict[str, Any], Context], Derived]:
-    """The parent's mint and result as one fetch of its spec, which makes the
-    same exchanges. `change` edits the exchanges and the fetch's outcome."""
+    """The parent's mint and result as one fetch of its spec that keeps
+    party totals, which makes the same exchanges, since a mint posts the
+    plain rendering. `change` edits the exchanges and the fetch's outcome."""
 
     def derive(parent: dict[str, Any], ctx: Context) -> Derived:
         mint, result = parent["call"]
@@ -2375,9 +2583,12 @@ def _async_fetch(
         outcome = copy.deepcopy(parent["expect"][1])
         if change is not None:
             change(exchanges, outcome["dataset"]["long_builds"][0])
-        return Derived(
-            [{"op": "fetch", "spec": copy.deepcopy(mint["spec"])}], exchanges, [outcome]
-        )
+        fetch = {
+            "op": "fetch",
+            "spec": copy.deepcopy(mint["spec"]),
+            "party_totals": True,
+        }
+        return Derived([fetch], exchanges, [outcome])
 
     return derive
 
@@ -2399,25 +2610,32 @@ def _accepted_running(exchanges: list[dict[str, Any]], build: dict[str, Any]) ->
     exchanges[0]["response"]["json"]["operation"]["status"] = "running"
 
 
-# The retry_after_ms each poll that finds the build running reads in
-# fetch-spec-poll-pacing-changes. The values go up, up again, then down.
+# The retry_after_ms the polls that find the build running read in
+# fetch-spec-poll-pacing-changes, in turn. The values go up, up again, then down.
 _CHANGING_PACING_MS = (2500, 4000, 1000)
 
 
 def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
     """Each poll that finds the build running reads its own retry_after_ms
     from _CHANGING_PACING_MS, and the wait before the next poll is that
-    poll's value."""
-    running = [
-        e["response"]["json"]["operation"]
-        for e in exchanges[_poll_index(exchanges) :]
+    poll's value. The recording's running polls past that many are left
+    out, since how many a build takes depends on the server's load."""
+    polls = [
+        i
+        for i, e in enumerate(exchanges)
         if e["request"].get("path", "").startswith("/datasets/operations/")
         and e["response"]["json"]["operation"]["status"] == "running"
     ]
     require(
-        len(running) == len(_CHANGING_PACING_MS),
+        len(polls) >= len(_CHANGING_PACING_MS),
         f"{len(_CHANGING_PACING_MS)} polls find the build running",
     )
+    for index in reversed(polls[len(_CHANGING_PACING_MS) :]):
+        del exchanges[index]
+    running = [
+        exchanges[i]["response"]["json"]["operation"]
+        for i in polls[: len(_CHANGING_PACING_MS)]
+    ]
     for operation, ms in zip(running, _CHANGING_PACING_MS, strict=True):
         operation["retry_after_ms"] = ms
     build["poll_waits"][1:] = [ms / 1000 for ms in _CHANGING_PACING_MS]
@@ -2661,6 +2879,7 @@ def _artifact_unlisted(parent: dict[str, Any], ctx: Context) -> Derived:
         member["spec"]["spec_id"],
         member["content_version"],
         member["artifact"]["rendering"],
+        ctx.rules.selector_keys,
     )
     exchanges[index]["request"] = {"method": "GET", "path": path}
     return _same(parent, exchanges)
@@ -2790,15 +3009,58 @@ def _answer_edit(
     return derive
 
 
-# The x-dfo-trace-id header the Search responses of `answer-timed-out` and
-# `choose-refused-shared-label` carry. The first's answer_incomplete carries
-# it, and the second's choice_invalid, which describes the caller's choice,
-# does not.
+# The x-dfo-trace-id header the Search responses of `answer-timed-out`,
+# `answer-timed-out-keeps-reasons` and `choose-refused-shared-label` carry. The
+# first two's answer_incomplete carries it, and the third's choice_invalid,
+# which describes the caller's choice, does not.
 ANSWER_TRACE_ID = "5" * 32
 
 
 def _timed_out(body: dict[str, Any]) -> None:
     body["diagnostics"]["timed_out"] = True
+
+
+# The no_data message dfo-apis renders for the reason `timed_out`.
+TIMED_OUT_MESSAGE = (
+    "Search reached its time limit before answering this part. "
+    "Try again, or ask a narrower question."
+)
+
+
+def _part_timed_out(body: dict[str, Any]) -> None:
+    """Part 1 is the part Search left unresolved at its time limit: reason
+    timed_out and the message that reason renders, which is also its sentence
+    and its whole heading in the answer's composed sentence."""
+    part = body["parts"][1]
+    part["no_data"]["reason"] = "timed_out"
+    part["no_data"]["message"] = TIMED_OUT_MESSAGE
+    part["rendered_sentence"] = TIMED_OUT_MESSAGE
+    (token,) = part["sentence_plan"]
+    token["text"] = TIMED_OUT_MESSAGE
+    plan = body["sentence_plan"]
+    indexes = [i for i, tok in enumerate(plan) if tok.get("part_index") == 1]
+    first, last = indexes[0], indexes[-1]
+    require(indexes == list(range(first, last + 1)), "part 1's tokens are adjacent")
+    heading = "".join(tok["text"] for tok in plan[first : last + 1])
+    require(body["rendered_sentence"].endswith(heading), "part 1's tokens end it")
+    plan[first : last + 1] = [
+        {
+            "kind": "text",
+            "text": TIMED_OUT_MESSAGE,
+            "segment": "heading",
+            "entity_refs": [],
+            "states": [],
+            "part_index": 1,
+        }
+    ]
+    body["rendered_sentence"] = (
+        body["rendered_sentence"][: -len(heading)] + TIMED_OUT_MESSAGE
+    )
+
+
+def _timed_out_part(body: dict[str, Any]) -> None:
+    _timed_out(body)
+    _part_timed_out(body)
 
 
 def _unsupported(body: dict[str, Any]) -> None:
@@ -3639,7 +3901,8 @@ SYNTHETIC = (
     Synthetic(
         "fetch-spec-async-build",
         "mint-async-build",
-        "The mint and result steps become one fetch of the spec, which makes the same exchanges.",
+        "The mint and result steps become one fetch of the spec with party_totals, which "
+        "makes the same exchanges.",
         "Fetching a spec whose build answers 202 polls the operation: it waits the 202's "
         "retry_after_ms, then each poll's, backing off from 1 to 8 seconds when a poll gives "
         "none, and downloads the done manifest's file.",
@@ -4118,11 +4381,23 @@ SYNTHETIC = (
     Synthetic(
         "answer-timed-out",
         "answer-mixed-fetch-raises",
-        "The answer's diagnostics.timed_out becomes true, and its response carries "
+        "The answer's diagnostics.timed_out becomes true, part 1's no_data reason becomes "
+        "timed_out with the message that reason renders, and its response carries "
         f"x-dfo-trace-id {ANSWER_TRACE_ID}.",
-        "A no_data part of an answer whose diagnostics say Search timed out is a timed_out gap, "
-        "whatever its reason, and fetching the answer raises IncompleteAnswerError, which "
-        "describes the answer and carries its response's trace id.",
+        "A no_data part with reason timed_out, the reason Search gives a part it left "
+        "unresolved at its time limit, is a timed_out gap, and fetching the answer raises "
+        "IncompleteAnswerError, which describes the answer and carries its response's trace "
+        "id.",
+        _answer_edit(_timed_out_part, {"x-dfo-trace-id": ANSWER_TRACE_ID}),
+    ),
+    Synthetic(
+        "answer-timed-out-keeps-reasons",
+        "answer-mixed-fetch-raises",
+        "The answer's diagnostics.timed_out becomes true, part 1 keeps its reason "
+        f"variable_not_resolved, and its response carries x-dfo-trace-id {ANSWER_TRACE_ID}.",
+        "A no_data part's gap kind comes from its own reason, whatever diagnostics.timed_out "
+        "says. A part Search resolved before its time limit keeps its reason's gap kind, and "
+        "fetching the answer raises IncompleteAnswerError.",
         _answer_edit(_timed_out, {"x-dfo-trace-id": ANSWER_TRACE_ID}),
     ),
     Synthetic(
@@ -4206,6 +4481,15 @@ SYNTHETIC = (
         "Choosing an option by a label no option has raises InvalidRequestError with no "
         "request.",
         _choice_refused("Congo [Nowhere]"),
+    ),
+    Synthetic(
+        "choose-refused-label-in-two-groups",
+        "search-place-ambiguous-twice",
+        'A choice of "Congo [DRC]" follows the search.',
+        "Both entity_choice groups offer an option labelled Congo [DRC], so the label "
+        "matches two options and the choice raises InvalidRequestError with no request. "
+        "A choice in such a part names its option by index.",
+        _choice_refused("Congo [DRC]"),
     ),
     Synthetic(
         "choose-candidate-by-label",
@@ -4452,6 +4736,7 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                     facets=step.get("facets"),
                     layout=step.get("layout"),
                     strict=step.get("strict", False),
+                    party_totals=step.get("party_totals", False),
                 )
             case {"op": "fetch", "ref": ref}:
                 session.fetch_ref(ref)
@@ -4465,11 +4750,13 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                     partial=step.get("partial", False),
                     strict=step.get("strict", False),
                     layout=step.get("layout"),
+                    party_totals=step.get("party_totals", False),
                 )
             case {"op": "mint", "spec": spec}:
                 session.mint(
                     _step_spec(spec),
                     layout=step.get("layout"),
+                    party_totals=step.get("party_totals", False),
                 )
             case {"op": "operation", "operation_id": operation_id}:
                 session.resume(operation_id, layout=step.get("layout"))
@@ -4489,6 +4776,7 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
         Recorder(name, served.base_url, served),
         ctx.actions,
         ctx.client_codes,
+        ctx.rules,
         read_shape=ctx.read_shape,
         sleep=lambda _: None,
     )
@@ -4508,6 +4796,37 @@ def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:
     )
 
 
+def recorded_start_year(record: Mapping[str, Any]) -> int | None:
+    """The start year of the first window a record's spec definitions
+    request: a step's spec, then a manifest an exchange answers."""
+    definitions = [
+        step["spec"]["definition"] for step in record["call"] if "spec" in step
+    ]
+    for exchange in record["exchanges"]:
+        body = exchange["response"].get("json")
+        manifest = body.get("manifest", body) if isinstance(body, dict) else None
+        if isinstance(manifest, dict) and "definition" in manifest:
+            definitions.append(manifest["definition"])
+    for definition in definitions:
+        window = definition.get("identity", {}).get("requested_window") or {}
+        if "start_year" in window:
+            return window["start_year"]
+    return None
+
+
+def long_build_starts(directory: Path) -> dict[str, int]:
+    """The first start year to try for each donor group: the year after the
+    one its LONG_BUILD_RECORDS record built, which the server has built."""
+    starts = {}
+    for donors, name in LONG_BUILD_RECORDS.items():
+        path = directory / f"{name}.json"
+        if path.exists():
+            year = recorded_start_year(json.loads(path.read_text(encoding="utf-8")))
+            if year is not None:
+                starts[donors] = year + 1
+    return starts
+
+
 def run_record(args: argparse.Namespace) -> int:
     package_dir: Path = args.package_dir
     directory: Path = args.scenarios_dir or package_dir / "scenarios"
@@ -4521,7 +4840,18 @@ def run_record(args: argparse.Namespace) -> int:
         _offline if args.offline else urllib_transport,
         load_actions(package_dir),
         load_client_codes(package_dir),
+        load_client_rules(package_dir),
+        long_build_starts=long_build_starts(directory),
     )
+    if not args.offline:
+        # A long build's spec is the scan most likely to fail, so it runs
+        # before any scenario is recorded.
+        for donors, name in LONG_BUILD_RECORDS.items():
+            if name in chosen:
+                try:
+                    ctx.async_spec(donors)
+                except ShapeError as exc:
+                    raise SystemExit(f"{name}: {exc}") from exc
     count = 0
     for definition in RECORDED:
         if definition.name not in chosen:
