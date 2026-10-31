@@ -236,6 +236,11 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 400
+        },
+        {
+          "endpoint": "presentation.frames",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -1262,6 +1267,16 @@
           "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 409
+        },
+        {
+          "endpoint": "presentation.component_read",
+          "channel": "problem_details",
+          "http_status": 409
+        },
+        {
+          "endpoint": "presentation.component_data",
+          "channel": "problem_details",
+          "http_status": 409
         }
       ],
       "lifecycle": "active"
@@ -2008,7 +2023,7 @@
     {
       "code": "frame_unavailable",
       "classification": "refusal",
-      "definition": "The frame a request names is not held in a state Presentation can load: it was never stored or published, it has expired or been revoked, its spec is quarantined, or its stored artifact is missing, fails its digest check, does not decode, or holds more rows than Presentation loads.",
+      "definition": "The frame a request names is not held in a state Presentation can load: it was never stored or published, it has expired or been revoked, its spec is quarantined, or its stored artifact is missing, fails its digest check, does not decode, or holds more rows than Presentation loads. A pin of a derived frame with no recipe yet is refused with cause code recipe_pending and is retryable, because a recipe write lets a retry pin. A store that fails to answer is service_unavailable.",
       "owning_contract": "presentation",
       "owner": "platform",
       "introduced_in": "v1",
@@ -2025,6 +2040,16 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.frames",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.component_data",
           "channel": "problem_details",
           "http_status": 404
         },
@@ -2190,7 +2215,7 @@
     {
       "code": "internal_error",
       "classification": "refusal",
-      "definition": "An unclassified, non-retryable failure occurred while handling the request.",
+      "definition": "An unclassified, non-retryable failure occurred while handling the request. This includes a pin of a derived frame whose recipe cannot be read, since recipes are write-once and a retry cannot clear it.",
       "owning_contract": "platform",
       "owner": "platform",
       "introduced_in": "v1",
@@ -2272,6 +2297,21 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "presentation.frames",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "presentation.component_read",
+          "channel": "problem_details",
+          "http_status": 500
+        },
+        {
+          "endpoint": "presentation.component_data",
           "channel": "problem_details",
           "http_status": 500
         },
@@ -2820,6 +2860,16 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.component_read",
+          "channel": "problem_details",
+          "http_status": 404
+        },
+        {
+          "endpoint": "presentation.component_data",
           "channel": "problem_details",
           "http_status": 404
         },
@@ -4145,7 +4195,7 @@
     {
       "code": "release_mismatch",
       "classification": "refusal",
-      "definition": "The request names a catalogue or grammar release this deployment does not serve.",
+      "definition": "The request names a catalogue or grammar release this deployment does not serve, or reads a stored payload whose shape this release does not recognise.",
       "owning_contract": "presentation",
       "owner": "platform",
       "introduced_in": "v1",
@@ -4162,6 +4212,11 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.component_read",
           "channel": "problem_details",
           "http_status": 503
         }
@@ -4347,6 +4402,21 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.frames",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.component_read",
+          "channel": "problem_details",
+          "http_status": 400
+        },
+        {
+          "endpoint": "presentation.component_data",
           "channel": "problem_details",
           "http_status": 400
         },
@@ -4878,7 +4948,7 @@
     {
       "code": "service_unavailable",
       "classification": "refusal",
-      "definition": "The service cannot handle the request right now, typically because a dedicated capacity or connection pool has no room left; a retry is expected to succeed.",
+      "definition": "The service cannot handle the request right now, typically because a dedicated capacity or connection pool has no room left or a store it reads fails to answer; a retry is expected to succeed.",
       "owning_contract": "platform",
       "owner": "platform",
       "introduced_in": "v1",
@@ -5028,6 +5098,21 @@
         },
         {
           "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.frames",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.component_read",
+          "channel": "problem_details",
+          "http_status": 503
+        },
+        {
+          "endpoint": "presentation.component_data",
           "channel": "problem_details",
           "http_status": 503
         },
@@ -6213,6 +6298,21 @@
           "http_status": 504
         },
         {
+          "endpoint": "presentation.frames",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "presentation.component_read",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
+          "endpoint": "presentation.component_data",
+          "channel": "problem_details",
+          "http_status": 504
+        },
+        {
           "endpoint": "datasets.exports",
           "channel": "problem_details",
           "http_status": 504
@@ -6440,6 +6540,16 @@
         },
         {
           "endpoint": "presentation.write",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "presentation.render",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "presentation.shares",
           "channel": "problem_details",
           "http_status": 422
         },

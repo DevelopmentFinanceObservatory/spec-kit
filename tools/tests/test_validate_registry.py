@@ -334,6 +334,9 @@ def schema_validator() -> Draft202012Validator:
     "endpoint",
     [
         "presentation.write",
+        "presentation.frames",
+        "presentation.component_read",
+        "presentation.component_data",
         "datasets.mint",
         "datasets.options",
         "platform.any",
