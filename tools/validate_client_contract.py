@@ -2458,9 +2458,10 @@ class LongBuild:
     """A build the server runs on, followed the way a client polls it. Each
     wait before a poll is `PollPacing`'s. A retryable 429 poll spends no
     retry, any other retryable refused poll one of MAX_RETRIES, and a refused
-    poll that is not retryable raises, a 429 included. The poll after a
+    poll `tries_again` declines raises, a 429 included. The poll after a
     refusal waits as `PollPacing` gives. A poll answering a failed
-    operation, retryable by its error, posts the build again once when the
+    operation, retryable by its error, or refused with `operation_failed`
+    and allowed by `tries_again`, posts the build again once when the
     client holds its request. Otherwise, and for an operation that failed
     before the client polled it, the operation's error raises. `entry` is
     the build's `long_builds` entry, and `result` its manifest once it is
@@ -2517,9 +2518,9 @@ class LongBuild:
             error, again = failed_operation(body, self.actions, headers)
         else:
             error = refusal_error(status, body, self.actions, headers)
-            again = retryable(status, body, self.actions)
+            again = tries_again(status, body, headers, self.actions)
             if error.code != OPERATION_FAILED:
-                if not tries_again(status, body, headers, self.actions):
+                if not again:
                     raise error
                 if status != 429:
                     if self.retries >= MAX_RETRIES:

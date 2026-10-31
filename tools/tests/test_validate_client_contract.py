@@ -2932,7 +2932,9 @@ def _write_long_build(package_dir: Path, kind: str) -> Path:
     202 and two polls finish it, the first after the 202's 1.5 s pacing and
     the second after a 1 s backoff. `rate_limited` adds a 429 with
     Retry-After 3 before the first poll; `resubmitted` has the first poll
-    answer a retryable failed operation and the build posted again."""
+    answer a retryable failed operation and the build posted again, and
+    `refused_resubmitted` has it refused 500 with that operation's error and
+    Retry-After 3."""
     scenarios = package_dir / "scenarios"
     parent = json.loads(
         (scenarios / "fetch-spec-known-sentence.json").read_text(encoding="utf-8")
@@ -2971,7 +2973,7 @@ def _write_long_build(package_dir: Path, kind: str) -> Path:
             },
         )
         waits = [1.5, 3.0, 1.0]
-    elif kind == "resubmitted":
+    elif kind in ("resubmitted", "refused_resubmitted"):
         error = {
             "type": "/codes/operation_failed",
             "title": "Internal Server Error",
@@ -2982,7 +2984,11 @@ def _write_long_build(package_dir: Path, kind: str) -> Path:
             "capability_version": "synthetic",
             "retryable": True,
         }
-        polls[:0] = [polled("failed", error=error), started]
+        failed = polled("failed", error=error)
+        if kind == "refused_resubmitted":
+            headers = {"content-type": "application/problem+json", "retry-after": "3"}
+            failed["response"] = {"status": 500, "headers": headers, "json": error}
+        polls[:0] = [failed, started]
         waits = [1.5, 1.5, 1.0]
         resubmissions = 1
     outcome = copy.deepcopy(parent["expect"][0])
@@ -3015,7 +3021,9 @@ def _long_builds(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return _set_outcome(0, lambda o: change(o["dataset"]["long_builds"][0]))
 
 
-@pytest.mark.parametrize("kind", ["plain", "rate_limited", "resubmitted"])
+@pytest.mark.parametrize(
+    "kind", ["plain", "rate_limited", "resubmitted", "refused_resubmitted"]
+)
 def test_a_long_build_record_is_valid(package_dir: Path, kind: str) -> None:
     _write_long_build(package_dir, kind)
     assert validator.validate() == []
@@ -3054,6 +3062,13 @@ def test_a_long_build_record_is_valid(package_dir: Path, kind: str) -> None:
             _set_body(1, lambda body: body["error"].update(retryable=False)),
             "the steps never make exchanges 2 to 6",
         ),
+        (
+            "refused_resubmitted",
+            lambda doc: doc["exchanges"][1]["response"]["headers"].update(
+                {"retry-after": "300"}
+            ),
+            "the steps never make exchanges 2 to 6",
+        ),
     ],
     ids=[
         "poll-waits-without-backoff",
@@ -3062,6 +3077,7 @@ def test_a_long_build_record_is_valid(package_dir: Path, kind: str) -> None:
         "rate-limited-poll-without-its-wait",
         "resubmission-uncounted",
         "failed-operation-not-retryable",
+        "refused-failed-operation-past-retry-after-cap",
     ],
 )
 def test_a_broken_long_build_is_reported(
