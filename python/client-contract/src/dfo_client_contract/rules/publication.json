@@ -1,0 +1,444 @@
+{
+  "format_version": 1,
+  "rule": "publication",
+  "vectors": [
+    {
+      "name": "live-replace-keeps-slots",
+      "description": "Replacing a live share's cards keeps its slots, so each slot's embed and data URLs draw the new card.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "tile",
+          "latest": true,
+          "cards": [
+            "cmp_a",
+            "cmp_b"
+          ]
+        },
+        {
+          "op": "replace",
+          "share": "tile",
+          "cards": [
+            "cmp_c",
+            "cmp_d"
+          ],
+          "write_token": "held"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              },
+              {
+                "slot": 2,
+                "card": "cmp_b"
+              }
+            ]
+          }
+        },
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_c"
+              },
+              {
+                "slot": 2,
+                "card": "cmp_d"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "live-replace-with-fewer-cards",
+      "description": "A replacement with fewer cards leaves the later slots empty, and a later one with more fills them again, under the same URLs.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "tile",
+          "latest": true,
+          "cards": [
+            "cmp_a",
+            "cmp_b",
+            "cmp_c"
+          ]
+        },
+        {
+          "op": "replace",
+          "share": "tile",
+          "cards": [
+            "cmp_d"
+          ],
+          "write_token": "held"
+        },
+        {
+          "op": "replace",
+          "share": "tile",
+          "cards": [
+            "cmp_a",
+            "cmp_b",
+            "cmp_e"
+          ],
+          "write_token": "held"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              },
+              {
+                "slot": 2,
+                "card": "cmp_b"
+              },
+              {
+                "slot": 3,
+                "card": "cmp_c"
+              }
+            ]
+          }
+        },
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_d"
+              },
+              {
+                "slot": 2,
+                "card": null
+              },
+              {
+                "slot": 3,
+                "card": null
+              }
+            ]
+          }
+        },
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              },
+              {
+                "slot": 2,
+                "card": "cmp_b"
+              },
+              {
+                "slot": 3,
+                "card": "cmp_e"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "snapshot-replace-refused",
+      "description": "A snapshot cannot be replaced, even with its write token, so a cited URL draws the same figure for good.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "figure",
+          "latest": false,
+          "cards": [
+            "cmp_a"
+          ]
+        },
+        {
+          "op": "replace",
+          "share": "figure",
+          "cards": [
+            "cmp_b"
+          ],
+          "write_token": "held"
+        },
+        {
+          "op": "read",
+          "share": "figure"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": false,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        },
+        {
+          "error": "share_not_replaceable"
+        },
+        {
+          "share": {
+            "latest": false,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "replace-without-token-refused",
+      "description": "Replacing a share needs its write token.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "tile",
+          "latest": true,
+          "cards": [
+            "cmp_a"
+          ]
+        },
+        {
+          "op": "replace",
+          "share": "tile",
+          "cards": [
+            "cmp_b"
+          ]
+        },
+        {
+          "op": "read",
+          "share": "tile"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        },
+        {
+          "error": "write_token_required"
+        },
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "replace-with-another-token-refused",
+      "description": "A write token other than the share's is refused, and the check comes before the share's mode, so a caller without the token learns nothing else.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "figure",
+          "latest": false,
+          "cards": [
+            "cmp_a"
+          ]
+        },
+        {
+          "op": "replace",
+          "share": "figure",
+          "cards": [
+            "cmp_b"
+          ],
+          "write_token": "other"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": false,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        },
+        {
+          "error": "write_token_invalid"
+        }
+      ]
+    },
+    {
+      "name": "tokenless-share-stays-fixed",
+      "description": "A share created with no write token, as a guest's share migrates, refuses every token, so it stays as it is.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "guest",
+          "latest": true,
+          "cards": [
+            "cmp_a"
+          ],
+          "tokenless": true
+        },
+        {
+          "op": "replace",
+          "share": "guest",
+          "cards": [
+            "cmp_b"
+          ],
+          "write_token": "held"
+        },
+        {
+          "op": "unshare",
+          "share": "guest",
+          "write_token": "held"
+        },
+        {
+          "op": "read",
+          "share": "guest"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        },
+        {
+          "error": "write_token_invalid"
+        },
+        {
+          "error": "write_token_invalid"
+        },
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "unshare-snapshot",
+      "description": "A snapshot can be taken down with its write token.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "figure",
+          "latest": false,
+          "cards": [
+            "cmp_a"
+          ]
+        },
+        {
+          "op": "unshare",
+          "share": "figure",
+          "write_token": "held"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": false,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        },
+        {
+          "removed": true
+        }
+      ]
+    },
+    {
+      "name": "unshare-without-token-refused",
+      "description": "Taking a share down needs its write token.",
+      "steps": [
+        {
+          "op": "share",
+          "share": "tile",
+          "latest": true,
+          "cards": [
+            "cmp_a"
+          ]
+        },
+        {
+          "op": "unshare",
+          "share": "tile"
+        },
+        {
+          "op": "read",
+          "share": "tile"
+        }
+      ],
+      "outcomes": [
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        },
+        {
+          "error": "write_token_required"
+        },
+        {
+          "share": {
+            "latest": true,
+            "slots": [
+              {
+                "slot": 1,
+                "card": "cmp_a"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

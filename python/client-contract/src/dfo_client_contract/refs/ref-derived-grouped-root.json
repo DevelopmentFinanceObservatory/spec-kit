@@ -1,0 +1,70 @@
+{
+  "format_version": 1,
+  "name": "ref-derived-grouped-root",
+  "description": "A format 2 ref naming a growth over a root of fetch-spec-known-sentence read summed, as a breakdown by purpose reads it: the root's rendering carries the groupby the analysis read it with, which keeps the time period and the purpose rolled up to its root codes and sums every other axis away.",
+  "scenario": "fetch-spec-known-sentence",
+  "ref": {
+    "format_version": 2,
+    "members": [
+      {
+        "parts": [],
+        "sentence": "Change in Germany's gross ODA disbursements to Nigeria by top-level purpose, 2020 to 2023. Computed by DFO from OECD Creditor Reporting System (CRS).",
+        "spec": {
+          "spec_id": "ops_40511987433085c4f2dadc6b7aae2755",
+          "recipe": {
+            "normal_form_hash": "rnf_920ac02001d7529fd9c17ebadb452c99",
+            "replay_key": "rpk_a0a019687e913a1204cbcb089a58492f"
+          }
+        },
+        "content_version": "ocv_6b4b9814c24f8d0c94624826c0c7773e",
+        "output_digest": "out_6927b7d353696180a34110d8dde723d6",
+        "roots": [
+          {
+            "spec_id": "spec_cb5baa4161de718f18583060674dbca6",
+            "content_version": "cv_bf242138f8d0a892c97da9373d1626f4",
+            "rendering": {
+              "format": "parquet",
+              "bundle": false,
+              "layout": "frame",
+              "without_party_totals": true,
+              "groupby": {
+                "by": [
+                  "crsPurpose",
+                  "time_period"
+                ],
+                "op": "sum",
+                "levels": {
+                  "crsPurpose": 0
+                }
+              }
+            }
+          }
+        ],
+        "execution_identity": "0.9.0|1.1.0|0.2.0",
+        "resolved_periods": [
+          {
+            "anchor": "latest",
+            "offset": -3,
+            "rule": "half1",
+            "period": "2020"
+          },
+          {
+            "anchor": "latest",
+            "offset": 0,
+            "rule": "half1",
+            "period": "2023"
+          }
+        ],
+        "artifact": {
+          "digest": "sha256:2f052058736db19e262bb8496f0da6c90f9deef851cb0224cff42dfb04bd0bd1",
+          "rendering": {
+            "format": "parquet",
+            "bundle": false,
+            "layout": "frame"
+          }
+        }
+      }
+    ]
+  },
+  "expect": "accept"
+}

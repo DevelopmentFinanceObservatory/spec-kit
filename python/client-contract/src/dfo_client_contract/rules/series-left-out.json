@@ -1,0 +1,199 @@
+{
+  "format_version": 1,
+  "rule": "series-left-out",
+  "vectors": [
+    {
+      "name": "growth-left-series-out",
+      "description": "A growth dropped Nigeria, which has no value at the window's end, so the fetch issues series_left_out and returns the frame.",
+      "members": [
+        {
+          "left_out": [
+            {
+              "coordinates": {
+                "financingRecipient": "country/NGA"
+              },
+              "step": {
+                "verb": "growth",
+                "node": 0
+              },
+              "side": "data",
+              "reason": "endpoint_missing",
+              "rows": 1
+            }
+          ],
+          "left_out_complete": true
+        }
+      ],
+      "strict": false,
+      "warnings": [
+        "series_left_out"
+      ]
+    },
+    {
+      "name": "nothing-left-out",
+      "description": "A manifest that lists no left-out series and says the list is complete issues nothing.",
+      "members": [
+        {
+          "left_out": [],
+          "left_out_complete": true
+        }
+      ],
+      "strict": false,
+      "warnings": []
+    },
+    {
+      "name": "recipe-stored-without-left-out",
+      "description": "A recipe stored without its left-out series has a null left_out and left_out_complete and issues nothing.",
+      "members": [
+        {
+          "left_out": null,
+          "left_out_complete": null
+        }
+      ],
+      "strict": false,
+      "warnings": []
+    },
+    {
+      "name": "list-incomplete",
+      "description": "A manifest whose list stops short of every left-out series, left_out_complete false, issues series_left_out.",
+      "members": [
+        {
+          "left_out": [
+            {
+              "coordinates": {
+                "financingRecipient": "country/GHA"
+              },
+              "step": {
+                "verb": "quotient_of",
+                "node": 1
+              },
+              "side": "data",
+              "reason": "unmatched_key",
+              "rows": 2
+            }
+          ],
+          "left_out_complete": false
+        }
+      ],
+      "strict": false,
+      "warnings": [
+        "series_left_out"
+      ]
+    },
+    {
+      "name": "incomplete-with-none-listed",
+      "description": "left_out_complete false issues series_left_out even when left_out lists no series.",
+      "members": [
+        {
+          "left_out": [],
+          "left_out_complete": false
+        }
+      ],
+      "strict": false,
+      "warnings": [
+        "series_left_out"
+      ]
+    },
+    {
+      "name": "several-members-warn-once",
+      "description": "Two members whose manifests each list left-out series issue one series_left_out for the fetch.",
+      "members": [
+        {
+          "left_out": [
+            {
+              "coordinates": {
+                "financingRecipient": "country/NGA"
+              },
+              "step": {
+                "verb": "growth",
+                "node": 0
+              },
+              "side": "data",
+              "reason": "endpoint_missing",
+              "rows": 1
+            }
+          ],
+          "left_out_complete": true
+        },
+        {
+          "left_out": null,
+          "left_out_complete": null
+        },
+        {
+          "left_out": [
+            {
+              "coordinates": {
+                "financingRecipient": "country/GHA"
+              },
+              "step": {
+                "verb": "quotient_of",
+                "node": 1
+              },
+              "side": "data",
+              "reason": "unmatched_key",
+              "rows": 2
+            },
+            {
+              "coordinates": {
+                "financingRecipient": "country/NGA"
+              },
+              "step": {
+                "verb": "quotient_of",
+                "node": 1
+              },
+              "side": "data",
+              "reason": "period_unmatched",
+              "rows": 1
+            }
+          ],
+          "left_out_complete": true
+        }
+      ],
+      "strict": false,
+      "warnings": [
+        "series_left_out"
+      ]
+    },
+    {
+      "name": "strict-raises",
+      "description": "Under strict, a fetch whose member's manifest lists left-out series raises series_left_out in place of its data.",
+      "members": [
+        {
+          "left_out": null,
+          "left_out_complete": null
+        },
+        {
+          "left_out": [
+            {
+              "coordinates": {
+                "financingRecipient": "country/GHA"
+              },
+              "step": {
+                "verb": "growth",
+                "node": 0
+              },
+              "side": "data",
+              "reason": "zero_or_sign_crossing_base",
+              "rows": 2
+            }
+          ],
+          "left_out_complete": true
+        }
+      ],
+      "strict": true,
+      "raises": "series_left_out"
+    },
+    {
+      "name": "strict-without-left-out-series",
+      "description": "Under strict, a fetch whose manifests list no left-out series returns its data with no warning.",
+      "members": [
+        {
+          "left_out": [],
+          "left_out_complete": true
+        }
+      ],
+      "strict": true,
+      "warnings": []
+    }
+  ]
+}

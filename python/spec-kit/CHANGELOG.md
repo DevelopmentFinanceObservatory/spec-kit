@@ -8,6 +8,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Codes `share_id_taken` (409) and `share_import_not_permitted` (403) on
+  `presentation.shares` in `registries/codes.json` and its bundled mirror,
+  for the share import route. `share_id_taken` covers an id that holds
+  another share, or the same share stored with a different write-token
+  digest. `share_import_not_permitted` covers a caller that did not send the
+  import principal, and a deployment with no import principal set. Neither is
+  retryable. The client contract gives them the `fix_request` and
+  `request_scope` actions.
 - `dfo_spec_kit.units` reads a unit ref into one typed value: `Money`
   (`currency`, `prices`, `base_year`, `chained`), `UnpricedMoney`
   (`currency`), `Percent`, `Count` or `Other` (`ref`). A ref that leaves
@@ -64,6 +72,42 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differ from the published figure. Its params name the total (`total`,
   `total_label`) and the party classes it covers (`whole_of`: `official`,
   `private` or `residual`, comma-joined).
+- Code `allowance_exhausted` in `registries/codes.json` and its bundled
+  mirror: a 429 refusal on `datasets.pin`, `presentation.shares` and
+  `presentation.write` once the caller has spent its daily allowance of
+  pins, shares or cards. Its problem document says `retryable: false`, and
+  its `Retry-After` header names the reset.
+- Endpoint `datasets.analysis` in the registry schema, with its refusals in
+  `registries/codes.json` and its bundled mirror: 36 new codes at 422,
+  `rolling_populations_differ`, `several_members` and the 34 the analysis
+  engine serves, among them `unit_heterogeneous`, `cross_frame_unit_mismatch`,
+  `join_output_collision`, `rolling_anchor_unresolved`, `role_ambiguous`,
+  `compare_no_key_matched` and `sum_of_no_key_matched`; `timeout` at 504; and
+  27 existing codes at the status each has on `datasets.mint`,
+  `datasets.snapshot` or the platform rows, among them `request_invalid`
+  (400), `snapshot_revoked` (410), `over_ceiling` (422), `upstream_error`
+  (502) and `service_unavailable` (503).
+- Endpoint `presentation.shares` in the registry schema, with its refusals in
+  `registries/codes.json` and its bundled mirror: `write_token_required` (403)
+  for a replace or delete without a write token; `write_token_invalid` (403)
+  for one whose token is not the share's, or that names a share created
+  without a token; `share_not_replaceable` (409); `payload_too_large` (413)
+  for a body larger than the share routes accept; and `binding_invalid`,
+  `schema_invalid`, `constraint_violation`, `resource_exhausted` and
+  `request_invalid` (400), `not_found` and `frame_unavailable` (404),
+  `edit_conflict` (409), `internal_error` (500), `release_mismatch` and
+  `service_unavailable` (503), and `timeout` (504), at the statuses the
+  components routes give them.
+- Endpoints `presentation.frames`, `presentation.component_read` and
+  `presentation.component_data` in the registry schema, with existing codes
+  in `registries/codes.json` and its bundled mirror at the statuses the
+  routes serve. All three carry `request_invalid` (400), `internal_error`
+  (500), `service_unavailable` (503) and `timeout` (504).
+  `presentation.frames` adds `binding_invalid` (400) and `frame_unavailable`
+  (404). `presentation.component_read` adds `not_found` (404), `edit_conflict`
+  (409) and `release_mismatch` (503). `presentation.component_data` adds
+  `binding_invalid` (400), `not_found` and `frame_unavailable` (404) and
+  `edit_conflict` (409).
 
 ### Changed
 
@@ -79,11 +123,18 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `release_mismatch` at 503, the statuses the Presentation write routes
   serve. `presentation.render` keeps 422 for the first two and 409 for the
   rest. `frame_unavailable` covers a frame that is not held in a state
-  Presentation can load, and its definition names each case. A frame whose
-  stored artifact the store fails to read is also `frame_unavailable`, served
-  at 503 and retryable; the registry holds one status for each endpoint and
-  channel, so it records the 404 the write routes serve for every other
-  case.
+  Presentation can load, and its definition names each case. A pin of a
+  derived frame with no recipe yet is `frame_unavailable` at 404 with
+  `cause.code` `recipe_pending` and is retryable, because a recipe write lets
+  a retry pin. A store that fails to answer is `service_unavailable` at 503,
+  and the definition of `service_unavailable` names it. A pin of a derived
+  frame whose recipe cannot be read is `internal_error` at 500 and is not
+  retryable, since recipes are write-once and a retry cannot clear it. The
+  definition of `release_mismatch` adds a read of a stored payload whose
+  shape the release does not recognise.
+- Code `unsupported_schema_version` maps to `presentation.render` and
+  `presentation.shares` at 422, for a request body that carries
+  `schema_version`.
 - Code `edit_conflict` maps to `presentation.render` at 409, for a render
   of a component that has no current revision, and its definition names
   that case.
@@ -95,6 +146,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code `upstream_error` maps to `graph.members` at 502, the status the
   members route answers when the read that checks whether the graph holds
   the node fails upstream, as `graph.node` answers for the same read.
+- `pin_not_permitted` is retired in `registries/codes.json` and its bundled
+  mirror: the pin route admits every caller under its allowance, so nothing
+  raises it. Its `datasets.pin` mapping stays.
 - `starved_axis_binding_restored` is retired in `registries/codes.json` and
   its bundled mirror: Search no longer restores a starved constraint axis, so
   nothing raises it.
@@ -125,6 +179,10 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code `identity_quarantined` (500) maps to `datasets.snapshot`,
   `datasets.files`, `datasets.pin`, `datasets.observations` and
   `datasets.refresh`, the same status it has on the other Datasets doors.
+- Code `over_ceiling` maps to `datasets.observations` and `datasets.files`
+  at 422, for a stored frame whose recorded size passes the decode bound or a
+  file render past the fold ceiling, the status it has on the other Datasets
+  doors.
 
 ### Added
 
@@ -223,6 +281,68 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mirror: a 422 refusal on `search.resolve` for a `dataset_resubmit` whose
   identity names an open role, when the StatVars the definition elects declare
   no role on that axis, so the definition cannot give one series per member.
+- Codes `tool_not_found`, `frame_ref_incomplete`, `frame_not_held`,
+  `frame_expired`, `rolling_reanchor_unavailable`, `provenance_unavailable`
+  and `licence_not_redistributable` in `registries/codes.json` and its bundled
+  mirror, all refusals. The first five are refusals only an MCP tool result
+  carries, on endpoint `mcp.tools` and channel `mcp_refusal`. They cover an
+  unknown or removed tool, a frame reference that lacks its content version, a
+  frame not held, a frame aged out, and a rolling computation with a derived
+  input that has no stored recipe to compute again under the shared latest
+  period. `provenance_unavailable` (422) and `licence_not_redistributable`
+  (403) are on `datasets.exports`, the latter also on `datasets.export_link`.
+  They cover an export of a frame whose sources and licences cannot be named,
+  and an export whose source licence forbids redistribution.
+- Codes `definition_not_held`, `derived_input_unrecoverable`,
+  `entity_not_found`, `frame_integrity_failed`, `operation_still_processing`,
+  `publish_not_configured`, `rate_limited` and `transient_unavailable` in
+  `registries/codes.json` and its bundled
+  mirror, all refusals on `mcp.tools` and `mcp_refusal`. They cover an id with
+  no registered definition, an input frame whose period labels do not state
+  their years, a scope name that gives no entity, a stored frame that fails an
+  integrity check, a build unfinished when the call's wait ended, a deployment
+  with no identity to publish a frame under, a service at a limit on calls,
+  and a service behind the one called that failed or a lost frame not yet
+  computable. The website proxy's `proxy-codes.json` holds the proxy surface
+  of `rate_limited` and `transient_unavailable`.
+- `mcp.tools` mappings on the 54 existing codes the MCP servers also write, so
+  the endpoint holds every code they write: each value of the data-mcp and
+  analysis-mcp `ToolErrorCode` enums and each code presentation-mcp and the
+  harness combined server write. Platform codes presentation-mcp only forwards
+  stay on their `presentation.*` mappings.
+- Endpoint `mcp.tools` and channel `mcp_refusal` in
+  `schemas/registry/code-registry.schema.json`, its README and
+  `tools/validate_registry.py`. They describe the refusal envelope of an MCP
+  tool result (dfo-ai data-mcp, analysis-mcp, presentation-mcp). A mapping on
+  the endpoint carries no `http_status`, `mcp_refusal` is a refusal-only
+  channel, and the schema requires each of the two for the other.
+- Endpoints `datasets.exports` and `datasets.export_link` in
+  `schemas/registry/code-registry.schema.json` and its README.
+  `datasets.exports` is `POST /api/datasets/exports`, which prepares an export
+  file of a stored frame. It carries `request_invalid` (400), `spec_not_found`
+  (404), `snapshot_not_found` (404), `snapshot_revoked` (410),
+  `artifact_expired` (410), `identity_quarantined` (500), `over_ceiling`
+  (422), `provenance_unavailable` (422), `licence_not_redistributable` (403),
+  `allowance_exhausted` (429), `service_unavailable` (503), `internal_error`
+  (500), `capability_unavailable` (501), `excel_limit` (422),
+  `excel_illegal_character` (422), `parquet_size_bound` (422) and
+  `rollup_not_summable` (422). A prepare that names only a `spec_id`
+  resolves its newest version, which can rebuild it, so the endpoint also
+  carries the codes a rebuild raises on `datasets.definition`, at the same
+  statuses: `spec_not_exportable` (409), `identity_collision` and
+  `members_not_held` (500), `upstream_error` (502),
+  `upstream_version_changed` (503), `timeout` (504), and
+  `collection_probe_ceiling`, `column_unknown`, `default_facet_undefined`,
+  `definition_not_reproducible`, `excluded_by_registry`,
+  `facet_binding_unsupported`, `facet_not_available`, `invalid_role_ref`,
+  `member_not_resolvable`, `rate_coverage_gap`, `recipe_not_declared`,
+  `role_incompatible` and
+  `role_signature_incompatible` (422). `datasets.export_link` is
+  `GET /api/datasets/exports/{export_id}`, which answers a 302 redirect to the
+  file's download link. It carries `not_found` (404),
+  `snapshot_revoked` (410), `licence_not_redistributable` (403),
+  `identity_quarantined` (500), `service_unavailable` (503) and
+  `internal_error` (500).
 - Codes `requested_option_unavailable` and `conflicting_requested_options` in
   `registries/codes.json` and its bundled mirror: 422 refusals on
   `search.resolve` for a `dataset_resubmit` that posts `scope_entries`.

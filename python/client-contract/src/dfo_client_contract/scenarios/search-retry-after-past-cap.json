@@ -1,0 +1,57 @@
+{
+  "format_version": 1,
+  "name": "search-retry-after-past-cap",
+  "description": "A retryable refusal whose Retry-After is past the 60-second cap raises at once, with no wait and no retry: ServerError with its code, service_unavailable, and its trace id.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "A 503 service_unavailable with retryable true and Retry-After 61 answers the search."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo in 2018"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 503,
+        "headers": {
+          "content-type": "application/problem+json",
+          "retry-after": "61"
+        },
+        "json": {
+          "type": "/codes/service_unavailable",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "The service is busy.",
+          "code": "service_unavailable",
+          "trace_id": "00000000000000000000000000000000",
+          "capability_version": "synthetic",
+          "retryable": true
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ServerError",
+        "code": "service_unavailable",
+        "trace_id": "00000000000000000000000000000000"
+      }
+    }
+  ]
+}

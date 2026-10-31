@@ -50,6 +50,8 @@ REFUSAL_CHANNELS = {
     # so this channel legally carries either classification depending on the
     # entry.
     "observations_omission_reason",
+    # The refusal envelope of an MCP tool result, which has no HTTP status.
+    "mcp_refusal",
 }
 WARNING_CHANNELS = {
     "diagnostics_warning",

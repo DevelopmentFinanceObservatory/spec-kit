@@ -11,7 +11,7 @@ import pyarrow as pa
 import pytest
 
 from dfo_frame_grammar import arrow as arrow_module
-from dfo_frame_grammar import grammar
+from dfo_frame_grammar import columnar, grammar
 from dfo_frame_grammar.arrow import build_frame_from_arrow
 from dfo_frame_grammar.columnar import (
     array_kernel,
@@ -234,6 +234,77 @@ class TestUnitCodes:
         codes = unit_codes(unit)
         assert codes.codes.to_pylist() == [0, 1, 0, 2, 3, 4, 0]
         assert unit_cells(unit, codes) == list(dict.fromkeys(cells))
+
+    @pytest.mark.parametrize(
+        ("stored", "category"),
+        [
+            pytest.param(
+                {"ref": None, "request": None, "composed": None},
+                "schema_violation",
+                id="no-member",
+            ),
+            pytest.param(
+                {"ref": "USDollar", "composed": '{"numerator":"a","denominator":"b"}'},
+                "schema_violation",
+                id="two-members",
+            ),
+            pytest.param({"ref": ""}, "schema_violation", id="empty-ref"),
+            pytest.param(
+                {"request": {"currency": "usd", "prices": "current"}},
+                "invalid_unit",
+                id="request-outside-its-form",
+            ),
+            pytest.param(
+                {"request": {"currency": "USD", "prices": "constant"}},
+                "invalid_unit",
+                id="constant-without-base-year",
+            ),
+            pytest.param({"composed": "not json"}, "invalid_unit", id="not-json"),
+            pytest.param({"composed": "[" * 100_000}, "invalid_unit", id="too-deep"),
+            pytest.param(
+                {"composed": '{"numerator":' + "9" * 5000 + ',"denominator":"b"}'},
+                "invalid_unit",
+                id="integer-past-the-digit-limit",
+            ),
+            pytest.param(
+                {"composed": '{"numerator":"a","numerator":"c","denominator":"b"}'},
+                "invalid_unit",
+                id="repeated-member",
+            ),
+            pytest.param({"composed": '"USDollar"'}, "invalid_unit", id="a-ref"),
+            pytest.param(
+                {"composed": '{"numerator":"a"}'}, "invalid_unit", id="one-side"
+            ),
+            pytest.param(
+                {"composed": '{"numerator":"a","denominator":{"stat_var":3}}'},
+                "invalid_unit",
+                id="stat-var-not-text",
+            ),
+        ],
+    )
+    def test_unit_cells_refuses_a_stored_cell_outside_its_forms(
+        self, stored: dict[str, object], category: str
+    ) -> None:
+        unit_type = canonical_frame_schema(("unit",)).field("unit").type
+        unit = pa.array([stored, {"ref": "USDollar"}], unit_type)
+        with pytest.raises(FrameError) as excinfo:
+            unit_cells(unit, unit_codes(unit))
+        assert excinfo.value.category == category
+
+    def test_unit_cells_reads_each_distinct_cell_once(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        read: list[object] = []
+        original = columnar._canonical_unit_from_mapping
+
+        def counting(value: object) -> object:
+            read.append(value)
+            return original(value)
+
+        monkeypatch.setattr(columnar, "_canonical_unit_from_mapping", counting)
+        unit = unit_cell_array("USDollar", 1000)
+        unit_cells(unit, unit_codes(unit))
+        assert len(read) == 1
 
     def test_an_all_null_child_keeps_null_structs_distinct(self) -> None:
         inner = pa.struct([("x", pa.string())])
