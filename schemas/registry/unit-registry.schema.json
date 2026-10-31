@@ -176,6 +176,41 @@
               "$ref": "#/$defs/evidence"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "kind",
+            "count_base",
+            "counted",
+            "evidence"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "kind": {
+              "const": "rate"
+            },
+            "count_base": {
+              "description": "How many of what is counted one value is per: 1000 for a value per 1,000 people.",
+              "type": "integer",
+              "minimum": 2
+            },
+            "counted": {
+              "description": "What the base counts, as a plural noun phrase the ref states, null when the ref states none.",
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            }
+          }
         }
       ]
     },

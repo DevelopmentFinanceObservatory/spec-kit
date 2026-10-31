@@ -14,6 +14,7 @@ from dfo_spec_kit.units import (
     Money,
     Other,
     Percent,
+    Rate,
     Unit,
     UnpricedMoney,
     _row_to_unit,
@@ -89,6 +90,8 @@ def test_every_registry_row_parses_to_its_declared_kind() -> None:
                 assert isinstance(unit, Percent), row["ref"]
             case "count":
                 assert isinstance(unit, Count), row["ref"]
+            case "rate":
+                assert isinstance(unit, Rate), row["ref"]
             case _:
                 pytest.fail(row["ref"])
 
@@ -222,6 +225,28 @@ _MONEY_ROW = {
         {**_MONEY_ROW, "evidence": 5},
         {**_MONEY_ROW, "evidence": ""},
         {"ref": "test/count", "kind": "count", "evidence": ""},
+        {"ref": "test/rate", "kind": "rate", "count_base": 1000, "evidence": "x"},
+        {
+            "ref": "test/rate",
+            "kind": "rate",
+            "count_base": 1,
+            "counted": "people",
+            "evidence": "x",
+        },
+        {
+            "ref": "test/rate",
+            "kind": "rate",
+            "count_base": True,
+            "counted": "people",
+            "evidence": "x",
+        },
+        {
+            "ref": "test/rate",
+            "kind": "rate",
+            "count_base": 1000,
+            "counted": "",
+            "evidence": "x",
+        },
     ],
 )
 def test_registry_row_refuses_members_its_kind_lacks(row: dict) -> None:

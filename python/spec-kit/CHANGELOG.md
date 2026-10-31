@@ -8,6 +8,12 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `dfo_spec_kit.units.Rate` (`count_base`, `counted`), the typed value of a
+  ref that states a value per a count of something. `registries/units.json`
+  gains the `rate` kind, whose rows declare the base as an integer and what it
+  counts as a plural noun phrase, or `null` where the ref states none. Every
+  per-N unit with a series in the graph has a row, so `Per1000Persons` and
+  `SDG_PER_1000_POP` parse to one `Rate` and no longer to `Other`.
 - Codes `share_id_taken` (409) and `share_import_not_permitted` (403) on
   `presentation.shares` in `registries/codes.json` and its bundled mirror,
   for the share import route. `share_id_taken` covers an id that holds
