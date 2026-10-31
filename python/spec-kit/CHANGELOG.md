@@ -98,6 +98,16 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `edit_conflict` (409), `internal_error` (500), `release_mismatch` and
   `service_unavailable` (503), and `timeout` (504), at the statuses the
   components routes give them.
+- Endpoints `presentation.frames`, `presentation.component_read` and
+  `presentation.component_data` in the registry schema, with existing codes
+  in `registries/codes.json` and its bundled mirror at the statuses the
+  routes serve. All three carry `request_invalid` (400), `internal_error`
+  (500), `service_unavailable` (503) and `timeout` (504).
+  `presentation.frames` adds `binding_invalid` (400) and `frame_unavailable`
+  (404). `presentation.component_read` adds `not_found` (404), `edit_conflict`
+  (409) and `release_mismatch` (503). `presentation.component_data` adds
+  `binding_invalid` (400), `not_found` and `frame_unavailable` (404) and
+  `edit_conflict` (409).
 
 ### Changed
 
@@ -113,11 +123,18 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `release_mismatch` at 503, the statuses the Presentation write routes
   serve. `presentation.render` keeps 422 for the first two and 409 for the
   rest. `frame_unavailable` covers a frame that is not held in a state
-  Presentation can load, and its definition names each case. A frame whose
-  stored artifact the store fails to read is also `frame_unavailable`, served
-  at 503 and retryable; the registry holds one status for each endpoint and
-  channel, so it records the 404 the write routes serve for every other
-  case.
+  Presentation can load, and its definition names each case. A pin of a
+  derived frame with no recipe yet is `frame_unavailable` at 404 with
+  `cause.code` `recipe_pending` and is retryable, because a recipe write lets
+  a retry pin. A store that fails to answer is `service_unavailable` at 503,
+  and the definition of `service_unavailable` names it. A pin of a derived
+  frame whose recipe cannot be read is `internal_error` at 500 and is not
+  retryable, since recipes are write-once and a retry cannot clear it. The
+  definition of `release_mismatch` adds a read of a stored payload whose
+  shape the release does not recognise.
+- Code `unsupported_schema_version` maps to `presentation.render` and
+  `presentation.shares` at 422, for a request body that carries
+  `schema_version`.
 - Code `edit_conflict` maps to `presentation.render` at 409, for a render
   of a component that has no current revision, and its definition names
   that case.
@@ -162,6 +179,10 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code `identity_quarantined` (500) maps to `datasets.snapshot`,
   `datasets.files`, `datasets.pin`, `datasets.observations` and
   `datasets.refresh`, the same status it has on the other Datasets doors.
+- Code `over_ceiling` maps to `datasets.observations` and `datasets.files`
+  at 422, for a stored frame whose recorded size passes the decode bound or a
+  file render past the fold ceiling, the status it has on the other Datasets
+  doors.
 
 ### Added
 

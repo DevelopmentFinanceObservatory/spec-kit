@@ -153,6 +153,15 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   refuses a `composed` member whose Arrow type is neither a string type nor
   null with `schema_violation`. Canonical bytes, `frame_sha256` and
   `content_version` are unchanged for every frame.
+- `unit_cells` and `Frame.rows` read each stored `unit` struct value as the
+  Arrow build reads it, and raise `FrameError` for a struct with no member or
+  more than one or an empty ref (`schema_violation`) and for a member outside
+  its form: a request outside its closed shape, or `composed` text that is not
+  JSON, repeats a member name, or holds no composed unit (`invalid_unit`).
+  `unit_cells` reads each distinct value once. `unit_column_cells` gives a
+  `unit` column's per-row cells, plain or in JSON form, through it, and
+  `Frame.rows` and `canonical_frame_bytes` read the column that way, so
+  neither validates per row.
 - `unit_cells` returns `ComposedUnit` cells, and `collation_keys` ranks a
   composed unit 3, after a unit request at 2.
 - `canonical_frame_bytes` and `frame_sha256` stream through
