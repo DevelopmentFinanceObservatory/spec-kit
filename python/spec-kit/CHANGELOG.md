@@ -106,7 +106,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `presentation.frames` adds `binding_invalid` (400) and `frame_unavailable`
   (404). `presentation.component_read` adds `not_found` (404), `edit_conflict`
   (409) and `release_mismatch` (503). `presentation.component_data` adds
-  `not_found` and `frame_unavailable` (404) and `edit_conflict` (409).
+  `binding_invalid` (400), `not_found` and `frame_unavailable` (404) and
+  `edit_conflict` (409).
 
 ### Changed
 
