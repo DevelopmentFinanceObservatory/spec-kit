@@ -185,6 +185,10 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code `identity_quarantined` (500) maps to `datasets.snapshot`,
   `datasets.files`, `datasets.pin`, `datasets.observations` and
   `datasets.refresh`, the same status it has on the other Datasets doors.
+- Code `over_ceiling` maps to `datasets.observations` and `datasets.files`
+  at 422, for a stored frame whose recorded size passes the decode bound or a
+  file render past the fold ceiling, the status it has on the other Datasets
+  doors.
 
 ### Added
 

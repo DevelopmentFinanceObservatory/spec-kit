@@ -15,7 +15,6 @@ from dfo_spec_kit.identity import canonicalize
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar._unit_codec import (
     _STORED_UNIT_TYPES,
-    _arrow_unit_to_cell,
     _conform_unit,
     _holds_recipe,
     _unit_array,
@@ -26,6 +25,7 @@ from dfo_frame_grammar.columnar import (
     _grain_columns,
     _sort_and_check,
     collation_sort_keys,
+    unit_column_cells,
 )
 from dfo_frame_grammar.grammar import FrameError
 
@@ -229,17 +229,21 @@ def _table_from_rows(
 def _python_rows(
     columns: tuple[str, ...], table: pa.Table
 ) -> tuple[tuple[object, ...], ...]:
-    """`table`'s rows as tuples of Python cells in `columns` order, with
-    each `unit` struct converted back to its hashable cell."""
-    return tuple(
-        tuple(
-            _arrow_unit_to_cell(row[column])
-            if column == grammar.UNIT_COLUMN
-            else row[column]
-            for column in columns
-        )
-        for row in table.to_pylist()
-    )
+    """`table`'s rows as tuples of Python cells in `columns` order."""
+    return tuple(zip(*_column_cells(columns, table, json_form=False), strict=True))
+
+
+def _column_cells(
+    columns: tuple[str, ...], table: pa.Table, *, json_form: bool
+) -> list[list[object]]:
+    """Each column's Python cells, the `unit` column's from
+    `unit_column_cells`."""
+    return [
+        unit_column_cells(table.column(column), json_form=json_form)
+        if column == grammar.UNIT_COLUMN
+        else table.column(column).to_pylist()
+        for column in columns
+    ]
 
 
 @dataclass(frozen=True, eq=False)
@@ -301,11 +305,13 @@ class Frame:
         derived column tuple; nothing else is checked. The frame holds the
         table as `widen_frame_table` gives it: the recipe layout exactly
         when some cell carries a recipe.
-        Cell contents are trusted: a null grain cell, a non-NFC string, a
-        NaN or `-0.0` value, a unit struct with no variant or more than
-        one, or a `composed` member that is not the canonical JCS text of a
-        composed unit passes here and serialises wrongly or fails later
-        with an error other than `FrameError`. Rows out of the order
+        Cell contents are trusted: a null grain cell, a non-NFC string, or
+        a NaN or `-0.0` value passes here and serialises wrongly. A `unit`
+        cell outside its forms, such as a struct with no variant or more
+        than one, or a `composed` member that is not a composed unit's JSON
+        text, passes here and raises `FrameError` where the cells are read
+        (`unit_cells`, `Frame.rows`, `canonical_frame_bytes`). Rows out of
+        the order
         `columnar.collation_sort_keys` gives, or with equal grains, make
         `canonical_frame_bytes` and `frame_sha256` raise
         `row_key_not_increasing`. Every other table, including any
@@ -430,24 +436,6 @@ class Frame:
         return cls._from_validated(
             columns=columns, table=_sort_and_check(table, columns=columns)
         )
-
-
-def _unit_to_json(value: object) -> object:
-    return grammar.unit_cell_to_json(_arrow_unit_to_cell(value))
-
-
-def _row_cells(frame: Frame, table_row: Mapping[str, object]) -> list[object]:
-    """One row's cells in canonical column order, with the ``unit`` column
-    resolved to its JCS-ready form (`_unit_to_json`) and every other column
-    passed through unchanged -- the per-row projection
-    `stream_canonical_frame_bytes` serialises.
-    """
-    return [
-        _unit_to_json(table_row[column])
-        if column == grammar.UNIT_COLUMN
-        else table_row[column]
-        for column in frame.columns
-    ]
 
 
 def canonical_frame_bytes(frame: Frame) -> bytes:
@@ -593,7 +581,10 @@ def _stream_rows(
         # sorts the key columns.
         keys = collation_sort_keys(row_slice, grain)
         row_keys = zip(*(column.to_pylist() for column in keys.columns), strict=True)
-        for table_row, key in zip(row_slice.to_pylist(), row_keys, strict=True):
+        rows = zip(
+            *_column_cells(frame.columns, row_slice, json_form=True), strict=True
+        )
+        for row, key in zip(rows, row_keys, strict=True):
             if last_key is not None and key <= last_key:
                 raise FrameError(
                     "row_key_not_increasing",
@@ -602,6 +593,6 @@ def _stream_rows(
                 )
             if last_key is not None:
                 yield b","
-            yield rfc8785.dumps(_row_cells(frame, table_row))
+            yield rfc8785.dumps(list(row))
             last_key = key
     return last_key
