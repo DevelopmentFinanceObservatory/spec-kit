@@ -147,6 +147,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.
+- Code `internal_error` maps to `datasets.pin` at 500, for a pin whose
+  caller the deployment cannot name, a fault a retry does not clear.
 - Code `node_not_held` maps to `graph.members` at 404, for a node the
   deployment's graph does not hold.
 - Code `upstream_error` maps to `graph.members` at 502, the status the
