@@ -208,6 +208,31 @@
           "additionalProperties": false,
           "required": [
             "kind",
+            "count_base",
+            "counted"
+          ],
+          "properties": {
+            "kind": {
+              "const": "rate"
+            },
+            "count_base": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "counted": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
             "ref"
           ],
           "properties": {
