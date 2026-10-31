@@ -25,8 +25,7 @@ from dfo_frame_grammar.columnar import (
     _grain_columns,
     _sort_and_check,
     collation_sort_keys,
-    unit_cells,
-    unit_codes,
+    unit_column_cells,
 )
 from dfo_frame_grammar.grammar import FrameError
 
@@ -237,25 +236,14 @@ def _python_rows(
 def _column_cells(
     columns: tuple[str, ...], table: pa.Table, *, json_form: bool
 ) -> list[list[object]]:
-    """Each column's Python cells. The `unit` column is read through
-    `unit_cells`, which validates each distinct struct value once, and each
-    row takes its cell by unit code: the hashable cell, or with `json_form`
-    the JCS-ready form `grammar.unit_cell_to_json` gives it."""
-    cells: list[list[object]] = []
-    for column in columns:
-        values = table.column(column)
-        if column != grammar.UNIT_COLUMN:
-            cells.append(values.to_pylist())
-            continue
-        codes = unit_codes(values)
-        units = unit_cells(values, codes)
-        distinct: list[object] = (
-            [grammar.unit_cell_to_json(cell) for cell in units]
-            if json_form
-            else list(units)
-        )
-        cells.append([distinct[code] for code in codes.codes.to_pylist()])
-    return cells
+    """Each column's Python cells, the `unit` column's from
+    `unit_column_cells`."""
+    return [
+        unit_column_cells(table.column(column), json_form=json_form)
+        if column == grammar.UNIT_COLUMN
+        else table.column(column).to_pylist()
+        for column in columns
+    ]
 
 
 @dataclass(frozen=True, eq=False)
@@ -317,11 +305,13 @@ class Frame:
         derived column tuple; nothing else is checked. The frame holds the
         table as `widen_frame_table` gives it: the recipe layout exactly
         when some cell carries a recipe.
-        Cell contents are trusted: a null grain cell, a non-NFC string, a
-        NaN or `-0.0` value, a unit struct with no variant or more than
-        one, or a `composed` member that is not the canonical JCS text of a
-        composed unit passes here and serialises wrongly or fails later
-        with an error other than `FrameError`. Rows out of the order
+        Cell contents are trusted: a null grain cell, a non-NFC string, or
+        a NaN or `-0.0` value passes here and serialises wrongly. A `unit`
+        cell outside its forms, such as a struct with no variant or more
+        than one, or a `composed` member that is not a composed unit's JSON
+        text, passes here and raises `FrameError` where the cells are read
+        (`unit_cells`, `Frame.rows`, `canonical_frame_bytes`). Rows out of
+        the order
         `columnar.collation_sort_keys` gives, or with equal grains, make
         `canonical_frame_bytes` and `frame_sha256` raise
         `row_key_not_increasing`. Every other table, including any

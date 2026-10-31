@@ -37,6 +37,7 @@ from dfo_frame_grammar.columnar import (
     scalar_kernel,
     unit_cells,
     unit_codes,
+    unit_column_cells,
 )
 from dfo_frame_grammar.content_version import (
     ContentVersionError,
@@ -138,5 +139,6 @@ __all__ = [
     "unit_cell_to_json",
     "unit_cells",
     "unit_codes",
+    "unit_column_cells",
     "widen_frame_table",
 ]

@@ -188,8 +188,9 @@ def _canonical_unit_from_mapping(raw: object) -> grammar.UnitCell | None:
 
     Raises:
         FrameError: `schema_violation` for a struct with no member or more
-            than one, or a member of the wrong type; `invalid_unit` for a
-            member outside its form.
+            than one, a member of the wrong type, or an empty ref;
+            `invalid_unit` for a request or composed member outside its
+            form.
     """
     if raw is None:
         return None
@@ -210,18 +211,3 @@ def _canonical_unit_from_mapping(raw: object) -> grammar.UnitCell | None:
     if not isinstance(value, str):
         raise _wrong_unit_type(value)
     return grammar.unit_cell_from_json(value)
-
-
-def _arrow_part_to_cell(value: object) -> grammar.UnitPart:
-    """A ref string or a `request` struct as its validated cell, refusing
-    what `grammar.unit_cell_from_json` would refuse."""
-    if isinstance(value, Mapping):
-        return grammar.unit_request_from_json(_without_nulls(value))
-    return _unit_ref(value)
-
-
-def _unit_ref(value: object) -> str:
-    cell = grammar.unit_cell_from_json(value)
-    if not isinstance(cell, str):
-        raise _wrong_unit_type(value)
-    return cell

@@ -27,6 +27,7 @@ from dfo_spec_kit.identity import canonicalize
 
 from dfo_frame_grammar import frame as frame_module
 from dfo_frame_grammar import grammar
+from dfo_frame_grammar._unit_codec import _canonical_unit_from_mapping
 from dfo_frame_grammar.arrow import build_frame_from_arrow
 from dfo_frame_grammar.content_version import frame_sha256, stream_frame_sha256
 from dfo_frame_grammar.frame import (
@@ -40,14 +41,17 @@ _ROLE_KEYS = ("provider", "recipient")
 
 
 def _whole_table_canonical_bytes(frame: Frame) -> bytes:
-    """The oracle: the whole table read at once and serialised as one JCS
-    document."""
+    """The oracle: the whole table read row by row with `to_pylist`, each
+    `unit` struct through the grammar's reader and JSON form, and serialised
+    as one JCS document."""
     rows = [
-        list(row)
-        for row in zip(
-            *frame_module._column_cells(frame.columns, frame.table, json_form=True),
-            strict=True,
-        )
+        [
+            grammar.unit_cell_to_json(_canonical_unit_from_mapping(row[column]))
+            if column == grammar.UNIT_COLUMN
+            else row[column]
+            for column in frame.columns
+        ]
+        for row in frame.table.to_pylist()
     ]
     return canonicalize(
         {
@@ -439,6 +443,25 @@ class TestStreamSliceSizeIsTransparent:
         chunks = _chunk_frame(built_frame, boundaries)
         streamed_bytes = b"".join(stream_canonical_frame_bytes(chunks))
         assert streamed_bytes == _whole_table_canonical_bytes(built_frame)
+
+    def test_a_frame_past_one_shipped_slice_streams_as_the_oracle(self) -> None:
+        units = [
+            None,
+            "USDollar",
+            {"currency": "USD", "prices": "current"},
+            {"currency": "EUR", "prices": "constant", "base_year": 2020},
+            {"numerator": "USDollar", "denominator": {"stat_var": "dcid:Count_Person"}},
+        ]
+        rows = [
+            _row(
+                recipient=f"country/C{index}",
+                value=float(index),
+                unit=units[index % len(units)],
+            )
+            for index in range(frame_module._STREAM_SLICE_ROWS * 2 + 5)
+        ]
+        frame = Frame.build(role_keys=_ROLE_KEYS, rows=rows)
+        assert canonical_frame_bytes(frame) == _whole_table_canonical_bytes(frame)
 
 
 _ALPHABET = ["a", "b", "Z", "é", "e\u0301", "å", "ß", "\U0001f600"]

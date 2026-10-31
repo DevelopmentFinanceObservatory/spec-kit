@@ -8,7 +8,8 @@ frame construction does.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+import json
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import cast
 
@@ -18,9 +19,9 @@ from dfo_spec_kit.identity import canonicalize
 
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar._unit_codec import (
-    _arrow_part_to_cell,
     _canonical_unit_from_mapping,
     _unit_type,
+    _without_nulls,
 )
 from dfo_frame_grammar.grammar import FrameError
 
@@ -34,6 +35,7 @@ __all__ = [
     "scalar_kernel",
     "unit_cells",
     "unit_codes",
+    "unit_column_cells",
 ]
 
 _UNIT_TYPES = (_unit_type(recipe=False), _unit_type(recipe=True))
@@ -229,11 +231,45 @@ def unit_cells(
     return [_canonical_unit_from_mapping(value) for value in distinct]
 
 
+def unit_column_cells(
+    unit: pa.Array | pa.ChunkedArray, *, json_form: bool = False
+) -> list[object]:
+    """Each row's cell of a canonical `unit` column, read through
+    `unit_cells`, so each distinct struct value is validated once and the
+    rows that share it share one object.
+
+    A cell has the form `Frame.rows` gives it, or with `json_form` its JSON
+    form as `json.loads` parses its JCS text: a ref string, a mapping with
+    sorted keys, or `None`.
+
+    Raises:
+        FrameError: For a stored value outside the `unit` cell's forms
+            (`unit_cells`).
+    """
+    codes = unit_codes(unit)
+    distinct: list[object] = list(unit_cells(unit, codes))
+    if json_form:
+        distinct = [
+            _parsed_json_form(cast("grammar.UnitCell | None", cell))
+            for cell in distinct
+        ]
+    return [distinct[code] for code in codes.codes.to_pylist()]
+
+
+def _parsed_json_form(cell: grammar.UnitCell | None) -> object:
+    """`cell`'s JSON form as `json.loads` parses its JCS text."""
+    if cell is None or isinstance(cell, str):
+        return cell
+    return json.loads(canonicalize(cell.as_json()))
+
+
 def _request_payload_of(value: object) -> bytes | None:
     if value is None:
         return None
-    request = cast("grammar.UnitRequest", _arrow_part_to_cell(value))
-    return canonicalize(request.as_json())
+    request = cast("Mapping[str, object]", value)
+    return canonicalize(
+        grammar.unit_request_from_json(_without_nulls(request)).as_json()
+    )
 
 
 def _unit_payload(unit: pa.Array) -> pa.Array:
