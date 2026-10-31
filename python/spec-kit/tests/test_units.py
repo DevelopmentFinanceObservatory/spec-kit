@@ -77,6 +77,20 @@ def test_vector(vector: dict) -> None:
             assert completed.as_json() == vector["expected"]
 
 
+_CURRENCY_CODES = json.loads(_CANONICAL_PATH.read_text(encoding="utf-8"))[
+    "currency_codes"
+]
+
+
+@pytest.mark.parametrize("code", sorted({*_CURRENCY_CODES, "ANG", "BGN", "ZWL"}))
+def test_every_listed_currency_code_alone_is_money_in_it(code: str) -> None:
+    """A bare code the registry lists reads as money in that currency, the withdrawn codes
+    Data Commons still serves (`ANG`, `BGN`, `ZWL`) among them."""
+    unit = parse_unit(code)
+    assert isinstance(unit, UnpricedMoney)
+    assert unit.currency == code
+
+
 def test_every_registry_row_parses_to_its_declared_kind() -> None:
     rows = json.loads(_CANONICAL_PATH.read_text(encoding="utf-8"))["units"]
     for row in rows:
