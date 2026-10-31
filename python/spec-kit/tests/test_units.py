@@ -14,6 +14,7 @@ from dfo_spec_kit.units import (
     Money,
     Other,
     Percent,
+    Rate,
     Unit,
     UnpricedMoney,
     _row_to_unit,
@@ -76,6 +77,20 @@ def test_vector(vector: dict) -> None:
             assert completed.as_json() == vector["expected"]
 
 
+_CURRENCY_CODES = json.loads(_CANONICAL_PATH.read_text(encoding="utf-8"))[
+    "currency_codes"
+]
+
+
+@pytest.mark.parametrize("code", sorted({*_CURRENCY_CODES, "ANG", "BGN", "ZWL"}))
+def test_every_listed_currency_code_alone_is_money_in_it(code: str) -> None:
+    """A bare code the registry lists reads as money in that currency, the withdrawn codes
+    Data Commons still serves (`ANG`, `BGN`, `ZWL`) among them."""
+    unit = parse_unit(code)
+    assert isinstance(unit, UnpricedMoney)
+    assert unit.currency == code
+
+
 def test_every_registry_row_parses_to_its_declared_kind() -> None:
     rows = json.loads(_CANONICAL_PATH.read_text(encoding="utf-8"))["units"]
     for row in rows:
@@ -89,6 +104,8 @@ def test_every_registry_row_parses_to_its_declared_kind() -> None:
                 assert isinstance(unit, Percent), row["ref"]
             case "count":
                 assert isinstance(unit, Count), row["ref"]
+            case "rate":
+                assert isinstance(unit, Rate), row["ref"]
             case _:
                 pytest.fail(row["ref"])
 
@@ -222,6 +239,28 @@ _MONEY_ROW = {
         {**_MONEY_ROW, "evidence": 5},
         {**_MONEY_ROW, "evidence": ""},
         {"ref": "test/count", "kind": "count", "evidence": ""},
+        {"ref": "test/rate", "kind": "rate", "count_base": 1000, "evidence": "x"},
+        {
+            "ref": "test/rate",
+            "kind": "rate",
+            "count_base": 1,
+            "counted": "people",
+            "evidence": "x",
+        },
+        {
+            "ref": "test/rate",
+            "kind": "rate",
+            "count_base": True,
+            "counted": "people",
+            "evidence": "x",
+        },
+        {
+            "ref": "test/rate",
+            "kind": "rate",
+            "count_base": 1000,
+            "counted": "",
+            "evidence": "x",
+        },
     ],
 )
 def test_registry_row_refuses_members_its_kind_lacks(row: dict) -> None:

@@ -2,7 +2,7 @@
 
 A unit ref is the dcid a facet names as its unit (`CurrencyUSD`, `USDollar`,
 `Percent`, `undata/UNIT_MEASURE-CR_USD_K`). `parse_unit` reads one into a
-`Money`, `UnpricedMoney`, `Percent`, `Count` or `Other`. Frames keep the
+`Money`, `UnpricedMoney`, `Percent`, `Count`, `Rate` or `Other`. Frames keep the
 native ref text in their cells, and a reader types it with this module.
 
 The rules come from `registries/units.json` (canonical) through its packaged
@@ -164,11 +164,7 @@ class UnpricedMoney:
 
 @dataclass(frozen=True, slots=True)
 class Percent:
-    """Per cent of the variable's own denominator, so a stored 5 is 5 per cent.
-
-    A ratio with a named denominator in its ref (`Per1000Persons`) parses as
-    `Other`, so two ratios of different denominators never compare equal.
-    """
+    """Per cent of the variable's own denominator, so a stored 5 is 5 per cent."""
 
     def as_json(self) -> dict[str, object]:
         """The value as a JSON object."""
@@ -185,6 +181,39 @@ class Count:
 
 
 @dataclass(frozen=True, slots=True)
+class Rate:
+    """A number per a stated count of something, so a stored 12 under a
+    `count_base` of 1000 and `counted` of `people` is 12 per 1,000 people.
+
+    `count_base` is that count. `counted` is what it counts, a plural noun
+    phrase, `None` when the ref states none. Two refs of one base and one
+    counted thing are one value.
+    """
+
+    count_base: int
+    counted: str | None
+
+    def __post_init__(self) -> None:
+        # bool is an int subclass, and True would equal and hash as 1.
+        if type(self.count_base) is not int or self.count_base < 2:
+            raise ValueError(f"count_base must be an int above 1: {self.count_base!r}")
+        if self.counted is not None and (
+            not isinstance(self.counted, str) or not self.counted
+        ):
+            raise ValueError(
+                f"counted must be a non-empty string or None: {self.counted!r}"
+            )
+
+    def as_json(self) -> dict[str, object]:
+        """The value as a JSON object, every member present."""
+        return {
+            "kind": "rate",
+            "count_base": self.count_base,
+            "counted": self.counted,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class Other:
     """A ref with no typed reading, equal only to the same ref."""
 
@@ -195,7 +224,7 @@ class Other:
         return {"kind": "other", "ref": self.ref}
 
 
-type Unit = Money | UnpricedMoney | Percent | Count | Other
+type Unit = Money | UnpricedMoney | Percent | Count | Rate | Other
 
 
 def _currency_of(
@@ -222,6 +251,7 @@ _MONEY_MEMBERS = frozenset(
 )
 _UNPRICED_MONEY_MEMBERS = frozenset(("ref", "kind", "currency", "prices", "evidence"))
 _BARE_MEMBERS = frozenset(("ref", "kind", "evidence"))
+_RATE_MEMBERS = frozenset(("ref", "kind", "count_base", "counted", "evidence"))
 
 
 def _require_members(row: dict[str, Any], members: frozenset[str]) -> None:
@@ -257,6 +287,9 @@ def _row_to_unit(row: dict[str, Any]) -> Unit:
         case "count":
             _require_members(row, _BARE_MEMBERS)
             return Count()
+        case "rate":
+            _require_members(row, _RATE_MEMBERS)
+            return Rate(count_base=row["count_base"], counted=row["counted"])
         case kind:
             raise ValueError(f"unit row {row.get('ref')!r} has unknown kind {kind!r}")
 
@@ -333,6 +366,7 @@ __all__ = [
     "Other",
     "Percent",
     "Prices",
+    "Rate",
     "Unit",
     "UnpricedMoney",
     "complete_prices",
