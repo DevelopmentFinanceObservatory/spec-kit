@@ -15,7 +15,6 @@ from dfo_spec_kit.identity import canonicalize
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar._unit_codec import (
     _STORED_UNIT_TYPES,
-    _canonical_unit_from_mapping,
     _conform_unit,
     _holds_recipe,
     _unit_array,
@@ -26,6 +25,8 @@ from dfo_frame_grammar.columnar import (
     _grain_columns,
     _sort_and_check,
     collation_sort_keys,
+    unit_cells,
+    unit_codes,
 )
 from dfo_frame_grammar.grammar import FrameError
 
@@ -229,17 +230,32 @@ def _table_from_rows(
 def _python_rows(
     columns: tuple[str, ...], table: pa.Table
 ) -> tuple[tuple[object, ...], ...]:
-    """`table`'s rows as tuples of Python cells in `columns` order, with
-    each `unit` struct converted back to its hashable cell."""
-    return tuple(
-        tuple(
-            _canonical_unit_from_mapping(row[column])
-            if column == grammar.UNIT_COLUMN
-            else row[column]
-            for column in columns
+    """`table`'s rows as tuples of Python cells in `columns` order."""
+    return tuple(zip(*_column_cells(columns, table, json_form=False), strict=True))
+
+
+def _column_cells(
+    columns: tuple[str, ...], table: pa.Table, *, json_form: bool
+) -> list[list[object]]:
+    """Each column's Python cells. The `unit` column is read through
+    `unit_cells`, which validates each distinct struct value once, and each
+    row takes its cell by unit code: the hashable cell, or with `json_form`
+    the JCS-ready form `grammar.unit_cell_to_json` gives it."""
+    cells: list[list[object]] = []
+    for column in columns:
+        values = table.column(column)
+        if column != grammar.UNIT_COLUMN:
+            cells.append(values.to_pylist())
+            continue
+        codes = unit_codes(values)
+        units = unit_cells(values, codes)
+        distinct: list[object] = (
+            [grammar.unit_cell_to_json(cell) for cell in units]
+            if json_form
+            else list(units)
         )
-        for row in table.to_pylist()
-    )
+        cells.append([distinct[code] for code in codes.codes.to_pylist()])
+    return cells
 
 
 @dataclass(frozen=True, eq=False)
@@ -432,24 +448,6 @@ class Frame:
         )
 
 
-def _unit_to_json(value: object) -> object:
-    return grammar.unit_cell_to_json(_canonical_unit_from_mapping(value))
-
-
-def _row_cells(frame: Frame, table_row: Mapping[str, object]) -> list[object]:
-    """One row's cells in canonical column order, with the ``unit`` column
-    resolved to its JCS-ready form (`_unit_to_json`) and every other column
-    passed through unchanged -- the per-row projection
-    `stream_canonical_frame_bytes` serialises.
-    """
-    return [
-        _unit_to_json(table_row[column])
-        if column == grammar.UNIT_COLUMN
-        else table_row[column]
-        for column in frame.columns
-    ]
-
-
 def canonical_frame_bytes(frame: Frame) -> bytes:
     """Return the frame's canonical JCS document bytes.
 
@@ -593,7 +591,10 @@ def _stream_rows(
         # sorts the key columns.
         keys = collation_sort_keys(row_slice, grain)
         row_keys = zip(*(column.to_pylist() for column in keys.columns), strict=True)
-        for table_row, key in zip(row_slice.to_pylist(), row_keys, strict=True):
+        rows = zip(
+            *_column_cells(frame.columns, row_slice, json_form=True), strict=True
+        )
+        for row, key in zip(rows, row_keys, strict=True):
             if last_key is not None and key <= last_key:
                 raise FrameError(
                     "row_key_not_increasing",
@@ -602,6 +603,6 @@ def _stream_rows(
                 )
             if last_key is not None:
                 yield b","
-            yield rfc8785.dumps(_row_cells(frame, table_row))
+            yield rfc8785.dumps(list(row))
             last_key = key
     return last_key

@@ -40,9 +40,15 @@ _ROLE_KEYS = ("provider", "recipient")
 
 
 def _whole_table_canonical_bytes(frame: Frame) -> bytes:
-    """The oracle: the whole table read with one `to_pylist` and serialised
-    as one JCS document."""
-    rows = [frame_module._row_cells(frame, row) for row in frame.table.to_pylist()]
+    """The oracle: the whole table read at once and serialised as one JCS
+    document."""
+    rows = [
+        list(row)
+        for row in zip(
+            *frame_module._column_cells(frame.columns, frame.table, json_form=True),
+            strict=True,
+        )
+    ]
     return canonicalize(
         {
             "frame_version": grammar.FRAME_VERSION,

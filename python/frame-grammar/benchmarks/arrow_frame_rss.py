@@ -19,7 +19,7 @@ from dfo_spec_kit.identity import canonicalize
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar.arrow import build_frame_from_arrow
 from dfo_frame_grammar.content_version import frame_sha256
-from dfo_frame_grammar.frame import Frame, _row_cells
+from dfo_frame_grammar.frame import Frame, _column_cells
 
 ROW_COUNT = 250_000
 CHUNK_COUNT = 44
@@ -62,7 +62,12 @@ def _rss_mib() -> float:
 
 
 def _whole_table_sha256(frame: Frame) -> str:
-    rows = [_row_cells(frame, row) for row in frame.table.to_pylist()]
+    rows = [
+        list(row)
+        for row in zip(
+            *_column_cells(frame.columns, frame.table, json_form=True), strict=True
+        )
+    ]
     document = {
         "frame_version": grammar.FRAME_VERSION,
         "columns": list(frame.columns),

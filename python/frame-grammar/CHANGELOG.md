@@ -158,7 +158,9 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   more than one (`schema_violation`) and for a member outside its form: an
   empty ref, a request outside its closed shape, or `composed` text that is not
   JSON, repeats a member name, or holds no composed unit (`invalid_unit`).
-  `unit_cells` reads each distinct value once.
+  `unit_cells` reads each distinct value once, and `Frame.rows` and
+  `canonical_frame_bytes` read the `unit` column through it, so neither
+  validates per row.
 - `unit_cells` returns `ComposedUnit` cells, and `collation_keys` ranks a
   composed unit 3, after a unit request at 2.
 - `canonical_frame_bytes` and `frame_sha256` stream through
