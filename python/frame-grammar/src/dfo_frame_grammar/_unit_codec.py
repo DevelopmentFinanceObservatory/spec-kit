@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import cast
+from typing import Any, cast
 
 import pyarrow as pa
 from dfo_spec_kit.identity import canonicalize
 
 from dfo_frame_grammar import grammar
+from dfo_frame_grammar.grammar import FrameError
 
 
 def _unit_request_type(*, recipe: bool) -> pa.StructType:
@@ -130,33 +131,97 @@ def _unit_to_arrow(cell: grammar.UnitCell | None) -> dict[str, object] | None:
     return {"composed": canonicalize(cell.as_json()).decode("utf-8")}
 
 
-def _arrow_part_to_cell(value: object) -> grammar.UnitPart:
-    """A ref string, a `request` struct, or one side of a parsed composed
-    unit as its cell, trusted as canonical."""
-    if isinstance(value, str):
-        return value
-    part = cast("Mapping[str, object]", value)
-    if grammar.STAT_VAR_COLUMN in part:
-        return grammar.StatVarPart(stat_var=cast(str, part[grammar.STAT_VAR_COLUMN]))
-    return grammar.UnitRequest(
-        currency=cast(str, part["currency"]),
-        prices=cast(str, part["prices"]),
-        base_year=cast("int | None", part.get("base_year")),
-        recipe=cast("str | None", part.get("recipe")),
+def _without_nulls(struct: Mapping[Any, object]) -> dict[str, object]:
+    """The non-null members of a struct value as `to_pylist` reads it."""
+    return {key: value for key, value in struct.items() if value is not None}
+
+
+def _wrong_unit_type(value: object) -> FrameError:
+    return FrameError(
+        "schema_violation",
+        f"unit must be a string, mapping, or null, got {type(value)!r}",
     )
 
 
-def _arrow_unit_to_cell(value: object) -> grammar.UnitCell | None:
-    if value is None:
+def _unit_request_from_mapping(raw: object) -> grammar.UnitRequest | None:
+    if raw is None:
         return None
-    assert isinstance(value, Mapping)
-    tagged = cast("Mapping[str, object]", value)
-    composed = tagged["composed"]
-    if composed is None:
-        member = tagged["ref"] if tagged["ref"] is not None else tagged["request"]
-        return cast("str | grammar.UnitRequest", _arrow_part_to_cell(member))
-    sides = json.loads(cast(str, composed))
-    return grammar.ComposedUnit(
-        numerator=_arrow_part_to_cell(sides["numerator"]),
-        denominator=_arrow_part_to_cell(sides["denominator"]),
-    )
+    if not isinstance(raw, Mapping):
+        raise _wrong_unit_type(raw)
+    return grammar.unit_request_from_json(_without_nulls(raw))
+
+
+def _unique_members(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    members = dict(pairs)
+    if len(members) != len(pairs):
+        raise FrameError("invalid_unit", "composed unit text repeats a member name")
+    return members
+
+
+def _composed_unit_from_text(text: str) -> grammar.ComposedUnit:
+    """Parse and validate the JSON text of a composed unit, refusing text
+    that is not JSON, repeats a member name, or holds anything but a
+    composed unit."""
+    try:
+        parsed = json.loads(text, object_pairs_hook=_unique_members)
+    # `ValueError` covers `JSONDecodeError` and an integer past Python's digit
+    # limit; `RecursionError` covers nesting past the interpreter's depth.
+    except (ValueError, RecursionError) as exc:
+        raise FrameError(
+            "invalid_unit", f"composed unit text is not JSON: {exc}"
+        ) from exc
+    if not isinstance(parsed, dict):
+        raise FrameError(
+            "invalid_unit",
+            f"composed unit text must hold a JSON object, got {type(parsed)!r}",
+        )
+    return grammar._composed_unit_from_json(parsed)
+
+
+def _canonical_unit_from_mapping(raw: object) -> grammar.UnitCell | None:
+    """The validated cell of one tagged struct value, read from its single
+    non-null member: a `ref` string, a `request` struct with its null
+    members dropped, or the JSON text of a `composed` unit. A null struct
+    is a null unit. `unit_cells`, `Frame.rows` and the Arrow build read a
+    `unit` column through it, so each refuses a stored cell outside these
+    forms.
+
+    Raises:
+        FrameError: `schema_violation` for a struct with no member or more
+            than one, or a member of the wrong type; `invalid_unit` for a
+            member outside its form.
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        raise _wrong_unit_type(raw)
+    variants = _without_nulls(raw)
+    if len(variants) != 1:
+        raise FrameError(
+            "schema_violation", "unit tagged struct must carry one variant"
+        )
+    ((member, value),) = variants.items()
+    if member == "request":
+        return _unit_request_from_mapping(value)
+    if member == "composed":
+        if not isinstance(value, str):
+            raise _wrong_unit_type(value)
+        return _composed_unit_from_text(value)
+    if not isinstance(value, str):
+        raise _wrong_unit_type(value)
+    return grammar.unit_cell_from_json(value)
+
+
+def _arrow_part_to_cell(value: object) -> grammar.UnitPart:
+    """A ref string or a `request` struct as its validated cell, refusing
+    what `grammar.unit_cell_from_json` would refuse."""
+    if isinstance(value, Mapping):
+        return grammar.unit_request_from_json(_without_nulls(value))
+    return _unit_ref(value)
+
+
+def _unit_ref(value: object) -> str:
+    cell = grammar.unit_cell_from_json(value)
+    if not isinstance(cell, str):
+        raise _wrong_unit_type(value)
+    return cell

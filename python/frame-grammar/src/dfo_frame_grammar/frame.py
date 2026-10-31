@@ -15,7 +15,7 @@ from dfo_spec_kit.identity import canonicalize
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar._unit_codec import (
     _STORED_UNIT_TYPES,
-    _arrow_unit_to_cell,
+    _canonical_unit_from_mapping,
     _conform_unit,
     _holds_recipe,
     _unit_array,
@@ -233,7 +233,7 @@ def _python_rows(
     each `unit` struct converted back to its hashable cell."""
     return tuple(
         tuple(
-            _arrow_unit_to_cell(row[column])
+            _canonical_unit_from_mapping(row[column])
             if column == grammar.UNIT_COLUMN
             else row[column]
             for column in columns
@@ -433,7 +433,7 @@ class Frame:
 
 
 def _unit_to_json(value: object) -> object:
-    return grammar.unit_cell_to_json(_arrow_unit_to_cell(value))
+    return grammar.unit_cell_to_json(_canonical_unit_from_mapping(value))
 
 
 def _row_cells(frame: Frame, table_row: Mapping[str, object]) -> list[object]:

@@ -19,7 +19,7 @@ from dfo_spec_kit.identity import canonicalize
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar._unit_codec import (
     _arrow_part_to_cell,
-    _arrow_unit_to_cell,
+    _canonical_unit_from_mapping,
     _unit_type,
 )
 from dfo_frame_grammar.grammar import FrameError
@@ -226,7 +226,7 @@ def unit_cells(
     `grammar.UnitRequest`, a `grammar.ComposedUnit`, or `None`.
     """
     distinct = array_kernel("take", _combined(unit), codes.first_rows).to_pylist()
-    return [_arrow_unit_to_cell(value) for value in distinct]
+    return [_canonical_unit_from_mapping(value) for value in distinct]
 
 
 def _request_payload_of(value: object) -> bytes | None:
