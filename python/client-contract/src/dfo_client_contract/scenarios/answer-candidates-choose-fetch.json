@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
-    "recorded_at": "2026-10-26T09:22:01Z"
+    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+    "recorded_at": "2026-11-01T07:35:53Z"
   },
   "call": [
     {
@@ -38,7 +38,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "2de415a9f27d4ce69e4f1eb97b5951af"
+          "x-dfo-trace-id": "b250c3db1b784b9fa66b8173b78a6c0f"
         },
         "json": {
           "schema_version": 1,
@@ -49,20 +49,21 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "2de415a9f27d4ce69e4f1eb97b5951af",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "b250c3db1b784b9fa66b8173b78a6c0f",
             "warnings": [],
             "timing_ms": {
-              "total": 4676,
+              "total": 28220,
               "by_step": {
-                "coverage": 1,
-                "extract": 1,
-                "cache_lookup": 0
+                "coverage": 0,
+                "extract": 957,
+                "exclusion_read": 667,
+                "cache_lookup": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
+              "input_tokens": 2796,
+              "output_tokens": 152,
               "cached_tokens": 0,
               "jev_input_tokens": 13359,
               "jev_output_tokens": 2855
@@ -73,33 +74,39 @@
           "parts": [
             {
               "variable_text": "mortality",
-              "warnings": [],
+              "warnings": [
+                {
+                  "code": "membership_unverified",
+                  "severity": "warn",
+                  "message": "the full set of series behind this answer could not be confirmed, so it uses the series the search found; a dataset made from it may hold different series."
+                }
+              ],
               "timing_ms": {
-                "total": 4672,
+                "total": 26613,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 4404,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 6,
-                  "shape_probe": 120,
+                  "shape_probe": 126,
                   "shape_groups": 6,
                   "shape_labels": 2,
-                  "shape_admission": 1,
+                  "shape_admission": 2,
                   "phase_derive_shapes": 0,
-                  "shape": 258,
+                  "shape": 238,
                   "phase_prune_and_rank": 0,
-                  "bind": 154,
-                  "phase_bind": 18,
+                  "bind": 145,
+                  "phase_bind": 25,
                   "phase_settle": 1,
-                  "phase_place_bindings": 39,
+                  "phase_place_bindings": 7249,
                   "phase_facet_requests": 0,
-                  "materialise": 202,
-                  "phase_materialise": 33,
-                  "answer": 30,
-                  "phase_outcome": 3936
+                  "materialise": 1955,
+                  "phase_materialise": 113,
+                  "answer": 1043,
+                  "phase_outcome": 11440
                 }
               },
-              "rendered_sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
+              "rendered_sentence": "2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
               "sentence_plan": [
                 {
                   "kind": "text",
@@ -152,7 +159,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "per capita",
+                  "text": "per 1,000 people",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -631,7 +638,7 @@
                           "source": "observed"
                         }
                       ],
-                      "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
+                      "rendered_sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators.",
                       "sentence_plan": [
                         {
                           "kind": "slot",
@@ -676,11 +683,14 @@
                         },
                         {
                           "kind": "slot",
-                          "text": "per capita",
+                          "text": "per 1,000 people",
                           "axis": "unit",
                           "segment": "heading",
+                          "binding_ref": "unit:",
                           "entity_refs": [],
-                          "states": []
+                          "states": [
+                            "unit:"
+                          ]
                         },
                         {
                           "kind": "slot",
@@ -818,7 +828,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -827,7 +837,8 @@
                       "confidence": "high",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "World Development Indicators"
                     }
                   },
                   {
@@ -1000,7 +1011,7 @@
                             "label": "data source"
                           }
                         ],
-                        "member_count": 2978,
+                        "member_count": 10,
                         "refine_supported": true,
                         "data_commons": [
                           {
@@ -1179,9 +1190,8 @@
                       ],
                       "unresolved_slots": [],
                       "stat_vars": {
-                        "member_count": 37,
+                        "member_count": 1,
                         "member_count_exact": false,
-                        "served_count": 1,
                         "data_date_range": {
                           "start": "2018",
                           "end": "2022"
@@ -2370,7 +2380,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -2380,7 +2390,8 @@
                       "basis": "structural",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "Kenya Census"
                     }
                   }
                 ],
@@ -2392,7 +2403,7 @@
               }
             }
           ],
-          "rendered_sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
+          "rendered_sentence": "2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
           "sentence_plan": [
             {
               "kind": "text",
@@ -2452,7 +2463,7 @@
             },
             {
               "kind": "text",
-              "text": "per capita",
+              "text": "per 1,000 people",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -2651,7 +2662,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "97f100748b194ca09afc06c9dc1ac81d"
+          "x-dfo-trace-id": "50796872852647b9830003fca9213a89"
         },
         "json": {
           "schema_version": 1,
@@ -2660,11 +2671,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "97f100748b194ca09afc06c9dc1ac81d",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "50796872852647b9830003fca9213a89",
             "warnings": [],
             "timing_ms": {
-              "total": 345,
+              "total": 1601,
               "by_step": {
                 "coverage": 0
               }
@@ -2677,19 +2688,39 @@
               "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 284,
+                "total": 1298,
                 "by_step": {
-                  "validate": 0,
-                  "walk": 0,
+                  "validate": 1,
+                  "phase_validate": 0,
+                  "walk": 510,
                   "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
                   "detect_edits": 0,
+                  "phase_detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 174,
+                  "phase_resolve_survivors": 0,
+                  "shape": 651,
+                  "phase_build_shape": 0,
                   "bind": 0,
+                  "phase_build_bindings": 0,
                   "where_places": 0,
-                  "materialise": 107,
-                  "answer": 2,
-                  "options": 1
+                  "phase_where_places": 0,
+                  "materialise": 10,
+                  "phase_materialise": 0,
+                  "ground_related": 12,
+                  "ground_units": 0,
+                  "ground_facets": 0,
+                  "ground_convert": 0,
+                  "answer": 1,
+                  "ground_gates": 0,
+                  "phase_ground_build": 2,
+                  "finalize_preview": 0,
+                  "options": 1,
+                  "finalize_related": 110,
+                  "finalize_wholes": 0,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 0,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -3024,7 +3055,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
+                  "rendered_sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -3068,11 +3099,14 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "per capita",
+                      "text": "per 1,000 people",
                       "axis": "unit",
                       "segment": "heading",
+                      "binding_ref": "unit:",
                       "entity_refs": [],
-                      "states": []
+                      "states": [
+                        "unit:"
+                      ]
                     },
                     {
                       "kind": "slot",
@@ -3208,12 +3242,13 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
                   "measure_label_axes": [],
                   "measure_axis_values": [],
+                  "published_tables": "World Development Indicators",
                   "related_group": {
                     "ref": "dc/g/MortalityEvent",
                     "label": "Mortality Event"
@@ -3254,7 +3289,7 @@
               }
             }
           ],
-          "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
+          "rendered_sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -3303,11 +3338,14 @@
             },
             {
               "kind": "slot",
-              "text": "per capita",
+              "text": "per 1,000 people",
               "axis": "unit",
               "segment": "heading",
+              "binding_ref": "unit:",
               "entity_refs": [],
-              "states": [],
+              "states": [
+                "unit:"
+              ],
               "part_index": 0
             },
             {
@@ -3430,7 +3468,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "1607014b90c1472db06c480ad25623d1"
+          "x-dfo-trace-id": "b6c465bacda941fda5a2501a028854ec"
         },
         "json": {
           "schema_version": 1,
@@ -3637,8 +3675,8 @@
             "family_member_digest": "c090b56d31a596a8be16dafb518382db666c6b100a80534c3cb81dbfe3111c5d",
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261023T061534Z-06fa7b89",
-            "served_from": "head",
-            "confirmed_at": "2026-10-26T09:17:50.952592+00:00"
+            "served_from": "materialise",
+            "confirmed_at": "2026-11-01T07:36:31.090993+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -3677,7 +3715,7 @@
           ],
           "series_count": 1,
           "output_options": {
-            "capability_version": "dset_76f5fa7244511c58",
+            "capability_version": "dset_5282a0674178a233",
             "columns": [
               {
                 "name": "stat_var",
@@ -3754,7 +3792,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "observationAbout",
@@ -3766,7 +3805,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "observationAbout",
@@ -3778,7 +3818,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "observationAbout",
@@ -3790,7 +3831,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               }
             ],
             "long_layout_defaults": [
@@ -3816,7 +3858,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-22T17:34:00.253769Z"
@@ -3834,7 +3876,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A38f1b5db24567c68f9791ac00bce803082c607f23c78688edf2d95e0778a070a?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "08870d34b30642f8b5dc651859af6425"
+          "x-dfo-trace-id": "2fa64ff5aca8449f9839b1d94443c428"
         }
       }
     },
@@ -3857,7 +3899,7 @@
       "answer": {
         "kind": "resolution",
         "status": "candidates",
-        "sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
+        "sentence": "2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
         "complete": false,
         "specs": [],
         "gaps": [
@@ -3873,7 +3915,7 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
+        "sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators.",
         "complete": true,
         "specs": [
           "spec_10bf62f9687154286b463d206f03a086"
@@ -3909,7 +3951,7 @@
             ],
             "spec_id": "spec_10bf62f9687154286b463d206f03a086",
             "content_version": "cv_9834a942532e03aac3aa48f2cf731a4c",
-            "sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators."
+            "sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators."
           }
         ],
         "missing": [],

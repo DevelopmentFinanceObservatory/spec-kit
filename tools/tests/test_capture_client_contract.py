@@ -734,8 +734,8 @@ def test_a_long_build_scan_starts_after_the_recorded_year(
 
 
 def test_the_long_build_scans_start_after_the_recorded_picks() -> None:
-    """The records hold the DAC pick at 1967 and the OECD pick at 1968."""
-    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1968, "OECD": 1969}
+    """The records hold the DAC pick at 1968 and the OECD pick at 1969."""
+    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1969, "OECD": 1970}
 
 
 def test_a_long_build_scan_skips_a_year_without_an_estimate(

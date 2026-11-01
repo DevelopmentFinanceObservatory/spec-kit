@@ -33,7 +33,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "c7cb40f3790f4a15a0ddcad0cc93c9bb"
+          "x-dfo-trace-id": "92a325e77a854c5daafa875164b5e23e"
         },
         "json": {
           "schema_version": 1,
@@ -41,23 +41,27 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Nigeria for basic health care",
             "normalized_query": "ODA disbursements from Germany to Nigeria for basic health care",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "c7cb40f3790f4a15a0ddcad0cc93c9bb",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "92a325e77a854c5daafa875164b5e23e",
             "warnings": [],
             "timing_ms": {
-              "total": 3,
+              "total": 17540,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1239,
+                "exclusion_read": 719,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2784,
+              "output_tokens": 111,
+              "cached_tokens": 0,
+              "jev_input_tokens": 6695,
+              "jev_output_tokens": 2088
             },
             "timed_out": false
           },
@@ -67,30 +71,30 @@
               "variable_text": "ODA disbursements for basic health care",
               "warnings": [],
               "timing_ms": {
-                "total": 3011,
+                "total": 16265,
                 "by_step": {
-                  "recall": 457,
+                  "recall": 2821,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 2,
-                  "shape_probe_coverage": 8,
-                  "shape_probe": 114,
-                  "shape_groups": 579,
+                  "shape_probe_coverage": 104,
+                  "shape_probe": 352,
+                  "shape_groups": 109,
                   "shape_labels": 1,
-                  "shape_admission": 2,
+                  "shape_admission": 0,
                   "phase_derive_shapes": 0,
-                  "shape": 1247,
+                  "shape": 1134,
                   "phase_prune_and_rank": 0,
-                  "bind": 266,
-                  "phase_bind": 327,
-                  "phase_settle": 46,
-                  "phase_place_bindings": 57,
+                  "bind": 5473,
+                  "phase_bind": 345,
+                  "phase_settle": 105,
+                  "phase_place_bindings": 1078,
                   "phase_facet_requests": 0,
-                  "materialise": 44,
-                  "phase_materialise": 200,
-                  "answer": 220,
-                  "options": 55,
-                  "phase_outcome": 92
+                  "materialise": 2132,
+                  "phase_materialise": 313,
+                  "answer": 1829,
+                  "options": 872,
+                  "phase_outcome": 163
                 }
               },
               "restatement": {
@@ -537,7 +541,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -595,7 +599,7 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityB",
-                          "member_count": 1606,
+                          "member_count": 1614,
                           "served_rows": 1,
                           "served_rows_exact": true
                         },
@@ -609,7 +613,7 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityB",
-                          "member_count": 1331,
+                          "member_count": 1337,
                           "served_rows": 6,
                           "served_rows_exact": true
                         },
@@ -636,7 +640,7 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityC",
-                          "member_count": 7005,
+                          "member_count": 7041,
                           "served_rows": 7,
                           "served_rows_exact": true
                         },
@@ -732,7 +736,7 @@
                           },
                           "relation": "child",
                           "parent": "CRSTypeOfFinance100",
-                          "member_count": 12672,
+                          "member_count": 12745,
                           "served_rows": 30,
                           "served_rows_exact": true
                         }
@@ -759,7 +763,7 @@
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
-                          "member_count": 14098,
+                          "member_count": 14146,
                           "served_rows": 30,
                           "served_rows_exact": true
                         }
@@ -1190,7 +1194,7 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_765c9d2a0c7529b9",
+                    "capability_version": "cap_4913302d7a6b6435",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -1198,214 +1202,7 @@
                   },
                   "confidence": "high",
                   "available_at_place": true,
-                  "alternative_measures": [
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_80b92ca1ba1114b426eb5e79b84361d4",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialFlow",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "crsCooperationModality",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsPurpose",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSPurposeCode12220"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFlow",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSTypeOfFlow10"
-                              }
-                            },
-                            {
-                              "property": "financialFlowType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Disbursement"
-                              }
-                            },
-                            {
-                              "property": "nettingBasis",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Net"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/NGA"
-                            ],
-                            "origin": [
-                              "country/DEU"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "all"
-                          }
-                        }
-                      },
-                      "label": "net disbursements",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialFlow",
-                            "label": "financial flow"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialFlowType",
-                          "value": {
-                            "ref": "Disbursement",
-                            "label": "disbursement"
-                          }
-                        },
-                        {
-                          "axis": "nettingBasis",
-                          "value": {
-                            "ref": "Net",
-                            "label": "net"
-                          }
-                        }
-                      ],
-                      "served_rows": 30,
-                      "served_rows_exact": true
-                    },
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_c394f9108db2100f1c8e4532d8d1c804",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialObligation",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "crsCooperationModality",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsPurpose",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSPurposeCode12220"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFlow",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSTypeOfFlow10"
-                              }
-                            },
-                            {
-                              "property": "financialObligationType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Commitment"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/NGA"
-                            ],
-                            "origin": [
-                              "country/DEU"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "all"
-                          }
-                        }
-                      },
-                      "label": "commitments",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialObligation",
-                            "label": "financial obligation"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialObligationType",
-                          "value": {
-                            "ref": "Commitment",
-                            "label": "commitment"
-                          }
-                        }
-                      ],
-                      "served_rows": 24,
-                      "served_rows_exact": true
-                    }
-                  ],
+                  "alternative_measures": [],
                   "measure_label": "gross disbursements",
                   "measure_label_axes": [
                     "populationType",
@@ -1451,6 +1248,8 @@
                       }
                     }
                   ],
+                  "concept_label": "basic health care",
+                  "published_tables": "OECD Creditor Reporting System (CRS)",
                   "open_axis_facts": [
                     {
                       "property": "crsTypeOfFinance",
@@ -3476,6 +3275,363 @@
                       "destination": "NGN",
                       "origin": "EUR"
                     }
+                  },
+                  "scope_choices": {
+                    "id": "spec_774d6c001a6250aa67ca676ab067895e",
+                    "base": {
+                      "schema_version": 1,
+                      "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "crsCooperationModality",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsPurpose",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSPurposeCode12220"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFlow",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSTypeOfFlow10"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Gross"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/NGA"
+                          ],
+                          "origin": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "all"
+                        }
+                      }
+                    },
+                    "rule_version": "scope1:3eef00a928eedd463ee48d02b79730da",
+                    "entries": [
+                      {
+                        "axis": "sector",
+                        "option_id": "sector:12220",
+                        "provenance": "explicit",
+                        "origin": {
+                          "kind": "text",
+                          "text": "basic health care",
+                          "start": 46,
+                          "end": 63
+                        }
+                      }
+                    ],
+                    "dropped_entries": [],
+                    "choices": [
+                      {
+                        "id": "spec_774d6c001a6250aa67ca676ab067895e:sector",
+                        "axis": "sector",
+                        "rule": "sector_code",
+                        "provenance": "explicit",
+                        "active": "sector:12220",
+                        "options": [
+                          {
+                            "option_id": "sector:12220",
+                            "label": "basic health care (CRS 12220)",
+                            "binding": {
+                              "kind": "slot",
+                              "slot": "crsPurpose",
+                              "state": "value",
+                              "refs": [
+                                "CRSPurposeCode12220"
+                              ]
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "spec_774d6c001a6250aa67ca676ab067895e:measure_basis",
+                        "axis": "measure_basis",
+                        "rule": "measure_basis_convention",
+                        "provenance": "default",
+                        "active": "measure_basis:gross",
+                        "options": [
+                          {
+                            "option_id": "measure_basis:gross",
+                            "label": "gross disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Gross"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:net",
+                            "label": "net disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Net"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:grant_equivalent",
+                            "label": "grant equivalents (OECD headline), current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "grantEquivalent",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:commitments",
+                            "label": "commitments, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "spec_774d6c001a6250aa67ca676ab067895e:provider",
+                        "axis": "provider",
+                        "rule": "bilateral_flows",
+                        "provenance": "default",
+                        "active": "provider:bilateral",
+                        "options": [
+                          {
+                            "option_id": "provider:bilateral",
+                            "label": "bilateral flows only",
+                            "binding": {
+                              "kind": "provider",
+                              "scope": "bilateral"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "provider:inclusive",
+                            "label": "bilateral plus imputed multilateral, 2020 to 2024",
+                            "binding": {
+                              "kind": "provider",
+                              "scope": "inclusive",
+                              "window": [
+                                2020,
+                                2024
+                              ],
+                              "provenance": "provenance/ONEBilateralAndImputedMultilateral"
+                            },
+                            "availability": {
+                              "status": "partial",
+                              "years": [
+                                [
+                                  2011,
+                                  2016
+                                ],
+                                [
+                                  2020,
+                                  2024
+                                ]
+                              ],
+                              "code": "imputed_coverage",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "compiled": {
+                      "spec_id": "spec_774d6c001a6250aa67ca676ab067895e",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "crsCooperationModality",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsPurpose",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSPurposeCode12220"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFlow",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSTypeOfFlow10"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Gross"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/NGA"
+                          ],
+                          "origin": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "all"
+                        }
+                      },
+                      "components": [
+                        {
+                          "role": "whole",
+                          "identity": {
+                            "identity_version": "spec1",
+                            "shape": {
+                              "kind": "statvar_schema",
+                              "population_type": "FinancialFlow",
+                              "measured_property": "amount",
+                              "stat_type": "measuredValue",
+                              "measurement_qualifier": "Nominal"
+                            },
+                            "slots": [
+                              {
+                                "property": "crsCooperationModality",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "crsPurpose",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "CRSPurposeCode12220"
+                                }
+                              },
+                              {
+                                "property": "crsTypeOfFinance",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "crsTypeOfFlow",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "CRSTypeOfFlow10"
+                                }
+                              },
+                              {
+                                "property": "financialFlowType",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Disbursement"
+                                }
+                              },
+                              {
+                                "property": "nettingBasis",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Gross"
+                                }
+                              }
+                            ],
+                            "entities": {
+                              "destination": [
+                                "country/NGA"
+                              ],
+                              "origin": [
+                                "country/DEU"
+                              ]
+                            },
+                            "requested_window": {
+                              "kind": "all"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "ledger": []
                   }
                 }
               }
@@ -3789,7 +3945,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4c3f35c8c0d44b99941a73a9519b41d2"
+          "x-dfo-trace-id": "fff69a3d23f5431c8a34da1b72c9e034"
         },
         "json": {
           "schema_version": 1,
@@ -4189,8 +4345,8 @@
             "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261011T194155Z-80081f08",
-            "served_from": "head",
-            "confirmed_at": "2026-10-26T09:17:22.037029+00:00"
+            "served_from": "materialise",
+            "confirmed_at": "2026-11-01T07:35:51.549820+00:00"
           },
           "warnings": [
             {
@@ -4220,7 +4376,7 @@
               "created_at": "2026-10-23T16:56:32.058938+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_774d6c001a6250aa67ca676ab067895e/cv_b92d94774702c7f05f2075d0b03dd756/files/sha256:421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db",
-              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
             },
             {
               "artifact_digest": "sha256:07984a96eaf8ee637fe15bf13f2b0d9160a6378d3fa1efae2e71cf0e20115dff",
@@ -4236,7 +4392,7 @@
           ],
           "series_count": 5,
           "output_options": {
-            "capability_version": "dset_76f5fa7244511c58",
+            "capability_version": "dset_5282a0674178a233",
             "columns": [
               {
                 "name": "stat_var",
@@ -4320,7 +4476,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -4332,7 +4489,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -4344,7 +4502,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -4356,7 +4515,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -4368,7 +4528,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -4380,7 +4541,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -4392,7 +4554,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -4404,7 +4567,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -4416,7 +4580,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -4428,7 +4593,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -4440,7 +4606,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -4452,7 +4619,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -4464,7 +4632,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -4476,7 +4645,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               }
             ],
             "long_layout_defaults": [
@@ -4520,7 +4690,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
           "retention": {
             "pinned": true
           }
@@ -4537,7 +4707,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A421efacc2dc010af38112a087b0b49ff5539f61d2afd12a88272b27e99b5f5db?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "333ab72de55449ed8288a5f458406a4c"
+          "x-dfo-trace-id": "815c18c3e59945d6ade9f99db58f2960"
         }
       }
     },

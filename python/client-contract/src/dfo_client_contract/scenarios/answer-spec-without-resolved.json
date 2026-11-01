@@ -30,7 +30,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "c7cb40f3790f4a15a0ddcad0cc93c9bb"
+          "x-dfo-trace-id": "92a325e77a854c5daafa875164b5e23e"
         },
         "json": {
           "schema_version": 1,
@@ -38,23 +38,27 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Nigeria for basic health care",
             "normalized_query": "ODA disbursements from Germany to Nigeria for basic health care",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "c7cb40f3790f4a15a0ddcad0cc93c9bb",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "92a325e77a854c5daafa875164b5e23e",
             "warnings": [],
             "timing_ms": {
-              "total": 3,
+              "total": 17540,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1239,
+                "exclusion_read": 719,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2784,
+              "output_tokens": 111,
+              "cached_tokens": 0,
+              "jev_input_tokens": 6695,
+              "jev_output_tokens": 2088
             },
             "timed_out": false
           },
@@ -64,30 +68,30 @@
               "variable_text": "ODA disbursements for basic health care",
               "warnings": [],
               "timing_ms": {
-                "total": 3011,
+                "total": 16265,
                 "by_step": {
-                  "recall": 457,
+                  "recall": 2821,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 2,
-                  "shape_probe_coverage": 8,
-                  "shape_probe": 114,
-                  "shape_groups": 579,
+                  "shape_probe_coverage": 104,
+                  "shape_probe": 352,
+                  "shape_groups": 109,
                   "shape_labels": 1,
-                  "shape_admission": 2,
+                  "shape_admission": 0,
                   "phase_derive_shapes": 0,
-                  "shape": 1247,
+                  "shape": 1134,
                   "phase_prune_and_rank": 0,
-                  "bind": 266,
-                  "phase_bind": 327,
-                  "phase_settle": 46,
-                  "phase_place_bindings": 57,
+                  "bind": 5473,
+                  "phase_bind": 345,
+                  "phase_settle": 105,
+                  "phase_place_bindings": 1078,
                   "phase_facet_requests": 0,
-                  "materialise": 44,
-                  "phase_materialise": 200,
-                  "answer": 220,
-                  "options": 55,
-                  "phase_outcome": 92
+                  "materialise": 2132,
+                  "phase_materialise": 313,
+                  "answer": 1829,
+                  "options": 872,
+                  "phase_outcome": 163
                 }
               },
               "restatement": {
@@ -421,7 +425,7 @@
       "error": {
         "class": "ContractError",
         "code": "contract_violation",
-        "trace_id": "c7cb40f3790f4a15a0ddcad0cc93c9bb"
+        "trace_id": "92a325e77a854c5daafa875164b5e23e"
       }
     }
   ]
