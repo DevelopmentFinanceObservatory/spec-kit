@@ -149,5 +149,12 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   members of one side with no partner on the other. The `sum` and `compare`
   descriptions cover the paired form: members of `data` and `other` pair by
   role through `on`, and a call to `compare` returns `data` minus `other`.
+- `about.source_codes` on a card and a dataset version, and `source_codes` on
+  a card's drawn value: the publishers' own series codes for the variables
+  covered, as `{provenance, code, exact?}` in the shape and order of Search's
+  `stat_vars.source_codes`, 1 to 50 of them, absent when there are none or
+  more. `exact: true` marks a code that names the whole of what lists it. A
+  computed version and a source card refuse `about.source_codes`, and a card
+  drawn from a computed version refuses `exact`.
 
 [unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python
