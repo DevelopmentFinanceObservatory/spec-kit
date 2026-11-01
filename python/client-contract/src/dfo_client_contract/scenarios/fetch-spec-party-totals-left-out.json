@@ -5,17 +5,17 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
-    "recorded_at": "2026-10-26T09:22:19Z"
+    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+    "recorded_at": "2026-11-01T07:37:58Z"
   },
   "call": [
     {
       "op": "fetch",
       "spec": {
-        "spec_id": "spec_70ddf0ce6a9b3f147063f2adf37fab9e",
+        "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
         "definition": {
           "schema_version": 1,
-          "spec_id": "spec_70ddf0ce6a9b3f147063f2adf37fab9e",
+          "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
           "identity": {
             "identity_version": "spec1",
             "shape": {
@@ -50,7 +50,7 @@
                 "property": "nettingBasis",
                 "binding": {
                   "state": "value",
-                  "ref": "Gross"
+                  "ref": "Net"
                 }
               }
             ],
@@ -232,7 +232,7 @@
             }
           }
         },
-        "sentence": "Gross disbursements to the 133 G77 countries from the 32 DAC countries for official development assistance, 1967 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Net disbursements to the 133 G77 countries from the 32 DAC countries for official development assistance, 1967 to 2024. Current US dollars · OECD DAC2a.",
         "entity_groups": {
           "destination": {
             "label": "G77 countries",
@@ -240,7 +240,8 @@
           },
           "origin": {
             "label": "DAC countries",
-            "group_id": "groups/OECD.DAC"
+            "group_id": "groups/OECD.DAC",
+            "sum_differs": true
           }
         }
       },
@@ -265,10 +266,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_70ddf0ce6a9b3f147063f2adf37fab9e",
+            "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_70ddf0ce6a9b3f147063f2adf37fab9e",
+              "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -303,7 +304,7 @@
                     "property": "nettingBasis",
                     "binding": {
                       "state": "value",
-                      "ref": "Gross"
+                      "ref": "Net"
                     }
                   }
                 ],
@@ -509,13 +510,13 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "32e9805e9f0641c38c9b29ba614120b5"
+          "x-dfo-trace-id": "3b3c6a25069b467d95aeb97ccd12c281"
         },
         "json": {
           "schema_version": 1,
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
+            "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
             "identity": {
               "shape": {
                 "kind": "statvar_schema",
@@ -547,7 +548,7 @@
                 },
                 {
                   "binding": {
-                    "ref": "Gross",
+                    "ref": "Net",
                     "state": "value"
                   },
                   "property": "nettingBasis"
@@ -566,8 +567,8 @@
               }
             }
           },
-          "content_version": "cv_fd93b9bd8095076557d0e500bb15514f",
-          "prepared_at": "2026-10-12T18:33:25Z",
+          "content_version": "cv_a45fe84301ebe9f5f3d44cb042feacff",
+          "prepared_at": "2026-10-15T09:59:06Z",
           "coverage": {
             "rows": 96,
             "dimensions": [
@@ -602,7 +603,7 @@
             }
           },
           "citation": {
-            "text": "OECD DAC2A via ONE DFO, retrieved 2026-10-12",
+            "text": "OECD DAC2A (2026), via the Development Finance Observatory",
             "sources": [
               {
                 "ref": "provenance/OECDDAC2A",
@@ -670,6 +671,28 @@
             ]
           },
           "trace": {
+            "party_totals_left_out": [
+              {
+                "role": "financingProvider",
+                "entities": [
+                  "AfricanDevelopmentBankGroup",
+                  "DACCountriesTotal",
+                  "DACEUMembers",
+                  "DACEUMembersAndEUInstitutions",
+                  "DACMultilaterals",
+                  "DACNonDACCountries",
+                  "DACOfficialDonors",
+                  "DACOtherMultilateralOrganisations",
+                  "DACPrivateDonors",
+                  "DACRegionalDevelopmentBanks",
+                  "DACUnitedNations",
+                  "DACWorldBank",
+                  "GroupOfSeven",
+                  "PostcodeLotteryGroup",
+                  "WorldBankGroup"
+                ]
+              }
+            ],
             "facets": [
               {
                 "ref": "provenance/OECDDAC2A",
@@ -705,11 +728,11 @@
               "end_year": 2022,
               "start_year": 2022
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00242-zfr",
+            "graph_revision": "dfo-dev-dc-datacommons-service-00249-9gv",
             "normalisations": [],
             "code_index_stamp": {
-              "exported_at": "2026-10-11T15:49:13Z",
-              "content_hash": "952a221e6d43254927fcb75abbf12ce7ba03285fbfeef7d9913e2ddcf49f904c",
+              "exported_at": "2026-10-13T21:51:17Z",
+              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
               "graph_endpoint": "https://dfo-dev-dc-datacommons-service-zms5lj4zhq-nn.a.run.app"
             },
             "source_revisions": [
@@ -718,11 +741,11 @@
                 "revision": "2026-10-12"
               }
             ],
-            "capability_version": "dset_5c3f5b0bf4cd9569",
-            "materialiser_build": "cd25922ac45834a7c7d0193d3b3ee3d7e9cc7b55",
+            "capability_version": "dset_1e6cd9546fac19e9",
+            "materialiser_build": "1d29a70e59f70570c5ed8d610ec83291c8eb6f54",
             "resolved_stat_vars": [
               {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal",
+                "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
                 "roles": [
                   "financingProvider",
                   "financingRecipient"
@@ -731,34 +754,11 @@
               }
             ],
             "family_member_count": 1,
-            "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
             "frame_grammar_version": "1.1.0",
-            "party_totals_left_out": [
-              {
-                "role": "financingProvider",
-                "entities": [
-                  "AfricanDevelopmentBankGroup",
-                  "DACCountriesTotal",
-                  "DACEUMembers",
-                  "DACEUMembersAndEUInstitutions",
-                  "DACMultilaterals",
-                  "DACNonDACCountries",
-                  "DACOfficialDonors",
-                  "DACOtherMultilateralOrganisations",
-                  "DACPrivateDonors",
-                  "DACRegionalDevelopmentBanks",
-                  "DACUnitedNations",
-                  "DACWorldBank",
-                  "GroupOfSeven",
-                  "PostcodeLotteryGroup",
-                  "WorldBankGroup"
-                ],
-                "provenance": "provenance/OECDDAC2A"
-              }
-            ],
-            "origin_catalogue_build_id": "20261012T163104Z-67f98b87",
-            "served_from": "head",
-            "confirmed_at": "2026-10-26T09:18:21.103020+00:00"
+            "origin_catalogue_build_id": "20261013T114555Z-613cf5c2",
+            "served_from": "materialise",
+            "confirmed_at": "2026-11-01T07:38:10.731097+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -770,35 +770,35 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:586f5aaffd96c46feb4d7bf09625d4c1a259faf51daf2d88967566fd4de07b4e",
+              "artifact_digest": "sha256:b6b1b11cd813990bfa3ec73915f7ba443e1de6f43f1745c8df6a36d464ac0f89",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
                 "layout": 4,
                 "without_party_totals": true
               },
-              "bytes": 10346,
+              "bytes": 10333,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-25T13:52:32.232191+00:00",
+              "created_at": "2026-11-01T07:38:10.616769+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_73897fdfb0206fcf27c5898b353348fb/cv_fd93b9bd8095076557d0e500bb15514f/files/sha256:586f5aaffd96c46feb4d7bf09625d4c1a259faf51daf2d88967566fd4de07b4e",
-              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+              "url": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_a45fe84301ebe9f5f3d44cb042feacff/files/sha256:b6b1b11cd813990bfa3ec73915f7ba443e1de6f43f1745c8df6a36d464ac0f89",
+              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
             },
             {
-              "artifact_digest": "sha256:f59e46a097f5837a3cc787e5dfe8b8bb562ad4dbc106f811575e322a15cc2db4",
+              "artifact_digest": "sha256:8e04fdf7882aef108c740e92cad0f94df9778f4816af785d808d53ea973de2dd",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 9488,
+              "bytes": 9466,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-15T09:58:17.967502+00:00",
+              "created_at": "2026-10-15T11:16:59.961737+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_73897fdfb0206fcf27c5898b353348fb/cv_fd93b9bd8095076557d0e500bb15514f/files/sha256:f59e46a097f5837a3cc787e5dfe8b8bb562ad4dbc106f811575e322a15cc2db4"
+              "url": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_a45fe84301ebe9f5f3d44cb042feacff/files/sha256:8e04fdf7882aef108c740e92cad0f94df9778f4816af785d808d53ea973de2dd"
             }
           ],
           "series_count": 96,
           "output_options": {
-            "capability_version": "dset_76f5fa7244511c58",
+            "capability_version": "dset_5282a0674178a233",
             "columns": [
               {
                 "name": "stat_var",
@@ -923,7 +923,8 @@
                     "label": "David and Lucile Packard Foundation"
                   }
                 ],
-                "truncated": true
+                "truncated": true,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -977,7 +978,8 @@
                     "label": "David and Lucile Packard Foundation"
                   }
                 ],
-                "truncated": true
+                "truncated": true,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -989,7 +991,8 @@
                   "covered": 96
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -1001,7 +1004,8 @@
                   "covered": 96
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -1013,7 +1017,8 @@
                   "covered": 96
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -1025,7 +1030,8 @@
                   "covered": 96
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -1037,7 +1043,8 @@
                   "covered": 96
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -1049,7 +1056,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -1061,7 +1069,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -1073,7 +1082,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -1085,7 +1095,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -1097,7 +1108,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -1109,7 +1121,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -1121,7 +1134,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               }
             ],
             "long_layout_defaults": [
@@ -1150,7 +1164,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
           "retention": {
             "pinned": true
           }
@@ -1200,7 +1214,7 @@
                     },
                     {
                       "binding": {
-                        "ref": "Gross",
+                        "ref": "Net",
                         "state": "value"
                       },
                       "property": "nettingBasis"
@@ -1227,7 +1241,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "66a2d2508ed04bddb8e7bb1aabaa88db"
+          "x-dfo-trace-id": "f35f96ab20924811bfed6ee2a0d7853f"
         },
         "json": {
           "schema_version": 1,
@@ -1236,11 +1250,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "66a2d2508ed04bddb8e7bb1aabaa88db",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "f35f96ab20924811bfed6ee2a0d7853f",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 193,
               "by_step": {
                 "coverage": 0
               }
@@ -1261,7 +1275,7 @@
                   "code": "whole_total_available",
                   "severity": "info",
                   "message": "The source publishes the total of every official donor as official donors (DAC); a sum of the listed donors includes private donors and differs from it.",
-                  "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
+                  "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
                   "params": {
                     "total": "DACOfficialDonors",
                     "total_label": "official donors (DAC)",
@@ -1270,9 +1284,39 @@
                 }
               ],
               "timing_ms": {
-                "total": 0,
+                "total": 179,
                 "by_step": {
-                  "response_cache_part_memo": 0
+                  "validate": 0,
+                  "phase_validate": 0,
+                  "walk": 13,
+                  "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
+                  "detect_edits": 0,
+                  "phase_detect_edits": 0,
+                  "resolve_survivors": 0,
+                  "phase_resolve_survivors": 0,
+                  "shape": 1,
+                  "phase_build_shape": 0,
+                  "bind": 0,
+                  "phase_build_bindings": 0,
+                  "where_places": 0,
+                  "phase_where_places": 0,
+                  "materialise": 38,
+                  "phase_materialise": 0,
+                  "ground_related": 7,
+                  "ground_units": 0,
+                  "ground_facets": 0,
+                  "ground_convert": 0,
+                  "answer": 15,
+                  "ground_gates": 6,
+                  "phase_ground_build": 92,
+                  "finalize_preview": 0,
+                  "options": 4,
+                  "finalize_related": 0,
+                  "finalize_wholes": 2,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 1,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -1288,10 +1332,10 @@
               ],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
+                "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
+                  "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -1326,7 +1370,7 @@
                         "property": "nettingBasis",
                         "binding": {
                           "state": "value",
-                          "ref": "Gross"
+                          "ref": "Net"
                         }
                       }
                     ],
@@ -1345,7 +1389,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal_family_f096b1ba",
-                    "label": "gross disbursements (official development assistance)",
+                    "label": "net disbursements (official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -1410,7 +1454,7 @@
                       }
                     ],
                     "member_count": 1,
-                    "member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+                    "member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -1475,8 +1519,8 @@
                         "kind": "value",
                         "value": {
                           "ref": {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           },
                           "value_kind": "enum_value"
                         }
@@ -1642,7 +1686,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -1688,60 +1732,47 @@
                           "relation": "child",
                           "parent": "DAC2aAidType206",
                           "member_count": 2,
-                          "served_rows": 27,
+                          "served_rows": 32,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType201",
-                              "label": "ODA grant"
+                              "ref": "DAC2aAidType219",
+                              "label": "recovery on ODA grants and capital subscriptions"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
                           "parent": "DAC2aAidType206",
                           "member_count": 1,
-                          "served_rows": 109,
+                          "served_rows": 26,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType207",
-                              "label": "free-standing technical co-operation"
+                              "ref": "DAC2aAidType209",
+                              "label": "interest received on ODA lending"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
                           "member_count": 1,
-                          "served_rows": 45,
+                          "served_rows": 14,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType213",
-                              "label": "developmental food aid"
+                              "ref": "DAC2aAidType250",
+                              "label": "official development assistance excluding debt relief"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
                           "member_count": 1,
-                          "served_rows": 15,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "DAC2aAidType216",
-                              "label": "humanitarian aid"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 1,
-                          "served_rows": 42,
+                          "served_rows": 111,
                           "served_rows_exact": true
                         }
                       ],
@@ -1791,11 +1822,11 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Gross disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
-                      "text": "Gross disbursements",
+                      "text": "Net disbursements",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -2034,8 +2065,8 @@
                         "binding_kind": "value",
                         "refs": [
                           {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           }
                         ],
                         "provenance": "binder"
@@ -2091,7 +2122,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -2099,7 +2130,7 @@
                     {
                       "definition": {
                         "schema_version": 1,
-                        "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+                        "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
                         "identity": {
                           "identity_version": "spec1",
                           "shape": {
@@ -2134,7 +2165,7 @@
                               "property": "nettingBasis",
                               "binding": {
                                 "state": "value",
-                                "ref": "Net"
+                                "ref": "Gross"
                               }
                             }
                           ],
@@ -2150,7 +2181,7 @@
                           }
                         }
                       },
-                      "label": "net disbursements",
+                      "label": "gross disbursements",
                       "axis": "what",
                       "measure_axis_values": [
                         {
@@ -2184,8 +2215,8 @@
                         {
                           "axis": "nettingBasis",
                           "value": {
-                            "ref": "Net",
-                            "label": "net"
+                            "ref": "Gross",
+                            "label": "gross"
                           }
                         }
                       ],
@@ -2193,7 +2224,7 @@
                       "served_rows_exact": true
                     }
                   ],
-                  "measure_label": "gross disbursements",
+                  "measure_label": "net disbursements",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -2233,16 +2264,19 @@
                     {
                       "axis": "nettingBasis",
                       "value": {
-                        "ref": "Gross",
-                        "label": "gross"
+                        "ref": "Net",
+                        "label": "net"
                       }
                     }
                   ],
+                  "concept_label": "official development assistance",
+                  "published_tables": "OECD DAC2a",
                   "role_axis_facts": [
                     {
                       "role": "origin",
                       "member_count": 96,
-                      "members_available": true
+                      "members_available": true,
+                      "holds_multilaterals": true
                     }
                   ],
                   "unit_conversion": {
@@ -4196,11 +4230,11 @@
               }
             }
           ],
-          "rendered_sentence": "Gross disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. Assumed: every provider.",
+          "rendered_sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. Assumed: every provider.",
           "sentence_plan": [
             {
               "kind": "slot",
-              "text": "Gross disbursements",
+              "text": "Net disbursements",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -4417,21 +4451,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_73897fdfb0206fcf27c5898b353348fb/cv_fd93b9bd8095076557d0e500bb15514f/files/sha256:586f5aaffd96c46feb4d7bf09625d4c1a259faf51daf2d88967566fd4de07b4e"
+        "origin_path": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_a45fe84301ebe9f5f3d44cb042feacff/files/sha256:b6b1b11cd813990bfa3ec73915f7ba443e1de6f43f1745c8df6a36d464ac0f89"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A586f5aaffd96c46feb4d7bf09625d4c1a259faf51daf2d88967566fd4de07b4e?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "cd279a74b4ef4b9689cf4a809b87c9c9"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ab6b1b11cd813990bfa3ec73915f7ba443e1de6f43f1745c8df6a36d464ac0f89?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "6a09f94b9eaf475b9aa7c8f1142459a4"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A586f5aaffd96c46feb4d7bf09625d4c1a259faf51daf2d88967566fd4de07b4e?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ab6b1b11cd813990bfa3ec73915f7ba443e1de6f43f1745c8df6a36d464ac0f89?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -4472,9 +4506,9 @@
         "members": [
           {
             "parts": [],
-            "spec_id": "spec_73897fdfb0206fcf27c5898b353348fb",
-            "content_version": "cv_fd93b9bd8095076557d0e500bb15514f",
-            "sentence": "Gross disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+            "content_version": "cv_a45fe84301ebe9f5f3d44cb042feacff",
+            "sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": []

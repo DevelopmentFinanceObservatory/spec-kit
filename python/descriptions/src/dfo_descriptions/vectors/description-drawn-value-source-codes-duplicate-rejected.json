@@ -1,0 +1,146 @@
+{
+  "id": "description-drawn-value-source-codes-duplicate-rejected",
+  "description": "A drawn value whose `source_codes` list the same provenance and code twice, once with `exact` and once without, breaks the structure rules.",
+  "schema": "description",
+  "input": {
+    "describes": {
+      "kind": "card_revision",
+      "component_id": "cmp_Ab3dE5gH7k",
+      "revision": 2
+    },
+    "title": "Disbursements to Kenya's central bank, 2010 to 2024",
+    "about": {
+      "drawn": {
+        "dimensions": [
+          {
+            "property": {
+              "ref": "idsCreditorType",
+              "label": "creditor type"
+            },
+            "count": 2,
+            "of": 6,
+            "values": [
+              {
+                "ref": "IDSCreditorTypeBLAT",
+                "label": "bilateral",
+                "definition": "A single government lending to another.",
+                "source_codes": [
+                  {
+                    "provenance": "provenance/WorldBankInternationalDebtStatistics",
+                    "code": "DT.DIS.BLAT.CB.CD",
+                    "exact": true
+                  },
+                  {
+                    "provenance": "provenance/WorldBankInternationalDebtStatistics",
+                    "code": "DT.DIS.BLAT.CB.CD"
+                  }
+                ]
+              },
+              {
+                "ref": "IDSCreditorTypeMLAT",
+                "label": "multilateral",
+                "source_codes": [
+                  {
+                    "provenance": "provenance/WorldBankInternationalDebtStatistics",
+                    "code": "DT.DIS.MLAT.CB.CD",
+                    "exact": true
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "series": 2,
+        "period": {
+          "start": "2010",
+          "end": "2024",
+          "grain": "year"
+        }
+      },
+      "unit": {
+        "ref": "CurrencyUSD",
+        "label": "US dollars",
+        "prices": "current"
+      },
+      "source_codes": [
+        {
+          "provenance": "provenance/WorldBankInternationalDebtStatistics",
+          "code": "DT.DIS.BLAT.CB.CD"
+        },
+        {
+          "provenance": "provenance/WorldBankInternationalDebtStatistics",
+          "code": "DT.DIS.MLAT.CB.CD"
+        }
+      ]
+    },
+    "sources": [
+      {
+        "ref": "provenance/WorldBankInternationalDebtStatistics",
+        "label": "International Debt Statistics",
+        "publisher": "World Bank",
+        "licence": "CC BY 4.0",
+        "series": 2,
+        "documentation": "/api/graph/documentation/provenance/WorldBankInternationalDebtStatistics"
+      }
+    ],
+    "freshness": {
+      "latest_period": "2024",
+      "series_reaching_it": 2,
+      "estimated_values": null,
+      "provisional_values": null
+    },
+    "steps": [
+      {
+        "id": "s1",
+        "op": "select",
+        "input": {
+          "id": "spec_91d7345eec81a029629938b3d0ffd775",
+          "content_version": "cv_b785befb9f87471de96eb31cd7c56f5c",
+          "label": "Disbursements to Kenya's central bank",
+          "at_mint": true
+        },
+        "policy": "card_selection",
+        "params": {
+          "coordinates": {
+            "variable": [
+              "Amount_FinancialFlow_Disbursement_IDSCreditorTypeBLAT_IDSDebtorTypeCB_Nominal",
+              "Amount_FinancialFlow_Disbursement_IDSCreditorTypeMLAT_IDSDebtorTypeCB_Nominal"
+            ]
+          },
+          "window": {
+            "start": "2010",
+            "end": "2024"
+          }
+        },
+        "kept": {
+          "series": 2
+        },
+        "text": "Drew 2 series of disbursements to Kenya's central bank, 2010 to 2024."
+      }
+    ],
+    "caveats": [],
+    "cite": {
+      "title": "Disbursements to Kenya's central bank",
+      "text": "International Debt Statistics (2026), via the Development Finance Observatory",
+      "component_id": "cmp_Ab3dE5gH7k",
+      "revision": 2,
+      "id": "spec_91d7345eec81a029629938b3d0ffd775",
+      "content_version": "cv_b785befb9f87471de96eb31cd7c56f5c",
+      "retrieved": "2026-09-28",
+      "data": "/api/datasets/spec_91d7345eec81a029629938b3d0ffd775/cv_b785befb9f87471de96eb31cd7c56f5c"
+    },
+    "gaps": [
+      "freshness.estimated_values",
+      "freshness.provisional_values"
+    ],
+    "built_from": {
+      "facts_schema": 1,
+      "vocabulary": "voc_5e1d9a3c7b2f8e64"
+    }
+  },
+  "error": {
+    "by": "structure",
+    "reason": "source_codes_not_ascending",
+    "step": null
+  }
+}

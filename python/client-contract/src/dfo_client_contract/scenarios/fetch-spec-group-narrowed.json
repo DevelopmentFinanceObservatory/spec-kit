@@ -5,17 +5,17 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
-    "recorded_at": "2026-10-26T09:22:26Z"
+    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+    "recorded_at": "2026-11-01T07:38:17Z"
   },
   "call": [
     {
       "op": "fetch",
       "spec": {
-        "spec_id": "spec_17a33486ccfd93f1a75c2070bab68b8c",
+        "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
         "definition": {
           "schema_version": 1,
-          "spec_id": "spec_17a33486ccfd93f1a75c2070bab68b8c",
+          "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
           "identity": {
             "identity_version": "spec1",
             "shape": {
@@ -50,7 +50,7 @@
                 "property": "nettingBasis",
                 "binding": {
                   "state": "value",
-                  "ref": "Gross"
+                  "ref": "Net"
                 }
               }
             ],
@@ -110,7 +110,7 @@
             }
           }
         },
-        "sentence": "Germany's gross disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
         "entity_groups": {
           "destination": {
             "label": "Least Developed Countries",
@@ -133,10 +133,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_17a33486ccfd93f1a75c2070bab68b8c",
+            "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_17a33486ccfd93f1a75c2070bab68b8c",
+              "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -171,7 +171,7 @@
                     "property": "nettingBasis",
                     "binding": {
                       "state": "value",
-                      "ref": "Gross"
+                      "ref": "Net"
                     }
                   }
                 ],
@@ -250,54 +250,15 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "c658ba6641be4c4183f82bbab7cabc5a"
+          "x-dfo-trace-id": "bc403dba367b4c5bae1a90d36cee6d6b"
         },
         "json": {
           "schema_version": 1,
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_f04936b8378cde70bc6289ac1e45ee9b",
+            "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
             "identity": {
-              "shape": {
-                "kind": "statvar_schema",
-                "stat_type": "measuredValue",
-                "population_type": "FinancialFlow",
-                "measured_property": "amount",
-                "measurement_qualifier": "Nominal"
-              },
-              "slots": [
-                {
-                  "binding": {
-                    "ref": "DAC2aAidType206",
-                    "state": "value"
-                  },
-                  "property": "dac2aAidType"
-                },
-                {
-                  "binding": {
-                    "state": "unbound"
-                  },
-                  "property": "dacTypeOfFinance"
-                },
-                {
-                  "binding": {
-                    "ref": "Disbursement",
-                    "state": "value"
-                  },
-                  "property": "financialFlowType"
-                },
-                {
-                  "binding": {
-                    "ref": "Gross",
-                    "state": "value"
-                  },
-                  "property": "nettingBasis"
-                }
-              ],
               "entities": {
-                "origin": [
-                  "country/DEU"
-                ],
                 "destination": [
                   "country/AFG",
                   "country/AGO",
@@ -343,18 +304,57 @@
                   "country/UGA",
                   "country/YEM",
                   "country/ZMB"
+                ],
+                "origin": [
+                  "country/DEU"
                 ]
               },
               "identity_version": "spec1",
               "requested_window": {
-                "kind": "range",
                 "end_year": 2023,
+                "kind": "range",
                 "start_year": 2020
-              }
+              },
+              "shape": {
+                "kind": "statvar_schema",
+                "measured_property": "amount",
+                "measurement_qualifier": "Nominal",
+                "population_type": "FinancialFlow",
+                "stat_type": "measuredValue"
+              },
+              "slots": [
+                {
+                  "binding": {
+                    "ref": "DAC2aAidType206",
+                    "state": "value"
+                  },
+                  "property": "dac2aAidType"
+                },
+                {
+                  "binding": {
+                    "state": "unbound"
+                  },
+                  "property": "dacTypeOfFinance"
+                },
+                {
+                  "binding": {
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
+                },
+                {
+                  "binding": {
+                    "ref": "Net",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
+                }
+              ]
             }
           },
-          "content_version": "cv_daec84e443d4e1b37291242d90fc8fa8",
-          "prepared_at": "2026-10-21T07:08:48Z",
+          "content_version": "cv_c836c8b3ecbb63dde4177d8c5e23c9e3",
+          "prepared_at": "2026-11-01T07:38:21Z",
           "coverage": {
             "rows": 170,
             "dimensions": [
@@ -383,9 +383,9 @@
             ],
             "window": {
               "kind": "range",
-              "origin": "query",
+              "start_year": 2020,
               "end_year": 2023,
-              "start_year": 2020
+              "origin": "query"
             }
           },
           "citation": {
@@ -412,8 +412,8 @@
                   "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip",
                   "attribution": "OECD (2026), OECD DAC2A, OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip (accessed on 2026-10-12)",
                   "update_cadence": "Quarterly",
-                  "last_update": "2026-10-15",
-                  "years_covered": "1960-2024",
+                  "last_update": "2026-10-29",
+                  "years_covered": "1960-2025",
                   "granularity": "Annual, by provider and recipient",
                   "currencies": [
                     "USD"
@@ -424,8 +424,8 @@
                       "description": "The OECD publishes DAC2A in April, June, September and December. The complete table is downloaded from the OECD each time it is republished, and replaces the previous copy, so the data reflects the OECD's latest release."
                     },
                     {
-                      "transformation": "Exclude the partial preliminary year",
-                      "description": "Before each full release, the OECD publishes preliminary data for the year that release covers, as reporters submit it. Until then, that year is partial, so the pipeline excludes it. Support for partial years is in development. Partial years will be marked incomplete, so they don't lead to incorrect or confusing analyses."
+                      "transformation": "Mark the partial year",
+                      "description": "The OECD publishes data for a year as donors report it, and its final release in December of the following year covers every donor. Until then, the year is partial. The pipeline publishes it, and the import's provenance names it in `partialObservationDate`."
                     },
                     {
                       "transformation": "Standardise providers and recipients",
@@ -446,12 +446,22 @@
                   ],
                   "version_history": [
                     {
-                      "date": "2026-10-15",
-                      "title": "Partial preliminary year excluded",
+                      "date": "2026-10-29",
+                      "title": "Partial year published, marked as partial",
                       "changes": [
                         {
                           "kind": "changed",
-                          "note": "The partial preliminary year published ahead of the next full release is excluded."
+                          "note": "The partial year, which only some donors have reported ahead of the OECD's final release in December, is included, and the import's provenance marks it with `partialObservationDate`."
+                        }
+                      ]
+                    },
+                    {
+                      "date": "2026-10-15",
+                      "title": "Partial year excluded",
+                      "changes": [
+                        {
+                          "kind": "changed",
+                          "note": "The partial year, which only some donors have reported ahead of the OECD's final release in December, is excluded."
                         }
                       ]
                     },
@@ -471,59 +481,28 @@
             ]
           },
           "trace": {
-            "facets": [
-              {
-                "ref": "provenance/OECDDAC2A",
-                "axis": "provenance",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253",
-                "default_policy_version": "1"
-              },
-              {
-                "ref": null,
-                "axis": "measurementMethod",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "absent_on_selected_facet",
-                "dispatch_facet_id": "1962969911839422253",
-                "default_policy_version": "1"
-              },
-              {
-                "ref": "CurrencyUSD",
-                "axis": "unit",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253",
-                "default_policy_version": "1"
-              }
-            ],
             "applied_window": {
               "kind": "range",
-              "origin": "query",
+              "start_year": 2020,
               "end_year": 2023,
-              "start_year": 2020
+              "origin": "query"
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00260-6xk",
-            "normalisations": [],
+            "graph_revision": "dfo-dev-dc-datacommons-service-00284-j2f",
             "code_index_stamp": {
-              "exported_at": "2026-10-20T19:50:14Z",
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
+              "content_hash": "a1bde3be8710f5ba073e52aaaba73cf9156079c273c874372f54bb07a81b0f94",
+              "exported_at": "2026-11-01T03:08:18Z",
               "graph_endpoint": "graph_release"
             },
+            "origin_catalogue_build_id": "20261029T171521Z-7d0a5854",
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
-                "revision": "2026-10-15"
+                "revision": "2026-10-29"
               }
             ],
-            "capability_version": "dset_1e6cd9546fac19e9",
-            "materialiser_build": "36b9f48d83282bcd5d99cb8f67b83e57a00216fd",
             "resolved_stat_vars": [
               {
-                "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal",
+                "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
                 "roles": [
                   "financingProvider",
                   "financingRecipient"
@@ -531,18 +510,55 @@
                 "observation_count": 170
               }
             ],
+            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
             "family_member_count": 1,
-            "family_member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+            "facets": [
+              {
+                "axis": "provenance",
+                "ref": "provenance/OECDDAC2A",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253"
+              },
+              {
+                "axis": "measurementMethod",
+                "ref": null,
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "1962969911839422253"
+              },
+              {
+                "axis": "unit",
+                "ref": "CurrencyUSD",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "default_policy_version": "1",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253"
+              }
+            ],
+            "normalisations": [],
             "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261021T070020Z-7262111e",
-            "served_from": "head",
-            "confirmed_at": "2026-10-26T09:18:33.682273+00:00"
+            "materialiser_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "capability_version": "dset_5282a0674178a233",
+            "served_from": "materialise",
+            "confirmed_at": "2026-11-01T07:38:21.528890+00:00"
           },
           "warnings": [
             {
               "code": "coverage_below_scope",
               "severity": "warn",
-              "message": "The served coverage falls short of the requested scope. No observations were served for country/TUV."
+              "message": "The served coverage falls short of the requested scope. No observations were served for 1 requested entity.",
+              "unserved_entities": {
+                "count": 1,
+                "refs": [
+                  "dcid:country/TUV"
+                ]
+              }
             }
           ],
           "diagnostics": [
@@ -554,35 +570,35 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72",
+              "artifact_digest": "sha256:dfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
                 "layout": 4,
                 "without_party_totals": true
               },
-              "bytes": 8810,
+              "bytes": 8800,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-25T14:20:02.459303+00:00",
+              "created_at": "2026-11-01T07:38:21.430053+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72",
-              "enrichment_stamp": "08ed6c734fc69ea2204a21f4e1dd8b963f14dd1e03a2484c618049ac2e2d93d8"
+              "url": "/api/datasets/spec_53102a787c202df65dcbb4d112c7bf33/cv_c836c8b3ecbb63dde4177d8c5e23c9e3/files/sha256:dfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2",
+              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
             },
             {
-              "artifact_digest": "sha256:78ad78b09dcc0d40e50f5804d66f3399fa6b851ae4b4ac48b27ce5a6f2124ef0",
+              "artifact_digest": "sha256:c959529fa024aa5d9129d7d666cd9d4a63bef22171eb97097270df2d2d814cad",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 7768,
+              "bytes": 7752,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-21T07:08:48.809260+00:00",
+              "created_at": "2026-11-01T07:38:21.430053+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:78ad78b09dcc0d40e50f5804d66f3399fa6b851ae4b4ac48b27ce5a6f2124ef0"
+              "url": "/api/datasets/spec_53102a787c202df65dcbb4d112c7bf33/cv_c836c8b3ecbb63dde4177d8c5e23c9e3/files/sha256:c959529fa024aa5d9129d7d666cd9d4a63bef22171eb97097270df2d2d814cad"
             }
           ],
           "series_count": 43,
           "output_options": {
-            "capability_version": "dset_76f5fa7244511c58",
+            "capability_version": "dset_5282a0674178a233",
             "columns": [
               {
                 "name": "stat_var",
@@ -665,7 +681,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -677,7 +694,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -689,7 +707,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -701,7 +720,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingProvider",
@@ -713,7 +733,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -725,7 +746,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingProvider",
@@ -737,7 +759,8 @@
                   "covered": 1
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -749,7 +772,8 @@
                   "covered": 43
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -767,7 +791,8 @@
                     "label": "South Sudan"
                   }
                 ],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -779,7 +804,8 @@
                   "covered": 43
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -791,7 +817,8 @@
                   "covered": 43
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "financingRecipient",
@@ -803,7 +830,8 @@
                   "covered": 43
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -815,7 +843,8 @@
                   "covered": 43
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "financingRecipient",
@@ -827,7 +856,8 @@
                   "covered": 43
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               }
             ],
             "long_layout_defaults": [
@@ -871,10 +901,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-20T07:08:48.808348Z"
+            "held_until": "2026-12-01T07:38:21.430340Z"
           }
         }
       }
@@ -892,46 +922,7 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
-                  "shape": {
-                    "kind": "statvar_schema",
-                    "stat_type": "measuredValue",
-                    "population_type": "FinancialFlow",
-                    "measured_property": "amount",
-                    "measurement_qualifier": "Nominal"
-                  },
-                  "slots": [
-                    {
-                      "binding": {
-                        "ref": "DAC2aAidType206",
-                        "state": "value"
-                      },
-                      "property": "dac2aAidType"
-                    },
-                    {
-                      "binding": {
-                        "state": "unbound"
-                      },
-                      "property": "dacTypeOfFinance"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Disbursement",
-                        "state": "value"
-                      },
-                      "property": "financialFlowType"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Gross",
-                        "state": "value"
-                      },
-                      "property": "nettingBasis"
-                    }
-                  ],
                   "entities": {
-                    "origin": [
-                      "country/DEU"
-                    ],
                     "destination": [
                       "country/AFG",
                       "country/AGO",
@@ -977,14 +968,53 @@
                       "country/UGA",
                       "country/YEM",
                       "country/ZMB"
+                    ],
+                    "origin": [
+                      "country/DEU"
                     ]
                   },
                   "identity_version": "spec1",
                   "requested_window": {
-                    "kind": "range",
                     "end_year": 2023,
+                    "kind": "range",
                     "start_year": 2020
-                  }
+                  },
+                  "shape": {
+                    "kind": "statvar_schema",
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal",
+                    "population_type": "FinancialFlow",
+                    "stat_type": "measuredValue"
+                  },
+                  "slots": [
+                    {
+                      "binding": {
+                        "ref": "DAC2aAidType206",
+                        "state": "value"
+                      },
+                      "property": "dac2aAidType"
+                    },
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "dacTypeOfFinance"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Disbursement",
+                        "state": "value"
+                      },
+                      "property": "financialFlowType"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Net",
+                        "state": "value"
+                      },
+                      "property": "nettingBasis"
+                    }
+                  ]
                 },
                 "entity_groups": {
                   "destination": {
@@ -1001,7 +1031,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "b0a96c8e862d4a3ea8b0dea282c6ada4"
+          "x-dfo-trace-id": "0162bf4153c045739174aba39910e026"
         },
         "json": {
           "schema_version": 1,
@@ -1010,13 +1040,13 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "b0a96c8e862d4a3ea8b0dea282c6ada4",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "0162bf4153c045739174aba39910e026",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 139,
               "by_step": {
-                "coverage": 1
+                "coverage": 0
               }
             },
             "timed_out": false
@@ -1027,9 +1057,39 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 0,
+                "total": 125,
                 "by_step": {
-                  "response_cache_part_memo": 0
+                  "validate": 0,
+                  "phase_validate": 0,
+                  "walk": 13,
+                  "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
+                  "detect_edits": 0,
+                  "phase_detect_edits": 0,
+                  "resolve_survivors": 0,
+                  "phase_resolve_survivors": 0,
+                  "shape": 1,
+                  "phase_build_shape": 0,
+                  "bind": 0,
+                  "phase_build_bindings": 0,
+                  "where_places": 0,
+                  "phase_where_places": 0,
+                  "materialise": 32,
+                  "phase_materialise": 0,
+                  "ground_related": 0,
+                  "ground_units": 0,
+                  "ground_facets": 0,
+                  "ground_convert": 0,
+                  "answer": 15,
+                  "ground_gates": 5,
+                  "phase_ground_build": 55,
+                  "finalize_preview": 0,
+                  "options": 3,
+                  "finalize_related": 0,
+                  "finalize_wholes": 0,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 1,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -1049,10 +1109,10 @@
               "assumptions": [],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_f04936b8378cde70bc6289ac1e45ee9b",
+                "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_f04936b8378cde70bc6289ac1e45ee9b",
+                  "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -1087,7 +1147,7 @@
                         "property": "nettingBasis",
                         "binding": {
                           "state": "value",
-                          "ref": "Gross"
+                          "ref": "Net"
                         }
                       }
                     ],
@@ -1152,7 +1212,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal_family_f096b1ba",
-                    "label": "gross disbursements (official development assistance)",
+                    "label": "net disbursements (official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -1217,7 +1277,7 @@
                       }
                     ],
                     "member_count": 1,
-                    "member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+                    "member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -1282,8 +1342,8 @@
                         "kind": "value",
                         "value": {
                           "ref": {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           },
                           "value_kind": "enum_value"
                         }
@@ -2022,7 +2082,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2068,60 +2128,33 @@
                           "relation": "child",
                           "parent": "DAC2aAidType206",
                           "member_count": 2,
-                          "served_rows": 19,
+                          "served_rows": 27,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType201",
-                              "label": "ODA grant"
+                              "ref": "DAC2aAidType209",
+                              "label": "interest received on ODA lending"
                             },
                             "value_kind": "enum_value"
                           },
-                          "relation": "child",
-                          "parent": "DAC2aAidType206",
+                          "relation": "root",
                           "member_count": 1,
-                          "served_rows": 170,
+                          "served_rows": 16,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType207",
-                              "label": "free-standing technical co-operation"
+                              "ref": "DAC2aAidType250",
+                              "label": "official development assistance excluding debt relief"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
                           "member_count": 1,
                           "served_rows": 170,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "DAC2aAidType213",
-                              "label": "developmental food aid"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 1,
-                          "served_rows": 74,
-                          "served_rows_exact": true
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "DAC2aAidType216",
-                              "label": "humanitarian aid"
-                            },
-                            "value_kind": "enum_value"
-                          },
-                          "relation": "root",
-                          "member_count": 1,
-                          "served_rows": 101,
                           "served_rows_exact": true
                         }
                       ],
@@ -2164,7 +2197,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Germany's gross disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -2195,7 +2228,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "gross disbursements",
+                      "text": "net disbursements",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -2635,8 +2668,8 @@
                         "binding_kind": "value",
                         "refs": [
                           {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           }
                         ],
                         "provenance": "binder"
@@ -2864,7 +2897,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -2872,7 +2905,7 @@
                     {
                       "definition": {
                         "schema_version": 1,
-                        "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
+                        "spec_id": "spec_f04936b8378cde70bc6289ac1e45ee9b",
                         "identity": {
                           "identity_version": "spec1",
                           "shape": {
@@ -2907,7 +2940,7 @@
                               "property": "nettingBasis",
                               "binding": {
                                 "state": "value",
-                                "ref": "Net"
+                                "ref": "Gross"
                               }
                             }
                           ],
@@ -2969,7 +3002,7 @@
                           }
                         }
                       },
-                      "label": "net disbursements",
+                      "label": "gross disbursements",
                       "axis": "what",
                       "measure_axis_values": [
                         {
@@ -3003,8 +3036,8 @@
                         {
                           "axis": "nettingBasis",
                           "value": {
-                            "ref": "Net",
-                            "label": "net"
+                            "ref": "Gross",
+                            "label": "gross"
                           }
                         }
                       ],
@@ -3012,7 +3045,7 @@
                       "served_rows_exact": true
                     }
                   ],
-                  "measure_label": "gross disbursements",
+                  "measure_label": "net disbursements",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -3052,11 +3085,13 @@
                     {
                       "axis": "nettingBasis",
                       "value": {
-                        "ref": "Gross",
-                        "label": "gross"
+                        "ref": "Net",
+                        "label": "net"
                       }
                     }
                   ],
+                  "concept_label": "official development assistance",
+                  "published_tables": "OECD DAC2a",
                   "unit_conversion": {
                     "currencies": [
                       {
@@ -5023,7 +5058,7 @@
               }
             }
           ],
-          "rendered_sentence": "Germany's gross disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a. The data holds no values for 1 of the 44 Least Developed Countries. This shows the 44 Least Developed Countries, each on its own.",
+          "rendered_sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a. The data holds no values for 1 of the 44 Least Developed Countries. This shows the 44 Least Developed Countries, each on its own.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -5057,7 +5092,7 @@
             },
             {
               "kind": "slot",
-              "text": "gross disbursements",
+              "text": "net disbursements",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -5297,21 +5332,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_f04936b8378cde70bc6289ac1e45ee9b/cv_daec84e443d4e1b37291242d90fc8fa8/files/sha256:87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72"
+        "origin_path": "/api/datasets/spec_53102a787c202df65dcbb4d112c7bf33/cv_c836c8b3ecbb63dde4177d8c5e23c9e3/files/sha256:dfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "83e8a270332a4fdd9ae6127e98ee0d0d"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Adfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "1e3ae57623ff4296a60f1ff747022c13"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A87ee2f60de69561349a468cc45a902dc585b7726affc5fa2d080750df7ce9a72?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Adfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -5352,9 +5387,9 @@
         "members": [
           {
             "parts": [],
-            "spec_id": "spec_f04936b8378cde70bc6289ac1e45ee9b",
-            "content_version": "cv_daec84e443d4e1b37291242d90fc8fa8",
-            "sentence": "Germany's gross disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
+            "content_version": "cv_c836c8b3ecbb63dde4177d8c5e23c9e3",
+            "sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": []

@@ -277,6 +277,13 @@ stability = "provisional"
 reason = "bundled-data"
 
 [[export]]
+name = "Rate"
+module = "dfo_spec_kit.units"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
 name = "Other"
 module = "dfo_spec_kit.units"
 kind = "model"

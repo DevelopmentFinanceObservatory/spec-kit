@@ -124,7 +124,8 @@
               "fixed": false,
               "varies": false,
               "variables": false,
-              "drawn": false
+              "drawn": false,
+              "source_codes": false
             }
           },
           "freshness": {
@@ -218,7 +219,8 @@
                 "measure": false,
                 "fixed": false,
                 "drawn": false,
-                "unit": false
+                "unit": false,
+                "source_codes": false
               }
             },
             "freshness": {
@@ -253,7 +255,29 @@
               "about": {
                 "properties": {
                   "measure": false,
-                  "fixed": false
+                  "fixed": false,
+                  "source_codes": {
+                    "$ref": "#/$defs/built_from_codes"
+                  },
+                  "drawn": {
+                    "properties": {
+                      "dimensions": {
+                        "items": {
+                          "properties": {
+                            "values": {
+                              "items": {
+                                "properties": {
+                                  "source_codes": {
+                                    "$ref": "#/$defs/built_from_codes"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -411,6 +435,67 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096
+    },
+    "drawn_value": {
+      "description": "A value a card draws on a dimension: `ref`, `label`, `at_mint` and `definition` as in `defined_ref`, and `source_codes`, the codes of the drawn variables that hold the value, present only on a dimension the variables themselves declare, absent when none of them has a code.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "label"],
+      "properties": {
+        "ref": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "label": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "at_mint": {
+          "const": true
+        },
+        "definition": {
+          "$ref": "#/$defs/definition"
+        },
+        "source_codes": {
+          "$ref": "#/$defs/source_codes"
+        }
+      }
+    },
+    "source_codes": {
+      "description": "Publisher series codes, each once, sorted by provenance and then code, as Search serves `stat_vars.source_codes`.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/source_code"
+      }
+    },
+    "built_from_codes": {
+      "description": "Codes none of which is exact, as a card drawn from a computed version lists them: its series are built from the variables the codes name.",
+      "items": {
+        "properties": {
+          "exact": false
+        }
+      }
+    },
+    "source_code": {
+      "description": "A code a publisher files a series under, such as World Bank `DT.TDS.DEGG.CD`, from the variable's `sourceIndicatorCode` arc: `provenance`, the dcid of the provenance issuing it, and `code`, upper-cased. `exact: true` when the code names the whole of what lists it: every series there is read from `provenance` alone and is one the code names, `provenance` gives none of them another code, and the version is a dataset version. Absent, the series are built from the codes listed, or hold others beside them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance", "code"],
+      "properties": {
+        "provenance": {
+          "$ref": "steps.schema.json#/$defs/text"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "$ref": "steps.schema.json#/$defs/one_line"
+        },
+        "exact": {
+          "const": true
+        }
+      }
     },
     "input_ref": {
       "description": "A computed version's input as served: its id, content version and label. `id` is `null` when the version holds no step that retrieves the input, with a gap naming it; the label is then the one stored with the input, else its content version with a gap.",
@@ -715,6 +800,10 @@
         "unit": {
           "$ref": "#/$defs/unit"
         },
+        "source_codes": {
+          "description": "The publishers' own codes for the variables the description covers: on a card, those of every series it draws, a series of a computed version taking the codes of the variables it was computed from; on a dataset version, those of the one variable its definition resolved to. Absent when none of them has a code, and when they hold more than 50.",
+          "$ref": "#/$defs/source_codes"
+        },
         "drawn": {
           "description": "A card's selection against its version: per dimension, how many values it draws of how many the version holds; and its window against the version's period.",
           "type": "object",
@@ -743,7 +832,7 @@
                     "minItems": 1,
                     "maxItems": 50,
                     "items": {
-                      "$ref": "#/$defs/defined_ref"
+                      "$ref": "#/$defs/drawn_value"
                     }
                   }
                 }

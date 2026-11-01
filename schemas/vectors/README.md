@@ -259,15 +259,15 @@ The dense-slots invariant names two distinct claims, one graph-dependent and one
 
 ## Unit vectors
 
-`vectors/units/` holds the conformance suite for the typed unit, `dfo_spec_kit.units`, which reads a unit ref into `money`, `unpriced_money`, `percent`, `count` or `other` by the rules in `registries/units.json`. Each vector is one JSON file named `<name>.json`, validated against `schemas/vectors/unit-vector.schema.json` by `tools/validate_unit_vectors.py`, and `python/spec-kit/tests/test_units.py` runs every file through the module.
+`vectors/units/` holds the conformance suite for the typed unit, `dfo_spec_kit.units`, which reads a unit ref into `money`, `unpriced_money`, `percent`, `count`, `rate` or `other` by the rules in `registries/units.json`. Each vector is one JSON file named `<name>.json`, validated against `schemas/vectors/unit-vector.schema.json` by `tools/validate_unit_vectors.py`, and `python/spec-kit/tests/test_units.py` runs every file through the module.
 
 A vector carries `format_version` (`1`), `name`, `description` and a `classification`, which decides the rest of the record:
 
-- `parse`: `ref`, and `expected`, the typed value as a JSON object with every member present. Money is `{kind, currency, prices, base_year, chained}`, unpriced money `{kind, currency}`, per cent and a count `{kind}`, and other `{kind, ref}`.
+- `parse`: `ref`, and `expected`, the typed value as a JSON object with every member present. Money is `{kind, currency, prices, base_year, chained}`, unpriced money `{kind, currency}`, per cent and a count `{kind}`, a rate `{kind, count_base, counted}`, and other `{kind, ref}`.
 - `compare`: `refs`, two refs; `measurement_qualifier`, a dcid or `null`, which completes both refs' unstated prices first; and `outcome`. `equal` and `different` say whether the two values compare equal. `incomparable` says the comparison raises because a value is unpriced money or is constant-price money with no `base_year`, since two unknown base years may differ.
 - `complete`: `ref`, `measurement_qualifier` (a dcid or `null`), and `expected`, the typed value after `complete_prices` gives unpriced money the qualifier's price basis.
 
-The suite uses real refs, typed and untyped. `Per1000Persons`, `Per100000Persons`, `IndexPoint`, `PPPInternationalDollar`, `SDG_CU_USD_M`, `CurrencyPerUSDollar` and `Currencyusd` are real refs that no registry row or prefix rule types, and the `other` vectors that use them prove they read as `other`. Adding a registry row for one of them changes those vectors. `TEU`, twenty-foot equivalent units, stands for a bare three-capital ref that is not a currency code. `test/unknownUnit` stands for a ref no import uses, and `test/unknownQualifier` for a qualifier that states no price basis.
+The suite uses real refs, typed and untyped. `PersonPerSquareKilometer`, `KilogramPerHectare`, `MilligramsPer24Hours`, `IndexPoint`, `PPPInternationalDollar`, `SDG_CU_USD_M`, `CurrencyPerUSDollar` and `Currencyusd` are real refs that no registry row or prefix rule types, and the `other` vectors that use them prove they read as `other`. Adding a registry row for one of them changes those vectors. `TEU`, twenty-foot equivalent units, stands for a bare three-capital ref that is not a currency code. `test/unknownUnit` stands for a ref no import uses, and `test/unknownQualifier` for a qualifier that states no price basis.
 
 | Name                                                 | Classification | Pins                                                                                                                 |
 | ---------------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -279,6 +279,10 @@ The suite uses real refs, typed and untyped. `Per1000Persons`, `Per100000Persons
 | `compare-other-different-refs-differ`                | compare        | Two other units with different refs differ.                                                                          |
 | `compare-other-same-ref-equal`                       | compare        | An other unit equals the same ref.                                                                                   |
 | `compare-percent-spellings-equal`                    | compare        | Two per cent refs are one unit.                                                                                      |
+| `compare-rate-bases-differ`                          | compare        | Rates over different bases are different units.                                                                      |
+| `compare-rate-counted-differ`                        | compare        | Rates of one base over different counted things are different units.                                                 |
+| `compare-rate-spellings-equal`                       | compare        | Two refs of one base and one counted thing are one unit.                                                             |
+| `compare-rate-un-sdg-equal`                          | compare        | A UN and an SDG ref of one base and one counted thing are one unit.                                                  |
 | `compare-scaled-ref-differs-from-unscaled`           | compare        | A ref that scales its values is other, so millions of dollars never equal dollars.                                   |
 | `compare-unknown-base-year-incomparable-with-itself` | compare        | Constant prices in an unstated base year cannot be compared, even with the same ref.                                 |
 | `compare-unknown-base-years-incomparable`            | compare        | Two constant-price units with unstated base years cannot be compared, so they never compare equal.                   |
@@ -300,9 +304,13 @@ The suite uses real refs, typed and untyped. `Per1000Persons`, `Per100000Persons
 | `parse-fixed-base-constant-usd`                      | parse          | A fixed-base constant-dollar ref carries constant prices, its base year and chained false.                           |
 | `parse-lowercase-currency-suffix-is-other`           | parse          | A currency code is upper-case; a lower-case suffix is not money.                                                     |
 | `parse-named-currency-twin`                          | parse          | A declared named currency parses to the same unpriced money as its Currency-prefixed twin.                           |
-| `parse-named-denominator-is-other`                   | parse          | A ratio with a named denominator stays its own ref.                                                                  |
+| `parse-hourly-per-is-other`                          | parse          | A per-N of hours is a dose over time, so it states no count base.                                                    |
+| `parse-named-denominator-is-other`                   | parse          | A ratio that states no count base stays its own ref.                                                                 |
 | `parse-percent`                                      | parse          | Per cent is one value with no fields.                                                                                |
 | `parse-ppp-is-other`                                 | parse          | A purchasing-power-parity unit is not money in any currency.                                                         |
+| `parse-rate-million-population`                      | parse          | A base the ref writes in digits and the graph label in a word reads as the integer.                                  |
+| `parse-rate-per-1000-people`                         | parse          | A rate carries its count base and what the base counts.                                                              |
+| `parse-rate-un-counted-unstated`                     | parse          | A rate whose ref states a base and not what it counts carries a null counted.                                        |
 | `parse-scaled-sdg-count-is-other`                    | parse          | An SDG count ref in thousands scales its values, so it is other.                                                     |
 | `parse-scaled-sdg-money-is-other`                    | parse          | An SDG money ref in millions scales its values, so it is other.                                                      |
 | `parse-sdg-current-usd`                              | parse          | An SDG ref that states current prices is comparable money.                                                           |

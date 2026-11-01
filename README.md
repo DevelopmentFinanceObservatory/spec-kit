@@ -12,7 +12,7 @@ Each contract answers one question that two or more services must answer identic
 
 - Which dataset is this request asking for? A dataset spec is reduced to a canonical form and hashed into a `spec_id`, so every service mints the same id for the same request.
 - Has this table of observations changed? A materialised frame is serialised to canonical bytes and hashed into a `content_version`.
-- How do units compare? A unit ref reads as a typed value (money with a currency and price basis, a percent, a count), and refuses comparisons that would mix price bases.
+- How do units compare? A unit ref reads as a typed value (money with a currency and price basis, a percent, a count, a rate per a stated base), and refuses comparisons that would mix price bases.
 - What does a card or chart look like on the wire? A catalogue of JSON schemas describes each presentation component.
 - How is a result documented? Step records and descriptions say what was done to a result, and provenance documents carry transformations, changelogs, and methodology.
 - What do the DFO clients expect from the API? The client contract holds the served OpenAPI document, the response members the clients act on, the next step for each refusal code, and recorded scenarios the clients replay. The API's CI checks its app against the same files.

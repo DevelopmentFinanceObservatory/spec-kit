@@ -8,6 +8,12 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `dfo_spec_kit.units.Rate` (`count_base`, `counted`), the typed value of a
+  ref that states a value per a count of something. `registries/units.json`
+  gains the `rate` kind, whose rows declare the base as an integer and what it
+  counts as a plural noun phrase, or `null` where the ref states none. Every
+  per-N unit with a series in the graph has a row, so `Per1000Persons` and
+  `SDG_PER_1000_POP` parse to one `Rate` and no longer to `Other`.
 - Codes `share_id_taken` (409) and `share_import_not_permitted` (403) on
   `presentation.shares` in `registries/codes.json` and its bundled mirror,
   for the share import route. `share_id_taken` covers an id that holds
@@ -111,6 +117,17 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `entities_unbound` is retired in `registries/codes.json` and its bundled
+  mirror: a mint that binds no entity reads each unbound role as the total
+  over its members, so nothing raises it. Its Datasets mappings stay, and the
+  client contract drops its `actions.json` row.
+- Codes no Datasets route raises lose those Datasets mappings:
+  `resolution_ambiguous` on `datasets.mint`, `datasets.definition` and
+  `datasets.options`, `role_incompatible` on `datasets.definition` and
+  `datasets.options`, and `invalid_role_ref` on `datasets.definition`. The
+  definition and options routes admit a definition with no scope, so no
+  scope role refuses there. Their Search mappings stay, as do the Datasets
+  mappings of the routes that raise them.
 - The `$id` of `schemas/registry/code-registry.schema.json`,
   `schemas/registry/unit-registry.schema.json`,
   `schemas/vectors/identity-vector.schema.json` and
@@ -141,6 +158,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codes `identity_quarantined` (500), `service_unavailable` (503) and
   `internal_error` (500) map to `datasets.description` at the statuses they
   have on `datasets.snapshot`.
+- Code `internal_error` maps to `datasets.pin` at 500, for a pin whose
+  caller the deployment cannot name, a fault a retry does not clear.
 - Code `node_not_held` maps to `graph.members` at 404, for a node the
   deployment's graph does not hold.
 - Code `upstream_error` maps to `graph.members` at 502, the status the

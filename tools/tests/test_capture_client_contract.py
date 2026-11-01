@@ -591,6 +591,36 @@ def test_a_record_run_without_a_rule_table_stops_before_any_request(
         )
 
 
+def test_the_cloud_run_transport_sends_a_fresh_token_to_the_api_origin_alone() -> None:
+    """The token reaches the API's origin and no signed storage URL, and the
+    transport mints a new one once the held one has aged past its lifetime."""
+    sent: list[tuple[str, str | None]] = []
+
+    def transport(method: str, url: str, **kwargs: Any) -> Any:
+        sent.append((url, kwargs["headers"].get("x-serverless-authorization")))
+        return capture.Response(200, {}, b"")
+
+    minted = iter(["t1", "t2"])
+    now = [0.0]
+    send = capture.cloud_run_transport(
+        "https://api.example/api", transport, lambda: next(minted), lambda: now[0]
+    )
+    for url in (
+        "https://api.example/api/search",
+        "https://storage.googleapis.com/bucket/file?X-Goog-Signature=s",
+        "https://api.example/api/datasets/files/x",
+    ):
+        send("GET", url, body=None, headers={}, timeout=1.0)
+    now[0] = capture.ID_TOKEN_LIFETIME_S
+    send("GET", "https://api.example/api/search", body=None, headers={}, timeout=1.0)
+    assert [token for _, token in sent] == [
+        "Bearer t1",
+        None,
+        "Bearer t1",
+        "Bearer t2",
+    ]
+
+
 def _long_build_ctx(
     monkeypatch: pytest.MonkeyPatch,
     answers: Mapping[tuple[str, int], tuple[str, int | None]],
@@ -704,8 +734,8 @@ def test_a_long_build_scan_starts_after_the_recorded_year(
 
 
 def test_the_long_build_scans_start_after_the_recorded_picks() -> None:
-    """The records hold the DAC pick at 1967 and the OECD pick at 1968."""
-    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1968, "OECD": 1969}
+    """The records hold the DAC pick at 1968 and the OECD pick at 1969."""
+    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1969, "OECD": 1970}
 
 
 def test_a_long_build_scan_skips_a_year_without_an_estimate(
