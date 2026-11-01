@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
+from itertools import pairwise
 from typing import Any
 
 import rfc8785
@@ -72,6 +73,11 @@ class StepsErrorReason(StrEnum):
 
     DUPLICATE_DRAWN_VALUE = "duplicate_drawn_value"
     """A drawn dimension's `values` repeat a `ref`."""
+
+    SOURCE_CODES_NOT_ASCENDING = "source_codes_not_ascending"
+    """A `source_codes` list, under `about` or on a drawn value, is not
+    strictly ascending by provenance and then code: it is out of order or
+    lists a `(provenance, code)` pair twice, with or without `exact`."""
 
 
 class StepsError(ValueError):
@@ -156,7 +162,9 @@ def check_description(description: Mapping[str, Any]) -> None:
     step in `steps`. A gap names a step when its path has at least three
     segments and starts `steps.`, as in `steps.s3.op`.
     A drawn dimension that lists `values` must list `count` of them, each
-    `ref` once.
+    `ref` once. Every `source_codes` list, under `about` and on each drawn
+    value, must be strictly ascending by provenance and then code, which
+    sorts it and holds each pair once.
 
     Args:
         description: A description that already validates against
@@ -188,6 +196,7 @@ def check_description(description: Mapping[str, Any]) -> None:
                 detail=f"gap {gap!r} names step {segments[1]!r}",
             )
     _check_drawn_values(description)
+    _check_source_codes(description)
 
 
 def _check_count(steps: Sequence[Mapping[str, Any]]) -> None:
@@ -276,3 +285,23 @@ def _check_drawn_values(description: Mapping[str, Any]) -> None:
                 step=None,
                 detail=f"drawn dimension {position} lists a ref twice",
             )
+
+
+def _check_source_codes(description: Mapping[str, Any]) -> None:
+    """Each `source_codes` list is strictly ascending by `(provenance, code)`."""
+    about = description["about"]
+    lists = [("about.source_codes", about.get("source_codes"))]
+    drawn = about.get("drawn") or {}
+    for position, dimension in enumerate(drawn.get("dimensions", [])):
+        for index, value in enumerate(dimension.get("values") or []):
+            where = f"drawn dimension {position} value {index}"
+            lists.append((where, value.get("source_codes")))
+    for where, codes in lists:
+        keys = [(code["provenance"], code["code"]) for code in codes or []]
+        for earlier, later in pairwise(keys):
+            if earlier >= later:
+                raise StepsError(
+                    reason=StepsErrorReason.SOURCE_CODES_NOT_ASCENDING,
+                    step=None,
+                    detail=f"{where} lists {later} after {earlier}",
+                )
