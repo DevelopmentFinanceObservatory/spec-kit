@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "d80df9f5fd598b7345255470932d202ee5d49942",
-    "recorded_at": "2026-10-26T09:23:24Z"
+    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+    "recorded_at": "2026-11-01T07:39:17Z"
   },
   "call": [
     {
@@ -39,7 +39,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "94058d9236554b299cad827b56912349"
+          "x-dfo-trace-id": "f6547394c0934d9a84db20459acc4b96"
         },
         "json": {
           "schema_version": 1,
@@ -50,21 +50,22 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "94058d9236554b299cad827b56912349",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "f6547394c0934d9a84db20459acc4b96",
             "warnings": [],
             "timing_ms": {
-              "total": 10762,
+              "total": 14723,
               "by_step": {
-                "coverage": 0,
-                "extract": 1197,
+                "coverage": 1,
+                "extract": 1031,
+                "exclusion_read": 533,
                 "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2245,
-              "output_tokens": 202,
-              "cached_tokens": 844,
+              "input_tokens": 2812,
+              "output_tokens": 211,
+              "cached_tokens": 0,
               "jev_input_tokens": 26837,
               "jev_output_tokens": 5603
             },
@@ -76,31 +77,31 @@
               "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 9466,
+                "total": 13605,
                 "by_step": {
                   "recall": 1,
-                  "phase_resolve_places": 72,
+                  "phase_resolve_places": 67,
                   "phase_check_entities": 0,
-                  "shape_arcs": 4,
-                  "shape_probe": 94,
+                  "shape_arcs": 3,
+                  "shape_probe": 89,
                   "shape_groups": 6,
                   "shape_labels": 1,
-                  "shape_admission": 91,
-                  "phase_derive_shapes": 0,
-                  "shape": 456,
+                  "shape_admission": 74,
+                  "phase_derive_shapes": 1,
+                  "shape": 470,
                   "phase_prune_and_rank": 0,
-                  "bind": 131,
-                  "phase_bind": 19,
+                  "bind": 156,
+                  "phase_bind": 16,
                   "phase_settle": 1,
-                  "phase_place_bindings": 34,
+                  "phase_place_bindings": 39,
                   "phase_facet_requests": 0,
-                  "materialise": 434,
-                  "phase_materialise": 50,
+                  "materialise": 875,
+                  "phase_materialise": 31,
                   "answer": 78,
-                  "phase_outcome": 8190
+                  "phase_outcome": 11870
                 }
               },
-              "rendered_sentence": "3 readings. Deaths rate per capita in the 48 countries in Sub-Saharan Africa. World Development Indicators · 2013 to 2022. Number of deaths in the 48 countries in Sub-Saharan Africa. Kenya Census · 2018 to 2022. Count of mortality event (as fraction of count birth event live birth) in the 48 countries in Sub-Saharan Africa. Nigeria Statistics · 2014.",
+              "rendered_sentence": "3 readings. Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa. World Development Indicators · 2013 to 2022. Number of deaths in the 48 countries in Sub-Saharan Africa. Kenya Census · 2018 to 2022. Count of mortality event (as fraction of count birth event live birth) in the 48 countries in Sub-Saharan Africa. Nigeria Statistics · 2014.",
               "sentence_plan": [
                 {
                   "kind": "text",
@@ -132,7 +133,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "per capita",
+                  "text": "per 1,000 people",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -1421,7 +1422,7 @@
                           "source": "observed"
                         }
                       ],
-                      "rendered_sentence": "Deaths rate per capita in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators.",
+                      "rendered_sentence": "Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators.",
                       "sentence_plan": [
                         {
                           "kind": "slot",
@@ -1441,11 +1442,14 @@
                         },
                         {
                           "kind": "slot",
-                          "text": "per capita",
+                          "text": "per 1,000 people",
                           "axis": "unit",
                           "segment": "heading",
+                          "binding_ref": "unit:",
                           "entity_refs": [],
-                          "states": []
+                          "states": [
+                            "unit:"
+                          ]
                         },
                         {
                           "kind": "slot",
@@ -1977,7 +1981,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -1986,7 +1990,8 @@
                       "confidence": "high",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "World Development Indicators"
                     }
                   },
                   {
@@ -2206,7 +2211,7 @@
                             "label": "data source"
                           }
                         ],
-                        "member_count": 2978,
+                        "member_count": 2979,
                         "refine_supported": true,
                         "data_commons": [
                           {
@@ -4565,7 +4570,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -4575,7 +4580,8 @@
                       "basis": "structural",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "Kenya Census"
                     }
                   },
                   {
@@ -6163,7 +6169,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -6173,7 +6179,8 @@
                       "basis": "structural",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "Nigeria Statistics"
                     }
                   }
                 ],
@@ -6189,30 +6196,30 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 1533,
+                "total": 2061,
                 "by_step": {
                   "recall": 1,
-                  "phase_resolve_places": 92,
+                  "phase_resolve_places": 80,
                   "phase_check_entities": 0,
-                  "shape_arcs": 4,
+                  "shape_arcs": 1,
                   "shape_probe_coverage": 1,
-                  "shape_probe": 107,
-                  "shape_groups": 78,
-                  "shape_labels": 14,
-                  "shape_admission": 2,
+                  "shape_probe": 173,
+                  "shape_groups": 62,
+                  "shape_labels": 11,
+                  "shape_admission": 23,
                   "phase_derive_shapes": 0,
-                  "shape": 503,
+                  "shape": 612,
                   "phase_prune_and_rank": 0,
-                  "bind": 145,
-                  "phase_bind": 14,
-                  "phase_settle": 8,
-                  "phase_place_bindings": 20,
+                  "bind": 140,
+                  "phase_bind": 15,
+                  "phase_settle": 51,
+                  "phase_place_bindings": 26,
                   "phase_facet_requests": 0,
-                  "materialise": 199,
-                  "phase_materialise": 19,
-                  "answer": 61,
-                  "options": 144,
-                  "phase_outcome": 327
+                  "materialise": 396,
+                  "phase_materialise": 18,
+                  "answer": 92,
+                  "options": 165,
+                  "phase_outcome": 465
                 }
               },
               "restatement": {
@@ -8714,7 +8721,7 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9",
+                    "capability_version": "cap_4913302d7a6b6435",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": [
@@ -10283,7 +10290,7 @@
                             "start_year": 2013,
                             "end_year": 2022
                           },
-                          "capability_version": "cap_765c9d2a0c7529b9",
+                          "capability_version": "cap_4913302d7a6b6435",
                           "default_reading": {
                             "applied": true,
                             "removed_stat_vars": [
@@ -10322,18 +10329,20 @@
                         "confidence": "high",
                         "available_at_place": true,
                         "measure_label_axes": [],
-                        "measure_axis_values": []
+                        "measure_axis_values": [],
+                        "published_tables": "IMF World Economic Outlook (WEO)"
                       }
                     }
                   ],
                   "measure_label_axes": [],
                   "measure_axis_values": [],
+                  "published_tables": "World Development Indicators",
                   "related_measures": []
                 }
               }
             }
           ],
-          "rendered_sentence": "Answered 1 of 2 parts. Mortality has 3 readings. Deaths rate per capita in the 48 countries in Sub-Saharan Africa. World Development Indicators · 2013 to 2022. Number of deaths in the 48 countries in Sub-Saharan Africa. Kenya Census · 2018 to 2022. Count of mortality event (as fraction of count birth event live birth) in the 48 countries in Sub-Saharan Africa. Nigeria Statistics · 2014. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. You asked for sub-Saharan Africa. This shows the countries in it, each on its own.",
+          "rendered_sentence": "Answered 1 of 2 parts. Mortality has 3 readings. Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa. World Development Indicators · 2013 to 2022. Number of deaths in the 48 countries in Sub-Saharan Africa. Kenya Census · 2018 to 2022. Count of mortality event (as fraction of count birth event live birth) in the 48 countries in Sub-Saharan Africa. Nigeria Statistics · 2014. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. You asked for sub-Saharan Africa. This shows the countries in it, each on its own.",
           "sentence_plan": [
             {
               "kind": "text",
@@ -10392,7 +10401,7 @@
             },
             {
               "kind": "text",
-              "text": "per capita",
+              "text": "per 1,000 people",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -11038,7 +11047,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "600d857b0d8d4a1396104f5a8b22da07"
+          "x-dfo-trace-id": "cf12157f030c4aaa8fdd0e90fffa40fa"
         },
         "json": {
           "schema_version": 1,
@@ -11047,11 +11056,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "600d857b0d8d4a1396104f5a8b22da07",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "cf12157f030c4aaa8fdd0e90fffa40fa",
             "warnings": [],
             "timing_ms": {
-              "total": 1385,
+              "total": 1433,
               "by_step": {
                 "coverage": 0
               }
@@ -11064,19 +11073,39 @@
               "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 565,
+                "total": 689,
                 "by_step": {
-                  "validate": 0,
-                  "walk": 1,
+                  "validate": 1,
+                  "phase_validate": 0,
+                  "walk": 0,
                   "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
                   "detect_edits": 0,
+                  "phase_detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 187,
+                  "phase_resolve_survivors": 0,
+                  "shape": 141,
+                  "phase_build_shape": 0,
                   "bind": 0,
-                  "where_places": 0,
-                  "materialise": 240,
+                  "phase_build_bindings": 0,
+                  "where_places": 1,
+                  "phase_where_places": 0,
+                  "materialise": 338,
+                  "phase_materialise": 0,
+                  "ground_related": 1,
+                  "ground_units": 0,
+                  "ground_facets": 0,
+                  "ground_convert": 0,
                   "answer": 9,
-                  "options": 128
+                  "ground_gates": 0,
+                  "phase_ground_build": 86,
+                  "finalize_preview": 0,
+                  "options": 110,
+                  "finalize_related": 0,
+                  "finalize_wholes": 0,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 2,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -12093,7 +12122,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Deaths rate per capita in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators.",
+                  "rendered_sentence": "Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -12112,11 +12141,14 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "per capita",
+                      "text": "per 1,000 people",
                       "axis": "unit",
                       "segment": "heading",
+                      "binding_ref": "unit:",
                       "entity_refs": [],
-                      "states": []
+                      "states": [
+                        "unit:"
+                      ]
                     },
                     {
                       "kind": "slot",
@@ -12646,12 +12678,13 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
                   "measure_label_axes": [],
                   "measure_axis_values": [],
+                  "published_tables": "World Development Indicators",
                   "related_measures": []
                 }
               }
@@ -12660,19 +12693,39 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 1244,
+                "total": 1409,
                 "by_step": {
                   "validate": 0,
+                  "phase_validate": 0,
                   "walk": 0,
-                  "reread_arcs": 0,
+                  "reread_arcs": 1,
+                  "phase_reread_arcs": 0,
                   "detect_edits": 0,
+                  "phase_detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 915,
+                  "phase_resolve_survivors": 0,
+                  "shape": 649,
+                  "phase_build_shape": 0,
                   "bind": 0,
-                  "where_places": 0,
-                  "materialise": 204,
+                  "phase_build_bindings": 0,
+                  "where_places": 1,
+                  "phase_where_places": 0,
+                  "materialise": 490,
+                  "phase_materialise": 0,
+                  "ground_related": 1,
+                  "ground_units": 0,
+                  "ground_facets": 8,
+                  "ground_convert": 0,
                   "answer": 8,
-                  "options": 117
+                  "ground_gates": 123,
+                  "phase_ground_build": 17,
+                  "finalize_preview": 0,
+                  "options": 109,
+                  "finalize_related": 0,
+                  "finalize_wholes": 0,
+                  "finalize_relaunch": 1,
+                  "phase_finalize": 1,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -14804,18 +14857,19 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
                   "measure_label_axes": [],
                   "measure_axis_values": [],
+                  "published_tables": "World Development Indicators",
                   "related_measures": []
                 }
               }
             }
           ],
-          "rendered_sentence": "Deaths rate per capita in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators. This shows the 48 countries in Sub-Saharan Africa, each on its own. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. This shows the 48 countries in Sub-Saharan Africa, each on its own.",
+          "rendered_sentence": "Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators. This shows the 48 countries in Sub-Saharan Africa, each on its own. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. This shows the 48 countries in Sub-Saharan Africa, each on its own.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -14836,11 +14890,14 @@
             },
             {
               "kind": "slot",
-              "text": "per capita",
+              "text": "per 1,000 people",
               "axis": "unit",
               "segment": "heading",
+              "binding_ref": "unit:",
               "entity_refs": [],
-              "states": [],
+              "states": [
+                "unit:"
+              ],
               "part_index": 0
             },
             {
@@ -15245,7 +15302,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "eda4b58fea364fa8b3fbbdd89e20714d"
+          "x-dfo-trace-id": "1f520b00e9454fa69ea28d6f12d3da3b"
         },
         "json": {
           "schema_version": 1,
@@ -15505,8 +15562,8 @@
             "family_member_digest": "c090b56d31a596a8be16dafb518382db666c6b100a80534c3cb81dbfe3111c5d",
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261023T061534Z-06fa7b89",
-            "served_from": "head",
-            "confirmed_at": "2026-10-26T09:23:37.491397+00:00"
+            "served_from": "materialise",
+            "confirmed_at": "2026-11-01T07:39:35.304269+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -15545,7 +15602,7 @@
           ],
           "series_count": 48,
           "output_options": {
-            "capability_version": "dset_76f5fa7244511c58",
+            "capability_version": "dset_5282a0674178a233",
             "columns": [
               {
                 "name": "stat_var",
@@ -15622,7 +15679,8 @@
                   "covered": 48
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "observationAbout",
@@ -15640,7 +15698,8 @@
                     "label": "South Sudan"
                   }
                 ],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "observationAbout",
@@ -15652,7 +15711,8 @@
                   "covered": 48
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "observationAbout",
@@ -15664,7 +15724,8 @@
                   "covered": 48
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               }
             ],
             "long_layout_defaults": [
@@ -15705,7 +15766,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-22T17:40:52.293692Z"
@@ -15723,7 +15784,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ab8b53c89363b53919fb9d1501ad052892123e12fb4e788f67af0513b6e938937?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "26ade94d58da490982f1d8f48d45f655"
+          "x-dfo-trace-id": "27abe047ff8441acaf9e7100a7ecf3af"
         }
       }
     },
@@ -15865,7 +15926,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "bccfe916299a4c878ffd63c2ab263027"
+          "x-dfo-trace-id": "c87605f55b0d45e4b7a650c892df69c6"
         },
         "json": {
           "schema_version": 1,
@@ -16089,8 +16150,8 @@
             "family_member_digest": "73519eeb75639bdae33042fc844830cd46becc08e4f9122dfcd0886e9875f657",
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261023T061534Z-06fa7b89",
-            "served_from": "head",
-            "confirmed_at": "2026-10-26T09:23:38.856824+00:00"
+            "served_from": "materialise",
+            "confirmed_at": "2026-11-01T07:39:37.502297+00:00"
           },
           "warnings": [
             {
@@ -16135,7 +16196,7 @@
           ],
           "series_count": 47,
           "output_options": {
-            "capability_version": "dset_76f5fa7244511c58",
+            "capability_version": "dset_5282a0674178a233",
             "columns": [
               {
                 "name": "stat_var",
@@ -16212,7 +16273,8 @@
                   "covered": 47
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "observationAbout",
@@ -16230,7 +16292,8 @@
                     "label": "South Sudan"
                   }
                 ],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               },
               {
                 "column": "observationAbout",
@@ -16242,7 +16305,8 @@
                   "covered": 47
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": true
               },
               {
                 "column": "observationAbout",
@@ -16254,7 +16318,8 @@
                   "covered": 47
                 },
                 "missing": [],
-                "truncated": false
+                "truncated": false,
+                "in_long_layout": false
               }
             ],
             "long_layout_defaults": [
@@ -16295,7 +16360,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-22T17:40:54.208730Z"
@@ -16313,7 +16378,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Aaf952b05a7ac047731b039b51f8876806d9c89beba61b9e94c5f552a75f175ef?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "c85bcbaef6224ecb95aedae047d77704"
+          "x-dfo-trace-id": "adf27fe296e640c786428aa9f335936e"
         }
       }
     },
@@ -16336,7 +16401,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Answered 1 of 2 parts. Mortality has 3 readings. Deaths rate per capita in the 48 countries in Sub-Saharan Africa. World Development Indicators · 2013 to 2022. Number of deaths in the 48 countries in Sub-Saharan Africa. Kenya Census · 2018 to 2022. Count of mortality event (as fraction of count birth event live birth) in the 48 countries in Sub-Saharan Africa. Nigeria Statistics · 2014. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. You asked for sub-Saharan Africa. This shows the countries in it, each on its own.",
+        "sentence": "Answered 1 of 2 parts. Mortality has 3 readings. Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa. World Development Indicators · 2013 to 2022. Number of deaths in the 48 countries in Sub-Saharan Africa. Kenya Census · 2018 to 2022. Count of mortality event (as fraction of count birth event live birth) in the 48 countries in Sub-Saharan Africa. Nigeria Statistics · 2014. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. You asked for sub-Saharan Africa. This shows the countries in it, each on its own.",
         "complete": false,
         "specs": [
           "spec_310c03c5f99c73c41d12226098714f81"
@@ -16354,7 +16419,7 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Deaths rate per capita in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators. This shows the 48 countries in Sub-Saharan Africa, each on its own. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. This shows the 48 countries in Sub-Saharan Africa, each on its own.",
+        "sentence": "Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators. This shows the 48 countries in Sub-Saharan Africa, each on its own. GDP in the 48 countries in Sub-Saharan Africa, 2013 to 2022. Current US dollars · World Development Indicators. The data holds no values for 1 of the 48 countries in Sub-Saharan Africa. This shows the 48 countries in Sub-Saharan Africa, each on its own.",
         "complete": true,
         "specs": [
           "spec_176fd5e63bb2a122c4ad00831497b863",
@@ -16402,7 +16467,7 @@
             ],
             "spec_id": "spec_176fd5e63bb2a122c4ad00831497b863",
             "content_version": "cv_6c43e754af661c87eb22e7a21595a732",
-            "sentence": "Deaths rate per capita in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators."
+            "sentence": "Deaths rate per 1,000 people in the 48 countries in Sub-Saharan Africa, 2013 to 2022. World Development Indicators."
           },
           {
             "parts": [

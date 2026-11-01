@@ -35,7 +35,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "77333f3756d7434fa7476addd497eff0"
+          "x-dfo-trace-id": "e819d7601d9e41d89c4792cae76ea34a"
         },
         "json": {
           "schema_version": 1,
@@ -46,23 +46,24 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "77333f3756d7434fa7476addd497eff0",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "e819d7601d9e41d89c4792cae76ea34a",
             "warnings": [],
             "timing_ms": {
-              "total": 4076,
+              "total": 6019,
               "by_step": {
                 "coverage": 0,
-                "extract": 1095,
-                "cache_lookup": 0
+                "extract": 964,
+                "exclusion_read": 691,
+                "cache_lookup": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 2242,
-              "output_tokens": 197,
+              "input_tokens": 2806,
+              "output_tokens": 206,
               "cached_tokens": 843,
-              "jev_input_tokens": 21368,
-              "jev_output_tokens": 4607
+              "jev_input_tokens": 21477,
+              "jev_output_tokens": 4635
             },
             "timed_out": false
           },
@@ -78,31 +79,31 @@
                 }
               ],
               "timing_ms": {
-                "total": 2673,
+                "total": 3654,
                 "by_step": {
                   "recall": 1,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 5,
-                  "shape_probe": 91,
-                  "shape_groups": 6,
+                  "shape_arcs": 2,
+                  "shape_probe": 72,
+                  "shape_groups": 7,
                   "shape_labels": 1,
-                  "shape_admission": 1,
+                  "shape_admission": 2,
                   "phase_derive_shapes": 0,
-                  "shape": 214,
+                  "shape": 216,
                   "phase_prune_and_rank": 0,
-                  "bind": 134,
-                  "phase_bind": 13,
+                  "bind": 168,
+                  "phase_bind": 17,
                   "phase_settle": 1,
-                  "phase_place_bindings": 34,
+                  "phase_place_bindings": 43,
                   "phase_facet_requests": 0,
-                  "materialise": 106,
-                  "phase_materialise": 29,
-                  "answer": 54,
-                  "phase_outcome": 2087
+                  "materialise": 95,
+                  "phase_materialise": 26,
+                  "answer": 72,
+                  "phase_outcome": 3015
                 }
               },
-              "rendered_sentence": "2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself.",
+              "rendered_sentence": "2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself.",
               "sentence_plan": [
                 {
                   "kind": "text",
@@ -155,7 +156,7 @@
                 },
                 {
                   "kind": "text",
-                  "text": "per capita",
+                  "text": "per 1,000 people",
                   "segment": "heading",
                   "entity_refs": [],
                   "states": []
@@ -656,7 +657,7 @@
                           "source": "observed"
                         }
                       ],
-                      "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
+                      "rendered_sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators.",
                       "sentence_plan": [
                         {
                           "kind": "slot",
@@ -701,11 +702,14 @@
                         },
                         {
                           "kind": "slot",
-                          "text": "per capita",
+                          "text": "per 1,000 people",
                           "axis": "unit",
                           "segment": "heading",
+                          "binding_ref": "unit:",
                           "entity_refs": [],
-                          "states": []
+                          "states": [
+                            "unit:"
+                          ]
                         },
                         {
                           "kind": "slot",
@@ -843,7 +847,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -852,7 +856,8 @@
                       "confidence": "high",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "World Development Indicators"
                     }
                   },
                   {
@@ -1025,7 +1030,7 @@
                             "label": "data source"
                           }
                         ],
-                        "member_count": 2978,
+                        "member_count": 2979,
                         "refine_supported": true,
                         "data_commons": [
                           {
@@ -2395,7 +2400,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_765c9d2a0c7529b9",
+                        "capability_version": "cap_4913302d7a6b6435",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -2405,7 +2410,8 @@
                       "basis": "structural",
                       "available_at_place": true,
                       "measure_label_axes": [],
-                      "measure_axis_values": []
+                      "measure_axis_values": [],
+                      "published_tables": "Kenya Census"
                     }
                   }
                 ],
@@ -2438,30 +2444,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 2976,
+                "total": 5044,
                 "by_step": {
-                  "recall": 771,
-                  "phase_resolve_places": 1,
+                  "recall": 2521,
+                  "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 2,
-                  "shape_probe_coverage": 21,
-                  "shape_probe": 111,
-                  "shape_groups": 66,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 1006,
+                  "shape_probe": 1131,
+                  "shape_groups": 152,
                   "shape_labels": 0,
                   "shape_admission": 0,
                   "phase_derive_shapes": 0,
-                  "shape": 621,
+                  "shape": 1733,
                   "phase_prune_and_rank": 0,
-                  "bind": 681,
-                  "phase_bind": 341,
-                  "phase_settle": 11,
-                  "phase_place_bindings": 111,
+                  "bind": 171,
+                  "phase_bind": 320,
+                  "phase_settle": 7,
+                  "phase_place_bindings": 98,
                   "phase_facet_requests": 0,
-                  "materialise": 20,
+                  "materialise": 17,
                   "phase_materialise": 4,
-                  "answer": 257,
-                  "options": 11,
-                  "phase_outcome": 147
+                  "answer": 10,
+                  "options": 31,
+                  "phase_outcome": 132
                 }
               },
               "restatement": {
@@ -2506,8 +2512,8 @@
                 {
                   "code": "closest_match",
                   "asked": "aid flows",
-                  "shown": "gross disbursements",
-                  "text": "You asked for aid flows. This shows gross disbursements, the closest measure the data holds."
+                  "shown": "net disbursements",
+                  "text": "You asked for aid flows. This shows net disbursements, the closest measure the data holds."
                 },
                 {
                   "code": "whole_total_read",
@@ -2543,10 +2549,10 @@
               ],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_f24e46ae9854884308fc0f33d154361e",
+                "spec_id": "spec_f025379e211db08849c7f98c627e025c",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_f24e46ae9854884308fc0f33d154361e",
+                  "spec_id": "spec_f025379e211db08849c7f98c627e025c",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -2581,7 +2587,7 @@
                         "property": "nettingBasis",
                         "binding": {
                           "state": "value",
-                          "ref": "Gross"
+                          "ref": "Net"
                         }
                       }
                     ],
@@ -2603,7 +2609,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal_family_f096b1ba",
-                    "label": "gross disbursements (official development assistance)",
+                    "label": "net disbursements (official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -2668,7 +2674,7 @@
                       }
                     ],
                     "member_count": 1,
-                    "member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+                    "member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -2733,8 +2739,8 @@
                         "kind": "value",
                         "value": {
                           "ref": {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           },
                           "value_kind": "enum_value"
                         }
@@ -2835,6 +2841,7 @@
                       "whole_of": [
                         "official"
                       ],
+                      "holds_multilaterals": true,
                       "side_classes": [
                         "official",
                         "private",
@@ -2921,7 +2928,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2973,8 +2980,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType201",
-                              "label": "ODA grant"
+                              "ref": "DAC2aAidType219",
+                              "label": "recovery on ODA grants and capital subscriptions"
                             },
                             "value_kind": "enum_value"
                           },
@@ -2987,8 +2994,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType207",
-                              "label": "free-standing technical co-operation"
+                              "ref": "DAC2aAidType209",
+                              "label": "interest received on ODA lending"
                             },
                             "value_kind": "enum_value"
                           },
@@ -3000,8 +3007,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType213",
-                              "label": "developmental food aid"
+                              "ref": "DAC2aAidType250",
+                              "label": "official development assistance excluding debt relief"
                             },
                             "value_kind": "enum_value"
                           },
@@ -3013,14 +3020,14 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType216",
-                              "label": "humanitarian aid"
+                              "ref": "DAC2aAidType255",
+                              "label": "debt relief"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
                           "member_count": 1,
-                          "served_rows": 10,
+                          "served_rows": 7,
                           "served_rows_exact": true
                         }
                       ],
@@ -3063,11 +3070,11 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Gross disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Net disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
-                      "text": "Gross disbursements",
+                      "text": "Net disbursements",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -3312,8 +3319,8 @@
                         "binding_kind": "value",
                         "refs": [
                           {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           }
                         ],
                         "provenance": "measure_elected"
@@ -3369,7 +3376,7 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9",
+                    "capability_version": "cap_4913302d7a6b6435",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3377,108 +3384,8 @@
                   },
                   "confidence": "high",
                   "available_at_place": true,
-                  "alternative_measures": [
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_f025379e211db08849c7f98c627e025c",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialFlow",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "dac2aAidType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "DAC2aAidType206"
-                              }
-                            },
-                            {
-                              "property": "dacTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "financialFlowType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Disbursement"
-                              }
-                            },
-                            {
-                              "property": "nettingBasis",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Net"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/KEN"
-                            ],
-                            "origin": [
-                              "DACOfficialDonors"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "range",
-                            "start_year": 2013,
-                            "end_year": 2022
-                          }
-                        }
-                      },
-                      "label": "net disbursements",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialFlow",
-                            "label": "financial flow"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialFlowType",
-                          "value": {
-                            "ref": "Disbursement",
-                            "label": "disbursement"
-                          }
-                        },
-                        {
-                          "axis": "nettingBasis",
-                          "value": {
-                            "ref": "Net",
-                            "label": "net"
-                          }
-                        }
-                      ],
-                      "served_rows": 10,
-                      "served_rows_exact": true
-                    }
-                  ],
-                  "measure_label": "gross disbursements",
+                  "alternative_measures": [],
+                  "measure_label": "net disbursements",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -3518,11 +3425,13 @@
                     {
                       "axis": "nettingBasis",
                       "value": {
-                        "ref": "Gross",
-                        "label": "gross"
+                        "ref": "Net",
+                        "label": "net"
                       }
                     }
                   ],
+                  "concept_label": "official development assistance",
+                  "published_tables": "OECD DAC2a",
                   "unit_conversion": {
                     "currencies": [
                       {
@@ -5487,12 +5396,256 @@
                     "role_currencies": {
                       "destination": "KES"
                     }
+                  },
+                  "scope_choices": {
+                    "id": "spec_f025379e211db08849c7f98c627e025c",
+                    "base": {
+                      "schema_version": 1,
+                      "spec_id": "spec_f025379e211db08849c7f98c627e025c",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "dac2aAidType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "DAC2aAidType206"
+                            }
+                          },
+                          {
+                            "property": "dacTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Net"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/KEN"
+                          ],
+                          "origin": [
+                            "DACOfficialDonors"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "range",
+                          "start_year": 2013,
+                          "end_year": 2022
+                        }
+                      }
+                    },
+                    "rule_version": "scope1:3eef00a928eedd463ee48d02b79730da",
+                    "entries": [],
+                    "dropped_entries": [],
+                    "choices": [
+                      {
+                        "id": "spec_f025379e211db08849c7f98c627e025c:measure_basis",
+                        "axis": "measure_basis",
+                        "rule": "measure_basis_convention",
+                        "provenance": "default",
+                        "active": "measure_basis:net",
+                        "options": [
+                          {
+                            "option_id": "measure_basis:gross",
+                            "label": "gross disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Gross"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:net",
+                            "label": "net disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Net"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:grant_equivalent",
+                            "label": "grant equivalents (OECD headline), current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "grantEquivalent",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "unavailable",
+                              "code": "basis_not_published",
+                              "detail": {
+                                "dataset": "provenance/OECDDAC2A"
+                              }
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:commitments",
+                            "label": "commitments, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "unavailable",
+                              "code": "basis_not_published",
+                              "detail": {
+                                "dataset": "provenance/OECDDAC2A"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "compiled": {
+                      "spec_id": "spec_f025379e211db08849c7f98c627e025c",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "dac2aAidType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "DAC2aAidType206"
+                            }
+                          },
+                          {
+                            "property": "dacTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Net"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/KEN"
+                          ],
+                          "origin": [
+                            "DACOfficialDonors"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "range",
+                          "start_year": 2013,
+                          "end_year": 2022
+                        }
+                      },
+                      "components": [
+                        {
+                          "role": "whole",
+                          "identity": {
+                            "identity_version": "spec1",
+                            "shape": {
+                              "kind": "statvar_schema",
+                              "population_type": "FinancialFlow",
+                              "measured_property": "amount",
+                              "stat_type": "measuredValue",
+                              "measurement_qualifier": "Nominal"
+                            },
+                            "slots": [
+                              {
+                                "property": "dac2aAidType",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "DAC2aAidType206"
+                                }
+                              },
+                              {
+                                "property": "dacTypeOfFinance",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "financialFlowType",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Disbursement"
+                                }
+                              },
+                              {
+                                "property": "nettingBasis",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Net"
+                                }
+                              }
+                            ],
+                            "entities": {
+                              "destination": [
+                                "country/KEN"
+                              ],
+                              "origin": [
+                                "DACOfficialDonors"
+                              ]
+                            },
+                            "requested_window": {
+                              "kind": "range",
+                              "start_year": 2013,
+                              "end_year": 2022
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "ledger": []
                   }
                 }
               }
             }
           ],
-          "rendered_sentence": "Answered 1 of 2 parts. Mortality has 2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself. Gross disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. You asked for aid flows. This shows gross disbursements, the closest measure the data holds. No donor was named, so this shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, add \"for each donor\" to the question. Assumed: official development assistance.",
+          "rendered_sentence": "Answered 1 of 2 parts. Mortality has 2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself. Net disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. You asked for aid flows. This shows net disbursements, the closest measure the data holds. No donor was named, so this shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, add \"for each donor\" to the question. Assumed: official development assistance.",
           "sentence_plan": [
             {
               "kind": "text",
@@ -5575,7 +5728,7 @@
             },
             {
               "kind": "text",
-              "text": "per capita",
+              "text": "per 1,000 people",
               "segment": "heading",
               "entity_refs": [],
               "states": [],
@@ -5742,7 +5895,7 @@
             },
             {
               "kind": "slot",
-              "text": "Gross disbursements",
+              "text": "Net disbursements",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -5939,7 +6092,7 @@
             },
             {
               "kind": "text",
-              "text": "You asked for aid flows. This shows gross disbursements, the closest measure the data holds.",
+              "text": "You asked for aid flows. This shows net disbursements, the closest measure the data holds.",
               "segment": "departure",
               "entity_refs": [],
               "states": [],
@@ -6078,7 +6231,7 @@
                       "property": "nettingBasis",
                       "binding": {
                         "state": "value",
-                        "ref": "Gross"
+                        "ref": "Net"
                       }
                     }
                   ],
@@ -6103,6 +6256,7 @@
                     "whole_of": [
                       "official"
                     ],
+                    "holds_multilaterals": true,
                     "side_classes": [
                       "official",
                       "private",
@@ -6149,7 +6303,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "73fbf797c20a40a4851f5d88882cf25a"
+          "x-dfo-trace-id": "a6b35269243c45939a1edd0882f75263"
         },
         "json": {
           "schema_version": 1,
@@ -6158,11 +6312,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "73fbf797c20a40a4851f5d88882cf25a",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "a6b35269243c45939a1edd0882f75263",
             "warnings": [],
             "timing_ms": {
-              "total": 1963,
+              "total": 817,
               "by_step": {
                 "coverage": 0
               }
@@ -6175,19 +6329,39 @@
               "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 277,
+                "total": 757,
                 "by_step": {
-                  "validate": 0,
-                  "walk": 0,
+                  "validate": 1,
+                  "phase_validate": 0,
+                  "walk": 230,
                   "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
                   "detect_edits": 0,
+                  "phase_detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 178,
-                  "bind": 1,
+                  "phase_resolve_survivors": 0,
+                  "shape": 262,
+                  "phase_build_shape": 0,
+                  "bind": 0,
+                  "phase_build_bindings": 0,
                   "where_places": 0,
-                  "materialise": 96,
-                  "answer": 1,
-                  "options": 1
+                  "phase_where_places": 0,
+                  "materialise": 95,
+                  "phase_materialise": 0,
+                  "ground_related": 1,
+                  "ground_units": 0,
+                  "ground_facets": 0,
+                  "ground_convert": 0,
+                  "answer": 75,
+                  "ground_gates": 0,
+                  "phase_ground_build": 2,
+                  "finalize_preview": 0,
+                  "options": 0,
+                  "finalize_related": 91,
+                  "finalize_wholes": 0,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 0,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -6522,7 +6696,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators.",
+                  "rendered_sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -6566,11 +6740,14 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "per capita",
+                      "text": "per 1,000 people",
                       "axis": "unit",
                       "segment": "heading",
+                      "binding_ref": "unit:",
                       "entity_refs": [],
-                      "states": []
+                      "states": [
+                        "unit:"
+                      ]
                     },
                     {
                       "kind": "slot",
@@ -6706,12 +6883,13 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
                   "measure_label_axes": [],
                   "measure_axis_values": [],
+                  "published_tables": "World Development Indicators",
                   "related_group": {
                     "ref": "dc/g/MortalityEvent",
                     "label": "Mortality Event"
@@ -6755,19 +6933,39 @@
               "variable_text": "aid flows",
               "warnings": [],
               "timing_ms": {
-                "total": 1896,
+                "total": 108,
                 "by_step": {
                   "validate": 0,
-                  "walk": 13,
-                  "reread_arcs": 1,
+                  "phase_validate": 0,
+                  "walk": 14,
+                  "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
                   "detect_edits": 0,
+                  "phase_detect_edits": 0,
                   "resolve_survivors": 0,
-                  "shape": 1838,
-                  "bind": 1,
+                  "phase_resolve_survivors": 0,
+                  "shape": 1,
+                  "phase_build_shape": 0,
+                  "bind": 0,
+                  "phase_build_bindings": 0,
                   "where_places": 0,
-                  "materialise": 18,
-                  "answer": 8,
-                  "options": 17
+                  "phase_where_places": 0,
+                  "materialise": 19,
+                  "phase_materialise": 0,
+                  "ground_related": 0,
+                  "ground_units": 0,
+                  "ground_facets": 0,
+                  "ground_convert": 0,
+                  "answer": 9,
+                  "ground_gates": 4,
+                  "phase_ground_build": 58,
+                  "finalize_preview": 0,
+                  "options": 3,
+                  "finalize_related": 0,
+                  "finalize_wholes": 0,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 0,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -6791,10 +6989,10 @@
               ],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_f24e46ae9854884308fc0f33d154361e",
+                "spec_id": "spec_f025379e211db08849c7f98c627e025c",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_f24e46ae9854884308fc0f33d154361e",
+                  "spec_id": "spec_f025379e211db08849c7f98c627e025c",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -6829,7 +7027,7 @@
                         "property": "nettingBasis",
                         "binding": {
                           "state": "value",
-                          "ref": "Gross"
+                          "ref": "Net"
                         }
                       }
                     ],
@@ -6851,7 +7049,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal_family_f096b1ba",
-                    "label": "gross disbursements (official development assistance)",
+                    "label": "net disbursements (official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -6916,7 +7114,7 @@
                       }
                     ],
                     "member_count": 1,
-                    "member_digest": "1a36e1a7292b1bfff95a5415de0be74cac7bb033217ed50e79faa8ce51a224c0",
+                    "member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -6981,8 +7179,8 @@
                         "kind": "value",
                         "value": {
                           "ref": {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           },
                           "value_kind": "enum_value"
                         }
@@ -7082,6 +7280,7 @@
                       "whole_of": [
                         "official"
                       ],
+                      "holds_multilaterals": true,
                       "side_classes": [
                         "official",
                         "private",
@@ -7168,7 +7367,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "e6e717ab8c77e84d010915893ede5809e9ecec67929a07cfafbcc2210edfa1eb",
+                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -7220,8 +7419,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType201",
-                              "label": "ODA grant"
+                              "ref": "DAC2aAidType219",
+                              "label": "recovery on ODA grants and capital subscriptions"
                             },
                             "value_kind": "enum_value"
                           },
@@ -7234,8 +7433,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType207",
-                              "label": "free-standing technical co-operation"
+                              "ref": "DAC2aAidType209",
+                              "label": "interest received on ODA lending"
                             },
                             "value_kind": "enum_value"
                           },
@@ -7247,8 +7446,8 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType213",
-                              "label": "developmental food aid"
+                              "ref": "DAC2aAidType250",
+                              "label": "official development assistance excluding debt relief"
                             },
                             "value_kind": "enum_value"
                           },
@@ -7260,14 +7459,14 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "DAC2aAidType216",
-                              "label": "humanitarian aid"
+                              "ref": "DAC2aAidType255",
+                              "label": "debt relief"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
                           "member_count": 1,
-                          "served_rows": 10,
+                          "served_rows": 7,
                           "served_rows_exact": true
                         }
                       ],
@@ -7310,11 +7509,11 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Gross disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Net disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
-                      "text": "Gross disbursements",
+                      "text": "Net disbursements",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -7559,8 +7758,8 @@
                         "binding_kind": "value",
                         "refs": [
                           {
-                            "ref": "Gross",
-                            "label": "gross"
+                            "ref": "Net",
+                            "label": "net"
                           }
                         ],
                         "provenance": "binder"
@@ -7616,7 +7815,7 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_765c9d2a0c7529b9"
+                    "capability_version": "cap_4913302d7a6b6435"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -7624,7 +7823,7 @@
                     {
                       "definition": {
                         "schema_version": 1,
-                        "spec_id": "spec_f025379e211db08849c7f98c627e025c",
+                        "spec_id": "spec_f24e46ae9854884308fc0f33d154361e",
                         "identity": {
                           "identity_version": "spec1",
                           "shape": {
@@ -7659,7 +7858,7 @@
                               "property": "nettingBasis",
                               "binding": {
                                 "state": "value",
-                                "ref": "Net"
+                                "ref": "Gross"
                               }
                             }
                           ],
@@ -7678,7 +7877,7 @@
                           }
                         }
                       },
-                      "label": "net disbursements",
+                      "label": "gross disbursements",
                       "axis": "what",
                       "measure_axis_values": [
                         {
@@ -7712,8 +7911,8 @@
                         {
                           "axis": "nettingBasis",
                           "value": {
-                            "ref": "Net",
-                            "label": "net"
+                            "ref": "Gross",
+                            "label": "gross"
                           }
                         }
                       ],
@@ -7721,7 +7920,7 @@
                       "served_rows_exact": true
                     }
                   ],
-                  "measure_label": "gross disbursements",
+                  "measure_label": "net disbursements",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -7761,11 +7960,13 @@
                     {
                       "axis": "nettingBasis",
                       "value": {
-                        "ref": "Gross",
-                        "label": "gross"
+                        "ref": "Net",
+                        "label": "net"
                       }
                     }
                   ],
+                  "concept_label": "official development assistance",
+                  "published_tables": "OECD DAC2a",
                   "unit_conversion": {
                     "currencies": [
                       {
@@ -9735,7 +9936,7 @@
               }
             }
           ],
-          "rendered_sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators. Gross disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. This shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, search again with open_roles ['donor']. Assumed: official development assistance.",
+          "rendered_sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators. Net disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. This shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, search again with open_roles ['donor']. Assumed: official development assistance.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -9784,11 +9985,14 @@
             },
             {
               "kind": "slot",
-              "text": "per capita",
+              "text": "per 1,000 people",
               "axis": "unit",
               "segment": "heading",
+              "binding_ref": "unit:",
               "entity_refs": [],
-              "states": [],
+              "states": [
+                "unit:"
+              ],
               "part_index": 0
             },
             {
@@ -9866,7 +10070,7 @@
             },
             {
               "kind": "slot",
-              "text": "Gross disbursements",
+              "text": "Net disbursements",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -10112,10 +10316,10 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Answered 1 of 2 parts. Mortality has 2 readings. Kenya's deaths rate per capita. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself. Gross disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. You asked for aid flows. This shows gross disbursements, the closest measure the data holds. No donor was named, so this shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, add \"for each donor\" to the question. Assumed: official development assistance.",
+        "sentence": "Answered 1 of 2 parts. Mortality has 2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself. Net disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. You asked for aid flows. This shows net disbursements, the closest measure the data holds. No donor was named, so this shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, add \"for each donor\" to the question. Assumed: official development assistance.",
         "complete": false,
         "specs": [
-          "spec_f24e46ae9854884308fc0f33d154361e"
+          "spec_f025379e211db08849c7f98c627e025c"
         ],
         "gaps": [
           {
@@ -10130,11 +10334,11 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Kenya's deaths rate per capita, 2013 to 2022. World Development Indicators. Gross disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. This shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, search again with open_roles ['donor']. Assumed: official development assistance.",
+        "sentence": "Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators. Net disbursements to Kenya from official donors (DAC) for official development assistance, 2013 to 2022. Current US dollars · OECD DAC2a. This shows official donors (DAC), the source's total for every official donor. Private donors are outside it. To list each donor, search again with open_roles ['donor']. Assumed: official development assistance.",
         "complete": true,
         "specs": [
           "spec_10bf62f9687154286b463d206f03a086",
-          "spec_f24e46ae9854884308fc0f33d154361e"
+          "spec_f025379e211db08849c7f98c627e025c"
         ],
         "gaps": []
       }

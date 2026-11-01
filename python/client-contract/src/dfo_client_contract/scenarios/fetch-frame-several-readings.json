@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "5e0f0d6a5a6442a38932b02d7f72ed6c"
+          "x-dfo-trace-id": "c58dd2d53f1d4340a3f1fcb4c72681c5"
         },
         "json": {
           "schema_version": 1,
@@ -42,23 +42,27 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya",
             "normalized_query": "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "d80df9f5fd598b7345255470932d202ee5d49942",
-            "trace_id": "5e0f0d6a5a6442a38932b02d7f72ed6c",
+            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "trace_id": "c58dd2d53f1d4340a3f1fcb4c72681c5",
             "warnings": [],
             "timing_ms": {
-              "total": 8,
+              "total": 6877,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1225,
+                "exclusion_read": 636,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2796,
+              "output_tokens": 224,
+              "cached_tokens": 0,
+              "jev_input_tokens": 25826,
+              "jev_output_tokens": 5796
             },
             "timed_out": false
           },
@@ -68,30 +72,30 @@
               "variable_text": "health ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 4401,
+                "total": 4245,
                 "by_step": {
-                  "recall": 1271,
+                  "recall": 1975,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 108,
-                  "shape_probe_coverage": 4,
-                  "shape_probe": 113,
-                  "shape_groups": 72,
-                  "shape_labels": 12,
-                  "shape_admission": 0,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 5,
+                  "shape_probe": 116,
+                  "shape_groups": 62,
+                  "shape_labels": 11,
+                  "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 524,
+                  "shape": 280,
                   "phase_prune_and_rank": 0,
-                  "bind": 482,
-                  "phase_bind": 205,
-                  "phase_settle": 57,
-                  "phase_place_bindings": 34,
+                  "bind": 227,
+                  "phase_bind": 195,
+                  "phase_settle": 82,
+                  "phase_place_bindings": 31,
                   "phase_facet_requests": 0,
-                  "materialise": 686,
-                  "phase_materialise": 225,
-                  "answer": 28,
-                  "options": 685,
-                  "phase_outcome": 204
+                  "materialise": 858,
+                  "phase_materialise": 171,
+                  "answer": 78,
+                  "options": 214,
+                  "phase_outcome": 134
                 }
               },
               "restatement": {
@@ -128,10 +132,10 @@
               "assumptions": [],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_25f482395c5d012ec278118f38dff29c",
+                "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_25f482395c5d012ec278118f38dff29c",
+                  "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -154,7 +158,8 @@
                           "state": "set",
                           "refs": [
                             "CRSPurposeCode110",
-                            "CRSPurposeCode120"
+                            "CRSPurposeCode120",
+                            "CRSPurposeCode130"
                           ]
                         }
                       },
@@ -202,7 +207,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal",
-                    "label": "gross disbursements (official development assistance)",
+                    "label": "gross disbursements (education, health and population policy, programme, and reproductive health, official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -282,8 +287,8 @@
                         "label": "data source"
                       }
                     ],
-                    "member_count": 545,
-                    "member_digest": "0c7508fd1997d6cdc896f2eab0f092a4915cfca9e2400eb9577bb22b527fe882",
+                    "member_count": 634,
+                    "member_digest": "5c91c0a8d90f4619a1ff7122cacdc8b0bc48b22c70516d7673aec42caf6da0d4",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -316,6 +321,13 @@
                             "ref": {
                               "ref": "CRSPurposeCode120",
                               "label": "health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          {
+                            "ref": {
+                              "ref": "CRSPurposeCode130",
+                              "label": "population policy, programme, and reproductive health"
                             },
                             "value_kind": "enum_value"
                           }
@@ -410,6 +422,26 @@
                           {
                             "ref": "CRSPurposeCode12382",
                             "label": "research for noncommunicable disease prevention and control"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13010",
+                            "label": "population policy and administrative management"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13020",
+                            "label": "reproductive health care"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13030",
+                            "label": "family planning"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13040",
+                            "label": "sexually transmitted disease control"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13081",
+                            "label": "personnel development for population and reproductive health"
                           }
                         ]
                       },
@@ -549,9 +581,9 @@
                   ],
                   "unresolved_slots": [],
                   "stat_vars": {
-                    "member_count": 108,
+                    "member_count": 123,
                     "member_count_exact": true,
-                    "served_count": 545,
+                    "served_count": 634,
                     "data_date_range": {
                       "start": "1997",
                       "end": "2024"
@@ -581,15 +613,21 @@
                       },
                       {
                         "label": "observations",
-                        "count": 12
+                        "count": 19
                       },
                       {
                         "label": "variables",
-                        "count": 51
+                        "count": 66
                       }
                     ]
                   },
                   "facets": {
+                    "unit": {
+                      "basis": "fallback",
+                      "ref": "CurrencyUSD",
+                      "label": "US Dollar",
+                      "currency": "USD"
+                    },
                     "provenance": {
                       "basis": "fallback",
                       "ref": "provenance/OECDCreditorReportingSystem",
@@ -604,12 +642,6 @@
                       },
                       "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem",
                       "account": "provider"
-                    },
-                    "unit": {
-                      "basis": "fallback",
-                      "ref": "CurrencyUSD",
-                      "label": "US Dollar",
-                      "currency": "USD"
                     }
                   },
                   "slot_options": [
@@ -626,43 +658,83 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode121",
-                              "label": "general health"
+                              "ref": "CRSPurposeCode998",
+                              "label": "unallocated and unspecified"
                             },
                             "value_kind": "enum_value"
                           },
-                          "relation": "child",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 6,
-                          "served_rows": 82,
+                          "relation": "root",
+                          "member_count": 76,
+                          "served_rows": 74,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode122",
-                              "label": "basic health"
+                              "ref": "CRSPurposeCode99810",
+                              "label": "sectors not specified"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 4,
-                          "served_rows": 108,
+                          "parent": "CRSPurposeCode998",
+                          "member_count": 255,
+                          "served_rows": 71,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode123",
-                              "label": "noncommunicable disease"
+                              "ref": "CRSPurposeCode99820",
+                              "label": "non-sector allocable promotion of development awareness"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 3,
+                          "parent": "CRSPurposeCode998",
+                          "member_count": 77,
+                          "served_rows": 3,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode600",
+                              "label": "action relating to debt"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 21,
+                          "served_rows": 9,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode60020",
+                              "label": "debt forgiveness"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode600",
+                          "member_count": 75,
                           "served_rows": 4,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode60040",
+                              "label": "rescheduling and refinancing"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode600",
+                          "member_count": 54,
+                          "served_rows": 5,
                           "served_rows_exact": true
                         },
                         {
@@ -673,9 +745,409 @@
                             },
                             "value_kind": "enum_value"
                           },
-                          "relation": "parent",
+                          "relation": "root",
                           "member_count": 13,
                           "served_rows": 1214,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode140",
+                              "label": "water supply and sanitation"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 10,
+                          "served_rows": 275,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode110",
+                              "label": "education"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 9,
+                          "served_rows": 318,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode160",
+                              "label": "other social infrastructure and services"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 7,
+                          "served_rows": 102,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode120",
+                              "label": "health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 6,
+                          "served_rows": 194,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode130",
+                              "label": "population policy, programme, and reproductive health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 5,
+                          "served_rows": 81,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode150",
+                              "label": "government and civil society"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 4,
+                          "served_rows": 244,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode200",
+                              "label": "economic infrastructure and services"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 13,
+                          "served_rows": 286,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode240",
+                              "label": "banking and financial services"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 16,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode220",
+                              "label": "communication system and technology"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 13,
+                          "served_rows": 23,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode250",
+                              "label": "business environment and governance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 13,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode210",
+                              "label": "transport and storage"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 7,
+                          "served_rows": 97,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode230",
+                              "label": "energy"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 7,
+                          "served_rows": 106,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode300",
+                              "label": "productive sector"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 13,
+                          "served_rows": 493,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode310",
+                              "label": "agriculture, forestry and fishing"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode300",
+                          "member_count": 12,
+                          "served_rows": 405,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode320",
+                              "label": "industry, mining and construction"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode300",
+                          "member_count": 9,
+                          "served_rows": 66,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode331",
+                              "label": "trade policies and regulations"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode300",
+                          "member_count": 7,
+                          "served_rows": 22,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode400",
+                              "label": "multisector"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 7,
+                          "served_rows": 206,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode430",
+                              "label": "other multisector"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode400",
+                          "member_count": 10,
+                          "served_rows": 162,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode410",
+                              "label": "general environment protection"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode400",
+                          "member_count": 7,
+                          "served_rows": 44,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode500",
+                              "label": "commodity aid and general programme assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 5,
+                          "served_rows": 70,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode510",
+                              "label": "budget support"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode500",
+                          "member_count": 3,
+                          "served_rows": 10,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode520",
+                              "label": "food assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode500",
+                          "member_count": 3,
+                          "served_rows": 19,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode530",
+                              "label": "other commodity assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode500",
+                          "member_count": 3,
+                          "served_rows": 41,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode700",
+                              "label": "humanitarian aid"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 5,
+                          "served_rows": 68,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode720",
+                              "label": "emergency response"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode700",
+                          "member_count": 6,
+                          "served_rows": 46,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode730",
+                              "label": "reconstruction and rehabilitation"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode700",
+                          "member_count": 3,
+                          "served_rows": 14,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode740",
+                              "label": "disaster preparedness"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode700",
+                          "member_count": 0,
+                          "served_rows": 8,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode930",
+                              "label": "support for refugees and asylum seekers in donor countries"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 3,
+                          "served_rows": 6,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode93010",
+                              "label": "general support for refugees and asylum seekers in donor countries"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode930",
+                          "member_count": 57,
+                          "served_rows": 6,
                           "served_rows_exact": true
                         },
                         {
@@ -758,7 +1230,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 501,
+                          "served_rows": 582,
                           "served_rows_exact": true
                         },
                         {
@@ -771,8 +1243,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSTypeOfFinance100",
-                          "member_count": 12672,
-                          "served_rows": 501,
+                          "member_count": 12745,
+                          "served_rows": 582,
                           "served_rows_exact": true
                         },
                         {
@@ -825,8 +1297,8 @@
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
-                          "member_count": 14098,
-                          "served_rows": 512,
+                          "member_count": 14146,
+                          "served_rows": 593,
                           "served_rows_exact": true
                         }
                       ],
@@ -853,7 +1325,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 104,
+                          "served_rows": 118,
                           "served_rows_exact": true
                         },
                         {
@@ -866,8 +1338,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityB",
-                          "member_count": 1606,
-                          "served_rows": 21,
+                          "member_count": 1614,
+                          "served_rows": 25,
                           "served_rows_exact": true
                         },
                         {
@@ -880,8 +1352,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityB",
-                          "member_count": 1331,
-                          "served_rows": 83,
+                          "member_count": 1337,
+                          "served_rows": 93,
                           "served_rows_exact": true
                         },
                         {
@@ -894,7 +1366,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 136,
+                          "served_rows": 173,
                           "served_rows_exact": true
                         },
                         {
@@ -907,8 +1379,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityC",
-                          "member_count": 7005,
-                          "served_rows": 136,
+                          "member_count": 7041,
+                          "served_rows": 173,
                           "served_rows_exact": true
                         },
                         {
@@ -921,7 +1393,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 111,
+                          "served_rows": 116,
                           "served_rows_exact": true
                         },
                         {
@@ -935,7 +1407,7 @@
                           "relation": "child",
                           "parent": "CRSCooperationModalityD",
                           "member_count": 1600,
-                          "served_rows": 84,
+                          "served_rows": 87,
                           "served_rows_exact": true
                         },
                         {
@@ -948,8 +1420,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityD",
-                          "member_count": 976,
-                          "served_rows": 27,
+                          "member_count": 980,
+                          "served_rows": 29,
                           "served_rows_exact": true
                         },
                         {
@@ -1033,7 +1505,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Germany's gross ODA disbursements to Kenya for education and health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+                  "rendered_sentence": "Germany's gross ODA disbursements to Kenya for education, health, and population policy, programme, and reproductive health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -1106,7 +1578,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "education and health",
+                      "text": "education, health, and population policy, programme, and reproductive health",
                       "axis": "how",
                       "segment": "heading",
                       "property_dcid": "crsPurpose",
@@ -1280,6 +1752,10 @@
                           {
                             "ref": "CRSPurposeCode120",
                             "label": "health"
+                          },
+                          {
+                            "ref": "CRSPurposeCode130",
+                            "label": "population policy, programme, and reproductive health"
                           }
                         ],
                         "provenance": "text_recognized"
@@ -1435,226 +1911,13 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_765c9d2a0c7529b9",
+                    "capability_version": "cap_4913302d7a6b6435",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
                     }
                   },
-                  "alternative_measures": [
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_b438dc000255d174bcc13eb675e603f7",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialFlow",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "crsCooperationModality",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsPurpose",
-                              "binding": {
-                                "state": "set",
-                                "refs": [
-                                  "CRSPurposeCode110",
-                                  "CRSPurposeCode120"
-                                ]
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFlow",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSTypeOfFlow10"
-                              }
-                            },
-                            {
-                              "property": "financialFlowType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Disbursement"
-                              }
-                            },
-                            {
-                              "property": "nettingBasis",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Net"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/KEN"
-                            ],
-                            "origin": [
-                              "country/DEU"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "all"
-                          }
-                        }
-                      },
-                      "label": "net disbursements",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialFlow",
-                            "label": "financial flow"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialFlowType",
-                          "value": {
-                            "ref": "Disbursement",
-                            "label": "disbursement"
-                          }
-                        },
-                        {
-                          "axis": "nettingBasis",
-                          "value": {
-                            "ref": "Net",
-                            "label": "net"
-                          }
-                        }
-                      ],
-                      "served_rows": 512,
-                      "served_rows_exact": true
-                    },
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_e348565295de394da8ddaa23ec5fa475",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialObligation",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "crsCooperationModality",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsPurpose",
-                              "binding": {
-                                "state": "set",
-                                "refs": [
-                                  "CRSPurposeCode110",
-                                  "CRSPurposeCode120"
-                                ]
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFlow",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSTypeOfFlow10"
-                              }
-                            },
-                            {
-                              "property": "financialObligationType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Commitment"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/KEN"
-                            ],
-                            "origin": [
-                              "country/DEU"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "all"
-                          }
-                        }
-                      },
-                      "label": "commitments",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialObligation",
-                            "label": "financial obligation"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialObligationType",
-                          "value": {
-                            "ref": "Commitment",
-                            "label": "commitment"
-                          }
-                        }
-                      ],
-                      "served_rows": 519,
-                      "served_rows_exact": true
-                    }
-                  ],
+                  "alternative_measures": [],
                   "measure_label": "gross disbursements",
                   "measure_label_axes": [
                     "populationType",
@@ -1700,6 +1963,8 @@
                       }
                     }
                   ],
+                  "concept_label": "education, health, and population policy, programme, and reproductive health",
+                  "published_tables": "OECD Creditor Reporting System (CRS)",
                   "open_axis_facts": [
                     {
                       "property": "crsTypeOfFinance",
@@ -1712,7 +1977,7 @@
                             "ref": "CRSTypeOfFinance110",
                             "label": "standard grant"
                           },
-                          "count": 105
+                          "count": 120
                         },
                         {
                           "value": {
@@ -1727,42 +1992,42 @@
                       "property": "crsCooperationModality",
                       "varies": true,
                       "distinct_count": 7,
-                      "undeclared_count": 19,
+                      "undeclared_count": 22,
                       "values": [
                         {
                           "value": {
                             "ref": "CRSCooperationModalityC01",
                             "label": "project-type intervention"
                           },
-                          "count": 27
+                          "count": 30
                         },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityB03",
                             "label": "contribution to specific-purpose programme and fund managed by an international organisation"
                           },
-                          "count": 21
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityD02",
-                            "label": "other technical assistance"
-                          },
-                          "count": 16
+                          "count": 24
                         },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityB01",
                             "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
                           },
-                          "count": 15
+                          "count": 18
+                        },
+                        {
+                          "value": {
+                            "ref": "CRSCooperationModalityD02",
+                            "label": "other technical assistance"
+                          },
+                          "count": 18
                         },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityD01",
                             "label": "donor country personnel"
                           },
-                          "count": 8
+                          "count": 9
                         },
                         {
                           "value": {
@@ -3749,6 +4014,377 @@
                       "destination": "KES",
                       "origin": "EUR"
                     }
+                  },
+                  "scope_choices": {
+                    "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
+                    "base": {
+                      "schema_version": 1,
+                      "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "crsCooperationModality",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsPurpose",
+                            "binding": {
+                              "state": "set",
+                              "refs": [
+                                "CRSPurposeCode110",
+                                "CRSPurposeCode120",
+                                "CRSPurposeCode130"
+                              ]
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFlow",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSTypeOfFlow10"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Gross"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/KEN"
+                          ],
+                          "origin": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "all"
+                        }
+                      }
+                    },
+                    "rule_version": "scope1:3eef00a928eedd463ee48d02b79730da",
+                    "entries": [],
+                    "dropped_entries": [
+                      {
+                        "entry": {
+                          "axis": "sector",
+                          "option_id": "sector:110",
+                          "provenance": "explicit",
+                          "origin": {
+                            "kind": "text",
+                            "text": "education",
+                            "start": 0,
+                            "end": 9
+                          }
+                        },
+                        "code": "stated_choice_not_applied",
+                        "cause": "option_unknown"
+                      }
+                    ],
+                    "choices": [
+                      {
+                        "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2:sector",
+                        "axis": "sector",
+                        "rule": "sector_code",
+                        "provenance": "default",
+                        "active": "sector:110+120+130",
+                        "options": [
+                          {
+                            "option_id": "sector:110+120+130",
+                            "label": "education (CRS 110) + health (CRS 120) + population policy, programme, and reproductive health (CRS 130)",
+                            "binding": {
+                              "kind": "slot",
+                              "slot": "crsPurpose",
+                              "state": "set",
+                              "refs": [
+                                "CRSPurposeCode110",
+                                "CRSPurposeCode120",
+                                "CRSPurposeCode130"
+                              ]
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2:measure_basis",
+                        "axis": "measure_basis",
+                        "rule": "measure_basis_convention",
+                        "provenance": "default",
+                        "active": "measure_basis:gross",
+                        "options": [
+                          {
+                            "option_id": "measure_basis:gross",
+                            "label": "gross disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Gross"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:net",
+                            "label": "net disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Net"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:grant_equivalent",
+                            "label": "grant equivalents (OECD headline), current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "grantEquivalent",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:commitments",
+                            "label": "commitments, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2:provider",
+                        "axis": "provider",
+                        "rule": "bilateral_flows",
+                        "provenance": "default",
+                        "active": "provider:bilateral",
+                        "options": [
+                          {
+                            "option_id": "provider:bilateral",
+                            "label": "bilateral flows only",
+                            "binding": {
+                              "kind": "provider",
+                              "scope": "bilateral"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "provider:inclusive",
+                            "label": "bilateral plus imputed multilateral, 2011 to 2024",
+                            "binding": {
+                              "kind": "provider",
+                              "scope": "inclusive",
+                              "window": [
+                                2011,
+                                2024
+                              ],
+                              "provenance": "provenance/ONEBilateralAndImputedMultilateral"
+                            },
+                            "availability": {
+                              "status": "partial",
+                              "years": [
+                                [
+                                  2011,
+                                  2024
+                                ]
+                              ],
+                              "code": "imputed_coverage",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "compiled": {
+                      "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "crsCooperationModality",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsPurpose",
+                            "binding": {
+                              "state": "set",
+                              "refs": [
+                                "CRSPurposeCode110",
+                                "CRSPurposeCode120",
+                                "CRSPurposeCode130"
+                              ]
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFlow",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSTypeOfFlow10"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Gross"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/KEN"
+                          ],
+                          "origin": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "all"
+                        }
+                      },
+                      "components": [
+                        {
+                          "role": "whole",
+                          "identity": {
+                            "identity_version": "spec1",
+                            "shape": {
+                              "kind": "statvar_schema",
+                              "population_type": "FinancialFlow",
+                              "measured_property": "amount",
+                              "stat_type": "measuredValue",
+                              "measurement_qualifier": "Nominal"
+                            },
+                            "slots": [
+                              {
+                                "property": "crsCooperationModality",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "crsPurpose",
+                                "binding": {
+                                  "state": "set",
+                                  "refs": [
+                                    "CRSPurposeCode110",
+                                    "CRSPurposeCode120",
+                                    "CRSPurposeCode130"
+                                  ]
+                                }
+                              },
+                              {
+                                "property": "crsTypeOfFinance",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "crsTypeOfFlow",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "CRSTypeOfFlow10"
+                                }
+                              },
+                              {
+                                "property": "financialFlowType",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Disbursement"
+                                }
+                              },
+                              {
+                                "property": "nettingBasis",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Gross"
+                                }
+                              }
+                            ],
+                            "entities": {
+                              "destination": [
+                                "country/KEN"
+                              ],
+                              "origin": [
+                                "country/DEU"
+                              ]
+                            },
+                            "requested_window": {
+                              "kind": "all"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "ledger": []
                   }
                 }
               }
@@ -3763,30 +4399,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 4561,
+                "total": 5452,
                 "by_step": {
-                  "recall": 1310,
+                  "recall": 2999,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 117,
-                  "shape_probe_coverage": 28,
-                  "shape_probe": 126,
-                  "shape_groups": 83,
+                  "shape_arcs": 1,
+                  "shape_probe_coverage": 46,
+                  "shape_probe": 144,
+                  "shape_groups": 96,
                   "shape_labels": 12,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 753,
+                  "shape": 450,
                   "phase_prune_and_rank": 0,
-                  "bind": 309,
-                  "phase_bind": 209,
-                  "phase_settle": 82,
+                  "bind": 646,
+                  "phase_bind": 157,
+                  "phase_settle": 101,
                   "phase_place_bindings": 25,
                   "phase_facet_requests": 0,
-                  "materialise": 1061,
-                  "phase_materialise": 233,
-                  "answer": 29,
-                  "options": 385,
-                  "phase_outcome": 165
+                  "materialise": 602,
+                  "phase_materialise": 196,
+                  "answer": 45,
+                  "options": 138,
+                  "phase_outcome": 93
                 }
               },
               "restatement": {
@@ -3823,10 +4459,10 @@
               "assumptions": [],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_25f482395c5d012ec278118f38dff29c",
+                "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_25f482395c5d012ec278118f38dff29c",
+                  "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -3849,7 +4485,8 @@
                           "state": "set",
                           "refs": [
                             "CRSPurposeCode110",
-                            "CRSPurposeCode120"
+                            "CRSPurposeCode120",
+                            "CRSPurposeCode130"
                           ]
                         }
                       },
@@ -3897,7 +4534,7 @@
                 "resolved": {
                   "shape": {
                     "shape_id": "financialflow_amount_measuredvalue_nominal",
-                    "label": "gross disbursements (official development assistance)",
+                    "label": "gross disbursements (education, health and population policy, programme, and reproductive health, official development assistance)",
                     "population_type": {
                       "ref": "FinancialFlow",
                       "label": "financial flow"
@@ -3977,8 +4614,8 @@
                         "label": "data source"
                       }
                     ],
-                    "member_count": 545,
-                    "member_digest": "0c7508fd1997d6cdc896f2eab0f092a4915cfca9e2400eb9577bb22b527fe882",
+                    "member_count": 634,
+                    "member_digest": "5c91c0a8d90f4619a1ff7122cacdc8b0bc48b22c70516d7673aec42caf6da0d4",
                     "refine_supported": true,
                     "data_commons": [
                       {
@@ -4011,6 +4648,13 @@
                             "ref": {
                               "ref": "CRSPurposeCode120",
                               "label": "health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          {
+                            "ref": {
+                              "ref": "CRSPurposeCode130",
+                              "label": "population policy, programme, and reproductive health"
                             },
                             "value_kind": "enum_value"
                           }
@@ -4105,6 +4749,26 @@
                           {
                             "ref": "CRSPurposeCode12382",
                             "label": "research for noncommunicable disease prevention and control"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13010",
+                            "label": "population policy and administrative management"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13020",
+                            "label": "reproductive health care"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13030",
+                            "label": "family planning"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13040",
+                            "label": "sexually transmitted disease control"
+                          },
+                          {
+                            "ref": "CRSPurposeCode13081",
+                            "label": "personnel development for population and reproductive health"
                           }
                         ]
                       },
@@ -4244,9 +4908,9 @@
                   ],
                   "unresolved_slots": [],
                   "stat_vars": {
-                    "member_count": 108,
+                    "member_count": 123,
                     "member_count_exact": true,
-                    "served_count": 545,
+                    "served_count": 634,
                     "data_date_range": {
                       "start": "1997",
                       "end": "2024"
@@ -4276,15 +4940,21 @@
                       },
                       {
                         "label": "observations",
-                        "count": 12
+                        "count": 19
                       },
                       {
                         "label": "variables",
-                        "count": 51
+                        "count": 66
                       }
                     ]
                   },
                   "facets": {
+                    "unit": {
+                      "basis": "fallback",
+                      "ref": "CurrencyUSD",
+                      "label": "US Dollar",
+                      "currency": "USD"
+                    },
                     "provenance": {
                       "basis": "fallback",
                       "ref": "provenance/OECDCreditorReportingSystem",
@@ -4299,12 +4969,6 @@
                       },
                       "documentation": "/api/graph/documentation/provenance/OECDCreditorReportingSystem",
                       "account": "provider"
-                    },
-                    "unit": {
-                      "basis": "fallback",
-                      "ref": "CurrencyUSD",
-                      "label": "US Dollar",
-                      "currency": "USD"
                     }
                   },
                   "slot_options": [
@@ -4321,43 +4985,83 @@
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode121",
-                              "label": "general health"
+                              "ref": "CRSPurposeCode998",
+                              "label": "unallocated and unspecified"
                             },
                             "value_kind": "enum_value"
                           },
-                          "relation": "child",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 6,
-                          "served_rows": 82,
+                          "relation": "root",
+                          "member_count": 76,
+                          "served_rows": 74,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode122",
-                              "label": "basic health"
+                              "ref": "CRSPurposeCode99810",
+                              "label": "sectors not specified"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 4,
-                          "served_rows": 108,
+                          "parent": "CRSPurposeCode998",
+                          "member_count": 255,
+                          "served_rows": 71,
                           "served_rows_exact": true
                         },
                         {
                           "value": {
                             "ref": {
-                              "ref": "CRSPurposeCode123",
-                              "label": "noncommunicable disease"
+                              "ref": "CRSPurposeCode99820",
+                              "label": "non-sector allocable promotion of development awareness"
                             },
                             "value_kind": "enum_value"
                           },
                           "relation": "child",
-                          "parent": "CRSPurposeCode120",
-                          "member_count": 3,
+                          "parent": "CRSPurposeCode998",
+                          "member_count": 77,
+                          "served_rows": 3,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode600",
+                              "label": "action relating to debt"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 21,
+                          "served_rows": 9,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode60020",
+                              "label": "debt forgiveness"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode600",
+                          "member_count": 75,
                           "served_rows": 4,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode60040",
+                              "label": "rescheduling and refinancing"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode600",
+                          "member_count": 54,
+                          "served_rows": 5,
                           "served_rows_exact": true
                         },
                         {
@@ -4368,9 +5072,409 @@
                             },
                             "value_kind": "enum_value"
                           },
-                          "relation": "parent",
+                          "relation": "root",
                           "member_count": 13,
                           "served_rows": 1214,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode140",
+                              "label": "water supply and sanitation"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 10,
+                          "served_rows": 275,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode110",
+                              "label": "education"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 9,
+                          "served_rows": 318,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode160",
+                              "label": "other social infrastructure and services"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 7,
+                          "served_rows": 102,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode120",
+                              "label": "health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 6,
+                          "served_rows": 194,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode130",
+                              "label": "population policy, programme, and reproductive health"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 5,
+                          "served_rows": 81,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode150",
+                              "label": "government and civil society"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode100",
+                          "member_count": 4,
+                          "served_rows": 244,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode200",
+                              "label": "economic infrastructure and services"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 13,
+                          "served_rows": 286,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode240",
+                              "label": "banking and financial services"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 16,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode220",
+                              "label": "communication system and technology"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 13,
+                          "served_rows": 23,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode250",
+                              "label": "business environment and governance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 13,
+                          "served_rows": 30,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode210",
+                              "label": "transport and storage"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 7,
+                          "served_rows": 97,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode230",
+                              "label": "energy"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode200",
+                          "member_count": 7,
+                          "served_rows": 106,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode300",
+                              "label": "productive sector"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 13,
+                          "served_rows": 493,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode310",
+                              "label": "agriculture, forestry and fishing"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode300",
+                          "member_count": 12,
+                          "served_rows": 405,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode320",
+                              "label": "industry, mining and construction"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode300",
+                          "member_count": 9,
+                          "served_rows": 66,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode331",
+                              "label": "trade policies and regulations"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode300",
+                          "member_count": 7,
+                          "served_rows": 22,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode400",
+                              "label": "multisector"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 7,
+                          "served_rows": 206,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode430",
+                              "label": "other multisector"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode400",
+                          "member_count": 10,
+                          "served_rows": 162,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode410",
+                              "label": "general environment protection"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode400",
+                          "member_count": 7,
+                          "served_rows": 44,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode500",
+                              "label": "commodity aid and general programme assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 5,
+                          "served_rows": 70,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode510",
+                              "label": "budget support"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode500",
+                          "member_count": 3,
+                          "served_rows": 10,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode520",
+                              "label": "food assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode500",
+                          "member_count": 3,
+                          "served_rows": 19,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode530",
+                              "label": "other commodity assistance"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode500",
+                          "member_count": 3,
+                          "served_rows": 41,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode700",
+                              "label": "humanitarian aid"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 5,
+                          "served_rows": 68,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode720",
+                              "label": "emergency response"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode700",
+                          "member_count": 6,
+                          "served_rows": 46,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode730",
+                              "label": "reconstruction and rehabilitation"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode700",
+                          "member_count": 3,
+                          "served_rows": 14,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode740",
+                              "label": "disaster preparedness"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode700",
+                          "member_count": 0,
+                          "served_rows": 8,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode930",
+                              "label": "support for refugees and asylum seekers in donor countries"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "root",
+                          "member_count": 3,
+                          "served_rows": 6,
+                          "served_rows_exact": true
+                        },
+                        {
+                          "value": {
+                            "ref": {
+                              "ref": "CRSPurposeCode93010",
+                              "label": "general support for refugees and asylum seekers in donor countries"
+                            },
+                            "value_kind": "enum_value"
+                          },
+                          "relation": "child",
+                          "parent": "CRSPurposeCode930",
+                          "member_count": 57,
+                          "served_rows": 6,
                           "served_rows_exact": true
                         },
                         {
@@ -4453,7 +5557,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 501,
+                          "served_rows": 582,
                           "served_rows_exact": true
                         },
                         {
@@ -4466,8 +5570,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSTypeOfFinance100",
-                          "member_count": 12672,
-                          "served_rows": 501,
+                          "member_count": 12745,
+                          "served_rows": 582,
                           "served_rows_exact": true
                         },
                         {
@@ -4520,8 +5624,8 @@
                             "value_kind": "enum_value"
                           },
                           "relation": "root",
-                          "member_count": 14098,
-                          "served_rows": 512,
+                          "member_count": 14146,
+                          "served_rows": 593,
                           "served_rows_exact": true
                         }
                       ],
@@ -4548,7 +5652,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 104,
+                          "served_rows": 118,
                           "served_rows_exact": true
                         },
                         {
@@ -4561,8 +5665,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityB",
-                          "member_count": 1606,
-                          "served_rows": 21,
+                          "member_count": 1614,
+                          "served_rows": 25,
                           "served_rows_exact": true
                         },
                         {
@@ -4575,8 +5679,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityB",
-                          "member_count": 1331,
-                          "served_rows": 83,
+                          "member_count": 1337,
+                          "served_rows": 93,
                           "served_rows_exact": true
                         },
                         {
@@ -4589,7 +5693,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 136,
+                          "served_rows": 173,
                           "served_rows_exact": true
                         },
                         {
@@ -4602,8 +5706,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityC",
-                          "member_count": 7005,
-                          "served_rows": 136,
+                          "member_count": 7041,
+                          "served_rows": 173,
                           "served_rows_exact": true
                         },
                         {
@@ -4616,7 +5720,7 @@
                           },
                           "relation": "root",
                           "member_count": 0,
-                          "served_rows": 111,
+                          "served_rows": 116,
                           "served_rows_exact": true
                         },
                         {
@@ -4630,7 +5734,7 @@
                           "relation": "child",
                           "parent": "CRSCooperationModalityD",
                           "member_count": 1600,
-                          "served_rows": 84,
+                          "served_rows": 87,
                           "served_rows_exact": true
                         },
                         {
@@ -4643,8 +5747,8 @@
                           },
                           "relation": "child",
                           "parent": "CRSCooperationModalityD",
-                          "member_count": 976,
-                          "served_rows": 27,
+                          "member_count": 980,
+                          "served_rows": 29,
                           "served_rows_exact": true
                         },
                         {
@@ -4728,7 +5832,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Germany's gross ODA disbursements to Kenya for education and health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
+                  "rendered_sentence": "Germany's gross ODA disbursements to Kenya for education, health, and population policy, programme, and reproductive health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS).",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -4801,7 +5905,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "education and health",
+                      "text": "education, health, and population policy, programme, and reproductive health",
                       "axis": "how",
                       "segment": "heading",
                       "property_dcid": "crsPurpose",
@@ -4975,6 +6079,10 @@
                           {
                             "ref": "CRSPurposeCode120",
                             "label": "health"
+                          },
+                          {
+                            "ref": "CRSPurposeCode130",
+                            "label": "population policy, programme, and reproductive health"
                           }
                         ],
                         "provenance": "text_recognized"
@@ -5130,226 +6238,13 @@
                         "selected": []
                       }
                     ],
-                    "capability_version": "cap_765c9d2a0c7529b9",
+                    "capability_version": "cap_4913302d7a6b6435",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
                     }
                   },
-                  "alternative_measures": [
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_b438dc000255d174bcc13eb675e603f7",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialFlow",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "crsCooperationModality",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsPurpose",
-                              "binding": {
-                                "state": "set",
-                                "refs": [
-                                  "CRSPurposeCode110",
-                                  "CRSPurposeCode120"
-                                ]
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFlow",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSTypeOfFlow10"
-                              }
-                            },
-                            {
-                              "property": "financialFlowType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Disbursement"
-                              }
-                            },
-                            {
-                              "property": "nettingBasis",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Net"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/KEN"
-                            ],
-                            "origin": [
-                              "country/DEU"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "all"
-                          }
-                        }
-                      },
-                      "label": "net disbursements",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialFlow",
-                            "label": "financial flow"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialFlowType",
-                          "value": {
-                            "ref": "Disbursement",
-                            "label": "disbursement"
-                          }
-                        },
-                        {
-                          "axis": "nettingBasis",
-                          "value": {
-                            "ref": "Net",
-                            "label": "net"
-                          }
-                        }
-                      ],
-                      "served_rows": 512,
-                      "served_rows_exact": true
-                    },
-                    {
-                      "definition": {
-                        "schema_version": 1,
-                        "spec_id": "spec_e348565295de394da8ddaa23ec5fa475",
-                        "identity": {
-                          "identity_version": "spec1",
-                          "shape": {
-                            "kind": "statvar_schema",
-                            "population_type": "FinancialObligation",
-                            "measured_property": "amount",
-                            "stat_type": "measuredValue",
-                            "measurement_qualifier": "Nominal"
-                          },
-                          "slots": [
-                            {
-                              "property": "crsCooperationModality",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsPurpose",
-                              "binding": {
-                                "state": "set",
-                                "refs": [
-                                  "CRSPurposeCode110",
-                                  "CRSPurposeCode120"
-                                ]
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFinance",
-                              "binding": {
-                                "state": "unbound"
-                              }
-                            },
-                            {
-                              "property": "crsTypeOfFlow",
-                              "binding": {
-                                "state": "value",
-                                "ref": "CRSTypeOfFlow10"
-                              }
-                            },
-                            {
-                              "property": "financialObligationType",
-                              "binding": {
-                                "state": "value",
-                                "ref": "Commitment"
-                              }
-                            }
-                          ],
-                          "entities": {
-                            "destination": [
-                              "country/KEN"
-                            ],
-                            "origin": [
-                              "country/DEU"
-                            ]
-                          },
-                          "requested_window": {
-                            "kind": "all"
-                          }
-                        }
-                      },
-                      "label": "commitments",
-                      "axis": "what",
-                      "measure_axis_values": [
-                        {
-                          "axis": "populationType",
-                          "value": {
-                            "ref": "FinancialObligation",
-                            "label": "financial obligation"
-                          }
-                        },
-                        {
-                          "axis": "measuredProperty",
-                          "value": {
-                            "ref": "amount",
-                            "label": "amount"
-                          }
-                        },
-                        {
-                          "axis": "measurementQualifier",
-                          "value": {
-                            "ref": "Nominal",
-                            "label": "nominal"
-                          }
-                        },
-                        {
-                          "axis": "financialObligationType",
-                          "value": {
-                            "ref": "Commitment",
-                            "label": "commitment"
-                          }
-                        }
-                      ],
-                      "served_rows": 519,
-                      "served_rows_exact": true
-                    }
-                  ],
+                  "alternative_measures": [],
                   "measure_label": "gross disbursements",
                   "measure_label_axes": [
                     "populationType",
@@ -5395,6 +6290,8 @@
                       }
                     }
                   ],
+                  "concept_label": "education, health, and population policy, programme, and reproductive health",
+                  "published_tables": "OECD Creditor Reporting System (CRS)",
                   "open_axis_facts": [
                     {
                       "property": "crsTypeOfFinance",
@@ -5407,7 +6304,7 @@
                             "ref": "CRSTypeOfFinance110",
                             "label": "standard grant"
                           },
-                          "count": 105
+                          "count": 120
                         },
                         {
                           "value": {
@@ -5422,42 +6319,42 @@
                       "property": "crsCooperationModality",
                       "varies": true,
                       "distinct_count": 7,
-                      "undeclared_count": 19,
+                      "undeclared_count": 22,
                       "values": [
                         {
                           "value": {
                             "ref": "CRSCooperationModalityC01",
                             "label": "project-type intervention"
                           },
-                          "count": 27
+                          "count": 30
                         },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityB03",
                             "label": "contribution to specific-purpose programme and fund managed by an international organisation"
                           },
-                          "count": 21
-                        },
-                        {
-                          "value": {
-                            "ref": "CRSCooperationModalityD02",
-                            "label": "other technical assistance"
-                          },
-                          "count": 16
+                          "count": 24
                         },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityB01",
                             "label": "core support to non-governmental organisations, other private bodies, public-private partnerships, and research institutes"
                           },
-                          "count": 15
+                          "count": 18
+                        },
+                        {
+                          "value": {
+                            "ref": "CRSCooperationModalityD02",
+                            "label": "other technical assistance"
+                          },
+                          "count": 18
                         },
                         {
                           "value": {
                             "ref": "CRSCooperationModalityD01",
                             "label": "donor country personnel"
                           },
-                          "count": 8
+                          "count": 9
                         },
                         {
                           "value": {
@@ -7444,6 +8341,377 @@
                       "destination": "KES",
                       "origin": "EUR"
                     }
+                  },
+                  "scope_choices": {
+                    "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
+                    "base": {
+                      "schema_version": 1,
+                      "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "crsCooperationModality",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsPurpose",
+                            "binding": {
+                              "state": "set",
+                              "refs": [
+                                "CRSPurposeCode110",
+                                "CRSPurposeCode120",
+                                "CRSPurposeCode130"
+                              ]
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFlow",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSTypeOfFlow10"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Gross"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/KEN"
+                          ],
+                          "origin": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "all"
+                        }
+                      }
+                    },
+                    "rule_version": "scope1:3eef00a928eedd463ee48d02b79730da",
+                    "entries": [],
+                    "dropped_entries": [
+                      {
+                        "entry": {
+                          "axis": "sector",
+                          "option_id": "sector:110",
+                          "provenance": "explicit",
+                          "origin": {
+                            "kind": "text",
+                            "text": "education",
+                            "start": 0,
+                            "end": 9
+                          }
+                        },
+                        "code": "stated_choice_not_applied",
+                        "cause": "option_unknown"
+                      }
+                    ],
+                    "choices": [
+                      {
+                        "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2:sector",
+                        "axis": "sector",
+                        "rule": "sector_code",
+                        "provenance": "default",
+                        "active": "sector:110+120+130",
+                        "options": [
+                          {
+                            "option_id": "sector:110+120+130",
+                            "label": "education (CRS 110) + health (CRS 120) + population policy, programme, and reproductive health (CRS 130)",
+                            "binding": {
+                              "kind": "slot",
+                              "slot": "crsPurpose",
+                              "state": "set",
+                              "refs": [
+                                "CRSPurposeCode110",
+                                "CRSPurposeCode120",
+                                "CRSPurposeCode130"
+                              ]
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2:measure_basis",
+                        "axis": "measure_basis",
+                        "rule": "measure_basis_convention",
+                        "provenance": "default",
+                        "active": "measure_basis:gross",
+                        "options": [
+                          {
+                            "option_id": "measure_basis:gross",
+                            "label": "gross disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Gross"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:net",
+                            "label": "net disbursements, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": "Net"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:grant_equivalent",
+                            "label": "grant equivalents (OECD headline), current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "grantEquivalent",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "measure_basis:commitments",
+                            "label": "commitments, current USD",
+                            "binding": {
+                              "kind": "shape",
+                              "measured_property": "amount",
+                              "netting_basis": null
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2:provider",
+                        "axis": "provider",
+                        "rule": "bilateral_flows",
+                        "provenance": "default",
+                        "active": "provider:bilateral",
+                        "options": [
+                          {
+                            "option_id": "provider:bilateral",
+                            "label": "bilateral flows only",
+                            "binding": {
+                              "kind": "provider",
+                              "scope": "bilateral"
+                            },
+                            "availability": {
+                              "status": "available",
+                              "detail": {}
+                            }
+                          },
+                          {
+                            "option_id": "provider:inclusive",
+                            "label": "bilateral plus imputed multilateral, 2011 to 2024",
+                            "binding": {
+                              "kind": "provider",
+                              "scope": "inclusive",
+                              "window": [
+                                2011,
+                                2024
+                              ],
+                              "provenance": "provenance/ONEBilateralAndImputedMultilateral"
+                            },
+                            "availability": {
+                              "status": "partial",
+                              "years": [
+                                [
+                                  2011,
+                                  2024
+                                ]
+                              ],
+                              "code": "imputed_coverage",
+                              "detail": {}
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "compiled": {
+                      "spec_id": "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
+                      "identity": {
+                        "identity_version": "spec1",
+                        "shape": {
+                          "kind": "statvar_schema",
+                          "population_type": "FinancialFlow",
+                          "measured_property": "amount",
+                          "stat_type": "measuredValue",
+                          "measurement_qualifier": "Nominal"
+                        },
+                        "slots": [
+                          {
+                            "property": "crsCooperationModality",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsPurpose",
+                            "binding": {
+                              "state": "set",
+                              "refs": [
+                                "CRSPurposeCode110",
+                                "CRSPurposeCode120",
+                                "CRSPurposeCode130"
+                              ]
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFinance",
+                            "binding": {
+                              "state": "unbound"
+                            }
+                          },
+                          {
+                            "property": "crsTypeOfFlow",
+                            "binding": {
+                              "state": "value",
+                              "ref": "CRSTypeOfFlow10"
+                            }
+                          },
+                          {
+                            "property": "financialFlowType",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Disbursement"
+                            }
+                          },
+                          {
+                            "property": "nettingBasis",
+                            "binding": {
+                              "state": "value",
+                              "ref": "Gross"
+                            }
+                          }
+                        ],
+                        "entities": {
+                          "destination": [
+                            "country/KEN"
+                          ],
+                          "origin": [
+                            "country/DEU"
+                          ]
+                        },
+                        "requested_window": {
+                          "kind": "all"
+                        }
+                      },
+                      "components": [
+                        {
+                          "role": "whole",
+                          "identity": {
+                            "identity_version": "spec1",
+                            "shape": {
+                              "kind": "statvar_schema",
+                              "population_type": "FinancialFlow",
+                              "measured_property": "amount",
+                              "stat_type": "measuredValue",
+                              "measurement_qualifier": "Nominal"
+                            },
+                            "slots": [
+                              {
+                                "property": "crsCooperationModality",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "crsPurpose",
+                                "binding": {
+                                  "state": "set",
+                                  "refs": [
+                                    "CRSPurposeCode110",
+                                    "CRSPurposeCode120",
+                                    "CRSPurposeCode130"
+                                  ]
+                                }
+                              },
+                              {
+                                "property": "crsTypeOfFinance",
+                                "binding": {
+                                  "state": "unbound"
+                                }
+                              },
+                              {
+                                "property": "crsTypeOfFlow",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "CRSTypeOfFlow10"
+                                }
+                              },
+                              {
+                                "property": "financialFlowType",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Disbursement"
+                                }
+                              },
+                              {
+                                "property": "nettingBasis",
+                                "binding": {
+                                  "state": "value",
+                                  "ref": "Gross"
+                                }
+                              }
+                            ],
+                            "entities": {
+                              "destination": [
+                                "country/KEN"
+                              ],
+                              "origin": [
+                                "country/DEU"
+                              ]
+                            },
+                            "requested_window": {
+                              "kind": "all"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "ledger": []
                   }
                 }
               }
@@ -7463,30 +8731,30 @@
                 }
               ],
               "timing_ms": {
-                "total": 2851,
+                "total": 5202,
                 "by_step": {
-                  "recall": 360,
+                  "recall": 1145,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 4,
-                  "shape_probe_coverage": 2,
-                  "shape_probe": 121,
-                  "shape_groups": 841,
-                  "shape_labels": 17,
-                  "shape_admission": 4,
+                  "shape_arcs": 5,
+                  "shape_probe_coverage": 4,
+                  "shape_probe": 1327,
+                  "shape_groups": 85,
+                  "shape_labels": 11,
+                  "shape_admission": 2,
                   "phase_derive_shapes": 0,
-                  "shape": 1100,
+                  "shape": 1663,
                   "phase_prune_and_rank": 0,
-                  "bind": 261,
-                  "phase_bind": 16,
-                  "phase_settle": 7,
-                  "phase_place_bindings": 554,
+                  "bind": 216,
+                  "phase_bind": 39,
+                  "phase_settle": 18,
+                  "phase_place_bindings": 1429,
                   "phase_facet_requests": 0,
-                  "materialise": 96,
-                  "phase_materialise": 17,
-                  "answer": 239,
-                  "options": 188,
-                  "phase_outcome": 13
+                  "materialise": 147,
+                  "phase_materialise": 19,
+                  "answer": 102,
+                  "options": 400,
+                  "phase_outcome": 24
                 }
               },
               "restatement": {
@@ -8923,7 +10191,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_765c9d2a0c7529b9",
+                    "capability_version": "cap_4913302d7a6b6435",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": [
@@ -9456,7 +10724,7 @@
                             }
                           ],
                           "query_qualifiers": [],
-                          "capability_version": "cap_765c9d2a0c7529b9",
+                          "capability_version": "cap_4913302d7a6b6435",
                           "default_reading": {
                             "applied": true,
                             "removed_stat_vars": [
@@ -9495,12 +10763,14 @@
                         "confidence": "high",
                         "available_at_place": true,
                         "measure_label_axes": [],
-                        "measure_axis_values": []
+                        "measure_axis_values": [],
+                        "published_tables": "IMF World Economic Outlook (WEO)"
                       }
                     }
                   ],
                   "measure_label_axes": [],
                   "measure_axis_values": [],
+                  "published_tables": "World Development Indicators",
                   "related_group": {
                     "ref": "dc/g/EconomicActivity_ActivitySource-GrossDomesticProduction",
                     "label": "Economic Activity With Activity Source = Gross Domestic Production"
@@ -9548,7 +10818,7 @@
               }
             }
           ],
-          "rendered_sentence": "Germany's gross ODA disbursements to Kenya for education and health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS). GDP in Germany and Kenya, 1960 to 2025. Current US dollars · World Development Indicators. You named Germany as a provider. This measure has no providers, so this shows the place itself. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself.",
+          "rendered_sentence": "Germany's gross ODA disbursements to Kenya for education, health, and population policy, programme, and reproductive health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS). GDP in Germany and Kenya, 1960 to 2025. Current US dollars · World Development Indicators. You named Germany as a provider. This measure has no providers, so this shows the place itself. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -9621,7 +10891,7 @@
             },
             {
               "kind": "slot",
-              "text": "education and health",
+              "text": "education, health, and population policy, programme, and reproductive health",
               "axis": "how",
               "segment": "heading",
               "property_dcid": "crsPurpose",
@@ -9953,10 +11223,10 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Germany's gross ODA disbursements to Kenya for education and health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS). GDP in Germany and Kenya, 1960 to 2025. Current US dollars · World Development Indicators. You named Germany as a provider. This measure has no providers, so this shows the place itself. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself.",
+        "sentence": "Germany's gross ODA disbursements to Kenya for education, health, and population policy, programme, and reproductive health, 1997 to 2024. Current US dollars · OECD Creditor Reporting System (CRS). GDP in Germany and Kenya, 1960 to 2025. Current US dollars · World Development Indicators. You named Germany as a provider. This measure has no providers, so this shows the place itself. You named Kenya as a recipient. This measure has no recipients, so this shows the place itself.",
         "complete": true,
         "specs": [
-          "spec_25f482395c5d012ec278118f38dff29c",
+          "spec_7a02b6facd2dc17b5d0d7c35c11bf5d2",
           "spec_f8dea3052d1ef6ba5667628815d1a663"
         ],
         "gaps": []

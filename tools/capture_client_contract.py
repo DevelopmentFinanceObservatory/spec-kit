@@ -10,7 +10,7 @@
 Usage:
     uv run tools/capture_client_contract.py openapi --dfo-apis PATH
     uv run tools/capture_client_contract.py record [--base-url URL]
-        [--only NAME ...] [--offline] [--scenarios-dir DIR]
+        [--only NAME ...] [--offline] [--cloud-run-token] [--scenarios-dir DIR]
 
 `openapi` builds the composed dfo-apis app from the checkout at PATH, with
 the deployed surfaces (Search, Datasets, Graph and Presentation), by
@@ -40,7 +40,10 @@ storage URL a deployment signs. A record holding any other absolute URL,
 outside a `location` under the base URL, is refused. The long builds need
 two specs the server has not built, and the run picks each from the first
 start year whose spec the server has not built, so each record moves both
-start years up. `--scenarios-dir` writes outside the package, unvalidated.
+start years up. `--cloud-run-token` sends the gcloud account's Google ID
+token in `X-Serverless-Authorization` to the base URL's origin, which dev
+needs since it refuses anonymous callers, and mints a new one every 45
+minutes. `--scenarios-dir` writes outside the package, unvalidated.
 The run ends by validating the whole contract with
 `tools/validate_client_contract.py`, and fails when it reports a problem,
 when the binary bodies pass 5 MB, or when the records and bodies together pass
@@ -354,6 +357,61 @@ def urllib_transport(
 
 def _lower(items: Any) -> dict[str, str]:
     return {name.lower(): value for name, value in items}
+
+
+# Google ID tokens last an hour. The recorder mints a new one well before
+# that, since one record outlasts a token.
+ID_TOKEN_LIFETIME_S = 45 * 60
+
+
+def gcloud_id_token() -> str:
+    """A Google ID token for the gcloud account, which Cloud Run accepts from
+    a caller with the invoker role."""
+    result = subprocess.run(
+        ["gcloud", "auth", "print-identity-token"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        raise SystemExit(
+            f"gcloud auth print-identity-token failed: {result.stderr.strip()}"
+        )
+    return result.stdout.strip()
+
+
+def cloud_run_transport(
+    base_url: str,
+    transport: Transport,
+    mint: Callable[[], str] = gcloud_id_token,
+    clock: Callable[[], float] = time.monotonic,
+) -> Transport:
+    """`transport` with a Google ID token in `X-Serverless-Authorization` on
+    every request to the base URL's origin, as Cloud Run needs from a caller
+    when the service refuses anonymous ones. A request to another origin,
+    such as a signed storage URL, carries no token. The header goes on the
+    wire only, so no record holds it."""
+    origin = _origin(base_url)
+    held: dict[str, Any] = {}
+
+    def token() -> str:
+        if "token" not in held or clock() - held["at"] >= ID_TOKEN_LIFETIME_S:
+            held.update(token=mint(), at=clock())
+        return held["token"]
+
+    def send(
+        method: str,
+        url: str,
+        *,
+        body: bytes | None,
+        headers: Mapping[str, str],
+        timeout: float,
+    ) -> Response:
+        if _origin(url) == origin:
+            headers = {**headers, "x-serverless-authorization": f"Bearer {token()}"}
+        return transport(method, url, body=body, headers=headers, timeout=timeout)
+
+    return send
 
 
 # A local composed app signs no URL. Its launcher serves each file at
@@ -4856,9 +4914,12 @@ def run_record(args: argparse.Namespace) -> int:
     if unknown:
         raise SystemExit(f"no scenario is named {sorted(unknown)}")
     chosen = set(args.only or names)
+    transport: Transport = _offline if args.offline else urllib_transport
+    if args.cloud_run_token and not args.offline:
+        transport = cloud_run_transport(args.base_url, transport)
     ctx = Context(
         args.base_url,
-        _offline if args.offline else urllib_transport,
+        transport,
         load_actions(package_dir),
         load_client_codes(package_dir),
         load_client_rules(package_dir),
@@ -4936,6 +4997,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--offline",
         action="store_true",
         help="derive each outcome again from the records, with no request",
+    )
+    record.add_argument(
+        "--cloud-run-token",
+        action="store_true",
+        help="send the gcloud account's ID token to the base URL's origin",
     )
     record.add_argument(
         "--scenarios-dir",
