@@ -117,6 +117,17 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `entities_unbound` is retired in `registries/codes.json` and its bundled
+  mirror: a mint that binds no entity reads each unbound role as the total
+  over its members, so nothing raises it. Its Datasets mappings stay, and the
+  client contract drops its `actions.json` row.
+- Codes no Datasets route raises lose those Datasets mappings:
+  `resolution_ambiguous` on `datasets.mint`, `datasets.definition` and
+  `datasets.options`, `role_incompatible` on `datasets.definition` and
+  `datasets.options`, and `invalid_role_ref` on `datasets.definition`. The
+  definition and options routes admit a definition with no scope, so no
+  scope role refuses there. Their Search mappings stay, as do the Datasets
+  mappings of the routes that raise them.
 - The `$id` of `schemas/registry/code-registry.schema.json`,
   `schemas/registry/unit-registry.schema.json`,
   `schemas/vectors/identity-vector.schema.json` and
