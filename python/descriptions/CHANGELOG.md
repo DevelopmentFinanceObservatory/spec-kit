@@ -155,6 +155,11 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `stat_vars.source_codes`, 1 to 50 of them, absent when there are none or
   more. `exact: true` marks a code that names the whole of what lists it. A
   computed version and a source card refuse `about.source_codes`, and a card
-  drawn from a computed version refuses `exact`.
+  drawn from a computed version refuses `exact`. `check_description` raises
+  `source_codes_not_ascending` when a list, under `about` or on a drawn value,
+  is not strictly ascending by provenance and then code, which catches a
+  list out of order and a pair listed twice with and without `exact`.
+- Vectors rejecting a drawn value's `source_codes` that list one pair twice,
+  once exact, and an `about.source_codes` list in descending order.
 
 [unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python
