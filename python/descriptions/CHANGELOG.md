@@ -18,6 +18,13 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unit may be a variable, `{stat_var, label?}`, named by its bare dcid; a
   `dcid:` prefix is refused. A served description requires a variable side's
   `label`.
+- A unit in constant prices may name `deflation_basis`, `donor`, `recipient`
+  or `national`: whose prices deflated the amount, as the frame grammar's
+  converted unit cell states it. The schema refuses it at current prices, with
+  no `prices`, or with any other value. Three step vectors pin it:
+  `steps-constant-prices-deflation-basis`,
+  `steps-current-prices-deflation-basis-rejected` and
+  `steps-deflation-basis-unknown-rejected`.
 - `operations.json` and its schema: retrieval, the nine analysis operations,
   a step of the source's pipeline, the four choices made at mint and a
   card's selection, each with its input roles, policy, unit rule, coverage and

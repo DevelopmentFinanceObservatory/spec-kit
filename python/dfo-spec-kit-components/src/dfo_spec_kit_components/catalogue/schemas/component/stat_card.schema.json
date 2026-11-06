@@ -115,10 +115,23 @@
       "maxLength": 21
     },
     "structured_unit": {
+      "$comment": "`deflation_basis` says whose prices deflated a constant-price amount, as the frame grammar's converted unit cell states it, and is valid only when `prices` is `constant`. Two units that differ in it, or where one carries it and the other does not, are not comparable.",
       "type": "object",
       "additionalProperties": false,
       "unevaluatedProperties": false,
       "minProperties": 1,
+      "dependentSchemas": {
+        "deflation_basis": {
+          "required": [
+            "prices"
+          ],
+          "properties": {
+            "prices": {
+              "const": "constant"
+            }
+          }
+        }
+      },
       "properties": {
         "currency": {
           "type": "string",
@@ -147,6 +160,13 @@
           ],
           "minimum": 1900,
           "maximum": 2100
+        },
+        "deflation_basis": {
+          "enum": [
+            "donor",
+            "recipient",
+            "national"
+          ]
         }
       }
     },
