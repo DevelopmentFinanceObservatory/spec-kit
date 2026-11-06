@@ -158,6 +158,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `dfo-spec-kit-descriptions`, the schemas outside the bundle the envelope
   validates through.
 
+- `catalog_version` moves from `2026.10.0` to `2026.11.0`, a minor change
+  under `policies/component-spec.toml`: the `bar_chart`, `line_chart`,
+  `stat_card` and `table` schemas gain the optional `deflation_basis` and
+  three constraint fixtures are added. A deployment on `2026.10.0` refuses a
+  payload whose unit carries a basis, so a consumer comparing releases reads
+  `2026.11.0` as the first that admits one. The payload fixtures carry the
+  new `catalog_version`.
+
 - `catalog_version` moves from `2026.8.0` to `2026.10.0`, a minor change
   under `policies/component-spec.toml`: the intent grammar widens and two
   fixtures are added. A deployment on `2026.8.0` refuses an intent that
