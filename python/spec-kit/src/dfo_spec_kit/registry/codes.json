@@ -3407,6 +3407,42 @@
       "lifecycle": "active"
     },
     {
+      "code": "organisation_read_as_party",
+      "classification": "warning",
+      "definition": "An organisation the question names, which no entity of the extraction covers and no source cue marks, was first read as the source of the data. That reading elected no shape, left open a flow axis the organisation is a party on, or found no data, so the part was read again with the organisation as a party to the flow. A part carrying it also carries the organisation_read_as_party departure, whose asked is the question's words for the organisation.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "organisation_read_as_source",
+      "classification": "warning",
+      "definition": "An organisation the question names after \"to\" or \"from\", which no entity of the extraction covers and no source cue marks, was read as the source of the data, not as a party to the flow, and that reading answered. A part carrying it also carries the organisation_read_as_source departure, whose asked is the question's words for the organisation.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "origin_catalogue_stale",
       "classification": "warning",
       "definition": "The loaded origin catalogue is more than 14 days old.",
