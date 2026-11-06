@@ -180,7 +180,8 @@ def _refuse_untyped_composed(data_type: pa.StructType) -> None:
 
 def _normalise_unit(array: pa.ChunkedArray) -> pa.Array:
     """The `unit` column in the layout its cells need: with the `recipe`
-    child of `request` only when some cell carries a recipe."""
+    and `deflation_basis` children of `request` only when some cell carries
+    either."""
     unit_type = _unit_type(recipe=False)
     if pa.types.is_null(array.type):
         return pa.nulls(len(array), type=unit_type)

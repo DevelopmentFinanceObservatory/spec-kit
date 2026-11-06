@@ -57,6 +57,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The identity vector `unit-request-recipe-rejected` pins the identity's
   unit request at `currency`, `prices` and `base_year`: a `recipe` member,
   which a converted frame cell may carry, refuses with `unknown_member`.
+- The identity vector `unit-request-deflation-basis-rejected` pins the same
+  closure against `deflation_basis`, which a converted frame cell may carry.
 - `source_code_not_held`, `source_code_ambiguous` and
   `source_code_shares_variable` are `search.resolve` refusals on the
   `no_data_reason` channel in `registries/codes.json` and its bundled mirror.

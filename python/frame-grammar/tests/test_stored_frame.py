@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+import pytest
 
 from dfo_frame_grammar import Frame, canonical_frame_bytes, canonical_frame_schema
 from dfo_frame_grammar.content_version import frame_sha256, mint_content_version
@@ -50,9 +51,25 @@ def test_the_stored_file_reads_as_the_frame_with_its_content_version() -> None:
     assert mint_content_version(frame_sha256=digest) == _RECORD["content_version"]
 
 
-def test_a_frame_with_a_recipe_stores_and_reads_in_the_recipe_layout() -> None:
-    recipe = {"currency": "EUR", "prices": "current", "recipe": "recipe/eur"}
-    frame = Frame.build(role_keys=ROLE_KEYS, rows=[*ROWS, {**ROWS[2], "unit": recipe}])
+@pytest.mark.parametrize(
+    "converted",
+    [
+        {"currency": "EUR", "prices": "current", "recipe": "recipe/eur"},
+        {
+            "currency": "EUR",
+            "prices": "constant",
+            "base_year": 2024,
+            "deflation_basis": "donor",
+        },
+    ],
+    ids=["recipe", "deflation-basis"],
+)
+def test_a_conversion_member_stores_and_reads_in_the_recipe_layout(
+    converted: dict[str, object],
+) -> None:
+    frame = Frame.build(
+        role_keys=ROLE_KEYS, rows=[*ROWS, {**ROWS[2], "unit": converted}]
+    )
     recipe_schema = canonical_frame_schema(frame.columns, recipe=True)
     assert frame.table.schema == recipe_schema
     table = _read(parquet_bytes(frame))
