@@ -10,12 +10,13 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Warning codes `organisation_read_as_source` and `organisation_read_as_party`
   on `search.resolve`'s raw_text door in `registries/codes.json` and its
-  bundled mirror. Search reads an organisation the question names, which no
-  entity covers and no source cue marks, as the source of the data first.
-  `organisation_read_as_source` marks that reading answering for an
-  organisation after "to" or "from"; `organisation_read_as_party` marks the
-  part read again with the organisation as a party, because the source
-  reading found nothing to answer with.
+  bundled mirror. `organisation_read_as_source` marks an organisation the
+  question wrote after "to" or "from" that was read as the source of the data
+  where no flow family governs the recall or none lists the organisation as a
+  party; `organisation_read_as_party` marks an organisation read as a party to
+  the flow, not as the source, because of the direction word, another named
+  source, words that name no single source, or data that does not measure what
+  the question asks.
 - `dfo_spec_kit.units.Rate` (`count_base`, `counted`), the typed value of a
   ref that states a value per a count of something. `registries/units.json`
   gains the `rate` kind, whose rows declare the base as an integer and what it
