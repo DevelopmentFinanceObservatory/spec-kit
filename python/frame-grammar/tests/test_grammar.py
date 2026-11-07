@@ -170,6 +170,47 @@ class TestValidateUnitRequest:
             {"currency": "USD", "prices": "current", "recipe": "recipe/usd"}
         )
 
+    @pytest.mark.parametrize("basis", ["donor", "recipient", "national"])
+    def test_accepts_deflation_basis_at_constant_prices(self, basis):
+        grammar.validate_unit_request(
+            {
+                "currency": "NGN",
+                "prices": "constant",
+                "base_year": 2024,
+                "deflation_basis": basis,
+            }
+        )
+
+    @pytest.mark.parametrize(
+        "request_",
+        [
+            {"currency": "NGN", "prices": "current", "deflation_basis": "donor"},
+            {
+                "currency": "NGN",
+                "prices": "constant",
+                "base_year": 2024,
+                "deflation_basis": "Donor",
+            },
+            {
+                "currency": "NGN",
+                "prices": "constant",
+                "base_year": 2024,
+                "deflation_basis": None,
+            },
+            {
+                "currency": "NGN",
+                "prices": "constant",
+                "base_year": 2024,
+                "deflation_basis": ["donor"],
+            },
+        ],
+        ids=["current-prices", "unknown-basis", "null", "array"],
+    )
+    def test_refuses_deflation_basis_outside_its_domain(self, request_):
+        with pytest.raises(FrameError) as excinfo:
+            grammar.validate_unit_request(request_)
+        assert excinfo.value.category == "invalid_unit"
+
     @pytest.mark.parametrize("recipe", ["", 1, None, ["recipe/usd"], "\ud800"])
     def test_refuses_recipe_that_is_not_a_non_empty_string(self, recipe):
         with pytest.raises(FrameError) as excinfo:
@@ -448,6 +489,14 @@ class TestCellSortKey:
         recipe = UnitRequest("USD", "current", recipe="a")
         assert grammar.cell_sort_key(recipe) < grammar.cell_sort_key(plain)
         assert grammar.cell_sort_key(recipe) == grammar.cell_sort_key(recipe.as_json())
+
+    def test_deflation_basis_separates_unit_requests(self):
+        donor = UnitRequest("NGN", "constant", 2024, deflation_basis="donor")
+        recipient = UnitRequest("NGN", "constant", 2024, deflation_basis="recipient")
+        plain = UnitRequest("NGN", "constant", 2024)
+        keys = {grammar.cell_sort_key(cell) for cell in (donor, recipient, plain)}
+        assert len(keys) == 3
+        assert grammar.cell_sort_key(donor) == grammar.cell_sort_key(donor.as_json())
 
     def test_unit_forms_rank_null_ref_converted_composed(self):
         # `~` sorts after every JCS object by bytes, so only the rank can

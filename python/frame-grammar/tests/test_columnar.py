@@ -449,6 +449,12 @@ class TestUnitColumnBytes:
 
 
 _RECIPE_REQUEST = {"currency": "USD", "prices": "current", "recipe": "recipe/usd"}
+_BASIS_REQUEST = {
+    "currency": "NGN",
+    "prices": "constant",
+    "base_year": 2024,
+    "deflation_basis": "donor",
+}
 
 
 class TestWidenFrameTable:
@@ -459,6 +465,14 @@ class TestWidenFrameTable:
     _TWO_MEMBER = pa.struct([("ref", pa.string()), ("request", _UNIT_REQUEST_TYPE)])
     _THREE_MEMBER = canonical_frame_schema(("unit",)).field("unit").type
     _RECIPE = canonical_frame_schema(("unit",), recipe=True).field("unit").type
+    # The frame grammar 1.1.0 recipe layout: `request` carries `recipe` alone.
+    _RECIPE_ONLY = pa.struct(
+        [
+            ("ref", pa.string()),
+            ("request", pa.struct([*_UNIT_REQUEST_TYPE, ("recipe", pa.string())])),
+            ("composed", pa.string()),
+        ]
+    )
 
     _UNITS = (
         None,
@@ -496,7 +510,9 @@ class TestWidenFrameTable:
         )
         return frame.table.set_column(position, grammar.UNIT_COLUMN, tagged)
 
-    @pytest.mark.parametrize("layout", [_TWO_MEMBER, _THREE_MEMBER, _RECIPE])
+    @pytest.mark.parametrize(
+        "layout", [_TWO_MEMBER, _THREE_MEMBER, _RECIPE_ONLY, _RECIPE]
+    )
     @pytest.mark.parametrize("offset", [0, 1])
     def test_stored_table_wraps_as_the_frame_built_from_rows(
         self, offset: int, layout: pa.DataType
@@ -512,7 +528,9 @@ class TestWidenFrameTable:
         assert canonical_frame_bytes(wrapped) == canonical_frame_bytes(expected)
         assert widen_frame_table(stored).schema == wrapped.table.schema
 
-    @pytest.mark.parametrize("layout", [_TWO_MEMBER, _THREE_MEMBER, _RECIPE])
+    @pytest.mark.parametrize(
+        "layout", [_TWO_MEMBER, _THREE_MEMBER, _RECIPE_ONLY, _RECIPE]
+    )
     def test_recipe_argument_widens_to_the_recipe_layout(
         self, layout: pa.DataType
     ) -> None:
@@ -521,12 +539,22 @@ class TestWidenFrameTable:
         assert widened.schema == canonical_frame_schema(frame.columns, recipe=True)
         assert Frame.from_table(columns=frame.columns, table=widened) == frame
 
-    def test_a_recipe_keeps_the_recipe_layout(self) -> None:
-        units = (*self._UNITS[:3], _RECIPE_REQUEST)
+    @pytest.mark.parametrize(
+        ("request_cell", "layout"),
+        [
+            (_RECIPE_REQUEST, _RECIPE_ONLY),
+            (_RECIPE_REQUEST, _RECIPE),
+            (_BASIS_REQUEST, _RECIPE),
+        ],
+    )
+    def test_a_conversion_member_keeps_the_recipe_layout(
+        self, request_cell: dict[str, object], layout: pa.DataType
+    ) -> None:
+        units = (*self._UNITS[:3], request_cell)
         frame = self._frame(units)
         recipe_schema = canonical_frame_schema(frame.columns, recipe=True)
         assert frame.table.schema == recipe_schema
-        stored = self._stored(frame, self._RECIPE, units)
+        stored = self._stored(frame, layout, units)
         assert widen_frame_table(stored).schema == recipe_schema
         assert Frame.from_table(columns=frame.columns, table=stored) == frame
 

@@ -55,7 +55,8 @@ and mints `content_version` under `cv1`. `1.1.0` mints it under `cv2`, the
 hash of the frame alone, and adds the optional `recipe` member to the unit
 request object, an additive minor change: a cell without `recipe`
 serialises as it did under `1.0.0`, and a reader on `1.0.0` refuses a cell
-that carries one.
+that carries one. `1.2.0` adds the optional `deflation_basis` member to the
+unit request object, an additive minor change of the same kind.
 
 What moves this token, and what deliberately does not
 -------------------------------------------------------
@@ -73,4 +74,4 @@ any function branches on.
 
 from __future__ import annotations
 
-FRAME_GRAMMAR_VERSION = "1.1.0"
+FRAME_GRAMMAR_VERSION = "1.2.0"

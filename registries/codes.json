@@ -3407,6 +3407,42 @@
       "lifecycle": "active"
     },
     {
+      "code": "organisation_read_as_party",
+      "classification": "warning",
+      "definition": "An organisation the question named was read as a party to the flow, not as the source of the data, for one of four reasons: the question wrote \"to\" or \"from\" before it where it could also be the source; another source the question names lists it as a party; its words name no single source of data; or none of the data it publishes measures what the question asks. A part carrying it also carries the organisation_read_as_party departure, whose asked is the question's words for the organisation and whose text names the direction word wherever the question wrote one.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "organisation_read_as_source",
+      "classification": "warning",
+      "definition": "An organisation the question wrote after \"to\" or \"from\" was read as the source of the data, not as a party to the flow. In the data that best matches the question, no flow family governs the recall (none is the top match or scores at least the unknown-score threshold), or no recalled family lists the organisation as a party. The warning fires only when the answer's series has a flow axis. A part carrying it also carries the organisation_read_as_source departure, whose asked is the question's words for the organisation.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "origin_catalogue_stale",
       "classification": "warning",
       "definition": "The loaded origin catalogue is more than 14 days old.",

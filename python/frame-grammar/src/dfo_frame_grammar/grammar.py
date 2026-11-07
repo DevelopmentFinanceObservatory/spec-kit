@@ -25,7 +25,7 @@ import re
 import unicodedata
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Literal, cast
+from typing import Literal, cast, get_args
 
 from dfo_spec_kit.currency import is_currency_code
 from dfo_spec_kit.identity import canonicalize
@@ -74,10 +74,23 @@ STAT_VAR_REF_PREFIX = "dcid:"
 
 # The members of a converted `unit` cell. The identity's unit request
 # (`dfo_spec_kit.identity`) is the three members `currency`, `prices` and
-# `base_year`. A cell adds `recipe`, the conversion recipe id. A spec asks
-# for a unit, so the identity carries no recipe.
-_UNIT_CELL_KEYS = frozenset({"currency", "prices", "base_year", "recipe"})
+# `base_year`. A cell adds `recipe`, the conversion recipe id, and
+# `deflation_basis`, whose prices deflated a constant-price amount. A spec
+# asks for a unit, so the identity carries neither: both are facts of the
+# conversion that delivered it.
+_UNIT_CELL_KEYS = frozenset(
+    {"currency", "prices", "base_year", "recipe", "deflation_basis"}
+)
 _UNIT_REQUEST_PRICES = frozenset({"current", "constant"})
+
+# Whose prices a constant-price conversion deflated an amount by: the
+# donor's (the provider of a flow), the recipient's (the recipient of a
+# flow, the debtor for debt), or the national prices of the place a series
+# is about.
+type DeflationBasis = Literal["donor", "recipient", "national"]
+DEFLATION_BASES: frozenset[DeflationBasis] = frozenset(
+    get_args(DeflationBasis.__value__)
+)
 
 # The closed member sets of a composed unit and of its StatVar part. An
 # object carrying either composed member is read as a composed unit, so a
@@ -303,13 +316,15 @@ def validate_unit_request(request: Mapping[str, object]) -> None:
     grammar pins for a materialised cell: `currency` (three upper-case ASCII
     letters, a concrete currency only) and `prices` (`current` or
     `constant`), with `base_year` present exactly when prices are constant,
-    and an optional `recipe`, the non-empty id of the conversion recipe
-    that produced the cell.
+    an optional `recipe`, the non-empty id of the conversion recipe that
+    produced the cell, and an optional `deflation_basis`, one of
+    `DEFLATION_BASES`, present only when prices are constant.
 
     The cell extends the unit request of `dfo_spec_kit.identity`'s
     unit-facet binding, which carries `currency`, `prices` and `base_year`
     only. The identity names the unit a spec asks for, and the cell also
-    names the recipe that delivered it. A frame's own per-row `unit` cell
+    names the recipe that delivered it and whose prices deflated it. A
+    frame's own per-row `unit` cell
     is always already resolved to one concrete currency per row, so a
     role-shaped `currency` refuses.
     """
@@ -361,14 +376,27 @@ def validate_unit_request(request: Mapping[str, object]) -> None:
             reject_lone_surrogates(recipe)
         except FrameError as exc:
             raise FrameError("invalid_unit", f"recipe: {exc}") from exc
+    if "deflation_basis" in request:
+        basis = request["deflation_basis"]
+        # The isinstance check runs first for the reason `prices`' does.
+        if not isinstance(basis, str) or basis not in DEFLATION_BASES:
+            raise FrameError(
+                "invalid_unit", f"invalid 'deflation_basis' enum value: {basis!r}"
+            )
+        if prices != "constant":
+            raise FrameError(
+                "invalid_unit",
+                "'deflation_basis' is only valid when prices='constant'",
+            )
 
 
 @dataclass(frozen=True, slots=True)
 class UnitRequest:
     """A converted frame's canonical `unit` cell value: the closed
-    `{currency, prices, base_year, recipe}` shape `validate_unit_request`
-    accepts, carried as a deeply immutable value rather than a plain
-    mapping.
+    `{currency, prices, base_year, recipe, deflation_basis}` shape
+    `validate_unit_request` accepts, carried as a deeply immutable value
+    rather than a plain mapping. Two cells that differ only in `recipe` or
+    in `deflation_basis` are two units.
 
     A `Frame` is frozen only at its own top level -- `columns` and `rows`
     are tuples, but a plain `dict` nested inside one of those tuples would
@@ -384,6 +412,7 @@ class UnitRequest:
     prices: str
     base_year: int | None = None
     recipe: str | None = None
+    deflation_basis: DeflationBasis | None = None
 
     def as_json(self) -> dict[str, object]:
         """The plain JSON object form `canonicalize` and JCS-based
@@ -394,6 +423,8 @@ class UnitRequest:
             result["base_year"] = self.base_year
         if self.recipe is not None:
             result["recipe"] = self.recipe
+        if self.deflation_basis is not None:
+            result["deflation_basis"] = self.deflation_basis
         return result
 
 
@@ -547,6 +578,7 @@ def unit_request_from_json(request: Mapping[str, object]) -> UnitRequest:
         recipe=None
         if recipe is None
         else unicodedata.normalize("NFC", cast(str, recipe)),
+        deflation_basis=cast("DeflationBasis | None", request.get("deflation_basis")),
     )
 
 

@@ -104,13 +104,14 @@ def canonical_frame_schema(
 ) -> pa.Schema:
     """Return the physical schema of a frame table with `columns`.
 
-    The `unit` column's `request` struct carries a `recipe` child only when
-    `recipe` is true. A frame whose cells carry no recipe has the default
-    schema, the one frame grammar `1.0.0` reads, and a frame with a recipe
-    in some cell has the schema with `recipe=True`. A writer that fixes its
-    Parquet schema before it has seen every chunk passes `recipe=True` when
-    its cells may carry a recipe, and puts each chunk's table in that
-    layout with `widen_frame_table(table, recipe=True)`.
+    The `unit` column's `request` struct carries the `recipe` and
+    `deflation_basis` children only when `recipe` is true. A frame whose
+    cells carry neither member has the default schema, the one frame grammar
+    `1.0.0` reads, and a frame with either in some cell has the schema with
+    `recipe=True`, the recipe layout. A writer that fixes its Parquet schema
+    before it has seen every chunk passes `recipe=True` when its cells may
+    carry either member, and puts each chunk's table in that layout with
+    `widen_frame_table(table, recipe=True)`.
     """
     fields: list[pa.Field] = []
     for column in columns:
@@ -129,8 +130,8 @@ def canonical_frame_schema(
 def unit_cell_array(cell: grammar.UnitCell | None, length: int) -> pa.Array:
     """`length` rows of `cell` in the canonical `unit` column type, the
     column a frame whose every row holds `cell` carries: the recipe layout
-    when `cell` is a `grammar.UnitRequest` with a `recipe`, the layout
-    without it otherwise.
+    when `cell` is a `grammar.UnitRequest` with a `recipe` or a
+    `deflation_basis`, the layout without them otherwise.
 
     Raises:
         FrameError: `invalid_unit` when `cell` fails
@@ -138,7 +139,8 @@ def unit_cell_array(cell: grammar.UnitCell | None, length: int) -> pa.Array:
     """
     grammar.validate_unit_cell(cell)
     unit_type = _unit_type(
-        recipe=isinstance(cell, grammar.UnitRequest) and cell.recipe is not None
+        recipe=isinstance(cell, grammar.UnitRequest)
+        and (cell.recipe is not None or cell.deflation_basis is not None)
     )
     if cell is None:
         return pa.nulls(length, type=unit_type)
@@ -151,9 +153,11 @@ def widen_frame_table(table: pa.Table, *, recipe: bool = False) -> pa.Table:
 
     The `unit` column may come in any layout a release stored: the
     two-member `struct<ref, request>`, which holds no composed unit, or the
-    three-member struct whose `request` has or lacks the `recipe` child.
-    The result has the recipe layout, `canonical_frame_schema(columns,
-    recipe=True)`, when `recipe` is true or some cell carries a recipe, and
+    three-member struct whose `request` lacks the conversion children, holds
+    `recipe` alone (frame grammar `1.1.0`), or holds `recipe` and
+    `deflation_basis`. The result has the recipe layout,
+    `canonical_frame_schema(columns, recipe=True)`, when `recipe` is true or
+    some cell carries a recipe or a deflation basis, and
     the default `canonical_frame_schema(columns)` otherwise. A table already
     under that schema is returned as it is; every cell is unchanged, so the
     canonical bytes are too. `Frame.from_table` applies this with `recipe`

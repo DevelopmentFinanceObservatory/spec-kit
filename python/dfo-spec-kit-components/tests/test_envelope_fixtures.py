@@ -353,6 +353,44 @@ def test_a_malformed_composed_unit_is_rejected_by_the_rule_it_breaks(
     )
 
 
+@pytest.mark.parametrize(("relative_path", "path"), _UNIT_SLOTS)
+@pytest.mark.parametrize(
+    ("unit", "valid"),
+    [
+        ({**_CONVERTED, "deflation_basis": "donor"}, True),
+        ({**_CONVERTED, "deflation_basis": "national"}, True),
+        ({**_CONVERTED, "deflation_basis": "world"}, False),
+        ({"currency": "USD", "prices": "current", "deflation_basis": "donor"}, False),
+        ({"currency": "USD", "deflation_basis": "donor"}, False),
+        (
+            {
+                "numerator": {**_CONVERTED, "deflation_basis": "recipient"},
+                "denominator": _POPULATION,
+            },
+            True,
+        ),
+    ],
+    ids=[
+        "donor",
+        "national",
+        "unknown_basis",
+        "current_prices",
+        "no_prices",
+        "composed_part",
+    ],
+)
+def test_a_structured_unit_names_its_deflation_basis_at_constant_prices_only(
+    relative_path: str, path: tuple[str | int, ...], unit: dict, valid: bool
+) -> None:
+    payload = _load(relative_path)
+    _set_path(payload, path, unit)
+    if valid:
+        _VALIDATOR.validate(payload)
+    else:
+        with pytest.raises(ValidationError):
+            _VALIDATOR.validate(payload)
+
+
 _CONSTRAINT_FIXTURES = sorted(
     entry.relative_to(_BUNDLE).as_posix()
     for entry in (_BUNDLE / "fixtures" / "constraints").rglob("*.json")
@@ -386,6 +424,29 @@ def test_comparable_units_composed_pair_differs_only_in_the_negative() -> None:
     )
     assert first != second
     assert first["numerator"] == second["numerator"]
+
+
+@pytest.mark.parametrize(
+    ("name", "comparable"),
+    [
+        ("positive_deflation_basis", True),
+        ("negative_deflation_basis_differs", False),
+        ("negative_deflation_basis_vs_none", False),
+    ],
+)
+def test_comparable_units_judge_the_deflation_basis(
+    name: str, comparable: bool
+) -> None:
+    """Two units that differ only in `deflation_basis`, or where one names
+    a basis and the other none, are two measures."""
+    first, second = _series_units(
+        f"fixtures/constraints/comparable_units_required/{name}.json"
+    )
+    assert first.get("deflation_basis") is not None
+    assert (first == second) is comparable
+    assert first.items() - {("deflation_basis", first["deflation_basis"])} == (
+        second.items() - {("deflation_basis", second.get("deflation_basis"))}
+    )
 
 
 def test_note_narration_fixture_carries_no_frame_provenance() -> None:

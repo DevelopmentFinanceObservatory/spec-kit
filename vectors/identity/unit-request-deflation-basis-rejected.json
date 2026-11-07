@@ -1,0 +1,46 @@
+{
+  "format_version": 1,
+  "name": "unit-request-deflation-basis-rejected",
+  "description": "The identity's unit request is closed at currency, prices and base_year. 'deflation_basis', whose prices a converted frame cell's amounts were deflated by, is not a member of it: a spec asks for a unit, and the basis its conversion used stays out of the identity.",
+  "identity_version": "spec1",
+  "classification": "negative",
+  "coverage": [
+    "unit-request.deflation-basis-rejected"
+  ],
+  "input": {
+    "identity_version": "spec1",
+    "shape": {
+      "kind": "statvar_schema",
+      "measured_property": "developmentFinanceFlow"
+    },
+    "slots": [
+      {
+        "property": "DevelopmentFinancePurpose",
+        "binding": {
+          "state": "value",
+          "ref": "Malaria"
+        }
+      }
+    ],
+    "entities": {
+      "origin": [
+        "country/FRA"
+      ]
+    },
+    "facets": {
+      "unit": {
+        "state": "value",
+        "request": {
+          "currency": "NGN",
+          "prices": "constant",
+          "base_year": 2024,
+          "deflation_basis": "donor"
+        }
+      }
+    },
+    "requested_window": {
+      "kind": "all"
+    }
+  },
+  "failure_category": "unknown_member"
+}

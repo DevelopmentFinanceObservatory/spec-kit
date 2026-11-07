@@ -55,14 +55,19 @@ _UNIT_REQUEST_TYPE = pyarrow.struct(
     ]
 )
 _RECIPE_UNIT_REQUEST_TYPE = pyarrow.struct(
-    [*_UNIT_REQUEST_TYPE, ("recipe", pyarrow.string())]
+    [
+        *_UNIT_REQUEST_TYPE,
+        ("recipe", pyarrow.string()),
+        ("deflation_basis", pyarrow.string()),
+    ]
 )
 _TWO_MEMBER_UNIT_TYPE = pyarrow.struct(
     [("ref", pyarrow.string()), ("request", _RECIPE_UNIT_REQUEST_TYPE)]
 )
 # The `unit` column's two layouts, spelled out member by member because
-# consumers read these members by name: without `recipe`, the layout frame
-# grammar 1.0.0 reads, and with it, for a column where some cell carries one.
+# consumers read these members by name: without the conversion members, the
+# layout frame grammar 1.0.0 reads, and with `recipe` and `deflation_basis`,
+# for a column where some cell carries either.
 _UNIT_TYPE = pyarrow.struct(
     [
         ("ref", pyarrow.string()),
@@ -642,6 +647,12 @@ class TestTaggedUnitStruct:
             "denominator": {"stat_var": "dcid:Count_Person"},
         },
         {"numerator": "USDollar", "denominator": "Euro"},
+        {
+            "currency": "NGN",
+            "prices": "constant",
+            "base_year": 2024,
+            "deflation_basis": "recipient",
+        },
     )
 
     def _expected(self, units: tuple[object, ...]) -> Frame:
