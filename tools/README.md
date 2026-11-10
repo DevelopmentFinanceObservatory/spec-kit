@@ -8,6 +8,12 @@ Validators for the registries and the conformance vector suites. Each script che
 uv run tools/validate_registry.py
 ```
 
+`validate_limit_registry.py` validates `registries/limit-names.json` against `schemas/registry/limit-name-registry.schema.json` and checks what the schema cannot express: entries sorted by `name` with each `name` once, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
+
+```bash
+uv run tools/validate_limit_registry.py
+```
+
 `validate_unit_registry.py` validates `registries/units.json` against `schemas/registry/unit-registry.schema.json` (closed rows per kind, member types and the `format_version` pin) and checks what the schema cannot express: rows sorted by `ref` with each `ref` once, `currency_codes` sorted, no row that also matches a currency prefix rule, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 
 ```bash

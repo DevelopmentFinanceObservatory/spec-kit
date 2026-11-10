@@ -108,3 +108,7 @@ The registry has no severity or message template. Each occurrence supplies them 
 ## Unit registry
 
 `unit-registry.schema.json` (draft 2020-12) validates `registries/units.json`, which `dfo_spec_kit.units` reads. Each row is closed to the members of its kind, and `format_version` is pinned to `1`. `registries/README.md` states the rules the file declares, and `uv run tools/validate_unit_registry.py` checks the schema, the sort order, uniqueness, the prefix rule and the package mirror.
+
+## Limit-name registry
+
+`limit-name-registry.schema.json` (draft 2020-12) validates `registries/limit-names.json`, the names a `resource_exhausted` problem body carries in `limit_name`. Clients match on these values. The file is `{"format_version": 1, "entries": [...]}` with entries sorted by `name`, and each entry is closed to `name` (upper snake case, unique), `definition` (one sentence) and `owning_contract` (spelled as in the code registry). `uv run tools/validate_limit_registry.py` checks the schema, the sort order, uniqueness and the package mirror.

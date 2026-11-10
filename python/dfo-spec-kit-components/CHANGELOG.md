@@ -110,6 +110,11 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `manifest.json` publishes `resource_exhausted` with retry mode
+  `correct_and_retry`, where it said `do_not_retry`. Every Presentation body
+  for the code states `correct_and_retry`: the client shrinks the request and
+  sends it again.
+
 - `manifest.json` carries the refreshed digest of `steps.schema.json`, which
   gains the `sides` step member.
 
