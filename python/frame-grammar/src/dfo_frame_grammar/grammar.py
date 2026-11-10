@@ -86,11 +86,10 @@ _UNIT_REQUEST_PRICES = frozenset({"current", "constant"})
 # Whose prices a constant-price conversion deflated an amount by: the
 # donor's (the provider of a flow), the recipient's (the recipient of a
 # flow, the debtor for debt), or the national prices of the place a series
-# is about.
-type DeflationBasis = Literal["donor", "recipient", "national"]
-DEFLATION_BASES: frozenset[DeflationBasis] = frozenset(
-    get_args(DeflationBasis.__value__)
-)
+# is about. A plain alias, like `TimeGrain`, so a pydantic model that types a
+# field with it inlines the enum in its JSON schema.
+DeflationBasis = Literal["donor", "recipient", "national"]
+DEFLATION_BASES: frozenset[DeflationBasis] = frozenset(get_args(DeflationBasis))
 
 # The closed member sets of a composed unit and of its StatVar part. An
 # object carrying either composed member is read as a composed unit, so a
