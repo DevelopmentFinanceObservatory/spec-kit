@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/schemas/registry/limit-name-registry.schema.json",
+  "title": "Limit-name registry",
+  "description": "The names a resource_exhausted problem body carries in limit_name, each the limit the request crossed. See schemas/registry/README.md. tools/validate_limit_registry.py checks sort order, uniqueness and the package mirror, which this schema cannot express.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format_version", "entries"],
+  "properties": {
+    "format_version": {
+      "description": "The registry format's own version, pinned to the version this schema validates.",
+      "const": 1
+    },
+    "entries": {
+      "description": "Every limit name, sorted by name.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "definition", "owning_contract"],
+      "properties": {
+        "name": {
+          "description": "The unique, upper-snake-case spelling clients match on.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
+        },
+        "definition": {
+          "description": "One sentence saying what the limit bounds.",
+          "type": "string",
+          "minLength": 1
+        },
+        "owning_contract": {
+          "description": "The short name of the contract that owns the limit, spelled as in the code registry.",
+          "enum": ["datasets", "graph", "mcp", "platform", "presentation", "search", "skills"]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "steps-constant-prices-deflation-basis",
+  "description": "A conversion into constant prices names whose prices deflated the amount on the unit and is accepted.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "current"
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "constant",
+        "base_year": 2023,
+        "deflation_basis": "donor"
+      }
+    }
+  ],
+  "expect": "accept"
+}

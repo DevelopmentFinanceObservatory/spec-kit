@@ -221,6 +221,28 @@ kind = "function"
 stability = "provisional"
 reason = "bundled-data"
 
+[[export]]
+name = "LIMIT_NAMES"
+module = "dfo_spec_kit.registry"
+kind = "constant"
+stability = "provisional"
+policy = "contents track registries/limit-names.json; a name is added, never redefined"
+reason = "bundled-data"
+
+[[export]]
+name = "LimitName"
+module = "dfo_spec_kit.registry"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "load_limit_names"
+module = "dfo_spec_kit.registry"
+kind = "function"
+stability = "provisional"
+reason = "bundled-data"
+
 # --- dfo_spec_kit.currency ---------------------------------------------
 # The currency-code shape test, in a module that reads no data file.
 [[export]]

@@ -112,6 +112,28 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or without `recipe`, and refuses every other `unit` layout and a table
   with no `unit` column with `FrameError` `schema_violation`.
   `build_frame_from_arrow` accepts a `request` with or without `recipe`.
+- The unit-request cell takes an optional `deflation_basis`, whose prices a
+  constant-price conversion deflated the amount by: `donor`, `recipient` or
+  `national` (`DEFLATION_BASES`, typed `DeflationBasis`, both exported from
+  the package root). It is valid only when `prices` is `constant`; any other
+  value, or the member at current prices, raises `FrameError`
+  `invalid_unit`. `UnitRequest.deflation_basis` carries it and `as_json`
+  writes it when set. Two cells that differ only in `deflation_basis`, or in
+  carrying one at all, are two units, so rows that differ only there are two
+  grains. The identity's unit request stays closed at `currency`, `prices`
+  and `base_year`. The frame vector `frame-converted-unit-deflation-basis`,
+  two negative frame vectors and the identity vector
+  `unit-request-deflation-basis-rejected` pin it. `FRAME_GRAMMAR_VERSION`
+  moves to `1.2.0`, an additive minor change: a reader on `1.1.0` refuses a
+  cell carrying `deflation_basis`, so every reader takes `1.2.0` before any
+  producer writes one. No existing frame's bytes, `frame_sha256` or
+  `content_version` change.
+- The recipe layout's `request` carries a `deflation_basis: string` child
+  after `recipe`, and a column takes the recipe layout when some cell
+  carries a recipe or a deflation basis. A frame with neither keeps the
+  `1.0.0` layout. `Frame.from_table` and `widen_frame_table` also accept the
+  `1.1.0` recipe layout, whose `request` carries `recipe` alone, and read it
+  into the current recipe layout with every cell unchanged.
 
 ### Changed
 

@@ -51,6 +51,17 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pair: `positive_composed.json`, two series with equal composed units, and
   `negative_composed_denominator_differs.json`, two series whose
   denominators name different StatVars.
+- An optional `deflation_basis` on `$defs.structured_unit` in the
+  `bar_chart`, `line_chart`, `stat_card` and `table` schemas: `donor`,
+  `recipient` or `national`, whose prices deflated a constant-price amount,
+  as the frame grammar's converted unit cell states it. It is valid only
+  when `prices` is `constant`. `comparable_units_required` treats two units
+  that differ in it, or where one names a basis and the other none, as
+  incomparable. `fixtures/constraints/comparable_units_required/` carries
+  `positive_deflation_basis.json`, two series with the same basis,
+  `negative_deflation_basis_differs.json`, a donor and a recipient basis, and
+  `negative_deflation_basis_vs_none.json`, a basis beside none. `manifest.json`
+  carries the refreshed digests.
 - Optional `ref` (the Data Commons provenance dcid the entry was built from,
   for example `provenance/OECDCreditorReportingSystem`) on each
   `provenance.sources[]` item of the envelope schema, so a renderer can look
@@ -99,8 +110,16 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `manifest.json` publishes `resource_exhausted` with retry mode
+  `correct_and_retry`, where it said `do_not_retry`. Every Presentation body
+  for the code states `correct_and_retry`: the client shrinks the request and
+  sends it again.
+
 - `manifest.json` carries the refreshed digest of `steps.schema.json`, which
   gains the `sides` step member.
+
+- `manifest.json` carries the refreshed digest of `steps.schema.json`, whose
+  unit gains the optional `deflation_basis`.
 
 - `fixtures/line_chart/payload_description.json` carries the card's
   measure, its fixed values other than those the measure names and the
@@ -143,6 +162,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by `$id`, of `description.schema.json` and `steps.schema.json` in
   `dfo-spec-kit-descriptions`, the schemas outside the bundle the envelope
   validates through.
+
+- `catalog_version` moves from `2026.10.0` to `2026.11.0`, a minor change
+  under `policies/component-spec.toml`: the `bar_chart`, `line_chart`,
+  `stat_card` and `table` schemas gain the optional `deflation_basis` and
+  three constraint fixtures are added. A deployment on `2026.10.0` refuses a
+  payload whose unit carries a basis, so a consumer comparing releases reads
+  `2026.11.0` as the first that admits one. The payload fixtures carry the
+  new `catalog_version`.
 
 - `catalog_version` moves from `2026.8.0` to `2026.10.0`, a minor change
   under `policies/component-spec.toml`: the intent grammar widens and two

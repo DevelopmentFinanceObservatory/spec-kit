@@ -1,0 +1,27 @@
+{
+  "id": "steps-deflation-basis-unknown-rejected",
+  "description": "A unit whose deflation basis is not donor, recipient or national is rejected by the schema.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "current"
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "constant",
+        "base_year": 2023,
+        "deflation_basis": "world"
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}

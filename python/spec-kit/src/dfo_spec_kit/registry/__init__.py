@@ -14,13 +14,20 @@ each one's classification, and which endpoint/door/channel combinations is
 each permitted on. `REGISTRY` is the packaged registry, loaded once at import
 time; `load_registry` is exposed separately for a caller that wants to parse
 a different registry snapshot (e.g. in a test).
+
+The limit-name registry (`registries/limit-names.json`, mirrored the same way
+and checked by `tools/validate_limit_registry.py`) lists the values a
+`resource_exhausted` problem body carries in `limit_name`. `LIMIT_NAMES` is
+that registry, keyed by name.
 """
 
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from importlib import resources
+from types import MappingProxyType
 from typing import Any, Literal
 
 Classification = Literal["refusal", "warning"]
@@ -138,12 +145,39 @@ def load_registry() -> CodeRegistry:
 
 REGISTRY: CodeRegistry = load_registry()
 
+
+@dataclass(frozen=True, slots=True)
+class LimitName:
+    """One limit a `resource_exhausted` refusal can name in `limit_name`."""
+
+    name: str
+    definition: str
+    owning_contract: str
+
+
+def load_limit_names() -> Mapping[str, LimitName]:
+    """Load and parse the packaged limit-name mirror (`registry/limit-names.json`),
+    keyed by name."""
+    raw_text = (
+        resources.files("dfo_spec_kit.registry")
+        .joinpath("limit-names.json")
+        .read_text(encoding="utf-8")
+    )
+    entries = (LimitName(**raw) for raw in json.loads(raw_text)["entries"])
+    return MappingProxyType({entry.name: entry for entry in entries})
+
+
+LIMIT_NAMES: Mapping[str, LimitName] = load_limit_names()
+
 __all__ = [
+    "LIMIT_NAMES",
     "REGISTRY",
     "Classification",
     "CodeEntry",
     "CodeMapping",
     "CodeRegistry",
     "Lifecycle",
+    "LimitName",
+    "load_limit_names",
     "load_registry",
 ]

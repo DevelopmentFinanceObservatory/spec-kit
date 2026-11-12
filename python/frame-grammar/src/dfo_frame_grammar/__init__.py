@@ -56,6 +56,7 @@ from dfo_frame_grammar.frame import (
     widen_frame_table,
 )
 from dfo_frame_grammar.grammar import (
+    DEFLATION_BASES,
     FACET_IDENTITY_COLUMNS,
     FRAME_VERSION,
     STAT_VAR_COLUMN,
@@ -64,6 +65,7 @@ from dfo_frame_grammar.grammar import (
     UNIT_COLUMN,
     VALUE_COLUMN,
     ComposedUnit,
+    DeflationBasis,
     FrameError,
     StatVarPart,
     TimeGrain,
@@ -91,6 +93,7 @@ from dfo_frame_grammar.version import FRAME_GRAMMAR_VERSION
 __all__ = [
     "ANCHOR_RULE",
     "ANCHOR_SHARE",
+    "DEFLATION_BASES",
     "FACET_IDENTITY_COLUMNS",
     "FRAME_GRAMMAR_VERSION",
     "FRAME_VERSION",
@@ -102,6 +105,7 @@ __all__ = [
     "Anchor",
     "ComposedUnit",
     "ContentVersionError",
+    "DeflationBasis",
     "Frame",
     "FrameError",
     "FrameTrace",
