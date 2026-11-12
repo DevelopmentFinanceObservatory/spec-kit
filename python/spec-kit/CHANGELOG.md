@@ -18,13 +18,14 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   contract. `tools/validate_limit_registry.py` checks the file and its mirror.
 - Warning codes `organisation_read_as_source` and `organisation_read_as_party`
   on `search.resolve`'s raw_text door in `registries/codes.json` and its
-  bundled mirror. `organisation_read_as_source` marks an organisation the
-  question names as a party that was read as the source of the data where no
-  flow family governs the recall or none lists the organisation as a party;
+  bundled mirror. `organisation_read_as_source` marks an organisation whose
+  role the question's reading states that was read as the source of the data
+  where no flow family governs the recall or none lists the organisation as a
+  party;
   `organisation_read_as_party` marks an organisation read as a party to the
-  flow, not as the source, because the question names it as a party, another
-  named source lists it, its words name no single source, or its data does not
-  measure what the question asks.
+  flow, not as the source, because the question's reading states its role,
+  another named source lists it, its words name no single source, or its data
+  does not measure what the question asks.
 - `dfo_spec_kit.units.Rate` (`count_base`, `counted`), the typed value of a
   ref that states a value per a count of something. `registries/units.json`
   gains the `rate` kind, whose rows declare the base as an integer and what it
