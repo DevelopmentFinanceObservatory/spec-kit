@@ -127,6 +127,9 @@ jobs:
       - name: Validate unit registry
         run: uv run tools/validate_unit_registry.py
 
+      - name: Validate limit-name registry
+        run: uv run tools/validate_limit_registry.py
+
       - name: Test the registry validator
         run: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 

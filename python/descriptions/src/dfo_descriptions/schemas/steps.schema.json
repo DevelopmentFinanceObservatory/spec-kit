@@ -144,7 +144,9 @@
       "description": "A reference: the dcid or id it names, and optionally the words for it. A step is a fact stored once, so `label` is optional; a description serves the vocabulary's label first, then this one, else a gap. `at_mint` marks a label taken from the evidence stored when the version was made, in place of today's vocabulary.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["ref"],
+      "required": [
+        "ref"
+      ],
       "properties": {
         "ref": {
           "$ref": "#/$defs/text"
@@ -161,7 +163,10 @@
       "description": "A Datasets version: a `spec_` id with its `cv_` content version, or an `ops_` id with its `ocv_` content version, and optionally the words for it.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "content_version"],
+      "required": [
+        "id",
+        "content_version"
+      ],
       "$ref": "#/$defs/version_family",
       "properties": {
         "id": {
@@ -190,19 +195,25 @@
       ]
     },
     "simple_unit": {
-      "description": "A unit by reference, by currency, or both, with optional words. `ref` is the unit's dcid. `currency` is an ISO 4217 code, which a converted unit `{currency, prices, base_year}` names in place of a dcid. `prices` says whether money is in `current` or `constant` prices, and `base_year` names the year constant prices are expressed in. As in the frame grammar and the identity core, `base_year` is present exactly when prices are constant.",
+      "description": "A unit by reference, by currency, or both, with optional words. `ref` is the unit's dcid. `currency` is an ISO 4217 code, which a converted unit `{currency, prices, base_year}` names in place of a dcid. `prices` says whether money is in `current` or `constant` prices, and `base_year` names the year constant prices are expressed in. `deflation_basis` says whose prices deflated a constant-price amount: the `donor`'s, the `recipient`'s or the `national` prices of the place a series is about. As in the frame grammar and the identity core, `base_year` is present exactly when prices are constant, and as in the frame grammar `deflation_basis` is optional and present only when prices are constant.",
       "type": "object",
       "additionalProperties": false,
       "anyOf": [
         {
-          "required": ["ref"]
+          "required": [
+            "ref"
+          ]
         },
         {
-          "required": ["currency"]
+          "required": [
+            "currency"
+          ]
         }
       ],
       "if": {
-        "required": ["prices"],
+        "required": [
+          "prices"
+        ],
         "properties": {
           "prices": {
             "const": "constant"
@@ -210,11 +221,24 @@
         }
       },
       "then": {
-        "required": ["base_year"]
+        "required": [
+          "base_year"
+        ]
       },
       "else": {
         "not": {
-          "required": ["base_year"]
+          "anyOf": [
+            {
+              "required": [
+                "base_year"
+              ]
+            },
+            {
+              "required": [
+                "deflation_basis"
+              ]
+            }
+          ]
         }
       },
       "properties": {
@@ -233,12 +257,22 @@
           "const": true
         },
         "prices": {
-          "enum": ["current", "constant"]
+          "enum": [
+            "current",
+            "constant"
+          ]
         },
         "base_year": {
           "type": "integer",
           "minimum": 1900,
           "maximum": 2100
+        },
+        "deflation_basis": {
+          "enum": [
+            "donor",
+            "recipient",
+            "national"
+          ]
         }
       }
     },
@@ -246,7 +280,9 @@
       "description": "One side of a composed unit that counts a variable in place of a unit, such as the population in a per-capita denominator. `stat_var` is the variable's bare dcid, without a `dcid:` prefix.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["stat_var"],
+      "required": [
+        "stat_var"
+      ],
       "properties": {
         "stat_var": {
           "$ref": "#/$defs/text",
@@ -277,7 +313,10 @@
       "description": "A quotient's unit: the numerator's unit per the denominator's. Either side may be a variable.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["numerator", "denominator"],
+      "required": [
+        "numerator",
+        "denominator"
+      ],
       "properties": {
         "numerator": {
           "$ref": "#/$defs/unit_side"
@@ -311,7 +350,11 @@
       "description": "One data gap: why some data was left out, how many, and of what. The caller's own selection is a parameter and never appears here. `pooled_entities` counts the distinct parties of one pooled role, named in `role`, across all the step's inputs; they are never among the entities the step kept, so a reader keeps them out of the kept entities' total. `role` is required with `pooled_entities` and refused with any other `of`.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["reason", "count", "of"],
+      "required": [
+        "reason",
+        "count",
+        "of"
+      ],
       "properties": {
         "reason": {
           "$ref": "#/$defs/name"
@@ -320,7 +363,12 @@
           "$ref": "#/$defs/count"
         },
         "of": {
-          "enum": ["entities", "periods", "entity_periods", "pooled_entities"]
+          "enum": [
+            "entities",
+            "periods",
+            "entity_periods",
+            "pooled_entities"
+          ]
         },
         "role": {
           "$ref": "#/$defs/role"
@@ -334,11 +382,15 @@
         }
       },
       "then": {
-        "required": ["role"]
+        "required": [
+          "role"
+        ]
       },
       "else": {
         "not": {
-          "required": ["role"]
+          "required": [
+            "role"
+          ]
         }
       }
     },
@@ -350,9 +402,15 @@
     "step_members": {
       "description": "The members a step may carry, open to the member a description adds. `step` closes it for storage, and the description schema's `served_step` closes it with `text`.",
       "type": "object",
-      "required": ["id", "op"],
+      "required": [
+        "id",
+        "op"
+      ],
       "not": {
-        "required": ["input", "inputs"]
+        "required": [
+          "input",
+          "inputs"
+        ]
       },
       "properties": {
         "id": {
@@ -422,7 +480,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["period", "entities"],
+            "required": [
+              "period",
+              "entities"
+            ],
             "properties": {
               "period": {
                 "type": "string",
@@ -442,7 +503,11 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["entity", "periods", "of"],
+            "required": [
+              "entity",
+              "periods",
+              "of"
+            ],
             "properties": {
               "entity": {
                 "$ref": "#/$defs/ref"
@@ -460,7 +525,11 @@
           "description": "A choice of source at mint: the source chosen, the others it was chosen over, and the ranking it applied, in order.",
           "type": "object",
           "additionalProperties": false,
-          "required": ["chosen", "others", "ranking"],
+          "required": [
+            "chosen",
+            "others",
+            "ranking"
+          ],
           "properties": {
             "chosen": {
               "$ref": "#/$defs/ref"
@@ -486,7 +555,10 @@
           "description": "A sum at mint: how many variables were summed, and up to 64 of them by reference.",
           "type": "object",
           "additionalProperties": false,
-          "required": ["count", "variables"],
+          "required": [
+            "count",
+            "variables"
+          ],
           "properties": {
             "count": {
               "$ref": "#/$defs/count"

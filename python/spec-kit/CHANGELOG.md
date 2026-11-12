@@ -8,6 +8,24 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The limit-name registry: `registries/limit-names.json`, its schema
+  `schemas/registry/limit-name-registry.schema.json`, a bundled mirror, and
+  `dfo_spec_kit.registry.LIMIT_NAMES` (a mapping of `LimitName` entries keyed
+  by name). It lists the values a `resource_exhausted` problem body carries in
+  `limit_name`: `MAX_SELECTORS`, `MAX_SERIES_PER_COMPONENT`,
+  `MAX_LINE_CHART_SERIES`, `MAX_POINTS_PER_SERIES`, `MAX_TABLE_ROWS`,
+  `MAX_ENVELOPE_BYTES` and `MAX_INTENT_BYTES`, all owned by the Presentation
+  contract. `tools/validate_limit_registry.py` checks the file and its mirror.
+- Warning codes `organisation_read_as_source` and `organisation_read_as_party`
+  on `search.resolve`'s raw_text door in `registries/codes.json` and its
+  bundled mirror. `organisation_read_as_source` marks an organisation whose
+  role the question's reading states that was read as the source of the data
+  where no flow family governs the recall or none lists the organisation as a
+  party;
+  `organisation_read_as_party` marks an organisation read as a party to the
+  flow, not as the source, because the question's reading states its role,
+  another named source lists it, its words name no single source, or its data
+  does not measure what the question asks.
 - `dfo_spec_kit.units.Rate` (`count_base`, `counted`), the typed value of a
   ref that states a value per a count of something. `registries/units.json`
   gains the `rate` kind, whose rows declare the base as an integer and what it
@@ -57,6 +75,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The identity vector `unit-request-recipe-rejected` pins the identity's
   unit request at `currency`, `prices` and `base_year`: a `recipe` member,
   which a converted frame cell may carry, refuses with `unknown_member`.
+- The identity vector `unit-request-deflation-basis-rejected` pins the same
+  closure against `deflation_basis`, which a converted frame cell may carry.
 - `source_code_not_held`, `source_code_ambiguous` and
   `source_code_shares_variable` are `search.resolve` refusals on the
   `no_data_reason` channel in `registries/codes.json` and its bundled mirror.

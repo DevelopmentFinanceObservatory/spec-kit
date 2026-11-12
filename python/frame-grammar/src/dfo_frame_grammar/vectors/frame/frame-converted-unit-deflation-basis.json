@@ -1,0 +1,135 @@
+{
+  "format_version": 2,
+  "name": "frame-converted-unit-deflation-basis",
+  "description": "A converted unit cell at constant prices may carry 'deflation_basis', whose prices deflated the amount. Rows whose cells differ only in 'deflation_basis', or in carrying one at all, are three grains. JCS writes 'deflation_basis' after 'currency' and before 'prices', so 'donor' sorts before 'recipient', and both before the plain request, whose 'p' sorts above 'd'.",
+  "kind": "frame",
+  "classification": "positive",
+  "coverage": [
+    "frame.cell-domains.unit-request-deflation-basis"
+  ],
+  "role_keys": [
+    "provider",
+    "recipient"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:Amount_FinancialFlow_ODA",
+      "provider": "country/DEU",
+      "recipient": "country/NGA",
+      "time_period": "2015",
+      "value": 2500.0,
+      "unit": {
+        "currency": "NGN",
+        "prices": "constant",
+        "base_year": 2024,
+        "deflation_basis": "donor"
+      }
+    },
+    {
+      "stat_var": "dcid:Amount_FinancialFlow_ODA",
+      "provider": "country/DEU",
+      "recipient": "country/NGA",
+      "time_period": "2015",
+      "value": 900.0,
+      "unit": {
+        "currency": "NGN",
+        "prices": "constant",
+        "base_year": 2024,
+        "deflation_basis": "recipient"
+      }
+    },
+    {
+      "stat_var": "dcid:Amount_FinancialFlow_ODA",
+      "provider": "country/DEU",
+      "recipient": "country/NGA",
+      "time_period": "2015",
+      "value": 1000.0,
+      "unit": {
+        "currency": "NGN",
+        "prices": "constant",
+        "base_year": 2024
+      }
+    }
+  ],
+  "expected_columns": [
+    "stat_var",
+    "provider",
+    "recipient",
+    "time_period",
+    "value",
+    "unit",
+    "measurementMethod",
+    "provenance",
+    "status"
+  ],
+  "canonical_bytes": "7b22636f6c756d6e73223a5b22737461745f766172222c2270726f7669646572222c22726563697069656e74222c2274696d655f706572696f64222c2276616c7565222c22756e6974222c226d6561737572656d656e744d6574686f64222c2270726f76656e616e6365222c22737461747573225d2c226672616d655f76657273696f6e223a226672616d6531222c22726f7773223a5b5b22646369643a416d6f756e745f46696e616e6369616c466c6f775f4f4441222c22636f756e7472792f444555222c22636f756e7472792f4e4741222c2232303135222c323530302c7b22626173655f79656172223a323032342c2263757272656e6379223a224e474e222c226465666c6174696f6e5f6261736973223a22646f6e6f72222c22707269636573223a22636f6e7374616e74227d2c6e756c6c2c6e756c6c2c6e756c6c5d2c5b22646369643a416d6f756e745f46696e616e6369616c466c6f775f4f4441222c22636f756e7472792f444555222c22636f756e7472792f4e4741222c2232303135222c3930302c7b22626173655f79656172223a323032342c2263757272656e6379223a224e474e222c226465666c6174696f6e5f6261736973223a22726563697069656e74222c22707269636573223a22636f6e7374616e74227d2c6e756c6c2c6e756c6c2c6e756c6c5d2c5b22646369643a416d6f756e745f46696e616e6369616c466c6f775f4f4441222c22636f756e7472792f444555222c22636f756e7472792f4e4741222c2232303135222c313030302c7b22626173655f79656172223a323032342c2263757272656e6379223a224e474e222c22707269636573223a22636f6e7374616e74227d2c6e756c6c2c6e756c6c2c6e756c6c5d5d7d",
+  "expected_document": {
+    "columns": [
+      "stat_var",
+      "provider",
+      "recipient",
+      "time_period",
+      "value",
+      "unit",
+      "measurementMethod",
+      "provenance",
+      "status"
+    ],
+    "frame_version": "frame1",
+    "rows": [
+      [
+        "dcid:Amount_FinancialFlow_ODA",
+        "country/DEU",
+        "country/NGA",
+        "2015",
+        2500,
+        {
+          "base_year": 2024,
+          "currency": "NGN",
+          "deflation_basis": "donor",
+          "prices": "constant"
+        },
+        null,
+        null,
+        null
+      ],
+      [
+        "dcid:Amount_FinancialFlow_ODA",
+        "country/DEU",
+        "country/NGA",
+        "2015",
+        900,
+        {
+          "base_year": 2024,
+          "currency": "NGN",
+          "deflation_basis": "recipient",
+          "prices": "constant"
+        },
+        null,
+        null,
+        null
+      ],
+      [
+        "dcid:Amount_FinancialFlow_ODA",
+        "country/DEU",
+        "country/NGA",
+        "2015",
+        1000,
+        {
+          "base_year": 2024,
+          "currency": "NGN",
+          "prices": "constant"
+        },
+        null,
+        null,
+        null
+      ]
+    ]
+  },
+  "expected_frame_sha256": "a33056eedb46983c6f56aa33ac7ff7aadb27dddb6f9a571e248dee53a8682dbf",
+  "expected_preimage": {
+    "identity_version": "cv2",
+    "frame_sha256": "a33056eedb46983c6f56aa33ac7ff7aadb27dddb6f9a571e248dee53a8682dbf"
+  },
+  "expected_content_version": "cv_f9b6f500db539d866ddf2ca646b95d86"
+}

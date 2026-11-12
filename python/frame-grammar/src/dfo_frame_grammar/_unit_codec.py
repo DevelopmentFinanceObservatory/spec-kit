@@ -17,15 +17,21 @@ from dfo_spec_kit.identity import canonicalize
 from dfo_frame_grammar import grammar
 from dfo_frame_grammar.grammar import FrameError
 
+# The children of `request` that only the recipe layout carries: the
+# optional conversion members of a converted unit cell.
+_CONVERSION_MEMBERS = ("recipe", "deflation_basis")
 
-def _unit_request_type(*, recipe: bool) -> pa.StructType:
+
+def _unit_request_type(
+    *, recipe: bool, members: tuple[str, ...] = _CONVERSION_MEMBERS
+) -> pa.StructType:
     fields = [
         pa.field("currency", pa.string()),
         pa.field("prices", pa.string()),
         pa.field("base_year", pa.int64()),
     ]
     if recipe:
-        fields.append(pa.field("recipe", pa.string()))
+        fields.extend(pa.field(member, pa.string()) for member in members)
     return pa.struct(fields)
 
 
@@ -34,10 +40,10 @@ def _unit_type(*, recipe: bool) -> pa.StructType:
     one member is non-null in a non-null cell. `composed` holds the JCS text
     of a composed unit's JSON form.
 
-    `request` carries a `recipe` child only in the recipe layout, which a
-    column takes when some cell carries a recipe. Without one the column is
-    the layout frame grammar `1.0.0` reads, so a frame with no recipe stores
-    as it did under that release.
+    `request` carries the `recipe` and `deflation_basis` children only in
+    the recipe layout, which a column takes when some cell carries either
+    member. Without one the column is the layout frame grammar `1.0.0`
+    reads, so a frame with neither stores as it did under that release.
     """
     return pa.struct(
         [
@@ -49,33 +55,43 @@ def _unit_type(*, recipe: bool) -> pa.StructType:
 
 
 # Every layout of the `unit` struct a release stored: the two-member
-# `struct<ref, request>`, which holds no composed unit, and the three-member
-# struct with and without the `recipe` child of `request`.
+# `struct<ref, request>`, which holds no composed unit, the three-member
+# struct without conversion members, the frame grammar `1.1.0` recipe layout,
+# whose `request` carries `recipe` alone, and the current recipe layout.
 _TWO_MEMBER_UNIT_TYPE = pa.struct(
     [
         pa.field("ref", pa.string()),
         pa.field("request", _unit_request_type(recipe=False)),
     ]
 )
+_RECIPE_ONLY_UNIT_TYPE = pa.struct(
+    [
+        pa.field("ref", pa.string()),
+        pa.field("request", _unit_request_type(recipe=True, members=("recipe",))),
+        pa.field("composed", pa.string()),
+    ]
+)
 _STORED_UNIT_TYPES = (
     _TWO_MEMBER_UNIT_TYPE,
     _unit_type(recipe=False),
+    _RECIPE_ONLY_UNIT_TYPE,
     _unit_type(recipe=True),
 )
 
 
 def _holds_recipe(unit: pa.Array | pa.ChunkedArray) -> bool:
     """Whether some cell of a `unit` column in one of `_STORED_UNIT_TYPES`
-    carries a recipe. Reads validity bitmaps only."""
-    if unit.type != _unit_type(recipe=True):
+    carries a conversion member, `recipe` or `deflation_basis`, and so needs
+    the recipe layout. Reads validity bitmaps only."""
+    if unit.type not in (_RECIPE_ONLY_UNIT_TYPE, _unit_type(recipe=True)):
         return False
     chunks = unit.chunks if isinstance(unit, pa.ChunkedArray) else [unit]
     for chunk in chunks:
         # `flatten` folds each parent's validity into its children, so a
-        # recipe under a null request or a null unit does not count.
+        # member under a null request or a null unit does not count.
         request = cast(pa.StructArray, chunk).flatten()[1]
-        recipe = cast(pa.StructArray, request).flatten()[3]
-        if recipe.null_count < len(recipe):
+        members = cast(pa.StructArray, request).flatten()[3:]
+        if any(member.null_count < len(member) for member in members):
             return True
     return False
 

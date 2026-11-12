@@ -1,0 +1,26 @@
+{
+  "id": "steps-current-prices-deflation-basis-rejected",
+  "description": "A unit in current prices that names a deflation basis is rejected by the schema.",
+  "schema": "steps",
+  "input": [
+    {
+      "id": "s1",
+      "op": "convert",
+      "policy": "convert_by_rate_and_deflator",
+      "converted_from": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "current"
+      },
+      "unit": {
+        "ref": "USDollar",
+        "label": "US dollars",
+        "prices": "current",
+        "deflation_basis": "donor"
+      }
+    }
+  ],
+  "error": {
+    "by": "schema"
+  }
+}

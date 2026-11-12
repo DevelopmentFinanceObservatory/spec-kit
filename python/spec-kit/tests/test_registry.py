@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dfo_spec_kit.registry import REGISTRY, CodeEntry, CodeMapping, load_registry
+from dfo_spec_kit.registry import (
+    LIMIT_NAMES,
+    REGISTRY,
+    CodeEntry,
+    CodeMapping,
+    load_registry,
+)
 
 # Repo root is four levels up from this file (tests/ -> spec-kit -> python ->
 # repo root); the canonical registry is always present in-repo.
@@ -116,3 +122,17 @@ def test_load_registry_returns_an_independent_equivalent_instance() -> None:
 def test_entries_are_sorted_by_code() -> None:
     codes = [entry.code for entry in REGISTRY.entries]
     assert codes == sorted(codes)
+
+
+def test_limit_names_mirror_is_byte_identical_to_canonical_registry() -> None:
+    name = "limit-names.json"
+    assert (_MIRROR_PATH.parent / name).read_bytes() == (
+        _REPO_ROOT / "registries" / name
+    ).read_bytes()
+
+
+def test_limit_names_are_keyed_by_name() -> None:
+    entry = LIMIT_NAMES["MAX_TABLE_ROWS"]
+    assert entry.name == "MAX_TABLE_ROWS"
+    assert entry.owning_contract == "presentation"
+    assert all(key == value.name for key, value in LIMIT_NAMES.items())
