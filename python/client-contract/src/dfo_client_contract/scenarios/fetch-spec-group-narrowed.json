@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:38:17Z"
+    "dfo_commit": "133262c5e112ddbbd910d668f2039a62590e0f16",
+    "recorded_at": "2026-11-13T23:11:49Z"
   },
   "call": [
     {
@@ -242,7 +242,7 @@
           "options": {
             "format": "parquet",
             "bundle": false,
-            "without_party_totals": true
+            "party_totals": false
           }
         }
       },
@@ -250,7 +250,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "bc403dba367b4c5bae1a90d36cee6d6b"
+          "x-dfo-trace-id": "6efc5c3c5dd34f1d8c649c66dd8f6423"
         },
         "json": {
           "schema_version": 1,
@@ -258,7 +258,46 @@
             "schema_version": 1,
             "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
             "identity": {
+              "shape": {
+                "kind": "statvar_schema",
+                "stat_type": "measuredValue",
+                "population_type": "FinancialFlow",
+                "measured_property": "amount",
+                "measurement_qualifier": "Nominal"
+              },
+              "slots": [
+                {
+                  "binding": {
+                    "ref": "DAC2aAidType206",
+                    "state": "value"
+                  },
+                  "property": "dac2aAidType"
+                },
+                {
+                  "binding": {
+                    "state": "unbound"
+                  },
+                  "property": "dacTypeOfFinance"
+                },
+                {
+                  "binding": {
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
+                },
+                {
+                  "binding": {
+                    "ref": "Net",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
+                }
+              ],
               "entities": {
+                "origin": [
+                  "country/DEU"
+                ],
                 "destination": [
                   "country/AFG",
                   "country/AGO",
@@ -304,53 +343,14 @@
                   "country/UGA",
                   "country/YEM",
                   "country/ZMB"
-                ],
-                "origin": [
-                  "country/DEU"
                 ]
               },
               "identity_version": "spec1",
               "requested_window": {
-                "end_year": 2023,
                 "kind": "range",
+                "end_year": 2023,
                 "start_year": 2020
-              },
-              "shape": {
-                "kind": "statvar_schema",
-                "measured_property": "amount",
-                "measurement_qualifier": "Nominal",
-                "population_type": "FinancialFlow",
-                "stat_type": "measuredValue"
-              },
-              "slots": [
-                {
-                  "binding": {
-                    "ref": "DAC2aAidType206",
-                    "state": "value"
-                  },
-                  "property": "dac2aAidType"
-                },
-                {
-                  "binding": {
-                    "state": "unbound"
-                  },
-                  "property": "dacTypeOfFinance"
-                },
-                {
-                  "binding": {
-                    "ref": "Disbursement",
-                    "state": "value"
-                  },
-                  "property": "financialFlowType"
-                },
-                {
-                  "binding": {
-                    "ref": "Net",
-                    "state": "value"
-                  },
-                  "property": "nettingBasis"
-                }
-              ]
+              }
             }
           },
           "content_version": "cv_c836c8b3ecbb63dde4177d8c5e23c9e3",
@@ -383,9 +383,9 @@
             ],
             "window": {
               "kind": "range",
-              "start_year": 2020,
+              "origin": "query",
               "end_year": 2023,
-              "origin": "query"
+              "start_year": 2020
             }
           },
           "citation": {
@@ -476,30 +476,64 @@
                       ]
                     }
                   ]
-                }
+                },
+                "licence": "OECD Terms and Conditions",
+                "licence_type": "OECDTermsAndConditions",
+                "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
               }
             ]
           },
           "trace": {
+            "facets": [
+              {
+                "ref": "provenance/OECDDAC2A",
+                "axis": "provenance",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": null,
+                "axis": "measurementMethod",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              }
+            ],
             "applied_window": {
               "kind": "range",
-              "start_year": 2020,
+              "origin": "query",
               "end_year": 2023,
-              "origin": "query"
+              "start_year": 2020
             },
             "graph_revision": "dfo-dev-dc-datacommons-service-00284-j2f",
+            "normalisations": [],
             "code_index_stamp": {
-              "content_hash": "a1bde3be8710f5ba073e52aaaba73cf9156079c273c874372f54bb07a81b0f94",
               "exported_at": "2026-11-01T03:08:18Z",
+              "content_hash": "a1bde3be8710f5ba073e52aaaba73cf9156079c273c874372f54bb07a81b0f94",
               "graph_endpoint": "graph_release"
             },
-            "origin_catalogue_build_id": "20261029T171521Z-7d0a5854",
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
                 "revision": "2026-10-29"
               }
             ],
+            "capability_version": "dset_5282a0674178a233",
+            "materialiser_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
@@ -510,43 +544,12 @@
                 "observation_count": 170
               }
             ],
-            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
             "family_member_count": 1,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/OECDDAC2A",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "measurementMethod",
-                "ref": null,
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "absent_on_selected_facet",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              }
-            ],
-            "normalisations": [],
+            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
             "frame_grammar_version": "1.1.0",
-            "materialiser_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "capability_version": "dset_5282a0674178a233",
-            "served_from": "materialise",
-            "confirmed_at": "2026-11-01T07:38:21.528890+00:00"
+            "origin_catalogue_build_id": "20261029T171521Z-7d0a5854",
+            "served_from": "head",
+            "confirmed_at": "2026-11-13T23:08:57.775605+00:00"
           },
           "warnings": [
             {
@@ -598,7 +601,7 @@
           ],
           "series_count": 43,
           "output_options": {
-            "capability_version": "dset_5282a0674178a233",
+            "capability_version": "dset_af2827aa39ed8c0d",
             "columns": [
               {
                 "name": "stat_var",
@@ -901,7 +904,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+          "series_coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
           "retention": {
             "pinned": false,
             "held_until": "2026-12-01T07:38:21.430340Z"
@@ -922,7 +925,46 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
+                  "shape": {
+                    "kind": "statvar_schema",
+                    "stat_type": "measuredValue",
+                    "population_type": "FinancialFlow",
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal"
+                  },
+                  "slots": [
+                    {
+                      "binding": {
+                        "ref": "DAC2aAidType206",
+                        "state": "value"
+                      },
+                      "property": "dac2aAidType"
+                    },
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "dacTypeOfFinance"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Disbursement",
+                        "state": "value"
+                      },
+                      "property": "financialFlowType"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Net",
+                        "state": "value"
+                      },
+                      "property": "nettingBasis"
+                    }
+                  ],
                   "entities": {
+                    "origin": [
+                      "country/DEU"
+                    ],
                     "destination": [
                       "country/AFG",
                       "country/AGO",
@@ -968,53 +1010,14 @@
                       "country/UGA",
                       "country/YEM",
                       "country/ZMB"
-                    ],
-                    "origin": [
-                      "country/DEU"
                     ]
                   },
                   "identity_version": "spec1",
                   "requested_window": {
-                    "end_year": 2023,
                     "kind": "range",
+                    "end_year": 2023,
                     "start_year": 2020
-                  },
-                  "shape": {
-                    "kind": "statvar_schema",
-                    "measured_property": "amount",
-                    "measurement_qualifier": "Nominal",
-                    "population_type": "FinancialFlow",
-                    "stat_type": "measuredValue"
-                  },
-                  "slots": [
-                    {
-                      "binding": {
-                        "ref": "DAC2aAidType206",
-                        "state": "value"
-                      },
-                      "property": "dac2aAidType"
-                    },
-                    {
-                      "binding": {
-                        "state": "unbound"
-                      },
-                      "property": "dacTypeOfFinance"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Disbursement",
-                        "state": "value"
-                      },
-                      "property": "financialFlowType"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Net",
-                        "state": "value"
-                      },
-                      "property": "nettingBasis"
-                    }
-                  ]
+                  }
                 },
                 "entity_groups": {
                   "destination": {
@@ -1031,7 +1034,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "0162bf4153c045739174aba39910e026"
+          "x-dfo-trace-id": "ceb1cfb9316342b7bf290c0bf31e7a49"
         },
         "json": {
           "schema_version": 1,
@@ -1040,11 +1043,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "0162bf4153c045739174aba39910e026",
+            "engine_build": "133262c5e112ddbbd910d668f2039a62590e0f16",
+            "trace_id": "ceb1cfb9316342b7bf290c0bf31e7a49",
             "warnings": [],
             "timing_ms": {
-              "total": 139,
+              "total": 6,
               "by_step": {
                 "coverage": 0
               }
@@ -1057,44 +1060,20 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 125,
+                "total": 0,
                 "by_step": {
-                  "validate": 0,
-                  "phase_validate": 0,
-                  "walk": 13,
-                  "reread_arcs": 0,
-                  "phase_reread_arcs": 0,
-                  "detect_edits": 0,
-                  "phase_detect_edits": 0,
-                  "resolve_survivors": 0,
-                  "phase_resolve_survivors": 0,
-                  "shape": 1,
-                  "phase_build_shape": 0,
-                  "bind": 0,
-                  "phase_build_bindings": 0,
-                  "where_places": 0,
-                  "phase_where_places": 0,
-                  "materialise": 32,
-                  "phase_materialise": 0,
-                  "ground_related": 0,
-                  "ground_units": 0,
-                  "ground_facets": 0,
-                  "ground_convert": 0,
-                  "answer": 15,
-                  "ground_gates": 5,
-                  "phase_ground_build": 55,
-                  "finalize_preview": 0,
-                  "options": 3,
-                  "finalize_related": 0,
-                  "finalize_wholes": 0,
-                  "finalize_relaunch": 0,
-                  "phase_finalize": 1,
+                  "response_cache_part_memo": 0,
                   "served_entry": 0
                 }
               },
               "entity_refs": [],
               "operations": [],
               "departures": [
+                {
+                  "code": "closest_match",
+                  "shown": "net disbursements",
+                  "text": "This shows net disbursements, the closest measure the data holds."
+                },
                 {
                   "code": "entity_unavailable",
                   "binding_ref": "where:",
@@ -1730,271 +1709,362 @@
                       "ref": "country/AFG",
                       "label": "Afghanistan",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/AGO",
                       "label": "Angola",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BDI",
                       "label": "Burundi",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BEN",
                       "label": "Benin",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BFA",
                       "label": "Burkina Faso",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BGD",
                       "label": "Bangladesh",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/CAF",
                       "label": "Central African Republic",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/COD",
                       "label": "Democratic Republic of the Congo",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/COM",
                       "label": "Comoros",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/DJI",
                       "label": "Djibouti",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/ERI",
                       "label": "Eritrea",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/ETH",
                       "label": "Ethiopia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/GIN",
                       "label": "Guinea",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/GMB",
                       "label": "The Gambia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/GNB",
                       "label": "Guinea-Bissau",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/HTI",
                       "label": "Haiti",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/KHM",
                       "label": "Cambodia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/KIR",
                       "label": "Kiribati",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/LAO",
                       "label": "Laos",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/LBR",
                       "label": "Liberia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/LSO",
                       "label": "Lesotho",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MDG",
                       "label": "Madagascar",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MLI",
                       "label": "Mali",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MMR",
                       "label": "Myanmar [Burma]",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MOZ",
                       "label": "Mozambique",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MRT",
                       "label": "Mauritania",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MWI",
                       "label": "Malawi",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/NER",
                       "label": "Niger",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/NPL",
                       "label": "Nepal",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/RWA",
                       "label": "Rwanda",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SDN",
                       "label": "Sudan",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SEN",
                       "label": "Senegal",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SLB",
                       "label": "Solomon Islands",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SLE",
                       "label": "Sierra Leone",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SOM",
                       "label": "Somalia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SSD",
                       "label": "South Sudan",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TCD",
                       "label": "Chad",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TGO",
                       "label": "Togo",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TLS",
                       "label": "Timor-Leste",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TUV",
                       "label": "Tuvalu",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TZA",
                       "label": "Tanzania",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/UGA",
                       "label": "Uganda",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/YEM",
                       "label": "Yemen",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/ZMB",
                       "label": "Zambia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/DEU",
                       "label": "Germany",
                       "entity_type": "Country",
-                      "role": "origin"
+                      "role": "origin",
+                      "party_kind": "party",
+                      "party_class": "official",
+                      "multilateral": false
                     }
                   ],
                   "entity_groups": {
@@ -2082,7 +2152,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+                  "coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2897,7 +2967,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_4913302d7a6b6435"
+                    "capability_version": "cap_6b2a98cdba8f7ee0"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5052,13 +5122,14 @@
                     "default_base_year": 2024,
                     "role_currencies": {
                       "origin": "EUR"
-                    }
+                    },
+                    "deflation_basis": "donor"
                   }
                 }
               }
             }
           ],
-          "rendered_sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a. The data holds no values for 1 of the 44 Least Developed Countries. This shows the 44 Least Developed Countries, each on its own.",
+          "rendered_sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a. This shows net disbursements, the closest measure the data holds. The data holds no values for 1 of the 44 Least Developed Countries. This shows the 44 Least Developed Countries, each on its own.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -5302,6 +5373,22 @@
             },
             {
               "kind": "text",
+              "text": "This shows net disbursements, the closest measure the data holds.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
               "text": "The data holds no values for 1 of the 44 Least Developed Countries.",
               "segment": "departure",
               "entity_refs": [],
@@ -5339,7 +5426,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Adfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "1e3ae57623ff4296a60f1ff747022c13"
+          "x-dfo-trace-id": "00aafe5b10654bba803e97943f92ee42"
         }
       }
     },

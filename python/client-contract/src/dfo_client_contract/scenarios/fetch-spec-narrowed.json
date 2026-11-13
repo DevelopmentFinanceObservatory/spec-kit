@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:37:41Z"
+    "dfo_commit": "133262c5e112ddbbd910d668f2039a62590e0f16",
+    "recorded_at": "2026-11-13T23:11:35Z"
   },
   "call": [
     {
@@ -176,7 +176,7 @@
           "options": {
             "format": "parquet",
             "bundle": false,
-            "without_party_totals": true
+            "party_totals": false
           }
         }
       },
@@ -184,7 +184,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a746de54b70e40c696df4f9f2e711908"
+          "x-dfo-trace-id": "c45bd35b82ae4717bc88270197329b62"
         },
         "json": {
           "schema_version": 1,
@@ -370,7 +370,10 @@
                       ]
                     }
                   ]
-                }
+                },
+                "licence": "OECD Terms and Conditions",
+                "licence_type": "OECDTermsAndConditions",
+                "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
               }
             ]
           },
@@ -590,8 +593,8 @@
             "family_member_digest": "9fd3643bbde505d9542fd3d090ddd549349765d12b6bad95b17271cbf297ea8c",
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261019T174519Z-2e5e8cfd",
-            "served_from": "materialise",
-            "confirmed_at": "2026-11-01T07:37:46.482431+00:00"
+            "served_from": "head",
+            "confirmed_at": "2026-11-13T23:08:24.679131+00:00"
           },
           "warnings": [
             {
@@ -637,7 +640,7 @@
           ],
           "series_count": 1,
           "output_options": {
-            "capability_version": "dset_5282a0674178a233",
+            "capability_version": "dset_af2827aa39ed8c0d",
             "columns": [
               {
                 "name": "stat_var",
@@ -919,7 +922,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+          "series_coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
           "retention": {
             "pinned": false,
             "held_until": "2026-11-19T13:59:18.051742Z"
@@ -1013,7 +1016,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "203e162341304fd082ccc7499fd37070"
+          "x-dfo-trace-id": "e07c3c5c5bd24a1db8515f4f4961c864"
         },
         "json": {
           "schema_version": 1,
@@ -1022,11 +1025,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "203e162341304fd082ccc7499fd37070",
+            "engine_build": "133262c5e112ddbbd910d668f2039a62590e0f16",
+            "trace_id": "e07c3c5c5bd24a1db8515f4f4961c864",
             "warnings": [],
             "timing_ms": {
-              "total": 173,
+              "total": 5,
               "by_step": {
                 "coverage": 0
               }
@@ -1039,44 +1042,21 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 140,
+                "total": 0,
                 "by_step": {
-                  "validate": 4,
-                  "phase_validate": 0,
-                  "walk": 13,
-                  "reread_arcs": 0,
-                  "phase_reread_arcs": 0,
-                  "detect_edits": 1,
-                  "phase_detect_edits": 0,
-                  "resolve_survivors": 0,
-                  "phase_resolve_survivors": 0,
-                  "shape": 4,
-                  "phase_build_shape": 0,
-                  "bind": 0,
-                  "phase_build_bindings": 0,
-                  "where_places": 1,
-                  "phase_where_places": 0,
-                  "materialise": 16,
-                  "phase_materialise": 0,
-                  "ground_related": 0,
-                  "ground_units": 0,
-                  "ground_facets": 0,
-                  "ground_convert": 0,
-                  "answer": 47,
-                  "ground_gates": 4,
-                  "phase_ground_build": 46,
-                  "finalize_preview": 0,
-                  "options": 2,
-                  "finalize_related": 0,
-                  "finalize_wholes": 0,
-                  "finalize_relaunch": 1,
-                  "phase_finalize": 0,
-                  "served_entry": 1
+                  "response_cache_part_memo": 0,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
               "operations": [],
-              "departures": [],
+              "departures": [
+                {
+                  "code": "closest_match",
+                  "shown": "gross ODA disbursements",
+                  "text": "This shows gross ODA disbursements, the closest measure the data holds."
+                }
+              ],
               "assumptions": [],
               "status": "definite",
               "spec": {
@@ -1417,13 +1397,18 @@
                       "ref": "country/NGA",
                       "label": "Nigeria",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/DEU",
                       "label": "Germany",
                       "entity_type": "Country",
-                      "role": "origin"
+                      "role": "origin",
+                      "party_kind": "party",
+                      "party_class": "official",
+                      "multilateral": false
                     }
                   ],
                   "coverage": {
@@ -1505,7 +1490,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+                  "coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2070,7 +2055,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_4913302d7a6b6435"
+                    "capability_version": "cap_6b2a98cdba8f7ee0"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4334,13 +4319,14 @@
                     "role_currencies": {
                       "destination": "NGN",
                       "origin": "EUR"
-                    }
+                    },
+                    "deflation_basis": "donor"
                   }
                 }
               }
             }
           ],
-          "rendered_sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS).",
+          "rendered_sentence": "Germany's gross ODA disbursements to Nigeria for basic health care, 2020 to 2023. Current US dollars · OECD Creditor Reporting System (CRS). This shows gross ODA disbursements, the closest measure the data holds.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -4555,6 +4541,22 @@
               "segment": "byline",
               "entity_refs": [],
               "states": []
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "This shows gross ODA disbursements, the closest measure the data holds.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
             }
           ],
           "status": "definite"
@@ -4571,7 +4573,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ac44200969f19d73104d1bc24ebca905e59f749c2939234cdde10ba6f5a131170?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "2d6a661d4c9a474b980ad239a19f5329"
+          "x-dfo-trace-id": "8aa1a6fa81bb4bf4bc8207da270f0b3c"
         }
       }
     },

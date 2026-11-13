@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:39:38Z"
+    "dfo_commit": "133262c5e112ddbbd910d668f2039a62590e0f16",
+    "recorded_at": "2026-11-13T23:12:52Z"
   },
   "call": [
     {
@@ -36,7 +36,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a206cc3a2b984f4d86c59e087aeb5cb1"
+          "x-dfo-trace-id": "c986fbba1eab4b3caa7441f677bb0701"
         },
         "json": {
           "schema_version": 1,
@@ -47,24 +47,24 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "a206cc3a2b984f4d86c59e087aeb5cb1",
+            "engine_build": "133262c5e112ddbbd910d668f2039a62590e0f16",
+            "trace_id": "c986fbba1eab4b3caa7441f677bb0701",
             "warnings": [],
             "timing_ms": {
-              "total": 9180,
+              "total": 9578,
               "by_step": {
                 "coverage": 0,
-                "extract": 1234,
-                "exclusion_read": 639,
+                "extract": 1044,
+                "exclusion_read": 582,
                 "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2804,
-              "output_tokens": 206,
+              "input_tokens": 2777,
+              "output_tokens": 216,
               "cached_tokens": 0,
-              "jev_input_tokens": 28366,
-              "jev_output_tokens": 6095
+              "jev_input_tokens": 27913,
+              "jev_output_tokens": 5996
             },
             "timed_out": false
           },
@@ -74,28 +74,31 @@
               "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 6048,
+                "total": 4188,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 3,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 2,
-                  "shape_probe": 105,
+                  "shape_probe": 86,
                   "shape_groups": 6,
                   "shape_labels": 1,
-                  "shape_admission": 2,
+                  "shape_admission": 3,
                   "phase_derive_shapes": 0,
-                  "shape": 232,
+                  "shape_denominators": 0,
+                  "shape_quantity": 112,
+                  "shape_rank": 19,
+                  "shape": 240,
                   "phase_prune_and_rank": 0,
-                  "bind": 124,
-                  "phase_bind": 14,
+                  "bind": 127,
+                  "phase_bind": 15,
                   "phase_settle": 1,
-                  "phase_place_bindings": 32,
+                  "phase_place_bindings": 29,
                   "phase_facet_requests": 0,
-                  "materialise": 88,
+                  "materialise": 101,
                   "phase_materialise": 26,
-                  "answer": 197,
-                  "phase_outcome": 5333
+                  "answer": 53,
+                  "phase_outcome": 3593
                 }
               },
               "rendered_sentence": "2 readings. Kenya's deaths rate per 1,000 people. World Development Indicators · 2013 to 2022. Kenya's number of deaths. Kenya Census · 2018 to 2022.",
@@ -573,15 +576,6 @@
                                 },
                                 "value_kind": "source"
                               }
-                            },
-                            {
-                              "value": {
-                                "ref": {
-                                  "ref": "dc/base/Kenya_Census",
-                                  "label": "Kenya Census"
-                                },
-                                "value_kind": "source"
-                              }
                             }
                           ],
                           "truncated": false,
@@ -598,11 +592,6 @@
                                 },
                                 "value_kind": "enum_value"
                               }
-                            },
-                            {
-                              "value": {
-                                "value_kind": "enum_value"
-                              }
                             }
                           ],
                           "truncated": false,
@@ -617,11 +606,6 @@
                                   "ref": "Per1000Persons",
                                   "label": "Per 1000 people"
                                 },
-                                "value_kind": "enum_value"
-                              }
-                            },
-                            {
-                              "value": {
                                 "value_kind": "enum_value"
                               }
                             }
@@ -820,7 +804,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_4913302d7a6b6435",
+                        "capability_version": "cap_6b2a98cdba8f7ee0",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -1182,7 +1166,7 @@
                       ],
                       "unresolved_slots": [],
                       "stat_vars": {
-                        "member_count": 37,
+                        "member_count": 36,
                         "member_count_exact": false,
                         "served_count": 1,
                         "data_date_range": {
@@ -2373,7 +2357,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_4913302d7a6b6435",
+                        "capability_version": "cap_6b2a98cdba8f7ee0",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -2412,29 +2396,32 @@
                 }
               ],
               "timing_ms": {
-                "total": 7934,
+                "total": 8521,
                 "by_step": {
-                  "recall": 871,
+                  "recall": 585,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 140,
-                  "shape_probe_coverage": 1,
-                  "shape_probe": 1522,
-                  "shape_groups": 85,
+                  "shape_arcs": 93,
+                  "shape_probe_coverage": 29,
+                  "shape_probe": 153,
+                  "shape_groups": 172,
                   "shape_labels": 1,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape": 1868,
+                  "shape_denominators": 1,
+                  "shape_quantity": 77,
+                  "shape_rank": 362,
+                  "shape": 1503,
                   "phase_prune_and_rank": 0,
-                  "bind": 1021,
-                  "phase_bind": 40,
-                  "phase_settle": 66,
-                  "phase_place_bindings": 3232,
+                  "bind": 498,
+                  "phase_bind": 624,
+                  "phase_settle": 32,
+                  "phase_place_bindings": 4140,
                   "phase_facet_requests": 0,
-                  "materialise": 213,
-                  "phase_materialise": 142,
-                  "answer": 243,
-                  "phase_outcome": 238
+                  "materialise": 239,
+                  "phase_materialise": 117,
+                  "answer": 311,
+                  "phase_outcome": 472
                 }
               },
               "rendered_sentence": "2 readings. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020.",
@@ -3313,7 +3300,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_4913302d7a6b6435",
+                        "capability_version": "cap_6b2a98cdba8f7ee0",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -3813,7 +3800,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_4913302d7a6b6435",
+                        "capability_version": "cap_6b2a98cdba8f7ee0",
                         "default_reading": {
                           "applied": true,
                           "removed_stat_vars": []
@@ -4401,7 +4388,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "ead2d3cd86864ecca5c476fce9267914"
+          "x-dfo-trace-id": "9fa707a243864514ba8e5ddfaacf66b1"
         },
         "json": {
           "schema_version": 1,
@@ -4410,11 +4397,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "ead2d3cd86864ecca5c476fce9267914",
+            "engine_build": "133262c5e112ddbbd910d668f2039a62590e0f16",
+            "trace_id": "9fa707a243864514ba8e5ddfaacf66b1",
             "warnings": [],
             "timing_ms": {
-              "total": 744,
+              "total": 979,
               "by_step": {
                 "coverage": 0
               }
@@ -4427,7 +4414,7 @@
               "variable_text": "mortality",
               "warnings": [],
               "timing_ms": {
-                "total": 563,
+                "total": 543,
                 "by_step": {
                   "validate": 0,
                   "phase_validate": 0,
@@ -4438,15 +4425,15 @@
                   "phase_detect_edits": 0,
                   "resolve_survivors": 0,
                   "phase_resolve_survivors": 0,
-                  "shape": 284,
+                  "shape": 179,
                   "phase_build_shape": 0,
-                  "bind": 0,
+                  "bind": 1,
                   "phase_build_bindings": 0,
-                  "where_places": 1,
+                  "where_places": 0,
                   "phase_where_places": 0,
-                  "materialise": 184,
+                  "materialise": 219,
                   "phase_materialise": 0,
-                  "ground_related": 1,
+                  "ground_related": 0,
                   "ground_units": 0,
                   "ground_facets": 0,
                   "ground_convert": 0,
@@ -4455,16 +4442,22 @@
                   "phase_ground_build": 2,
                   "finalize_preview": 0,
                   "options": 0,
-                  "finalize_related": 88,
+                  "finalize_related": 140,
                   "finalize_wholes": 0,
-                  "finalize_relaunch": 1,
+                  "finalize_relaunch": 0,
                   "phase_finalize": 0,
                   "served_entry": 0
                 }
               },
               "entity_refs": [],
               "operations": [],
-              "departures": [],
+              "departures": [
+                {
+                  "code": "closest_match",
+                  "shown": "deaths rate",
+                  "text": "This shows deaths rate, the closest measure the data holds."
+                }
+              ],
               "assumptions": [],
               "status": "definite",
               "spec": {
@@ -4737,15 +4730,6 @@
                             },
                             "value_kind": "source"
                           }
-                        },
-                        {
-                          "value": {
-                            "ref": {
-                              "ref": "dc/base/Kenya_Census",
-                              "label": "Kenya Census"
-                            },
-                            "value_kind": "source"
-                          }
                         }
                       ],
                       "truncated": false,
@@ -4762,11 +4746,6 @@
                             },
                             "value_kind": "enum_value"
                           }
-                        },
-                        {
-                          "value": {
-                            "value_kind": "enum_value"
-                          }
                         }
                       ],
                       "truncated": false,
@@ -4781,11 +4760,6 @@
                               "ref": "Per1000Persons",
                               "label": "Per 1000 people"
                             },
-                            "value_kind": "enum_value"
-                          }
-                        },
-                        {
-                          "value": {
                             "value_kind": "enum_value"
                           }
                         }
@@ -4981,7 +4955,7 @@
                       "start_year": 2013,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_4913302d7a6b6435"
+                    "capability_version": "cap_6b2a98cdba8f7ee0"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5044,12 +5018,12 @@
                 }
               ],
               "timing_ms": {
-                "total": 1128,
+                "total": 1478,
                 "by_step": {
                   "validate": 0,
                   "phase_validate": 0,
-                  "walk": 829,
-                  "reread_arcs": 2,
+                  "walk": 1129,
+                  "reread_arcs": 1,
                   "phase_reread_arcs": 0,
                   "detect_edits": 0,
                   "phase_detect_edits": 0,
@@ -5061,19 +5035,19 @@
                   "phase_build_bindings": 0,
                   "where_places": 1,
                   "phase_where_places": 0,
-                  "materialise": 196,
+                  "materialise": 224,
                   "phase_materialise": 0,
-                  "ground_related": 1,
+                  "ground_related": 0,
                   "ground_units": 0,
                   "ground_facets": 0,
                   "ground_convert": 0,
-                  "answer": 7,
+                  "answer": 8,
                   "ground_gates": 0,
-                  "phase_ground_build": 4,
+                  "phase_ground_build": 9,
                   "finalize_preview": 0,
-                  "options": 80,
+                  "options": 99,
                   "finalize_related": 0,
-                  "finalize_wholes": 1,
+                  "finalize_wholes": 0,
                   "finalize_relaunch": 0,
                   "phase_finalize": 1
                 }
@@ -5916,7 +5890,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_4913302d7a6b6435"
+                        "capability_version": "cap_6b2a98cdba8f7ee0"
                       },
                       "confidence": "high",
                       "available_at_place": true,
@@ -6412,7 +6386,7 @@
                           "start_year": 2013,
                           "end_year": 2022
                         },
-                        "capability_version": "cap_4913302d7a6b6435"
+                        "capability_version": "cap_6b2a98cdba8f7ee0"
                       },
                       "confidence": "high",
                       "available_at_place": true,
@@ -6451,7 +6425,7 @@
               }
             }
           ],
-          "rendered_sentence": "Answered 1 of 2 parts. Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators. Emissions has 2 readings. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020.",
+          "rendered_sentence": "Answered 1 of 2 parts. Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators. This shows deaths rate, the closest measure the data holds. Emissions has 2 readings. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020.",
           "sentence_plan": [
             {
               "kind": "text",
@@ -6586,6 +6560,22 @@
               "kind": "text",
               "text": ".",
               "segment": "byline",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "This shows deaths rate, the closest measure the data holds.",
+              "segment": "departure",
               "entity_refs": [],
               "states": [],
               "part_index": 0
@@ -6822,7 +6812,7 @@
       "answer": {
         "kind": "resolution",
         "status": "mixed",
-        "sentence": "Answered 1 of 2 parts. Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators. Emissions has 2 readings. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020.",
+        "sentence": "Answered 1 of 2 parts. Kenya's deaths rate per 1,000 people, 2013 to 2022. World Development Indicators. This shows deaths rate, the closest measure the data holds. Emissions has 2 readings. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020. Kenya's annual amount of emissions: carbon dioxide. Air and GHG emissions · 2013 to 2020.",
         "complete": false,
         "specs": [
           "spec_10bf62f9687154286b463d206f03a086"

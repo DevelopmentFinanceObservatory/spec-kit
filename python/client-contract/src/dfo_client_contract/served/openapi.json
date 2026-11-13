@@ -3213,7 +3213,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The rows behind every value the revision shows. `bundle=true` serves a zip holding the file under `data/` with `data/codes.csv`, `datapackage.json`, `CITATION.cff`, `README.md`, and `SOURCES.md`.",
+            "description": "The rows behind every value the revision shows. `bundle=true` serves a zip holding the file under `data/` with `data/codes.csv`, `datapackage.json`, `CITATION.cff`, `README.md`, and `SOURCES.md`. When the revision's `select` lists the members of one dimension and the frame holds one the card leaves out, the zip also holds `data/{slug}-all-members.{format}`: the frame's rows at the periods the card shows for every member with a value there, totals included. Its description names a party role's kind column where a row is a total, and the place role's type column where the rows' places sit at more than one level. The frame bounds that file, at most 250,000 rows.",
             "content": {
               "application/zip": {},
               "text/csv": {},
@@ -5760,7 +5760,7 @@
             },
             "type": "array",
             "title": "Departures",
-            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
+            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, organisation_read_as_source, direction_inferred, organisation_read_as_party, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
           },
           "assumptions": {
             "items": {
@@ -6272,7 +6272,9 @@
                 "type": "null"
               }
             ],
-            "title": "License"
+            "title": "License",
+            "description": "deprecated: the same value as `licence`, kept for clients that read it",
+            "deprecated": true
           },
           "license_type": {
             "anyOf": [
@@ -6283,7 +6285,9 @@
                 "type": "null"
               }
             ],
-            "title": "License Type"
+            "title": "License Type",
+            "description": "deprecated: the same value as `licence_type`, kept for clients that read it",
+            "deprecated": true
           },
           "license_url": {
             "anyOf": [
@@ -6294,7 +6298,9 @@
                 "type": "null"
               }
             ],
-            "title": "License Url"
+            "title": "License Url",
+            "description": "deprecated: the same value as `licence_url`, kept for clients that read it",
+            "deprecated": true
           },
           "url": {
             "anyOf": [
@@ -6336,6 +6342,45 @@
                 "type": "null"
               }
             ]
+          },
+          "licence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence",
+            "description": "the licence's label",
+            "readOnly": true
+          },
+          "licence_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Type",
+            "description": "the licence's `licenseType` dcid",
+            "readOnly": true
+          },
+          "licence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Url",
+            "description": "the licence's terms page",
+            "readOnly": true
           }
         },
         "additionalProperties": false,
@@ -6345,7 +6390,7 @@
           "label"
         ],
         "title": "CitationSource",
-        "description": "One cited source, named through\n`materialise.provenance_doc.read_source_citations`. `label`, `url`,\n`source`, `data_commons`, the licence fields and `documentation` come\nfrom the origin catalogue where it lists `ref`, and from the graph\notherwise: `license` is the licence's label, `license_type` its\n`licenseType` dcid and `license_url` its terms page. `license`, `license_type`,\n`license_url` and `url` are `None` where neither the catalogue nor the graph declares one. `source`\nand `data_commons` are `None` for a ref the catalogue does not list.\n`documentation` is the source's documentation at first mint, `None` when\nnothing documents the source or its graph read failed. A mint\nleaves a stored citation as it is. A bundle render fills every field but\n`ref`, `label` and `processing_level` that is `None` from a live read for\nthat render only (`datasets_api.manifest.healed_citation`), and every set\nfield wins."
+        "description": "One cited source, named through\n`materialise.provenance_doc.read_source_citations`. `label`, `url`,\n`source`, `data_commons`, the licence fields and `documentation` come\nfrom the origin catalogue where it lists `ref`, and from the graph\notherwise: `licence` is the licence's label, `licence_type` its\n`licenseType` dcid and `licence_url` its terms page. `licence`, `licence_type`,\n`licence_url` and `url` are `None` where neither the catalogue nor the graph declares one.\nThe `licence*` members read the `license*` fields, the deprecated spelling a served body\ncarries beside them and a stored citation holds alone (`CitationModel.stored_json`). `source`\nand `data_commons` are `None` for a ref the catalogue does not list.\n`documentation` is the source's documentation at first mint, `None` when\nnothing documents the source or its graph read failed. A mint\nleaves a stored citation as it is. A bundle render fills every field but\n`ref`, `label` and `processing_level` that is `None` from a live read for\nthat render only (`datasets_api.manifest.healed_citation`), and every set\nfield wins."
       },
       "CitedDataCommons": {
         "properties": {
@@ -6538,8 +6583,16 @@
             "description": "the constraint property the code is a value of"
           },
           "code": {
-            "type": "string",
-            "title": "Code"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code",
+            "description": "the publisher's code; null in a system whose values carry none"
           },
           "parent": {
             "anyOf": [
@@ -6589,8 +6642,16 @@
             "title": "Label"
           },
           "code": {
-            "type": "string",
-            "title": "Code"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code",
+            "description": "the publisher's code; null in a system whose values carry none"
           },
           "parent": {
             "anyOf": [
@@ -7702,6 +7763,23 @@
             ],
             "title": "Base Year",
             "description": "the base year of constant prices, absent for current prices"
+          },
+          "deflation_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "donor",
+                  "recipient",
+                  "national"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deflation Basis",
+            "description": "whose prices deflated constant-price values: the donor's, the recipient's, or the national prices of the place a series is about. Absent for current prices and for a conversion that names none"
           }
         },
         "additionalProperties": false,
@@ -8065,7 +8143,7 @@
           "observation_count": {
             "type": "integer",
             "title": "Observation Count",
-            "description": "exact distinct (date, facet) observation pairs for resolved stat_vars and entities in the resolved window, or full history when window is absent"
+            "description": "exact distinct (date, facet) observation pairs for resolved stat_vars and entities in the resolved window, or full history when window is absent. A role-bearing series holds one observation per year, so a bulk read counts its years with data"
           },
           "evidence": {
             "type": "string",
@@ -8496,7 +8574,8 @@
               }
             ],
             "title": "License Type",
-            "description": "licence label every Provenance agrees on, as `license.type`; null when they disagree or one has none"
+            "description": "deprecated: the same value as `licence_type`, kept for clients that read it",
+            "deprecated": true
           },
           "update_cadence": {
             "anyOf": [
@@ -8533,6 +8612,19 @@
             ],
             "title": "Source Url",
             "description": "the publication's page, as `details.source_url`: the Dataset's url, else its sole Provenance's"
+          },
+          "licence_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Type",
+            "description": "licence label every Provenance agrees on, as `licence.type`; null when they disagree or one has none",
+            "readOnly": true
           }
         },
         "type": "object",
@@ -8547,7 +8639,7 @@
           "source_url"
         ],
         "title": "DatasetEntry",
-        "description": "A Dataset and the admitted provenances that belong to it. A provenance with\nno Dataset forms its own entry, keyed by the provenance, so `ref` and `label`\nare the provenance's and `provenances` holds that one provenance.\n\nThe card facts (`description`, `license_type`, `update_cadence`,\n`years_covered`, `source_url`) equal the same members of\n`GET /api/graph/documentation/{ref}` for the graph the loaded catalogue\nbuild read. They are null on UN System Data Commons entries."
+        "description": "A Dataset and the admitted provenances that belong to it. A provenance with\nno Dataset forms its own entry, keyed by the provenance, so `ref` and `label`\nare the provenance's and `provenances` holds that one provenance.\n\nThe card facts (`description`, `licence_type`, `update_cadence`,\n`years_covered`, `source_url`) equal the same members of\n`GET /api/graph/documentation/{ref}` for the graph the loaded catalogue\nbuild read. They are null on UN System Data Commons entries. `license_type` is the\ndeprecated spelling of `licence_type` and holds the same value."
       },
       "DatasetNode": {
         "properties": {
@@ -9048,7 +9140,7 @@
             },
             "type": "array",
             "title": "Departures",
-            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
+            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, organisation_read_as_source, direction_inferred, organisation_read_as_party, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
           },
           "assumptions": {
             "items": {
@@ -9205,11 +9297,13 @@
               "whole_total_read",
               "whole_total_unpublished",
               "direction_discarded",
+              "organisation_read_as_source",
               "direction_inferred",
+              "organisation_read_as_party",
               "scope_limited"
             ],
             "title": "Code",
-            "description": "what kind of departure this is. 'closest_match': the answer shows the nearest measure the graph holds, not the one asked; a client draws a muted 'Closest match:' lead before the heading, and on a candidates part, whose readings stand in for a measure with no data, once before the first reading. 'measure_not_applied': a named measure qualifier was not applied. 'operation_not_applied': an operation the request named (a share, a ranking) was not run, so the amounts behind it are shown. 'breakdown_not_applied': a breakdown the request named was not applied, so the total is shown. 'entity_unavailable': an entity the request named holds no values in the series the answer reads, one departure per role; for a role the request named as a group, asked is the request's words for the group and the text counts the members without values; the text names any source holding values there that Search does not read. 'member_unavailable': a variable of the answer holds no values under the source, unit and method a reading reads, so it shows none; asked names those variables and shown the source read, and the text names that source and its unit, so each reading of a candidates part states its own; editing the source or the set binding that names the variables clears it. 'year_unavailable': a named year or range falls outside the years served. 'modelled_values': the served values are modelled or estimated. 'group_read_as_members': a named group was read as its member entities; on a flow role the text names the amounts the group's published total counts that no member holds, and, for a group whose published total is not its members' sum, says the source publishes its own figure for the group. 'whole_total_read': a flow side is read as its whole population, the total its source publishes for every party of that side (official donors (DAC) for 'official donors' or a donor side the request named nothing on or summed over; official and private donors (DAC) for 'all donors'); the text says what the total holds and how to list the side's members: in the question's words ('by donor') on the raw_text door, with open_roles on the others. 'whole_total_unpublished': the request named a whole population ('all donors', 'all recipients') on a side whose dataset publishes no total of it and holds no party outside it, so the side is left unnamed and the answer covers every party the dataset holds there; asked is the request's words, and the text names the dataset. 'direction_discarded': a flow direction the request's own words named was not applied. 'direction_inferred': a place the request named without a direction is read on the one direction that holds data, which over names. 'scope_limited': a no_data answer's check covered only values the engine chose, which the request did not name; its text names only what the check covered ('This check covered only ODA.')"
+            "description": "what kind of departure this is. 'closest_match': the answer shows the nearest measure the graph holds, not the one asked; a client draws a muted 'Closest match:' lead before the heading, and on a candidates part, whose readings stand in for a measure with no data, once before the first reading. 'measure_not_applied': a named measure qualifier was not applied. 'operation_not_applied': an operation the request named (a share, a ranking) was not run, so the amounts behind it are shown. 'breakdown_not_applied': a breakdown the request named was not applied, so the total is shown. 'entity_unavailable': an entity the request named holds no values in the series the answer reads, one departure per role; for a role the request named as a group, asked is the request's words for the group and the text counts the members without values; the text names any source holding values there that Search does not read. 'member_unavailable': a variable of the answer holds no values under the source, unit and method a reading reads, so it shows none; asked names those variables and shown the source read, and the text names that source and its unit, so each reading of a candidates part states its own; editing the source or the set binding that names the variables clears it. 'year_unavailable': a named year or range falls outside the years served. 'modelled_values': the served values are modelled or estimated. 'group_read_as_members': a named group was read as its member entities; on a flow role the text names the amounts the group's published total counts that no member holds, and, for a group whose published total is not its members' sum, says the source publishes its own figure for the group. 'whole_total_read': a flow side is read as its whole population, the total its source publishes for every party of that side (official donors (DAC) for 'official donors' or a donor side the request named nothing on or summed over; official and private donors (DAC) for 'all donors'); the text says what the total holds and how to list the side's members: in the question's words ('by donor') on the raw_text door, with open_roles on the others. 'whole_total_unpublished': the request named a whole population ('all donors', 'all recipients') on a side whose dataset publishes no total of it and holds no party outside it, so the side is left unnamed and the answer covers every party the dataset holds there; asked is the request's words, and the text names the dataset. 'direction_discarded': a flow direction the request's own words named was not applied. 'organisation_read_as_source': an organisation the request named as a party to a flow, on an answer whose series has flow roles, is read as the source of the data, since the data that best matches the question does not list it as a party to a flow; asked is the request's words for it. 'direction_inferred': a place the request named without a direction is read on one direction, which over names, for one of four reasons: an operation runs over the other direction, a place the request named with a direction stands on the other and data holds the place on this one, only this direction holds data in the years asked, or a dataset lists the place among its providers, which the text names. 'organisation_read_as_party': an organisation the request named is read as a party to the flow, because the request named it as a party where it could also be the source, because another source the request named lists it as a party, because its words name no single source, or because none of the data it publishes measures what the request asked; asked is the request's words for it, and the text says which reason. 'scope_limited': a no_data answer's check covered only values the engine chose, which the request did not name; its text names only what the check covered ('This check covered only ODA.')"
           },
           "binding_ref": {
             "anyOf": [
@@ -9282,7 +9376,7 @@
           "version"
         ],
         "title": "DeploymentFacetPolicy",
-        "description": "This deployment's own default-facet policy: what an unbound facet\naxis falls back to once `default_facet_policies_live` (a graph-declared,\nper-StatVar policy) is `false`. See `docs/datasets-facet-policy.md`."
+        "description": "This deployment's own default-facet policy: what an unbound facet\naxis falls back to when the graph declares no default for that StatVar\nand axis, or declares one no candidate carries (`default_facet_policies_live`).\nSee `docs/datasets-facet-policy.md`."
       },
       "DerivedManifest": {
         "properties": {
@@ -11688,7 +11782,7 @@
             "type": "array",
             "minItems": 1,
             "title": "Recent Years",
-            "description": "the counts for three calendar years, newest first, so a newest year with far fewer series than the years before it reads as incomplete. For a latest window they are raw counts over every series the answer holds, ending at the newest year any of them holds at or before the year the coverage artifact was built, or at the newest year any holds when none holds a year that early; `year` is one of the three: the newest year a variable heads, which is the year it elected or, for a variable that elects none, such as one of monthly data, its newest year at or before the build year. When no variable holds a year that early, each heads its newest year. `observations`, `series` and `role_counts` count only the variables heading it. For a named window they end at `year`, the first entry repeats `observations`, `series` and `role_counts`, and the earlier years count whether or not `named_window` reaches them. A year with no data is kept with zero counts. The list stops at the first year the coverage artifact represents, so it can hold fewer than three entries"
+            "description": "the counts for three calendar years, newest first, so a newest year with far fewer series than the years before it reads as incomplete. For a latest window they are raw counts over every series the answer holds, ending at the newest year any of them holds at or before the year the coverage artifact was built, or at the newest year any holds when none holds a year that early; `year` is one of the three: the newest year a variable heads, which is the year it elected or, for a variable that elects none, its newest year at or before the build year. When no variable holds a year that early, each heads its newest year. `observations`, `series` and `role_counts` count only the variables heading it. For a named window they end at `year`, the first entry repeats `observations`, `series` and `role_counts`, and the earlier years count whether or not `named_window` reaches them. A year with no data is kept with zero counts. The list stops at the first year the coverage artifact represents, so it can hold fewer than three entries"
           }
         },
         "additionalProperties": false,
@@ -12847,7 +12941,12 @@
           "without_party_totals": {
             "type": "boolean",
             "title": "Without Party Totals",
-            "default": false
+            "description": "Deprecated: use party_totals. true leaves group totals out, as party_totals: false does"
+          },
+          "party_totals": {
+            "type": "boolean",
+            "title": "Party Totals",
+            "description": "Whether group totals stay in the frame. This is the preferred name of the party-totals cut. Absent, totals stay, unless without_party_totals is true. false leaves out the rows whose party, on a flow party role the identity binds no entity on, the code index declares a group total. It equals without_party_totals: true. Both may be given when they agree. The cut is recorded and served as without_party_totals"
           },
           "enrichment": {
             "anyOf": [
@@ -12878,7 +12977,7 @@
         "additionalProperties": false,
         "type": "object",
         "title": "MintOptions",
-        "description": "Rendering-only, never hashed into identity. `format`/`bundle`/`pivot`/\n`columns`/`groupby`/`without_party_totals` are this deployment's live rendering surface. A\n`groupby.by` entry names a code system some deployment declaration\nmarks summable, a role/entity column, `stat_var`, or a column every\nframe carries regardless of shape; any other name refuses\n`rollup_not_summable` (`datasets_api.groupby.refuse_unknown_by_axes`).\nA declared axis this frame did not decode is simply absent from the\ncollapse-set computation, not an error (see\n`datasets_api.groupby.collapse_axes`); an unsafe collapse refuses\n`rollup_not_summable` too, naming the axis and precondition\n(`materialise.reshape.groupby_sum`,\n`datasets_api.groupby.refuse_stat_var_collision`,\n`datasets_api.groupby.refuse_decode_gaps`). A `columns` entry naming a\nrecognised-but-disabled enrichment field refuses `capability_unavailable`.\n`columns` selects the table and decoded columns it names. A list that names\nonly enrichment fields selects nothing: every default column stays,\ndecoded columns included, and the enrichments are added. A list that mixes\na table column with an enrichment selects. Without a pivot, a list that\nnames no decoded column keeps all of them, `status` is accepted and left\nout, `<role>_label` is written by default (a list naming it keeps\n`<role>`), and the written order follows the long layout\n(`materialise.projection`) whatever order the list names.\n\n`layout: \"frame\"` writes a bare parquet file in the frame layout instead\nof the long layout: the frame's grammar columns as reshaped, with\ndecoded axes as `stat_var_<code_system>`, `status` kept, and a converted\nunit as its JCS request text. `columns` then selects over those columns,\nas it does for pivot output. It refuses with `bundle: true`, a `pivot`,\nor a format other than parquet.\n\n`enrichment: \"default\"` asks for the version's default enrichment columns\n(`datasets_api.default_enrichment`), resolved once the version is built: they join `columns`,\nor are `columns` when it names none, and the option is dropped before the rendering is keyed,\nrendered or recorded, so the answer is that of a request naming the resolved columns.\n\n`without_party_totals: true` leaves out the rows whose party, on a flow party role the\nserved identity binds no entity on, the code index declares a group total\n(`datasets_api.party_totals`). It runs on the frame before any reshape, so a `groupby`\nsums members alone. A cut that leaves rows out mints a version of its own, as a `groupby`\ncollapse does; one that leaves nothing out serves the frame's own version."
+        "description": "Rendering-only, never hashed into identity. `format`/`bundle`/`pivot`/\n`columns`/`groupby`/`without_party_totals` are this deployment's live rendering surface. A\n`groupby.by` entry names a code system some deployment declaration\nmarks summable, a role/entity column, `stat_var`, or a column every\nframe carries regardless of shape; any other name refuses\n`rollup_not_summable` (`datasets_api.groupby.refuse_unknown_by_axes`).\nA declared axis this frame did not decode is simply absent from the\ncollapse-set computation, not an error (see\n`datasets_api.groupby.collapse_axes`); an unsafe collapse refuses\n`rollup_not_summable` too, naming the axis and precondition\n(`materialise.reshape.groupby_sum`,\n`datasets_api.groupby.refuse_stat_var_collision`,\n`datasets_api.groupby.refuse_decode_gaps`). A `columns` entry naming a\nrecognised-but-disabled enrichment field refuses `capability_unavailable`.\n`columns` selects the table and decoded columns it names. A list that names\nonly enrichment fields selects nothing: every default column stays,\ndecoded columns included, and the enrichments are added. A list that mixes\na table column with an enrichment selects. Without a pivot, a list that\nnames no decoded column keeps all of them, `status` is accepted and left\nout, `<role>_label` is written by default (a list naming it keeps\n`<role>`), and the written order follows the long layout\n(`materialise.projection`) whatever order the list names.\n\n`layout: \"frame\"` writes a bare parquet file in the frame layout instead\nof the long layout: the frame's grammar columns as reshaped, with\ndecoded axes as `stat_var_<code_system>`, `status` kept, and a converted\nunit as its JCS request text. `columns` then selects over those columns,\nas it does for pivot output. It refuses with `bundle: true`, a `pivot`,\nor a format other than parquet.\n\n`enrichment: \"default\"` asks for the version's default enrichment columns\n(`datasets_api.default_enrichment`), resolved once the version is built: they join `columns`,\nor are `columns` when it names none, and the option is dropped before the rendering is keyed,\nrendered or recorded, so the answer is that of a request naming the resolved columns.\n\n`without_party_totals: true` leaves out the rows whose party, on a flow party role the\nserved identity binds no entity on, the code index declares a group total\n(`datasets_api.party_totals`). It runs on the frame before any reshape, so a `groupby`\nsums members alone. A cut that leaves rows out mints a version of its own, as a `groupby`\ncollapse does; one that leaves nothing out serves the frame's own version. A request may\nspell the cut `party_totals: false`, the preferred name, which validation folds into\n`without_party_totals` (`fold_party_totals`), so the dump, the rendering and every key\nhashed from them are the same for either spelling. Both given and disagreeing refuses at\n`party_totals`."
       },
       "MintRequest": {
         "properties": {
@@ -13541,7 +13640,7 @@
             },
             "type": "array",
             "title": "Departures",
-            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
+            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, organisation_read_as_source, direction_inferred, organisation_read_as_party, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
           },
           "assumptions": {
             "items": {
@@ -16021,7 +16120,7 @@
                             ]
                           },
                           "type": "object",
-                          "maxProperties": 3
+                          "maxProperties": 4
                         }
                       ]
                     },
@@ -16050,7 +16149,7 @@
                       ]
                     },
                     "type": "object",
-                    "maxProperties": 3
+                    "maxProperties": 4
                   },
                   {
                     "anyOf": [
@@ -16080,7 +16179,7 @@
             "type": "array",
             "maxItems": 1000000,
             "title": "Rows",
-            "description": "`dfo_frame_grammar.Frame.build`'s own `rows` argument; empty is a valid frame (an analysis verb whose filter matches nothing produces exactly this), `build_frame` accepts it, so no minimum is imposed here. Each row is bounded at 22 keys; the outer list is bounded at 1000000 rows, a fixed schema backstop, well above doors.publish's own fixed PUBLISH_MAX_ROWS that actually governs `len(rows)` at publish time -- see this module's own docstring for why the two are not the same kind of cap. A cell is a scalar, or under `unit` alone a mapping of scalars bounded at 3 entries or a composed unit, `numerator` over `denominator`, each a unit ref, a mapping of scalars, or `{stat_var}` -- see this module's own docstring for the shapes refused at parse time"
+            "description": "`dfo_frame_grammar.Frame.build`'s own `rows` argument; empty is a valid frame (an analysis verb whose filter matches nothing produces exactly this), `build_frame` accepts it, so no minimum is imposed here. Each row is bounded at 22 keys; the outer list is bounded at 1000000 rows, a fixed schema backstop, well above doors.publish's own fixed PUBLISH_MAX_ROWS that actually governs `len(rows)` at publish time -- see this module's own docstring for why the two are not the same kind of cap. A cell is a scalar, or under `unit` alone a mapping of scalars bounded at 4 entries or a composed unit, `numerator` over `denominator`, each a unit ref, a mapping of scalars, or `{stat_var}` -- see this module's own docstring for the shapes refused at parse time"
           },
           "input_content_versions": {
             "items": {
@@ -17291,6 +17390,40 @@
             "title": "Role",
             "description": "the role key this entity plays; observationAbout, origin, or destination"
           },
+          "party_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "party",
+                  "total",
+                  "residual"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Party Kind",
+            "description": "for a party of a flow, what it is where the answer's datasets publish it: party, total (it holds other parties' figures, such as DAC countries, total) or residual (Africa, unallocated by country); absent for an entity that is no flow party and for one the datasets publish as different kinds"
+          },
+          "party_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "official",
+                  "private",
+                  "residual"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Party Class",
+            "description": "for a party of a flow, whose money its figures count: official, private (a private provider such as a foundation) or residual. A total states the one class whose whole population it holds (official for Official Donors, Total) and omits the field otherwise (DAC countries, total). Absent where party_kind is absent"
+          },
           "multilateral": {
             "anyOf": [
               {
@@ -17301,7 +17434,7 @@
               }
             ],
             "title": "Multilateral",
-            "description": "true for an origin entity that is a multilateral organisation, an official organisation such as IDA or the EU institutions, whose outflows spend the core contributions its funders made to it, so a donor total counting those contributions already holds them; absent for every other entity"
+            "description": "for an origin entity that is a party of a flow, whether it is a multilateral organisation, an official organisation such as IDA or the EU institutions, whose outflows spend the core contributions its funders made to it, so a donor total counting those contributions already holds them; false for a total, a country and a private provider. Stated on the origin role alone, where a donor total can hold the multilateral's outflows twice; absent on every other role, and where party_kind is absent"
           },
           "confidence": {
             "anyOf": [
@@ -17340,7 +17473,7 @@
               "fallback"
             ],
             "title": "Basis",
-            "description": "'bound' when this axis was constrained by the request, 'declared_default' when an unbound axis was completed from a declared deployment policy, 'fallback' when neither applies and the deployment policy supplied the value: facets holding a point in the requested years first, then DFO's facets for a variable both DFO and base Data Commons hold, then the most places or role tuples covered there, then the most requested years the span covers, then most observations, then the latest observation, then a deterministic tie-break"
+            "description": "'bound' when this axis was constrained by the request, 'declared_default' when an unbound axis took the default the StatVar declares in the graph (its defaultMeasurementMethod arc on measurementMethod), 'fallback' when neither applies and the deployment policy supplied the value: facets holding a point in the requested years first, then DFO's facets for a variable both DFO and base Data Commons hold, then the most places or role tuples covered there, then the most requested years the span covers, then most observations, then the latest observation, then a deterministic tie-break"
           },
           "ref": {
             "anyOf": [
@@ -17633,6 +17766,14 @@
             "type": "array",
             "title": "Selected",
             "description": "the codes the term asked for before the combination simplified them"
+          },
+          "held_by": {
+            "items": {
+              "$ref": "#/components/schemas/GraphRef"
+            },
+            "type": "array",
+            "title": "Held By",
+            "description": "on an unavailable term, the datasets whose table of the answer's measure records the term's codes, each by its provenance and label; empty otherwise"
           }
         },
         "additionalProperties": false,
@@ -17643,7 +17784,7 @@
           "disposition"
         ],
         "title": "ResolvedQualifier",
-        "description": "One narrowing term the request's text named, and what became of it.\n\nThe term's text can come from the variable phrase, from the verbatim\n`query_text`, or from an admitted qualifier tie (see\n`_resolve_query_qualifiers`). `text` is the verbatim span of whichever\nsource named it. `named` is every code row -- any system -- that span\nnames in the packaged index, and every measure value it names that the\nanswer does not carry (a dcid of the index's measure values, such as\n`amountMobilised`);\nempty when the text names neither (a `no_vocabulary` term). `slot`\nis the constraint property dcid of the `slot_filters` entry whose\nbinding consumed the term, or, on an `\"unbound\"` value the answer's shape\nhas a slot for but leaves unmet, that slot's property; `None` otherwise.\n`disposition` is\n`\"bound\"` when some final binding on a named row's code system covers\nit (that row or a descendant), `\"unbound\"` when a code row was named but\nno binding covers it or a measure value was named that the answer does not\ncarry, and `\"no_vocabulary\"` when the term names neither: an LLM-reported\nphrase (`bind`'s own `unplaced` output) that no taxonomy in this\ndeployment's index can express, an exclusion or comparison phrase\n(`\"unsupported\"`), or words beside no code the binder rated as not stated\non the elected shape (`\"uncovered\"`).\n\n`start` and `end` locate the term in the part's variable phrase. `evidence` says what\nread it, and `None` means a code's label or synonym matched the term as the query\nspelled it, the reading every recognised span records:\n\n- `\"label\"` and `\"synonym\"` name a match on a code's label or synonym; no record sets\n  them, since a recognised span records `None`.\n- `\"model\"` marks a phrase the bind model read through a code it chose from the\n  phrase's candidate menu, a lexical hit of the menu or a descendant of one\n  (`phase_rank_bind._model_records`); `named` holds the chosen codes.\n- `\"uncovered\"` marks words no reader covers on the elected shape\n  (`phase_rank_bind._coverage_records`). Beside a recognised code they are recorded\n  `\"unbound\"` with that code's rows as `named`. On a shape the measure index describes,\n  a word that every name of a measure value's reading holds names that value when no\n  span names it and the answer does not carry it, and its record adds the value to\n  `named`. Beside no code such a word is recorded `\"unbound\"` naming the value, whatever\n  the binder rates it; \"mobilised\" names `amountMobilised` on an amount series. Other\n  words beside no code are recorded `\"no_vocabulary\"` with `named` empty when the\n  binder rates them below `SearchSettings.stated_word_bar` as not stated by the shape's\n  series; a word it rates at the bar or above, or leaves unrated, reads as stated.\n- `\"unavailable\"` marks a code term the elected shape cannot apply: one naming only\n  codes no shape can bind, or, on a part naming a dataset, one no row of that dataset\n  holds (`phase_rank_bind._unavailable_qualifiers`), recorded `\"unbound\"`.\n- `\"unsupported\"` marks an exclusion or comparison phrase no binding expresses\n  (`phase_rank_bind._unsupported_records`), recorded `\"no_vocabulary\"`.\n\n`operation` and `selected` describe how the term's codes combine with\nanother term's on one code system, and the codes it asked for before that\ncombination simplified."
+        "description": "One narrowing term the request's text named, and what became of it.\n\nThe term's text can come from the variable phrase, from the verbatim\n`query_text`, or from an admitted qualifier tie (see\n`_resolve_query_qualifiers`). `text` is the verbatim span of whichever\nsource named it. `named` is every code row -- any system -- that span\nnames in the packaged index, and every measure value it names that the\nanswer does not carry (a dcid of the index's measure values, such as\n`amountMobilised`);\nempty when the text names neither (a `no_vocabulary` term). `slot`\nis the constraint property dcid of the `slot_filters` entry whose\nbinding consumed the term, or, on an `\"unbound\"` value the answer's shape\nhas a slot for but leaves unmet, that slot's property; `None` otherwise.\n`disposition` is\n`\"bound\"` when some final binding on a named row's code system covers\nit (that row or a descendant), `\"unbound\"` when a code row was named but\nno binding covers it or a measure value was named that the answer does not\ncarry, and `\"no_vocabulary\"` when the term names neither: an LLM-reported\nphrase (`bind`'s own `unplaced` output) that no taxonomy in this\ndeployment's index can express, an exclusion or comparison phrase\n(`\"unsupported\"`), or words beside no code the binder rated as not stated\non the elected shape (`\"uncovered\"`).\n\n`start` and `end` locate the term in the part's variable phrase. `evidence` says what\nread it, and `None` means a code's label or synonym matched the term as the query\nspelled it, the reading every recognised span records:\n\n- `\"label\"` and `\"synonym\"` name a match on a code's label or synonym; no record sets\n  them, since a recognised span records `None`.\n- `\"model\"` marks a phrase the bind model read through a code it chose from the\n  phrase's candidate menu, a lexical hit of the menu or a descendant of one\n  (`phase_rank_bind._model_records`); `named` holds the chosen codes.\n- `\"uncovered\"` marks words no reader covers on the elected shape\n  (`phase_rank_bind._coverage_records`). Beside a recognised code they are recorded\n  `\"unbound\"` with that code's rows as `named`. On a shape the measure index describes,\n  a word that every name of a measure value's reading holds names that value when no\n  span names it and the answer does not carry it, and its record adds the value to\n  `named`. Beside no code such a word is recorded `\"unbound\"` naming the value, whatever\n  the binder rates it; \"mobilised\" names `amountMobilised` on an amount series. Other\n  words beside no code are recorded `\"no_vocabulary\"` with `named` empty when the\n  binder rates them below `SearchSettings.stated_word_bar` as not stated by the shape's\n  series; a word it rates at the bar or above, or leaves unrated, reads as stated.\n- `\"unavailable\"` marks a code term the elected shape cannot apply: one naming only\n  codes no shape can bind, or, on a part naming a dataset, one no row of that dataset\n  holds (`phase_rank_bind._unavailable_qualifiers`), recorded `\"unbound\"`.\n- `\"unsupported\"` marks an exclusion or comparison phrase no binding expresses\n  (`phase_rank_bind._unsupported_records`), recorded `\"no_vocabulary\"`.\n\n`operation` and `selected` describe how the term's codes combine with\nanother term's on one code system, and the codes it asked for before that\ncombination simplified.\n\n`held_by` names, on an `\"unavailable\"` term the elected shape leaves unread, the\ndatasets serving another table family of the answer's five-tuple and role class that\nrecords one of its codes (`phase_rank_bind._rival_held_qualifiers`). For \"adaptation\"\non a CRS answer it names ONE Data Climate Finance. The refusal names them."
       },
       "ResolvedScope": {
         "properties": {
@@ -17775,7 +17916,7 @@
                 "type": "null"
               }
             ],
-            "description": "the rows, series, years and licence of the file a mint of this Spec writes (see DownloadFacts). None when the Spec has no read plan: a no-data answer, or same-shape parts merged into one Spec"
+            "description": "the rows, series, years and licence of the file a mint of this Spec writes (see DownloadFacts). None when the Spec has no read plan: a no-data answer, or same-shape parts merged into one Spec whose parts' read plans do not combine without a further read"
           },
           "coverage_stamp": {
             "anyOf": [
@@ -18162,7 +18303,7 @@
           "member_count"
         ],
         "title": "ResolvedStatVars",
-        "description": "`resolved.stat_vars` on the wire: how many StatVars the answer holds, how many a\nDatasets mint of the Spec's definition serves, and the dates the answer serves over\nthem. The members themselves stay off the wire; `POST /api/datasets/{id}/members`\nlists the ones a mint serves.\n\nmember_count is the population confirmed to carry observations at this\nresolve's own probe entities, not resolved.shape.member_count's\nbindings-admitted population. The two differ for two reasons. A member the\nshape's bindings admit can carry no observation at the resolved place. And on\na role-bearing shape the answer reads one role class of the admitted members:\nwhere a total stands for its breakdowns the breakdowns are folded into it, so a\ndonor-only answer can state 255 admitted members beside 1 confirmed while every\none of the 255 holds data. On a standard (non-role-bearing) shape this population can itself\nbe a floor: the packaged code index does not source members for every\nshape family, so a shape outside it falls back to its recall sample, the\nmembers recall found, and member_count cannot exceed what that sample\nadmitted. An answer naming one member of a family too large for one read stops\nreading once that member is confirmed, so member_count counts the members read: \"latest\nlife expectancy data\" reads the family's total and not its other 350 members. A\nwhere-axis merge (same_shape.py, \"population\nof Kenya and Uganda\") publishes max() of its members' own member_count\nrather than the sum, since the same StatVar is typically confirmed at\nevery member's own place and summing would double-count the\nintersection -- max() is a true lower bound of the union. member_count_exact\nrecords which of these applies.\n\nserved_count is the mint's own count, a function of the definition alone: the\nStatVars a Datasets mint of `definition` serves, the length of its\n`trace.resolved_stat_vars`. It is stated whenever Search settled the membership the\nmint resolves: a family the code index decides, or a family the mint's member walk\nsettled for this definition. Null when Search answers from members it could not\nsettle, which the part flags with a `membership_unverified` warning."
+        "description": "`resolved.stat_vars` on the wire: how many StatVars the answer holds, how many a\nDatasets mint of the Spec's definition serves, and the dates the answer serves over\nthem. The members themselves stay off the wire; `POST /api/datasets/{id}/members`\nlists the ones a mint serves.\n\nmember_count is the population confirmed to carry observations at this\nresolve's own probe entities, among the members the shape's bindings admit.\nresolved.shape.member_count states that admitted population only where no\nmember_digest is stated; otherwise it states the family the digest names. The\nadmitted and confirmed populations differ for two reasons. A member the\nshape's bindings admit can carry no observation at the resolved place. And on\na role-bearing shape the answer reads one role class of the admitted members:\nwhere a total stands for its breakdowns the breakdowns are folded into it, so a\ndonor-only answer can state 255 admitted members beside 1 confirmed while every\none of the 255 holds data. On a standard (non-role-bearing) shape this population can itself\nbe a floor: the packaged code index does not source members for every\nshape family, so a shape outside it falls back to its recall sample, the\nmembers recall found, and member_count cannot exceed what that sample\nadmitted. An answer naming one member of a family too large for one read stops\nreading once that member is confirmed, so member_count counts the members read: \"latest\nlife expectancy data\" reads the family's total and not its other 350 members. A\nwhere-axis merge (same_shape.py, \"population\nof Kenya and Uganda\") publishes max() of its members' own member_count\nrather than the sum, since the same StatVar is typically confirmed at\nevery member's own place and summing would double-count the\nintersection -- max() is a true lower bound of the union. member_count_exact\nrecords which of these applies.\n\nserved_count is the mint's own count, a function of the definition alone: the\nStatVars a Datasets mint of `definition` serves, the length of its\n`trace.resolved_stat_vars`. It is stated whenever Search settled the membership the\nmint resolves: a family the code index decides, or a family the mint's member walk\nsettled for this definition. Null when Search answers from members it could not\nsettle, which the part flags with a `membership_unverified` warning."
       },
       "ResubmitCandidate": {
         "properties": {
@@ -18622,7 +18763,12 @@
           "without_party_totals": {
             "type": "boolean",
             "title": "Without Party Totals",
-            "default": false
+            "description": "Deprecated: use party_totals. true leaves group totals out, as party_totals: false does"
+          },
+          "party_totals": {
+            "type": "boolean",
+            "title": "Party Totals",
+            "description": "Whether group totals stay in the frame. This is the preferred name of the party-totals cut. Absent, totals stay, unless without_party_totals is true. false leaves out the rows whose party, on a flow party role the identity binds no entity on, the code index declares a group total. It equals without_party_totals: true. Both may be given when they agree. The cut is recorded and served as without_party_totals"
           },
           "columns": {
             "anyOf": [
@@ -19515,7 +19661,7 @@
           "member_count": {
             "type": "integer",
             "title": "Member Count",
-            "description": "the size of the resolved population behind this response: how many StatVars the shape's current bindings admit, narrowing as a slot binds and widening again as one is cleared"
+            "description": "the size of the family member_digest names, the Datasets mint's trace.family_member_count, wherever member_digest is stated. Where it is null, the size of the population Search resolved: how many StatVars the shape's current bindings admit, narrowing as a slot binds and widening again as one is cleared"
           },
           "member_digest": {
             "anyOf": [
@@ -20415,12 +20561,21 @@
             "maximum": 2100.0,
             "minimum": 1900.0,
             "title": "Base Year"
+          },
+          "deflation_basis": {
+            "type": "string",
+            "enum": [
+              "donor",
+              "recipient",
+              "national"
+            ],
+            "title": "Deflation Basis"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "SimpleUnit",
-        "description": "A unit by reference, by currency, or both, with optional words.\n\n`ref` is the unit's dcid. `currency` is an ISO 4217 code, which a converted unit\n`{currency, prices, base_year}` names in place of a dcid. `prices` says whether money is\nin `current` or `constant` prices, and `base_year` names the year constant prices are\nexpressed in; it is present exactly when prices are constant."
+        "description": "A unit by reference, by currency, or both, with optional words.\n\n`ref` is the unit's dcid. `currency` is an ISO 4217 code, which a converted unit\n`{currency, prices, base_year}` names in place of a dcid. `prices` says whether money is\nin `current` or `constant` prices, and `base_year` names the year constant prices are\nexpressed in; it is present exactly when prices are constant. `deflation_basis` says whose\nprices deflated a constant-price amount, the frame grammar's `DeflationBasis`. It is\noptional and present only when prices are constant. A record holding one is of schema\nversion 3 (`description.facts.lowest_schema_version`)."
       },
       "Skill": {
         "properties": {
@@ -20965,7 +21120,9 @@
                 "type": "null"
               }
             ],
-            "title": "License"
+            "title": "License",
+            "description": "deprecated: the same value as `licence`, kept for clients that read it",
+            "deprecated": true
           },
           "license_type": {
             "anyOf": [
@@ -20976,7 +21133,9 @@
                 "type": "null"
               }
             ],
-            "title": "License Type"
+            "title": "License Type",
+            "description": "deprecated: the same value as `licence_type`, kept for clients that read it",
+            "deprecated": true
           },
           "url": {
             "anyOf": [
@@ -21091,6 +21250,32 @@
             "type": "string",
             "title": "Documentation",
             "description": "the path of the node's source document"
+          },
+          "licence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence",
+            "description": "the license arc's value, the licence's terms page",
+            "readOnly": true
+          },
+          "licence_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence Type",
+            "description": "the licenseType arc's target dcid",
+            "readOnly": true
           }
         },
         "type": "object",
@@ -21112,7 +21297,7 @@
           "documentation"
         ],
         "title": "GraphSourceBlock",
-        "description": "A Source, Dataset or Provenance's detail block. `documentation` is the path of the\nnode's source document on this API."
+        "description": "A Source, Dataset or Provenance's detail block. `documentation` is the path of the\nnode's source document on this API. `licence` and `licence_type` are the preferred\nspellings of `license` and `license_type`, which hold the same values."
       },
       "SourceCatalogue": {
         "properties": {
@@ -21304,7 +21489,9 @@
             "$ref": "#/components/schemas/SourceDetails"
           },
           "license": {
-            "$ref": "#/components/schemas/SourceLicense"
+            "$ref": "#/components/schemas/SourceLicense",
+            "description": "deprecated: the same block as `licence`, kept for clients that read it",
+            "deprecated": true
           },
           "scope_and_units": {
             "$ref": "#/components/schemas/ScopeAndUnits"
@@ -21352,6 +21539,11 @@
             "type": "array",
             "title": "Document Errors",
             "description": "each Markdown document the source carries but this door could not serve"
+          },
+          "licence": {
+            "$ref": "#/components/schemas/SourceLicense",
+            "description": "the source's licence: its label (`type`), terms page (`url`) and release dates. The preferred spelling of `license`, which holds the same block",
+            "readOnly": true
           }
         },
         "type": "object",
@@ -22552,7 +22744,7 @@
           "total"
         ],
         "title": "Timing",
-        "description": "Latency breakdown, reused at two scopes: the envelope's own\ndiagnostics.timing_ms, where total is the whole request's wall-clock\nelapsed time and by_step names the steps that run once per request,\nshared across every part (coverage; extract; cache_lookup on a raw-text\nrequest with the response cache active; entity_check on a request that\nruns the place check), and a part's own timing_ms, where total sums\nthat part's own by_step values and by_step names the steps that part\nran plus a phase_<name> entry for each phase it ran, holding the time\nno step booked, excluding the shared steps already reported on the\nenvelope. A part's shape_arcs, shape_probe, shape_probe_coverage,\nshape_labels, shape_groups and shape_admission steps are nested inside\nits shape step, so its total leaves them out."
+        "description": "Latency breakdown, reused at two scopes: the envelope's own\ndiagnostics.timing_ms, where total is the whole request's wall-clock\nelapsed time and by_step names the steps that run once per request,\nshared across every part (coverage; extract; cache_lookup on a raw-text\nrequest with the response cache active; entity_check on a request that\nruns the place check), and a part's own timing_ms, where total sums\nthat part's own by_step values and by_step names the steps that part\nran plus a phase_<name> entry for each phase it ran, holding the time\nno step booked, excluding the shared steps already reported on the\nenvelope. A part's shape_arcs, shape_probe, shape_probe_coverage,\nshape_labels, shape_groups, shape_admission, shape_denominators,\nshape_quantity, shape_rank and shape_availability steps are nested inside\nits shape step, so its total leaves them out."
       },
       "TraceConversion": {
         "properties": {
@@ -22832,6 +23024,23 @@
             "type": "object",
             "title": "Role Currencies",
             "description": "the ISO 4217 code of the national currency (the graph's nationalCurrencyOf arc) of the one entity bound on each role, among `currencies`. A role bound to several entities, or to one no single currency names, is absent. A request may name the role ({'role': 'origin'}) or the code"
+          },
+          "deflation_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "donor",
+                  "recipient",
+                  "national"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deflation Basis",
+            "description": "whose prices a conversion to constant prices deflates the values by: the donor's, the recipient's, or the national prices of the place a series is about. Null when the served members deflate on roles of different bases or declare none"
           }
         },
         "additionalProperties": false,
@@ -23238,7 +23447,7 @@
             },
             "type": "array",
             "title": "Departures",
-            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, direction_inferred, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
+            "description": "every way this part's answer differs from what its request asked, ordered by how much each changes the number: closest_match, measure_not_applied, operation_not_applied, breakdown_not_applied, entity_unavailable, member_unavailable, year_unavailable, modelled_values, group_read_as_members, whole_total_read, whole_total_unpublished, direction_discarded, organisation_read_as_source, direction_inferred, organisation_read_as_party, scope_limited. [] when the answer is what was asked. A client that renders its own sentence reads them here; each one's text also closes the sentence that carries this part (see Departure.text). A warning on the same part reports run health and stays separate"
           },
           "assumptions": {
             "items": {
@@ -24176,7 +24385,12 @@
           "without_party_totals": {
             "type": "boolean",
             "title": "Without Party Totals",
-            "default": false
+            "description": "Deprecated: use party_totals. true leaves group totals out, as party_totals: false does"
+          },
+          "party_totals": {
+            "type": "boolean",
+            "title": "Party Totals",
+            "description": "Whether group totals stay in the frame. This is the preferred name of the party-totals cut. Absent, totals stay, unless without_party_totals is true. false leaves out the rows whose party, on a flow party role the identity binds no entity on, the code index declares a group total. It equals without_party_totals: true. Both may be given when they agree. The cut is recorded and served as without_party_totals"
           },
           "groupby": {
             "anyOf": [
@@ -24284,7 +24498,7 @@
           "default_facet_policies_live": {
             "type": "boolean",
             "title": "Default Facet Policies Live",
-            "description": "whether the graph declares its own per-StatVar/per-source default facet policy; false does not mean an unbound axis refuses -- see default_facet_policy"
+            "description": "whether an unbound axis first takes the default the graph declares on the StatVar (its defaultMeasurementMethod arc, for the measurementMethod axis) where a candidate carries it, before default_facet_policy ranks the candidates"
           },
           "default_facet_policy": {
             "anyOf": [
@@ -24318,6 +24532,14 @@
             "title": "Groupby Level Axes",
             "description": "code systems the packaged code index declares summable, hierarchical, and disjoint from children (a parent-coded record excludes its children's), sorted. These are the axes groupby.levels accepts, each rolled up to one depth of its parent chain (0 = root codes) before the sum"
           },
+          "analysis_execution_identity": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Analysis Execution Identity",
+            "description": "the engine that computes analysis frames here: engine_version, frame_grammar_version and reduction_policy_version, the same object an analysis answer carries as execution_identity. Its pipe-joined canonical string is the execution identity hashed into a derived frame's replay_key and a toolkit result's content_version"
+          },
           "caps": {
             "$ref": "#/components/schemas/datasets_api__capabilities__CapabilityCaps",
             "description": "published input limits and response caps"
@@ -24345,6 +24567,7 @@
           "summability_declarations_live",
           "summable_axes",
           "groupby_level_axes",
+          "analysis_execution_identity",
           "caps",
           "code_index"
         ],
@@ -24895,7 +25118,7 @@
           "scope_max_window_years": {
             "type": "integer",
             "title": "Scope Max Window Years",
-            "description": "ceiling on a requested window's year span for a role-bearing read, named or discovered; over this refuses scope_too_broad"
+            "description": "ceiling on a requested window's year span for a role-bearing read, named or discovered; over this refuses scope_too_broad. A span counted back from now ('the last five years') counts the years it asks for, though its read also lists the years before them it searches for the newest data"
           }
         },
         "type": "object",
@@ -25053,7 +25276,7 @@
         "description": "The single request type for the Search resolve endpoint."
       },
       "ProblemDetails": {
-        "description": "RFC 9457 problem-details body for every non-2xx response.\n\nStandard base fields (type, title, status, detail) plus the platform\nregistry's stable extensions (code, pointer, alternatives, truncated,\nissues, constraint_id, trace_id, capability_version, retryable). Optional\nmembers (pointer, alternatives, truncated, issues, constraint_id) are\nomitted from the wire body when absent -- callers should serialize with\n``model_dump(mode=\"json\", exclude_none=True)``, which ``to_json`` does.",
+        "description": "RFC 9457 problem-details body for every non-2xx response.\n\nStandard base fields (type, title, status, detail) plus the platform\nregistry's stable extensions (code, pointer, alternatives, truncated,\nissues, constraint_id, limit_name, retry_mode, trace_id, capability_version, retryable).\nOptional members (pointer, alternatives, truncated, issues, constraint_id, limit_name,\nretry_mode) are\nomitted from the wire body when absent -- callers should serialize with\n``model_dump(mode=\"json\", exclude_none=True)``, which ``to_json`` does.",
         "properties": {
           "type": {
             "description": "a relative URI reference to the code's registry entry",
@@ -25201,6 +25424,47 @@
             "default": null,
             "description": "for over_ceiling: the ceiling, in ceiling_kind's own unit, that count crossed. Under candidate_window it is the candidate window the read was allowed",
             "title": "Cap"
+          },
+          "limit_name": {
+            "anyOf": [
+              {
+                "enum": [
+                  "MAX_ENVELOPE_BYTES",
+                  "MAX_INTENT_BYTES",
+                  "MAX_LINE_CHART_SERIES",
+                  "MAX_POINTS_PER_SERIES",
+                  "MAX_SELECTORS",
+                  "MAX_SERIES_PER_COMPONENT",
+                  "MAX_TABLE_ROWS"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "for resource_exhausted: the name of the limit the request crossed, such as MAX_LINE_CHART_SERIES",
+            "title": "Limit Name"
+          },
+          "retry_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "correct_and_retry",
+                  "refresh_then_retry",
+                  "retry_after_delay",
+                  "do_not_retry"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "what a caller does with this occurrence: correct_and_retry (change the request and send it again), refresh_then_retry, retry_after_delay, or do_not_retry. Omitted by a surface that states only the code's headline mode",
+            "title": "Retry Mode"
           },
           "trace_id": {
             "description": "this request's trace_id, shared with diagnostics and the SSE done event",
