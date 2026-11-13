@@ -430,8 +430,16 @@ def test_several_members_stack_with_a_part_column_first() -> None:
         2,
         ["stat_var", "x", "value"],
     )
+    left_out = {"spec_id": "spec_b", "role": "financingProvider", "entities": ["x"]}
     other = capture.Member(
-        [], {"spec_id": "spec_b"}, "cv_b", "B.", "sha256:b", 3, ["y", "z"]
+        [],
+        {"spec_id": "spec_b"},
+        "cv_b",
+        "B.",
+        "sha256:b",
+        3,
+        ["y", "z"],
+        party_totals=[left_out],
     )
     unnamed = capture.Member(
         ["p", "q"],
@@ -449,7 +457,10 @@ def test_several_members_stack_with_a_part_column_first() -> None:
         {"part": "A.", "rows": 2},
         {"part": "p; q", "rows": 3},
     ]
-    assert "part_rows" not in capture.dataset_outcome([other], RULES.reading)["dataset"]
+    alone = capture.dataset_outcome([other], RULES.reading)["dataset"]
+    assert "part_rows" not in alone
+    assert alone["party_totals_left_out"] == [left_out]
+    assert "party_totals_left_out" not in dataset
     columns = capture.dataset_outcome([member], RULES.reading)["dataset"]["columns"]
     assert columns == ["value", "x", "stat_var"]
 

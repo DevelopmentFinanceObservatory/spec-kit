@@ -1,0 +1,479 @@
+{
+  "format_version": 1,
+  "rule": "timeout-and-retries",
+  "vectors": [
+    {
+      "name": "call-argument-wins",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "argument": 120,
+      "call_argument": 30,
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "source": "call",
+      "resolved": 30
+    },
+    {
+      "name": "call-null-waits-without-bound",
+      "variable": "DFO_TIMEOUT",
+      "call": "search",
+      "argument": 120,
+      "call_argument": null,
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "source": "call",
+      "resolved": null
+    },
+    {
+      "name": "client-argument-beats-environment",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "argument": 120,
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "source": "argument",
+      "resolved": 120
+    },
+    {
+      "name": "client-null-keeps-each-call-default",
+      "variable": "DFO_TIMEOUT",
+      "call": "search",
+      "argument": null,
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "source": "argument",
+      "resolved": 60
+    },
+    {
+      "name": "environment-beats-default",
+      "variable": "DFO_TIMEOUT",
+      "call": "search",
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "source": "environment",
+      "resolved": 300
+    },
+    {
+      "name": "environment-fraction",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "2.5"
+      },
+      "source": "environment",
+      "resolved": 2.5
+    },
+    {
+      "name": "default-search",
+      "variable": "DFO_TIMEOUT",
+      "call": "search",
+      "env": {},
+      "source": "default",
+      "resolved": 60
+    },
+    {
+      "name": "default-fetch-waits-without-bound",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {},
+      "source": "default",
+      "resolved": null
+    },
+    {
+      "name": "empty-environment-counts-as-unset",
+      "variable": "DFO_TIMEOUT",
+      "call": "search",
+      "env": {
+        "DFO_TIMEOUT": ""
+      },
+      "source": "default",
+      "resolved": 60
+    },
+    {
+      "name": "other-variable-is-ignored",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_MAX_RETRIES": "5"
+      },
+      "source": "default",
+      "resolved": null
+    },
+    {
+      "name": "environment-not-a-number-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "30s"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-zero-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "0"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-negative-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "-5"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-exponent-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "1e3"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-infinity-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "inf"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-with-spaces-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": " 30"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-leading-point-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": ".5"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-trailing-point-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "5."
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-underscore-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "1_000"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-hexadecimal-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "env": {
+        "DFO_TIMEOUT": "0x10"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-invalid-raises-despite-call-argument",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "call_argument": 10,
+      "env": {
+        "DFO_TIMEOUT": "abc"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "environment-unread-under-client-argument",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "argument": 60,
+      "env": {
+        "DFO_TIMEOUT": "abc"
+      },
+      "source": "argument",
+      "resolved": 60
+    },
+    {
+      "name": "client-argument-zero-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "argument": 0,
+      "env": {},
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "argument"
+      }
+    },
+    {
+      "name": "client-argument-boolean-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "argument": true,
+      "env": {},
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "argument"
+      }
+    },
+    {
+      "name": "call-argument-negative-raises",
+      "variable": "DFO_TIMEOUT",
+      "call": "fetch",
+      "call_argument": -1,
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "call"
+      }
+    },
+    {
+      "name": "retries-argument-wins",
+      "variable": "DFO_MAX_RETRIES",
+      "argument": 0,
+      "env": {
+        "DFO_MAX_RETRIES": "5"
+      },
+      "source": "argument",
+      "resolved": 0
+    },
+    {
+      "name": "retries-environment-beats-default",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "5"
+      },
+      "source": "environment",
+      "resolved": 5
+    },
+    {
+      "name": "retries-environment-zero",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "0"
+      },
+      "source": "environment",
+      "resolved": 0
+    },
+    {
+      "name": "retries-environment-ten",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "10"
+      },
+      "source": "environment",
+      "resolved": 10
+    },
+    {
+      "name": "retries-default",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {},
+      "source": "default",
+      "resolved": 2
+    },
+    {
+      "name": "retries-empty-environment-counts-as-unset",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": ""
+      },
+      "source": "default",
+      "resolved": 2
+    },
+    {
+      "name": "retries-other-variable-is-ignored",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_TIMEOUT": "300"
+      },
+      "source": "default",
+      "resolved": 2
+    },
+    {
+      "name": "retries-environment-eleven-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "11"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "retries-environment-negative-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "-1"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "retries-environment-fraction-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "2.0"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "retries-environment-not-a-number-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "two"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "retries-environment-plus-sign-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "env": {
+        "DFO_MAX_RETRIES": "+5"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "environment"
+      }
+    },
+    {
+      "name": "retries-environment-unread-under-argument",
+      "variable": "DFO_MAX_RETRIES",
+      "argument": 3,
+      "env": {
+        "DFO_MAX_RETRIES": "two"
+      },
+      "source": "argument",
+      "resolved": 3
+    },
+    {
+      "name": "retries-argument-eleven-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "argument": 11,
+      "env": {},
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "argument"
+      }
+    },
+    {
+      "name": "retries-argument-fraction-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "argument": 1.5,
+      "env": {},
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "argument"
+      }
+    },
+    {
+      "name": "retries-argument-boolean-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "argument": true,
+      "env": {},
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "argument"
+      }
+    },
+    {
+      "name": "retries-argument-null-raises",
+      "variable": "DFO_MAX_RETRIES",
+      "argument": null,
+      "env": {
+        "DFO_MAX_RETRIES": "5"
+      },
+      "error": {
+        "class": "InvalidRequestError",
+        "code": "invalid_argument",
+        "source": "argument"
+      }
+    }
+  ]
+}

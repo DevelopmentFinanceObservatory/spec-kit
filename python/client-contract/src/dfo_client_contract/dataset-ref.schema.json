@@ -357,8 +357,12 @@
           "const": "frame"
         },
         "without_party_totals": {
-          "description": "Selects the artifact rendered with party totals left out. The key is absent for a plain rendering, so `false` is not a valid value.",
+          "description": "Selects the artifact rendered with party totals left out, the spelling every server rendering carries. The key is absent for a plain rendering, so `false` is not a valid value.",
           "const": true
+        },
+        "party_totals": {
+          "description": "Selects the artifact rendered with party totals left out, the request spelling of the cut. A ref may carry it beside or in place of `without_party_totals`, in the same format version, and both say the same cut. The key is absent for a plain rendering, so `true` is not a valid value, and a pair that disagrees is not a ref.",
+          "const": false
         }
       }
     },

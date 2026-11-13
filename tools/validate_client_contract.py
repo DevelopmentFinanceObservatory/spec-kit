@@ -96,7 +96,9 @@ document validates against its schema, then what the schemas cannot express:
   Each root of a derived member is a dataset member's `spec_id` and
   `content_version` of that scenario. Each member of an example the schema
   accepts records the rendering the scenario's build of its spec posted, and
-  each root of a derived one that rendering in the frame layout.
+  each root of a derived one that rendering in the frame layout, the party
+  totals cut read from `party_totals: false` or `without_party_totals: true`
+  alike.
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -196,6 +198,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
         "warning-codes.schema.json",
         "scenario.schema.json",
         "dataset-ref.schema.json",
+        "saved-file.schema.json",
         "rules/rules.schema.json",
     )
     schemas = {name: _load(PACKAGE_DIR / name) for name in names}
@@ -1657,11 +1660,55 @@ def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
     return {"answer": outcome}
 
 
+# The dataset outcome's key, and the manifest trace's, for the group totals a
+# fetch left out of its members' rows.
+PARTY_TOTALS_LEFT_OUT = "party_totals_left_out"
+
+
 def part_label(member: Mapping[str, Any]) -> str:
     """The `part` column's value on a member's rows in a dataset of several
     members. It is the member's parts joined by `; `, or its sentence when it
     answers no part."""
     return "; ".join(member["parts"]) or member["sentence"]
+
+
+def party_totals_left_out(
+    manifest: Mapping[str, Any], spec_id: str
+) -> list[dict[str, Any]]:
+    """The group totals a manifest's `trace.party_totals_left_out` names, each
+    entry as served with the member's `spec_id` first: its `role`, its
+    `entities`, and its `provenance` when the entry holds one, null included.
+    An entry without `provenance` left the rows of every dataset. A key an
+    entry holds beyond these is dropped.
+
+    The trace is no strict member, so it reads leniently: a trace that is not
+    an object, or a `party_totals_left_out` that is not a list, names none,
+    and an entry reads only when it is an object with a string `role`, a list
+    of string `entities`, and a `provenance` absent, a string or null. Any
+    other entry reads as absent, and the entries beside it still read.
+    """
+    trace = manifest.get("trace")
+    served = trace.get(PARTY_TOTALS_LEFT_OUT) if isinstance(trace, dict) else None
+    if not isinstance(served, list):
+        return []
+    entries = []
+    for item in served:
+        if not isinstance(item, dict):
+            continue
+        role, entities = item.get("role"), item.get("entities")
+        provenance = item.get("provenance")
+        if (
+            not isinstance(role, str)
+            or not isinstance(entities, list)
+            or not all(isinstance(entity, str) for entity in entities)
+            or not isinstance(provenance, str | None)
+        ):
+            continue
+        entry = {"spec_id": spec_id, "role": role, "entities": list(entities)}
+        if "provenance" in item:
+            entry["provenance"] = provenance
+        entries.append(entry)
+    return entries
 
 
 def dataset_summary(
@@ -1670,9 +1717,10 @@ def dataset_summary(
     *,
     search_warning: bool | None = None,
 ) -> dict[str, Any]:
-    """A dataset outcome's members and gaps, and for a fetch of an answer
-    whether it issued a SearchWarning, without the rows, columns and per-part
-    row counts the Parquet bodies hold."""
+    """A dataset outcome's members and gaps, the party totals its members'
+    manifests say were left out when there are any, and for a fetch of an
+    answer whether it issued a SearchWarning, without the rows, columns and
+    per-part row counts the Parquet bodies hold."""
     summary: dict[str, Any] = {
         "complete": not missing,
         "members": [
@@ -1686,6 +1734,11 @@ def dataset_summary(
         ],
         "missing": [{"part": gap["part"], "kind": gap["kind"]} for gap in missing],
     }
+    left_out = [
+        entry for member in members for entry in member.get(PARTY_TOTALS_LEFT_OUT, ())
+    ]
+    if left_out:
+        summary[PARTY_TOTALS_LEFT_OUT] = left_out
     if search_warning is not None:
         summary["search_warning"] = search_warning
     return summary
@@ -1829,9 +1882,12 @@ LAYOUT_RENDERINGS = {
     "long": {"format": "parquet", "bundle": False},
     "frame": {"format": "parquet", "bundle": False, "layout": "frame"},
 }
-# The rendering member a fetch posts as true unless the caller keeps party
-# totals, which leaves out the group totals of the identity's open party roles.
+# The rendering member a served rendering and a ref carry as true for the cut
+# that leaves out the group totals of the identity's open party roles, and the
+# request member a fetch posts as false for that cut unless the caller keeps
+# party totals. A ref may carry either, and a plain rendering carries neither.
 WITHOUT_PARTY_TOTALS = "without_party_totals"
+PARTY_TOTALS = "party_totals"
 # The column a client presents last, the column a stacked dataset puts
 # first, the measure no row sorts by, and the sort key that comes last.
 STAT_VAR = "stat_var"
@@ -1861,11 +1917,65 @@ def rendering_for(layout: str | None) -> dict[str, Any]:
 def fetch_rendering(
     layout: str | None, *, party_totals: bool = False
 ) -> dict[str, Any]:
-    """The build request's `options` for a fetch of an answer or a spec, or
-    a mint: the layout's rendering, with `without_party_totals` unless the
-    caller keeps party totals."""
+    """The rendering a fetch of an answer or a spec, or a mint, asks for and
+    a ref it writes records: the layout's rendering, with
+    `without_party_totals` unless the caller keeps party totals.
+    `posted_options` gives the `options` its build posts."""
     rendering = rendering_for(layout)
     if not party_totals:
+        rendering[WITHOUT_PARTY_TOTALS] = True
+    return rendering
+
+
+def party_totals_cut(rendering: Mapping[str, Any]) -> bool | None:
+    """Whether `rendering`, posted options or a ref's or a served rendering,
+    leaves out party totals. `party_totals: false` or `without_party_totals:
+    true` says so, alone or together, and neither key says it keeps them.
+    None when a present key holds any other value, `party_totals: true` and
+    `without_party_totals: false` included, alone or beside the other key.
+    A build that keeps party totals posts no cut key, and the server refuses
+    two keys that disagree with 400 `request_invalid`."""
+    cut = {PARTY_TOTALS: False, WITHOUT_PARTY_TOTALS: True}
+    present = [key for key in cut if key in rendering]
+    if any(rendering[key] is not cut[key] for key in present):
+        return None
+    return bool(present)
+
+
+def posted_options(rendering: Mapping[str, Any]) -> dict[str, Any]:
+    """The `options` a build posts for `rendering`: its members, with the
+    cut, from either key, posted as `party_totals: false`. A rendering
+    `party_totals_cut` finds invalid is posted as it stands."""
+    cut = party_totals_cut(rendering)
+    if cut is None:
+        return dict(rendering)
+    options = {
+        k: v
+        for k, v in rendering.items()
+        if k not in (PARTY_TOTALS, WITHOUT_PARTY_TOTALS)
+    }
+    if cut:
+        options[PARTY_TOTALS] = False
+    return options
+
+
+def served_rendering(options: Any) -> Any:
+    """The rendering a served manifest records for posted `options` or a
+    ref's rendering, in the spelling a ref compares on: its members, with
+    the cut, from either key, as `without_party_totals: true`. Anything that is
+    not an object, and options `party_totals_cut` finds invalid, stay as they
+    stand, so a build that posted them matches no expected build."""
+    if not isinstance(options, dict):
+        return options
+    cut = party_totals_cut(options)
+    if cut is None:
+        return options
+    rendering = {
+        k: v
+        for k, v in options.items()
+        if k not in (PARTY_TOTALS, WITHOUT_PARTY_TOTALS)
+    }
+    if cut:
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -1875,11 +1985,12 @@ def resumed_rendering(
 ) -> dict[str, Any]:
     """The rendering a resumed operation's build posted, as its done
     manifest records it: the layout's rendering, with `without_party_totals`
-    when the artifact for that rendering carries the cut."""
+    when the artifact for that rendering carries the cut in either
+    spelling."""
     rendering = rendering_for(layout)
     artifact = pick_artifact(manifest, rendering)
     found = artifact.get("rendering") if artifact is not None else None
-    if isinstance(found, dict) and found.get(WITHOUT_PARTY_TOTALS) is True:
+    if isinstance(found, dict) and party_totals_cut(found):
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -2258,7 +2369,7 @@ def build_body(
 ) -> dict[str, Any]:
     """The body a client posts to build `spec`, a step's `spec` or a ref's.
     It holds the spec_id and unmodified definition, `scope` when it narrows
-    anything, and `rendering` as the options."""
+    anything, and `rendering` as `posted_options` gives its options."""
     input_: dict[str, Any] = {
         "kind": "spec_id",
         "spec_id": spec["spec_id"],
@@ -2266,7 +2377,14 @@ def build_body(
     }
     if scope:
         input_["scope"] = dict(scope)
-    return {"schema_version": 1, "input": input_, "options": dict(rendering)}
+    return {"schema_version": 1, "input": input_, "options": posted_options(rendering)}
+
+
+def _same_build(body: Any) -> Any:
+    """A build body with its options read through `served_rendering`."""
+    if not isinstance(body, dict) or not isinstance(body.get("options"), dict):
+        return body
+    return {**body, "options": served_rendering(body["options"])}
 
 
 def pick_artifact(
@@ -2766,8 +2884,18 @@ class _Replay:
         scope: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """A build request whose recorded body is the one `build_body` gives
-        for `spec`, `scope` and `rendering`."""
-        return self.posted(_BUILD, build_body(spec, scope, rendering))
+        for `spec`, `scope` and `rendering`, its options read through
+        `served_rendering`, so a cut posted as `party_totals: false` or as
+        `without_party_totals: true` posts the same build."""
+        posts = build_body(spec, scope, rendering)
+        exchange = self.call(*_BUILD)
+        sent = exchange["request"].get("json")
+        if _same_build(sent) != _same_build(posts):
+            raise _UnfitError(
+                f"exchange {self.cursor - 1} posts {json.dumps(sent)[:300]}, "
+                f"where the rules post {json.dumps(posts)[:300]}"
+            )
+        return exchange
 
     def build(
         self,
@@ -2852,6 +2980,7 @@ class _Replay:
             "spec_id": built,
             "content_version": manifest["content_version"],
             "sentence": sentence,
+            PARTY_TOTALS_LEFT_OUT: party_totals_left_out(manifest, built),
             "served": served_table(data),
         }
 
@@ -2890,7 +3019,12 @@ class _Replay:
             data, refusal = self.stored_file(member, manifest)
             if data is None:
                 return None, refusal
-            return {**stored, "served": served_table(data)}, None
+            left_out = party_totals_left_out(manifest, spec_id)
+            return {
+                **stored,
+                PARTY_TOTALS_LEFT_OUT: left_out,
+                "served": served_table(data),
+            }, None
 
         def rebuilt(manifest: dict[str, Any]) -> dict[str, Any]:
             held = {**spec, "sentence": member["sentence"]}
@@ -3743,25 +3877,27 @@ def _answered_builds(scenario: Mapping[str, Any]) -> Iterator[tuple[Any, Any]]:
 
 
 def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the digest of the artifact each build's manifest lists for them. Builds
-    that answered the same file list each rendering in build order."""
+    """The renderings the builds in `scenario` posted as their `options`,
+    each as `served_rendering` reads it, by the digest of the artifact each
+    build's manifest lists for them. Builds that answered the same file list
+    each rendering in build order."""
     renderings: dict[str, list[Any]] = {}
     for manifest, options in _answered_builds(scenario):
         digest = _artifact_digest(manifest, options)
         if digest is not None:
-            renderings.setdefault(digest, []).append(options)
+            renderings.setdefault(digest, []).append(served_rendering(options))
     return renderings
 
 
 def _spec_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the spec_id each build's manifest answered, in build order."""
+    """The renderings the builds in `scenario` posted as their `options`,
+    each as `served_rendering` reads it, by the spec_id each build's manifest
+    answered, in build order."""
     renderings: dict[str, list[Any]] = {}
     for manifest, options in _answered_builds(scenario):
         spec_id = read_string(read_object(manifest, "definition"), "spec_id")
         if spec_id is not None:
-            renderings.setdefault(spec_id, []).append(options)
+            renderings.setdefault(spec_id, []).append(served_rendering(options))
     return renderings
 
 
@@ -3793,7 +3929,9 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     the build that answered its file in its `scenario` posted, since a ref
     records the rendering its fetch posted, or a derived member's root
     records one no build of its spec there posted, read as `_root_rendering`
-    gives. A root's `groupby` is the schema's alone to check."""
+    gives. Both sides are read through `served_rendering`, so either
+    spelling of the cut is the cut. A root's `groupby` is the schema's alone
+    to check."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
@@ -3809,7 +3947,7 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             for position, root in enumerate(read_objects(member, "roots")):
                 where = f"member {index} root {position}"
                 spec_id = read_string(root, "spec_id")
-                rendering = read_object(root, "rendering")
+                rendering = served_rendering(read_object(root, "rendering"))
                 if spec_id not in by_spec:
                     problems.append(
                         f"{label}: {where}'s spec is built by no {name} build"
@@ -3825,7 +3963,7 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             continue
         artifact = read_object(member, "artifact")
         digest = read_string(artifact, "digest")
-        rendering = read_object(artifact, "rendering")
+        rendering = served_rendering(read_object(artifact, "rendering"))
         if digest not in posted:
             problems.append(
                 f"{label}: member {index}'s file is answered by no {name} build"
@@ -3871,6 +4009,116 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
             problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
     problems.extend(
         f"refs: no {verdict} example"
+        for verdict in ("accept", "schema", "rule")
+        if paths and verdict not in verdicts
+    )
+    return problems
+
+
+# --- saved files ------------------------------------------------------------
+
+JSON_MEDIA = "application/json"
+
+
+def _no_constant(name: str) -> Any:
+    raise ValueError(f"{name} is not JSON")
+
+
+def _decoded_metadata(
+    validator: jsonschema.Draft202012Validator, metadata: Mapping[str, Any]
+) -> tuple[dict[str, Any], list[str]]:
+    """Each key of a saved file's metadata the schema gives as JSON text,
+    decoded, and where a value breaks its key's `contentSchema`. JSON
+    Schema treats `contentSchema` as an annotation, so the check applies it.
+    JSON text that does not decode, NaN and Infinity included, breaks it."""
+    schema = validator.schema
+    decoded: dict[str, Any] = {}
+    problems = []
+    for key, entry in schema["properties"].items():
+        text = metadata.get(key)
+        if entry.get("contentMediaType") != JSON_MEDIA or not isinstance(text, str):
+            continue
+        try:
+            value = json.loads(text, parse_constant=_no_constant)
+        except ValueError:
+            problems.append(f"{key}: not JSON")
+            continue
+        content = validator.evolve(
+            schema={"$ref": f"{schema['$id']}#/properties/{key}/contentSchema"}
+        )
+        problems.extend(
+            f"{key}: {_where(error)}: {error.message}"
+            for error in content.iter_errors(value)
+        )
+        decoded[key] = value
+    return decoded, problems
+
+
+def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
+    """The first rule a saved file that meets its schema breaks, or None:
+    `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
+    holds a derived member, "1" when it is absent; one member citation and
+    one row count per member of `dfo.ref`, none when it is absent; and each
+    `dfo.party_totals_left_out` entry naming a member of `dfo.ref`, in member
+    order."""
+    ref = decoded.get("dfo.ref")
+    if ref is not None and (broken := _ref_rule(ref)) is not None:
+        return broken
+    members = ref["members"] if ref is not None else []
+    if version != ("2" if any(map(_derived, members)) else "1"):
+        return "format_invalid"
+    dataset = decoded["dfo.dataset"]
+    if (len(dataset["member_citations"]), len(dataset["member_rows"])) != (
+        len(members),
+        len(members),
+    ):
+        return "format_invalid"
+    order = {member["spec"]["spec_id"]: i for i, member in enumerate(members)}
+    named: list[int] = []
+    for entry in decoded.get("dfo.party_totals_left_out", []):
+        if (position := order.get(entry["spec_id"])) is None:
+            return "format_invalid"
+        named.append(position)
+    return "format_invalid" if named != sorted(named) else None
+
+
+def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:
+    paths = sorted((PACKAGE_DIR / "saved-files").glob("*.json"))
+    problems = [] if paths else ["saved-files: no saved-file examples found"]
+    verdicts: set[str] = set()
+    for path in paths:
+        label = f"saved-files/{path.name}"
+        record = _load(path)
+        if not isinstance(record, dict) or record.get("name") != path.stem:
+            problems.append(f"{label}: name does not match the file name")
+            continue
+        error = record.get("error")
+        if ("expect" in record) == isinstance(error, dict):
+            problems.append(f"{label}: carries neither or both of expect and error")
+            continue
+        metadata = record.get("metadata")
+        found = _schema_problems(label, validator, metadata)
+        decoded: dict[str, Any] = {}
+        if isinstance(metadata, dict):
+            decoded, content = _decoded_metadata(validator, metadata)
+            found.extend(f"{label}: schema: {problem}" for problem in content)
+        by = error.get("by") if isinstance(error, dict) else None
+        verdicts.add(by or "accept")
+        if by == "schema":
+            if not found:
+                problems.append(
+                    f"{label}: the schema accepts a saved file it should reject"
+                )
+            continue
+        if found:
+            problems.extend(found)
+            continue
+        broken = _saved_file_rule(metadata["dfo.format_version"], decoded)
+        wanted = error.get("reason") if by == "rule" else None
+        if broken != wanted:
+            problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
+    problems.extend(
+        f"saved-files: no {verdict} example"
         for verdict in ("accept", "schema", "rule")
         if paths and verdict not in verdicts
     )
@@ -4323,6 +4571,7 @@ def validate() -> list[str]:
             f"scenarios: {size:,} bytes pass the {SCENARIOS_BUDGET:,}-byte budget"
         )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
+    problems.extend(_check_saved_files(validators["saved-file.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
     problems.extend(_check_derived_identities())
     return problems

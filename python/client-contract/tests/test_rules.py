@@ -14,6 +14,7 @@ import posixpath
 import re
 import tomllib
 import zlib
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -27,6 +28,17 @@ _DEFAULT_BASE_URL = "https://developmentfinance.org/api/v1"
 _TABLE = re.compile(r"\[([A-Za-z0-9_-]+)\]")
 _ENTRY = re.compile(r'([A-Za-z0-9_-]+)[ \t]*=[ \t]*"([^"\\\x00-\x1f\x7f]*)"')
 _MAJOR_MINOR = re.compile(r"([0-9]+)\.([0-9]+)")
+_SECONDS = re.compile(r"[0-9]+(?:\.[0-9]+)?")
+_COUNT = re.compile(r"[0-9]+")
+# Each call's own timeout, in seconds, when no source sets one; None is no bound.
+_CALL_TIMEOUTS: dict[str, float | None] = {"search": 60, "fetch": None}
+_DEFAULT_RETRIES = 2
+# An artifact or a manifest by the cache-layout rule, the entries the legacy
+# directory serves.
+_CACHE_ENTRY = re.compile(
+    r"files/sha256/[0-9a-f]{64}"
+    r"|manifests/spec_[0-9a-f]{32}/cv_[0-9a-f]{32}/[a-z]+(?:-bundle)?(?:-frame)?\.json"
+)
 
 
 class RuleError(Exception):
@@ -170,9 +182,69 @@ def resolve_base_url(vector: dict[str, Any]) -> tuple[str, str]:
     return source, url.rstrip("/")
 
 
-def cache_root(vector: dict[str, Any]) -> str:
+def _is_timeout(value: object) -> bool:
+    if value is None:
+        return True
+    return (
+        isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+        and value > 0
+    )
+
+
+def _is_retries(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10
+
+
+def _from_env(text: str, *, timeout: bool) -> object:
+    """The variable's value, or NaN, which neither setting accepts."""
+    if timeout:
+        return float(text) if _SECONDS.fullmatch(text) else math.nan
+    return int(text) if _COUNT.fullmatch(text) else math.nan
+
+
+def resolve_limit(vector: dict[str, Any]) -> tuple[str, float | None]:
+    variable = vector["variable"]
+    timeout = variable == "DFO_TIMEOUT"
+    valid = _is_timeout if timeout else _is_retries
+    # The client resolves its own value when it is built, checking only the
+    # source it chose.
+    if "argument" in vector:
+        source, value = "argument", vector["argument"]
+    elif (text := _set(vector["env"], variable)) is not None:
+        source, value = "environment", _from_env(text, timeout=timeout)
+    else:
+        source, value = "default", None if timeout else _DEFAULT_RETRIES
+    if not valid(value):
+        raise RuleError("invalid_argument", names=(source,))
+    if not timeout:
+        return source, value
+    if "call_argument" in vector:
+        if not valid(call := vector["call_argument"]):
+            raise RuleError("invalid_argument", names=("call",))
+        return "call", call
+    if value is None:
+        return source, _CALL_TIMEOUTS[vector["call"]]
+    return source, value
+
+
+def _platform_root(vector: dict[str, Any], app: str) -> str:
     platform, home, env = vector["platform"], vector["home"], vector["env"]
-    path = ntpath if platform == "windows" else posixpath
+    if platform == "windows":
+        local = _set(env, "LOCALAPPDATA") or ntpath.join(home, "AppData", "Local")
+        return ntpath.join(local, app, "Cache")
+    if platform == "macos":
+        return posixpath.join(home, "Library", "Caches", app)
+    xdg = (env.get("XDG_CACHE_HOME") or "").strip() or posixpath.join(home, ".cache")
+    return posixpath.join(xdg, app)
+
+
+def cache_roots(vector: dict[str, Any]) -> tuple[str, str | None]:
+    """The cache root and the legacy root a client also reads, None under an
+    explicit root."""
+    home, env = vector["home"], vector["env"]
+    path = ntpath if vector["platform"] == "windows" else posixpath
     chosen = (
         vector.get("cache_dir")
         or _set(env, "DFO_CACHE_DIR")
@@ -181,19 +253,22 @@ def cache_root(vector: dict[str, Any]) -> str:
     if chosen:
         if chosen == "~" or chosen.startswith(("~/", "~\\")):
             chosen = home + chosen[1:]
-        return path.normpath(chosen)
-    if platform == "windows":
-        local = _set(env, "LOCALAPPDATA") or ntpath.join(home, "AppData", "Local")
-        return ntpath.join(local, "readerkit", "Cache")
-    if platform == "macos":
-        return posixpath.join(home, "Library", "Caches", "readerkit")
-    xdg = (env.get("XDG_CACHE_HOME") or "").strip() or posixpath.join(home, ".cache")
-    return posixpath.join(xdg, "readerkit")
+        return path.normpath(chosen), None
+    return _platform_root(vector, "dfo"), _platform_root(vector, "readerkit")
+
+
+def fetch_time_text(fetched_at: str | None) -> str | None:
+    if fetched_at is None:
+        return None
+    time = datetime.fromisoformat(fetched_at).astimezone(UTC)
+    return time.replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def cache_entry(vector: dict[str, Any]) -> str:
     if vector["entry"] == "file":
         return "files/sha256/" + vector["digest"].removeprefix("sha256:")
+    if vector["entry"] == "fetched":
+        return "fetched/sha256/" + vector["digest"].removeprefix("sha256:")
     rendering = vector["rendering"]
     key = rendering["format"]
     if rendering["bundle"]:
@@ -409,17 +484,42 @@ def test_base_url(vector: dict[str, Any]) -> None:
     assert resolve_base_url(vector) == (vector["source"], vector["url"])
 
 
+@pytest.mark.parametrize(
+    "vector", _vectors("timeout-and-retries"), ids=_ids("timeout-and-retries")
+)
+def test_timeout_and_retries(vector: dict[str, Any]) -> None:
+    if "error" in vector:
+        with pytest.raises(RuleError) as excinfo:
+            resolve_limit(vector)
+        assert vector["error"] == {
+            "class": "InvalidRequestError",
+            "code": excinfo.value.reason,
+            "source": excinfo.value.names[0],
+        }
+        return
+    assert resolve_limit(vector) == (vector["source"], vector["resolved"])
+
+
 @pytest.mark.parametrize("vector", _vectors("cache-dir"), ids=_ids("cache-dir"))
 def test_cache_dir(vector: dict[str, Any]) -> None:
     path = ntpath if vector["platform"] == "windows" else posixpath
-    root = cache_root(vector)
+    root, legacy = cache_roots(vector)
     assert root == vector["root"]
     assert path.join(root, "v1", "dfo", "cache1") == vector["directory"]
+    legacy_directory = legacy and path.join(legacy, "v1", "dfo", "cache1")
+    assert legacy_directory == vector["legacy_directory"]
+    for read in vector.get("legacy_reads", []):
+        assert legacy_directory is not None
+        entry = read["from"].removeprefix(legacy_directory + path.sep)
+        assert _CACHE_ENTRY.fullmatch(entry.replace(path.sep, "/"))
+        assert read["to"] == path.join(vector["directory"], entry)
 
 
 @pytest.mark.parametrize("vector", _vectors("cache-layout"), ids=_ids("cache-layout"))
 def test_cache_layout(vector: dict[str, Any]) -> None:
     assert cache_entry(vector) == vector["path"]
+    if vector["entry"] == "fetched":
+        assert fetch_time_text(vector["fetched_at"]) == vector["content"]
 
 
 @pytest.mark.parametrize("vector", _vectors("reading-order"), ids=_ids("reading-order"))

@@ -80,6 +80,7 @@ from validate_client_contract import (
     FILES_ROUTE_FILE,
     FILES_ROUTE_REDIRECT,
     NO_VERSIONS,
+    PARTY_TOTALS_LEFT_OUT,
     POLL_BACKOFF_CAP,
     POLL_BACKOFF_FIRST,
     POLL_PATH,
@@ -119,6 +120,7 @@ from validate_client_contract import (
     newest_plain,
     owns_body_file,
     part_label,
+    party_totals_left_out,
     pick_artifact,
     posted_scope,
     presented_columns,
@@ -153,7 +155,8 @@ BINARY_BUDGET = 5_000_000
 
 # The rendering a fetch asks for by default, bare long Parquet with the party
 # totals of open party roles left out, and so the rendering a ref it writes
-# records.
+# records, `without_party_totals: true`. Its build posts the cut as
+# `party_totals: false`, as `build_body` gives.
 RENDERING = fetch_rendering(None)
 # The response headers a client reads, and so the ones a record keeps, beside
 # a `cache-control` that marks the response shared-cacheable, which excuses it
@@ -628,6 +631,9 @@ class Member:
     rendering: dict[str, Any] = field(default_factory=lambda: dict(RENDERING))
     # The value of each column that holds one value in every row.
     same: Mapping[str, Any] = field(default_factory=dict)
+    # The group totals its manifest says the fetch left out of its rows, as
+    # `party_totals_left_out` gives them.
+    party_totals: Sequence[Mapping[str, Any]] = ()
 
     @property
     def table(self) -> ServedTable:
@@ -664,6 +670,7 @@ def dataset_outcome(
             "spec_id": member.spec_id,
             "content_version": member.content_version,
             "sentence": member.sentence,
+            PARTY_TOTALS_LEFT_OUT: member.party_totals,
         }
         for member in members
     ]
@@ -1080,6 +1087,7 @@ class Session:
             list(table.columns),
             dict(rendering),
             table.same,
+            party_totals_left_out(manifest, definition["spec_id"]),
         )
 
     def _identity_sentence(
@@ -1190,6 +1198,7 @@ class Session:
                 list(table.columns),
                 dict(rendering),
                 table.same,
+                party_totals_left_out(manifest, spec_id),
             )
             return stored, None
 
@@ -1307,7 +1316,7 @@ CANDIDATES = "mortality in Kenya from 2013 to 2022"
 MIXED = "debt service of Kenya and the price of tea in Kenya"
 FOLDED = "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya"
 PLACE = "ODA disbursements from Germany to Congo in 2018"
-TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
+TWO_PLACES = "Congo's GDP, and ODA disbursements from Germany to Congo"
 PLACE_TWICE = "aid from Congo to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
@@ -1923,7 +1932,7 @@ RECORDED = (
     Recorded(
         "fetch-spec-party-totals-left-out",
         "Fetching a spec of DAC2a ODA to Kenya in 2022 with its origin open posts "
-        "without_party_totals: true in the build's options, as every fetch does by default, so "
+        "party_totals: false in the build's options, as every fetch does by default, so "
         "the build leaves out the donor group totals beside their members and answers a "
         "version of its own, with fewer rows than fetch-spec-party-totals-kept.",
         _fetch_spec_party_totals(keep=False),
@@ -1931,7 +1940,7 @@ RECORDED = (
     Recorded(
         "fetch-spec-party-totals-kept",
         "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no "
-        "without_party_totals, so the build keeps the donor group totals and answers the plain "
+        "cut in its options, so the build keeps the donor group totals and answers the plain "
         "version, with more rows.",
         _fetch_spec_party_totals(keep=True),
     ),

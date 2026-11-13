@@ -21,6 +21,9 @@
       "$ref": "#/$defs/base_url"
     },
     {
+      "$ref": "#/$defs/timeout_and_retries"
+    },
+    {
       "$ref": "#/$defs/cache_dir"
     },
     {
@@ -113,8 +116,12 @@
           "const": "frame"
         },
         "without_party_totals": {
-          "description": "Present, and true, for a rendering with party totals left out.",
+          "description": "Present, and true, for a rendering with party totals left out, the spelling every server rendering carries.",
           "const": true
+        },
+        "party_totals": {
+          "description": "Present, and false, for a rendering with party totals left out, the request spelling. It says the same cut as `without_party_totals`.",
+          "const": false
         }
       }
     },
@@ -470,6 +477,204 @@
         }
       }
     },
+    "timeout_and_retries": {
+      "$ref": "#/$defs/suite",
+      "additionalProperties": false,
+      "properties": {
+        "format_version": true,
+        "rule": {
+          "const": "timeout-and-retries"
+        },
+        "vectors": {
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "variable",
+              "env"
+            ],
+            "allOf": [
+              {
+                "oneOf": [
+                  {
+                    "required": [
+                      "source",
+                      "resolved"
+                    ],
+                    "not": {
+                      "required": [
+                        "error"
+                      ]
+                    }
+                  },
+                  {
+                    "required": [
+                      "error"
+                    ],
+                    "not": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "source"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "resolved"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "oneOf": [
+                  {
+                    "properties": {
+                      "variable": {
+                        "const": "DFO_TIMEOUT"
+                      },
+                      "resolved": {
+                        "description": "The bound the call runs under, in seconds, or null for none.",
+                        "oneOf": [
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "call"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "variable": {
+                        "const": "DFO_MAX_RETRIES"
+                      },
+                      "resolved": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 10
+                      },
+                      "source": {
+                        "enum": [
+                          "argument",
+                          "environment",
+                          "default"
+                        ]
+                      },
+                      "error": {
+                        "properties": {
+                          "source": {
+                            "enum": [
+                              "argument",
+                              "environment"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "not": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "call"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "call_argument"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "variable": {
+                "description": "The environment variable of the setting the vector resolves.",
+                "enum": [
+                  "DFO_TIMEOUT",
+                  "DFO_MAX_RETRIES"
+                ]
+              },
+              "call": {
+                "description": "The call that runs, whose own default applies when no source sets a timeout. `search` waits 60 s and `fetch` without a bound.",
+                "enum": [
+                  "search",
+                  "fetch"
+                ]
+              },
+              "argument": {
+                "description": "The client's argument, `timeout` or `max_retries`, absent when the caller passes none. An argument as the caller passes it, in seconds for a timeout: a number, null, or a boolean a client refuses.",
+                "type": [
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              },
+              "call_argument": {
+                "description": "The call's own `timeout`, absent when the call passes none. An argument as the caller passes it, in seconds for a timeout: a number, null, or a boolean a client refuses.",
+                "type": [
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              },
+              "env": {
+                "$ref": "#/$defs/env"
+              },
+              "source": {
+                "enum": [
+                  "call",
+                  "argument",
+                  "environment",
+                  "default"
+                ]
+              },
+              "resolved": true,
+              "error": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "class",
+                  "code",
+                  "source"
+                ],
+                "properties": {
+                  "class": {
+                    "const": "InvalidRequestError"
+                  },
+                  "code": {
+                    "const": "invalid_argument"
+                  },
+                  "source": {
+                    "description": "The source whose value the client refuses, which the message names.",
+                    "enum": [
+                      "call",
+                      "argument",
+                      "environment"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "cache_dir": {
       "$ref": "#/$defs/suite",
       "additionalProperties": false,
@@ -488,7 +693,8 @@
               "home",
               "env",
               "root",
-              "directory"
+              "directory",
+              "legacy_directory"
             ],
             "properties": {
               "name": {
@@ -511,6 +717,52 @@
               },
               "directory": {
                 "$ref": "#/$defs/path"
+              },
+              "legacy_directory": {
+                "description": "The cache directory under the legacy readerkit root, which a client reads and never writes, or null when an explicit root is set.",
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/path"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "legacy_reads": {
+                "description": "Entries a client reads from the legacy directory and copies to the same path in its cache directory, an artifact or a manifest each. Present only beside a legacy directory.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "properties": {
+                    "from": {
+                      "$ref": "#/$defs/path"
+                    },
+                    "to": {
+                      "$ref": "#/$defs/path"
+                    }
+                  }
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "legacy_directory": {
+                  "type": "null"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "legacy_reads"
+                ]
               }
             }
           }
@@ -560,6 +812,16 @@
                       "required": [
                         "rendering"
                       ]
+                    },
+                    {
+                      "required": [
+                        "fetched_at"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "content"
+                      ]
                     }
                   ]
                 }
@@ -576,8 +838,53 @@
                   "rendering"
                 ],
                 "not": {
-                  "required": [
-                    "digest"
+                  "anyOf": [
+                    {
+                      "required": [
+                        "digest"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "fetched_at"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "content"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "entry": {
+                    "const": "fetched"
+                  }
+                },
+                "required": [
+                  "digest",
+                  "fetched_at",
+                  "content"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "spec_id"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "content_version"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "rendering"
+                      ]
+                    }
                   ]
                 }
               }
@@ -589,7 +896,8 @@
               "entry": {
                 "enum": [
                   "file",
-                  "manifest"
+                  "manifest",
+                  "fetched"
                 ]
               },
               "digest": {
@@ -610,10 +918,36 @@
               "rendering": {
                 "$ref": "#/$defs/rendering"
               },
+              "fetched_at": {
+                "description": "When the artifact's bytes left the server, as an RFC 3339 time with an offset, or null when the client does not know, as for an artifact copied from the legacy directory.",
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+                    "$ref": "#/$defs/one_line"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "path": {
                 "type": "string",
                 "pattern": "^[a-z]+(/[A-Za-z0-9_.-]+)+$",
                 "$ref": "#/$defs/one_line"
+              },
+              "content": {
+                "description": "The entry's text, or null when the client writes no entry.",
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+                    "$ref": "#/$defs/one_line"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             }
           }
@@ -2054,7 +2388,7 @@
           "const": "file-selector"
         },
         "query_keys": {
-          "description": "The rendering keys the file selector reads, in the order a client writes them into its query.",
+          "description": "The rendering keys the file selector reads, in the order a client writes them into its query. The selector refuses any other key, `without_party_totals` and `party_totals` included, with 400 `request_invalid`.",
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,

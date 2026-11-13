@@ -162,6 +162,30 @@ def _set_outcome(index: int, change: Callable[[Any], None]) -> Callable[[Any], N
     return lambda doc: change(doc["expect"][index])
 
 
+def _party_totals(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the `party_totals_left_out` of the record's outcome `index`."""
+    return _set_outcome(index, lambda o: change(o["dataset"]))
+
+
+_LEFT_OUT_ENTRY = {
+    "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+    "role": "financingProvider",
+    "entities": ["DACCountriesTotal"],
+}
+_SAVED = "saved-files/saved-answer-party-totals-left-out.json"
+
+
+def _saved_key(key: str, change: Callable[[Any], Any]) -> Callable[[Any], None]:
+    """Replaces a saved-file example's JSON text at `key` with the JSON of
+    what `change` makes of its decoded value."""
+
+    def edit(doc: Any) -> None:
+        value = json.loads(doc["metadata"][key])
+        doc["metadata"][key] = json.dumps(change(value))
+
+    return edit
+
+
 def _first_gap(**fields: Any) -> Callable[[Any], None]:
     return _set_outcome(0, lambda o: o["answer"]["gaps"][0].update(fields))
 
@@ -177,6 +201,15 @@ def _swap_columns(first: str, second: str) -> Callable[[Any], None]:
         columns[i], columns[j] = columns[j], columns[i]
 
     return change
+
+
+def _set_cut(doc: Any, cut: dict[str, Any]) -> None:
+    """Replaces the party totals cut the record's first build posts, in either
+    spelling, with `cut`."""
+    options = doc["exchanges"][0]["request"]["json"]["options"]
+    for key in ("party_totals", "without_party_totals"):
+        options.pop(key, None)
+    options.update(cut)
 
 
 def _selector_query_with_cut(doc: Any) -> None:
@@ -1867,8 +1900,13 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             _FETCH,
-            lambda doc: doc["exchanges"][0]["request"]["json"]["options"].pop(
-                "without_party_totals"
+            lambda doc: _set_cut(doc, {}),
+            f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
+        ),
+        (
+            _FETCH,
+            lambda doc: _set_cut(
+                doc, {"party_totals": True, "without_party_totals": True}
             ),
             f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
         ),
@@ -2064,6 +2102,52 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "rules/file-selector.json",
             lambda doc: doc.pop("query_keys"),
             "rules/file-selector.json: missing or unreadable, or holds no query_keys",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-left-out.json",
+            _party_totals(0, lambda d: d.pop("party_totals_left_out")),
+            "fetch-spec-party-totals-left-out.json: step 0 expects",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-kept.json",
+            _party_totals(
+                0, lambda d: d.update(party_totals_left_out=[_LEFT_OUT_ENTRY])
+            ),
+            "fetch-spec-party-totals-kept.json: step 0 expects",
+        ),
+        (
+            "scenarios/search-warning-top5.json",
+            _party_totals(2, lambda d: d["party_totals_left_out"][0].pop("provenance")),
+            "search-warning-top5.json: step 2 expects",
+        ),
+        (
+            "scenario.schema.json",
+            lambda doc: doc["$defs"]["error"]["properties"]["class"]["enum"].remove(
+                "BundleError"
+            ),
+            "'hash_mismatch' raises 'BundleError', a class no scenario names",
+        ),
+        (
+            _SAVED,
+            _saved_key("dfo.dataset", lambda d: {**d, "later": True}),
+            "dfo.dataset: <root>: Additional properties are not allowed",
+        ),
+        (
+            _SAVED,
+            lambda doc: doc["metadata"].update({"dfo.question": "NaN"}),
+            "dfo.question: not JSON",
+        ),
+        (
+            "saved-files/saved-fetched-at-not-json-rejected.json",
+            lambda doc: doc["metadata"].update(
+                {"dfo.fetched_at": '"2026-10-28T22:26:01Z"'}
+            ),
+            "the schema accepts a saved file it should reject",
+        ),
+        (
+            "saved-files/saved-member-rows-count-rejected.json",
+            _saved_key("dfo.dataset", lambda d: {**d, "member_rows": [96]}),
+            "breaks rule None, expected 'format_invalid'",
         ),
     ],
     ids=[
@@ -2322,6 +2406,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "mentions-as-a-string-matched",
         "candidate-spec-not-an-object-read",
         "party-totals-left-in-by-default",
+        "party-totals-cut-disagreeing",
         "party-totals-kept-without-the-option",
         "mint-party-totals-left-in-by-default",
         "columns-out-of-reading-order",
@@ -2350,6 +2435,14 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "file-selector-vector-carries-the-cut",
         "file-selector-vector-out-of-key-order",
         "file-selector-without-query-keys",
+        "party-totals-left-out-not-expected",
+        "party-totals-expected-where-none-were-left-out",
+        "party-totals-provenance-dropped",
+        "client-code-class-outside-the-scenario-schema",
+        "saved-dataset-with-a-key-it-does-not-name",
+        "saved-key-holding-nan",
+        "saved-reject-example-the-schema-accepts",
+        "saved-rule-example-that-breaks-no-rule",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -2463,6 +2556,80 @@ def test_a_spec_built_in_two_renderings_keys_each_by_its_file() -> None:
     scenario = {"exchanges": [build(cut, "sha256:a"), build(plain, "sha256:b")]}
     posted = validator.posted_renderings(scenario)
     assert posted == {"sha256:a": [cut], "sha256:b": [plain]}
+    requested = {"format": "parquet", "bundle": False, "party_totals": False}
+    scenario = {"exchanges": [build(requested, "sha256:a")]}
+    assert validator.posted_renderings(scenario) == {"sha256:a": [cut]}
+
+
+@pytest.mark.parametrize(
+    "cut",
+    [
+        {"party_totals": False},
+        {"without_party_totals": True},
+        {"party_totals": False, "without_party_totals": True},
+    ],
+    ids=["request-spelling", "served-spelling", "both"],
+)
+def test_a_build_may_post_the_cut_in_either_spelling(
+    package_dir: Path, cut: dict[str, Any]
+) -> None:
+    _edit(package_dir / _FETCH, lambda doc: _set_cut(doc, cut))
+    assert validator.validate() == []
+
+
+_KEEP_KEYS = [
+    {"party_totals": True},
+    {"without_party_totals": False},
+    {"party_totals": True, "without_party_totals": False},
+]
+_KEEP_IDS = ["request-spelling", "served-spelling", "both"]
+
+
+@pytest.mark.parametrize("kept", _KEEP_KEYS, ids=_KEEP_IDS)
+def test_a_build_that_keeps_party_totals_posts_no_cut_key(
+    package_dir: Path, kept: dict[str, Any]
+) -> None:
+    path = "scenarios/fetch-spec-party-totals-kept.json"
+    _edit(package_dir / path, lambda doc: _set_cut(doc, kept))
+    problems = validator.validate()
+    assert any("_UnfitError('exchange 0 posts" in problem for problem in problems)
+
+
+@pytest.mark.parametrize(
+    ("rendering", "cut"),
+    [
+        ({}, False),
+        ({"party_totals": False}, True),
+        ({"without_party_totals": True}, True),
+        ({"party_totals": False, "without_party_totals": True}, True),
+        *((kept, None) for kept in _KEEP_KEYS),
+        ({"party_totals": False, "without_party_totals": False}, None),
+        ({"party_totals": True, "without_party_totals": True}, None),
+        ({"party_totals": "false"}, None),
+    ],
+)
+def test_the_cut_reads_only_cut_values(
+    rendering: dict[str, Any], cut: bool | None
+) -> None:
+    assert validator.party_totals_cut(rendering) is cut
+
+
+def test_a_fetch_posts_the_cut_as_party_totals_false() -> None:
+    rendering = validator.fetch_rendering(None)
+    assert rendering == {
+        "format": "parquet",
+        "bundle": False,
+        "without_party_totals": True,
+    }
+    body = validator.build_body({"spec_id": "s", "definition": {}}, None, rendering)
+    assert body["options"] == {
+        "format": "parquet",
+        "bundle": False,
+        "party_totals": False,
+    }
+    kept = validator.fetch_rendering(None, party_totals=True)
+    body = validator.build_body({"spec_id": "s", "definition": {}}, None, kept)
+    assert body["options"] == {"format": "parquet", "bundle": False}
 
 
 def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
@@ -2475,6 +2642,12 @@ def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
 def test_a_resumed_result_takes_the_rendering_its_build_posted() -> None:
     cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
     manifest = {"artifacts": [{"artifact_digest": "sha256:a", "rendering": cut}]}
+    assert validator.resumed_rendering(None, manifest) == cut
+    manifest["artifacts"][0]["rendering"] = {
+        "format": "parquet",
+        "bundle": False,
+        "party_totals": False,
+    }
     assert validator.resumed_rendering(None, manifest) == cut
     manifest["artifacts"][0]["rendering"] = {"format": "parquet", "bundle": False}
     assert validator.resumed_rendering(None, manifest) == validator.rendering_for(None)
@@ -2905,6 +3078,66 @@ def test_a_required_member_that_admits_null_stays_required() -> None:
     assert routes.validate(page, {**body, "next_cursor": None}) == []
     problems = routes.validate(page, body)
     assert any("'next_cursor' is a required property" in p for p in problems)
+
+
+_TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
+
+
+@pytest.mark.parametrize(
+    ("trace", "entries"),
+    [
+        (None, []),
+        ({}, []),
+        ({"party_totals_left_out": None}, []),
+        ({"party_totals_left_out": [_TOTALS]}, [{"spec_id": "spec_a", **_TOTALS}]),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "provenance": None, "x": 1}]},
+            [{"spec_id": "spec_a", **_TOTALS, "provenance": None}],
+        ),
+    ],
+    ids=["no-trace", "no-key", "null", "every-provenance", "null-provenance"],
+)
+def test_party_totals_read_as_served_with_their_member(
+    trace: Any, entries: list[dict[str, Any]]
+) -> None:
+    assert validator.party_totals_left_out({"trace": trace}, "spec_a") == entries
+
+
+@pytest.mark.parametrize(
+    ("trace", "entries"),
+    [
+        ([_TOTALS], []),
+        ({"party_totals_left_out": {}}, []),
+        ({"party_totals_left_out": "x"}, []),
+        ({"party_totals_left_out": [7, _TOTALS]}, [_TOTALS]),
+        ({"party_totals_left_out": [{"role": "r"}, _TOTALS]}, [_TOTALS]),
+        ({"party_totals_left_out": [{**_TOTALS, "role": 1}, _TOTALS]}, [_TOTALS]),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "entities": [1]}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "provenance": 2}, _TOTALS]},
+            [_TOTALS],
+        ),
+    ],
+    ids=[
+        "trace-not-an-object",
+        "key-an-object",
+        "key-a-string",
+        "entry-not-an-object",
+        "no-entities",
+        "role-not-text",
+        "entity-not-text",
+        "provenance-not-text",
+    ],
+)
+def test_party_totals_of_another_shape_read_as_absent(
+    trace: Any, entries: list[dict[str, Any]]
+) -> None:
+    """Only the malformed entry drops, and the well-formed one beside it reads."""
+    read = validator.party_totals_left_out({"trace": trace}, "spec_a")
+    assert read == [{"spec_id": "spec_a", **entry} for entry in entries]
 
 
 def test_scenarios_past_their_budget_are_reported(

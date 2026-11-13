@@ -1,0 +1,516 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/saved-file.schema.json",
+  "title": "Saved file",
+  "description": "The key-value metadata of a Parquet file a client's Dataset.save writes, which dfo.load reads back. Each key maps to UTF-8 text. dfo.format_version, dfo.sentence and dfo.licence hold plain text, and every other dfo.* key holds JSON text, whose decoded value its contentSchema gives. A reader decodes the JSON keys and refuses JSON with NaN or Infinity. dfo.format_version, dfo.sentence, dfo.citation and dfo.dataset are required. The other dfo.* keys are optional, and a reader ignores any key it does not name, dfo.* or not.",
+  "type": "object",
+  "required": [
+    "dfo.format_version",
+    "dfo.sentence",
+    "dfo.citation",
+    "dfo.dataset"
+  ],
+  "additionalProperties": {
+    "type": "string"
+  },
+  "properties": {
+    "dfo.format_version": {
+      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member. A reader refuses a version it does not know.",
+      "enum": [
+        "1",
+        "2"
+      ]
+    },
+    "dfo.sentence": {
+      "description": "The dataset's sentence.",
+      "type": "string"
+    },
+    "dfo.citation": {
+      "description": "The citation of the whole dataset, with its text and its sources.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "$ref": "#/$defs/citation"
+      }
+    },
+    "dfo.sources": {
+      "description": "The label of each of the citation's sources, in its order. A reader ignores it and reads the citation.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "dfo.licence": {
+      "description": "The licences the sources publish under, distinct, joined by \"; \", or empty when none says. A reader ignores it and reads the citation.",
+      "type": "string"
+    },
+    "dfo.dataset": {
+      "description": "What the dataset holds beyond its table and ref. The object is closed. A reader refuses a key it does not name, so a new member goes under a dfo.* key of its own.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "member_citations",
+          "warnings",
+          "departures",
+          "requested_operations",
+          "assumptions",
+          "complete",
+          "missing",
+          "held_until",
+          "pinned",
+          "stale",
+          "layout_version",
+          "member_rows"
+        ],
+        "properties": {
+          "member_citations": {
+            "description": "Each member's citation, one per member of dfo.ref in its order.",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/citation"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code",
+                "severity",
+                "message"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "spec_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "departures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code",
+                "text"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "asked": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "shown": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "binding_ref": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "requested_operations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "verb",
+                "phrase"
+              ],
+              "properties": {
+                "verb": {
+                  "type": "string"
+                },
+                "phrase": {
+                  "type": "string"
+                },
+                "over": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "target_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "binding_ref",
+                "text",
+                "refs"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "binding_ref": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "missing": {
+            "description": "The parts a partial fetch left out, each with its options when the part awaits a choice of place or source.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "part_index",
+                "part",
+                "kind",
+                "message",
+                "options"
+              ],
+              "properties": {
+                "part_index": {
+                  "type": "integer"
+                },
+                "part": {
+                  "description": "The answer part as served.",
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ]
+                },
+                "kind": {
+                  "$ref": "scenario.schema.json#/$defs/gap_kind"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "label",
+                      "mentions",
+                      "data_query"
+                    ],
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      },
+                      "mentions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "data_query": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "held_until": {
+            "description": "An ISO date, or null.",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "layout_version": {
+            "type": "string"
+          },
+          "member_rows": {
+            "description": "Each member's row count, one per member of dfo.ref in its order, summing to the file's rows when there are members.",
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "dfo.ref": {
+      "description": "The dataset's ref, absent for a website bundle opened from a folder, which names no version.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "$ref": "dataset-ref.schema.json"
+      }
+    },
+    "dfo.left_out": {
+      "description": "The series the recipe dropped for missing data in a dataset with a derived member, and whether the list is all of them. A key a series holds beyond these is ignored.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "series",
+          "complete"
+        ],
+        "properties": {
+          "series": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "coordinates",
+                "step",
+                "side",
+                "reason",
+                "rows"
+              ],
+              "properties": {
+                "coordinates": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "step": {
+                  "type": "object",
+                  "required": [
+                    "verb",
+                    "node"
+                  ],
+                  "properties": {
+                    "verb": {
+                      "type": "string"
+                    },
+                    "node": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "side": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "rows": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "complete": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "dfo.steps": {
+      "description": "The steps of the recipe of a dataset with a derived member, in the order they ran.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "verb",
+            "by",
+            "limit"
+          ],
+          "properties": {
+            "verb": {
+              "type": "string"
+            },
+            "by": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "limit": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "dfo.party_totals_left_out": {
+      "description": "The group totals a fetch left out of each member's rows, each entry as the member's manifest serves it in trace.party_totals_left_out with the member's spec_id. An entry without provenance left the rows of every dataset. Written only when a fetch left any out.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "spec_id",
+            "role",
+            "entities"
+          ],
+          "properties": {
+            "spec_id": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string"
+            },
+            "entities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "provenance": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "dfo.question": {
+      "description": "The question the data answers, for a dataset fetched from an answer.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "string"
+      }
+    },
+    "dfo.fetched_at": {
+      "description": "When the data left the server, the earliest member's time, as an ISO 8601 time with a zone. A client writes it in UTC to the second, as 2026-11-27T09:14:05Z, and leaves it out when any member's fetch time is unknown, as for an artifact copied from the legacy cache directory.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "string",
+        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+      }
+    }
+  },
+  "$defs": {
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "sources"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "label"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "licence": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "licence_url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

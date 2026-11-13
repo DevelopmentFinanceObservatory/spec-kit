@@ -337,7 +337,7 @@
           "type": "boolean"
         },
         "party_totals": {
-          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "description": "True keeps the group totals of the identity's open party roles, so the build's options carry no cut. Absent or false leaves them out, and the build posts `party_totals: false`, the request spelling. A build that posts the older `without_party_totals: true` asks for the same cut.",
           "type": "boolean"
         }
       }
@@ -364,7 +364,7 @@
           "type": "boolean"
         },
         "party_totals": {
-          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "description": "True keeps the group totals of the identity's open party roles, so the build's options carry no cut. Absent or false leaves them out, and the build posts `party_totals: false`, the request spelling. A build that posts the older `without_party_totals: true` asks for the same cut.",
           "type": "boolean"
         },
         "window": true,
@@ -437,7 +437,7 @@
           "$ref": "#/$defs/layout"
         },
         "party_totals": {
-          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "description": "True keeps the group totals of the identity's open party roles, so the build's options carry no cut. Absent or false leaves them out, and the build posts `party_totals: false`, the request spelling. A build that posts the older `without_party_totals: true` asks for the same cut.",
           "type": "boolean"
         }
       }
@@ -842,6 +842,42 @@
             }
           }
         },
+        "party_totals_left_out": {
+          "description": "The group totals the fetch left out of its members' rows, as each member's manifest names them in trace.party_totals_left_out: one entry per member, party role and provenance that lost rows, in member order and then in the manifest's order, each naming its member's spec_id. An entry gives provenance as served, null included, and leaves it out where the manifest's entry does, which means the rows of every dataset. Absent when no member's manifest names any.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec_id",
+              "role",
+              "entities"
+            ],
+            "properties": {
+              "spec_id": {
+                "$ref": "#/$defs/spec_id"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "provenance": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
         "search_warning": {
           "description": "For a fetch of an answer only: whether the fetch issued a SearchWarning.",
           "type": "boolean"
@@ -935,7 +971,9 @@
             "SearchWarning",
             "DataWarning",
             "NetworkError",
-            "DfoTimeoutError"
+            "DfoTimeoutError",
+            "FormatError",
+            "BundleError"
           ]
         },
         "code": {
