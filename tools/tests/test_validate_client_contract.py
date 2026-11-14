@@ -3319,3 +3319,59 @@ def test_a_broken_long_build_is_reported(
     _edit(_write_long_build(package_dir, kind), change)
     problems = validator.validate()
     assert any(expected in problem for problem in problems), problems
+
+
+def _derived_member_with_root_rendering(rendering: dict[str, Any]) -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "refs" / "ref-derived-member.json"
+    member = copy.deepcopy(
+        json.loads(path.read_text(encoding="utf-8"))["ref"]["members"][0]
+    )
+    member["roots"][0]["rendering"] = rendering
+    return member
+
+
+_CUT_ROOT = {"format": "parquet", "bundle": False, "layout": "frame"}
+
+
+@pytest.mark.parametrize(
+    ("other", "conflicts"),
+    [
+        ({**_CUT_ROOT, "party_totals": False}, False),
+        ({**_CUT_ROOT, "party_totals": False, "without_party_totals": True}, False),
+        (_CUT_ROOT, True),
+        ({**_CUT_ROOT, "party_totals": True}, True),
+    ],
+    ids=["request-spelling", "both-spellings", "plain", "kept"],
+)
+def test_derived_roots_compare_by_the_cut_not_its_spelling(
+    other: dict[str, Any], conflicts: bool
+) -> None:
+    cut = _derived_member_with_root_rendering(
+        {**_CUT_ROOT, "without_party_totals": True}
+    )
+    twin = _derived_member_with_root_rendering(other)
+    problems = validator.derived_identity_problems([("a", cut), ("b", twin)])
+    assert bool(problems) is conflicts
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "saved-fetched-at-impossible-date-rejected",
+        "saved-held-until-impossible-date-rejected",
+    ],
+)
+def test_a_saved_file_with_an_impossible_date_breaks_format_invalid(name: str) -> None:
+    path = validator.PACKAGE_DIR / "saved-files" / f"{name}.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    decoded = {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key.startswith("dfo.")
+        and key != "dfo.format_version"
+        and key not in ("dfo.sentence", "dfo.licence")
+    }
+    assert validator._saved_file_rule("1", decoded) == "format_invalid"
+    # the same file with a real date breaks no rule
+    fixed = json.loads(json.dumps(decoded).replace("2026-02-30", "2026-02-28"))
+    assert validator._saved_file_rule("1", fixed) is None

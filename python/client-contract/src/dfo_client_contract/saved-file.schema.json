@@ -267,7 +267,7 @@
             }
           },
           "held_until": {
-            "description": "An ISO date, or null.",
+            "description": "An ISO date that exists on the calendar, as 2026-02-28 does and 2026-02-30 does not, or null.",
             "anyOf": [
               {
                 "type": "string",
@@ -452,7 +452,7 @@
       }
     },
     "dfo.fetched_at": {
-      "description": "When the data left the server, the earliest member's time, as an ISO 8601 time with a zone. A client writes it in UTC to the second, as 2026-11-27T09:14:05Z, and leaves it out when any member's fetch time is unknown, as for an artifact copied from the legacy cache directory.",
+      "description": "When the data left the server, the earliest member's time, as an ISO 8601 time with a zone, on a date that exists on the calendar. A client writes it in UTC to the second, as 2026-11-27T09:14:05Z, and leaves it out when any member's fetch time is unknown, as for an artifact copied from the legacy cache directory.",
       "type": "string",
       "contentMediaType": "application/json",
       "contentSchema": {

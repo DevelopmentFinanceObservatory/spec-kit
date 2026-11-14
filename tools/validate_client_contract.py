@@ -127,6 +127,7 @@ import re
 import sys
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
+from datetime import date, datetime
 from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any
@@ -4054,13 +4055,29 @@ def _decoded_metadata(
     return decoded, problems
 
 
+def _calendar_dates_exist(decoded: Mapping[str, Any]) -> bool:
+    """Whether a saved file's `dfo.fetched_at` and `held_until`, which the
+    schema checks by pattern, name a time and a date that exist."""
+    try:
+        if (fetched := decoded.get("dfo.fetched_at")) is not None:
+            datetime.fromisoformat(fetched)
+        if (held := decoded["dfo.dataset"].get("held_until")) is not None:
+            date.fromisoformat(held)
+    except ValueError:
+        return False
+    return True
+
+
 def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     """The first rule a saved file that meets its schema breaks, or None:
-    `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
+    a `dfo.fetched_at` or `held_until` that is no real time or date, as both
+    loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
     holds a derived member, "1" when it is absent; one member citation and
     one row count per member of `dfo.ref`, none when it is absent; and each
     `dfo.party_totals_left_out` entry naming a member of `dfo.ref`, in member
     order."""
+    if not _calendar_dates_exist(decoded):
+        return "format_invalid"
     ref = decoded.get("dfo.ref")
     if ref is not None and (broken := _ref_rule(ref)) is not None:
         return broken
@@ -4168,7 +4185,7 @@ def derived_identities(member: Mapping[str, Any]) -> dict[str, str | None]:
         [
             read_string(root, "spec_id"),
             read_string(root, "content_version"),
-            read_object(root, "rendering"),
+            served_rendering(read_object(root, "rendering")),
         ]
         for root in read_objects(member, "roots")
     ]
