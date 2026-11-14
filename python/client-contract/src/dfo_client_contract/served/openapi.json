@@ -4913,7 +4913,7 @@
           "detail"
         ],
         "title": "AppliedDefaultModel",
-        "description": "One `fact_summary.defaults[]` entry: a choice the component made where its intent\nleft one open. An entity-mode bar_chart whose select lists no values draws every value\nof its one varying dimension, largest first."
+        "description": "One `fact_summary.defaults[]` entry: a choice the component made where its intent\nleft one open. An entity-mode bar_chart whose select lists no values draws every value\nof its one varying dimension, largest first unless the intent has an `order`."
       },
       "ArtifactEntryModel": {
         "properties": {
@@ -9499,6 +9499,21 @@
             },
             "type": "object",
             "title": "Rendering"
+          },
+          "party_totals_left_out": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PartyTotalsLeftOutModel"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Party Totals Left Out",
+            "description": "the group totals this root version's read left out, its manifest's `trace.party_totals_left_out` entries. Absent when the read left none out. A ref root never carries it"
           }
         },
         "additionalProperties": false,
@@ -11038,6 +11053,17 @@
             "title": "Source Refs",
             "description": "every distinct raw provenance ref a source_card's frame carries. It is null for every other member."
           },
+          "order": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FactSummaryOrderModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the order the series were drawn in, null when the intent has no `order` or the component drew fewer than two series. The order moves whole series, and a refresh that cannot rank as asked still draws and says so in `detail`"
+          },
           "defaults": {
             "items": {
               "$ref": "#/components/schemas/AppliedDefaultModel"
@@ -11057,10 +11083,57 @@
           "unit",
           "change",
           "source_refs",
+          "order",
           "defaults"
         ],
         "title": "FactSummaryModel",
         "description": "The closed, token-capped fact summary a revision reports."
+      },
+      "FactSummaryOrderModel": {
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": [
+              "ascending",
+              "descending"
+            ],
+            "title": "Direction",
+            "description": "whether the series run from the smallest value or the largest"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period",
+            "description": "the period label whose values ranked the series, null when the series were drawn unranked, which `detail` then explains"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail",
+            "description": "null when the series were ranked as the intent's `order` asks, otherwise one sentence saying what the draw did instead: ranked at another period because no drawn series holds the stated one, or drew a table whose series are in more than one unit, or whose series hold no value, unranked in the order the select resolves to"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "direction",
+          "period",
+          "detail"
+        ],
+        "title": "FactSummaryOrderModel",
+        "description": "The order a chart or table drew its series in, from the intent's `order`. The order\nmoves whole series: a table's rows keep their period order within a series. A render that\ncannot rank as the intent asks still draws, and `detail` says what it did instead."
       },
       "FactSummarySeriesEntry": {
         "properties": {
@@ -12977,7 +13050,7 @@
         "additionalProperties": false,
         "type": "object",
         "title": "MintOptions",
-        "description": "Rendering-only, never hashed into identity. `format`/`bundle`/`pivot`/\n`columns`/`groupby`/`without_party_totals` are this deployment's live rendering surface. A\n`groupby.by` entry names a code system some deployment declaration\nmarks summable, a role/entity column, `stat_var`, or a column every\nframe carries regardless of shape; any other name refuses\n`rollup_not_summable` (`datasets_api.groupby.refuse_unknown_by_axes`).\nA declared axis this frame did not decode is simply absent from the\ncollapse-set computation, not an error (see\n`datasets_api.groupby.collapse_axes`); an unsafe collapse refuses\n`rollup_not_summable` too, naming the axis and precondition\n(`materialise.reshape.groupby_sum`,\n`datasets_api.groupby.refuse_stat_var_collision`,\n`datasets_api.groupby.refuse_decode_gaps`). A `columns` entry naming a\nrecognised-but-disabled enrichment field refuses `capability_unavailable`.\n`columns` selects the table and decoded columns it names. A list that names\nonly enrichment fields selects nothing: every default column stays,\ndecoded columns included, and the enrichments are added. A list that mixes\na table column with an enrichment selects. Without a pivot, a list that\nnames no decoded column keeps all of them, `status` is accepted and left\nout, `<role>_label` is written by default (a list naming it keeps\n`<role>`), and the written order follows the long layout\n(`materialise.projection`) whatever order the list names.\n\n`layout: \"frame\"` writes a bare parquet file in the frame layout instead\nof the long layout: the frame's grammar columns as reshaped, with\ndecoded axes as `stat_var_<code_system>`, `status` kept, and a converted\nunit as its JCS request text. `columns` then selects over those columns,\nas it does for pivot output. It refuses with `bundle: true`, a `pivot`,\nor a format other than parquet.\n\n`enrichment: \"default\"` asks for the version's default enrichment columns\n(`datasets_api.default_enrichment`), resolved once the version is built: they join `columns`,\nor are `columns` when it names none, and the option is dropped before the rendering is keyed,\nrendered or recorded, so the answer is that of a request naming the resolved columns.\n\n`without_party_totals: true` leaves out the rows whose party, on a flow party role the\nserved identity binds no entity on, the code index declares a group total\n(`datasets_api.party_totals`). It runs on the frame before any reshape, so a `groupby`\nsums members alone. A cut that leaves rows out mints a version of its own, as a `groupby`\ncollapse does; one that leaves nothing out serves the frame's own version. A request may\nspell the cut `party_totals: false`, the preferred name, which validation folds into\n`without_party_totals` (`fold_party_totals`), so the dump, the rendering and every key\nhashed from them are the same for either spelling. Both given and disagreeing refuses at\n`party_totals`."
+        "description": "Rendering-only, never hashed into identity. `format`/`bundle`/`pivot`/\n`columns`/`groupby`/`without_party_totals` are this deployment's live rendering surface. A\n`groupby.by` entry names a code system some deployment declaration\nmarks summable, a role/entity column, `stat_var`, or a column every\nframe carries regardless of shape; any other name refuses\n`rollup_not_summable` (`datasets_api.groupby.refuse_unknown_by_axes`).\nA declared axis this frame did not decode is simply absent from the\ncollapse-set computation, not an error (see\n`datasets_api.groupby.collapse_axes`); an unsafe collapse refuses\n`rollup_not_summable` too, naming the axis and precondition\n(`materialise.reshape.groupby_sum`,\n`datasets_api.groupby.refuse_stat_var_collision`,\n`datasets_api.groupby.refuse_decode_gaps`). A `columns` entry naming a\nrecognised-but-disabled enrichment field refuses `capability_unavailable`.\n`columns` selects the table and decoded columns it names. A list that names\nonly enrichment fields selects nothing: every default column stays,\ndecoded columns included, and the enrichments are added. A list that mixes\na table column with an enrichment selects. Without a pivot, a list that\nnames no decoded column keeps all of them, `status` is accepted and left\nout, `<role>_label` is written by default (a list naming it keeps\n`<role>`), and the written order follows the long layout\n(`materialise.projection`) whatever order the list names.\n\n`layout: \"frame\"` writes a bare parquet file in the frame layout instead\nof the long layout: the frame's grammar columns as reshaped, with\ndecoded axes as `stat_var_<code_system>`, `status` kept, and a converted\nunit as its JCS request text. `columns` then selects over those columns,\nas it does for pivot output. It refuses with `bundle: true`, a `pivot`,\nor a format other than parquet.\n\n`enrichment: \"default\"` asks for the version's default enrichment columns\n(`datasets_api.default_enrichment`), resolved once the version is built: they join `columns`,\nor are `columns` when it names none, and the option is dropped before the rendering is keyed,\nrendered or recorded, so the answer is that of a request naming the resolved columns.\n\n`without_party_totals: true` leaves out the rows whose party, on a flow party role the\nserved identity binds no entity on, the code index declares a group total\n(`datasets_api.party_totals`). It runs on the frame before any reshape, so a `groupby`\nsums the rows it kept, the totals it keeps in a cell of totals alone included. A cut that\nleaves rows out mints a version of its own, as a `groupby` collapse does; one that leaves\nnothing out serves the frame's own version. A request may\nspell the cut `party_totals: false`, the preferred name, which validation folds into\n`without_party_totals` (`fold_party_totals`), so the dump, the rendering and every key\nhashed from them are the same for either spelling. Both given and disagreeing refuses at\n`party_totals`."
       },
       "MintRequest": {
         "properties": {
@@ -15336,6 +15409,47 @@
         "title": "GraphPartyBlock",
         "description": "An organisation's or aggregate's detail block."
       },
+      "PartyTotalsKeptSeriesModel": {
+        "properties": {
+          "series": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/JsonValue"
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Series",
+            "description": "the series: each column of the frame's grain other than the entry's role, time_period and provenance (stat_var, the frame's other role columns, unit and measurementMethod), mapped to the cell the series holds there, null for a null cell and a unit by its JSON form"
+          },
+          "time_periods": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Time Periods",
+            "description": "the time_period values of the series in which the entry's totals stayed, distinct and sorted by code point"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "series",
+          "time_periods"
+        ],
+        "title": "PartyTotalsKeptSeriesModel",
+        "description": "One series in which a `without_party_totals` cut kept a trace entry's totals\n(`PartyTotalsLeftOutModel.kept_in`), and the `time_period` values of that series, in the\nentry's role and provenance, where they stayed."
+      },
       "PartyTotalsLeftOutModel": {
         "properties": {
           "role": {
@@ -15362,6 +15476,14 @@
             "type": "array",
             "title": "Entities",
             "description": "the dcid refs of the totals left out, in ref order"
+          },
+          "kept_in": {
+            "items": {
+              "$ref": "#/components/schemas/PartyTotalsKeptSeriesModel"
+            },
+            "type": "array",
+            "title": "Kept In",
+            "description": "the series in which the entry's totals stayed in this provenance's rows, one item each, with the time_period values where they stayed. A cell, one time_period of one series, that holds only totals keeps its whole totals, and keeps every total when none is whole and the role holds no other party in that series. Sorted by the series' cells in column-name order, each null first, then a string by code point, then an object by the code points of its JCS text. Absent when the totals left every cell"
           }
         },
         "additionalProperties": false,
@@ -15371,7 +15493,7 @@
           "entities"
         ],
         "title": "PartyTotalsLeftOutModel",
-        "description": "One role's group totals a `without_party_totals` cut left out of one provenance's rows\n(`datasets_api.party_totals.PartyTotalsCut.trace_entries`). An entry without a\n`provenance`, which a version recorded before the trace named the provenance holds, left its\nparties out of the rows of every dataset."
+        "description": "One role's group totals a `without_party_totals` cut left out of one provenance's rows\n(`datasets_api.party_totals.PartyTotalsCut.trace_entries`). An entry without a\n`provenance`, which a version recorded before the trace named the provenance holds, left its\nparties out of the rows of every dataset. An entry with `kept_in` left its parties out of\nthe rows of every other cell; one without left them out of every cell."
       },
       "PeriodCoverage": {
         "properties": {
@@ -18276,6 +18398,12 @@
             ],
             "title": "Served Count",
             "description": "how many StatVars a Datasets mint of this Spec's definition serves, the length of its trace.resolved_stat_vars; 1 for a single series. Null when the membership is unsettled: Search answered from members the mint may not serve, and the part carries membership_unverified"
+          },
+          "sums_components": {
+            "type": "boolean",
+            "title": "Sums Components",
+            "description": "true when the definition binds a declared composite whose components sum: a datasets door `groupby` whose `by` keeps no `stat_var` adds the members of its different components into one series per cell, and a cell holding one component's member serves that member. The mint sums by the same rule (`code_index.composites.components_sum`). False, the default, is omitted: the answer binds no composite, or one whose components no sum adds. It says nothing about the slots: each slot's `summable` still governs a sum over that slot. Spec identity does not hash it",
+            "default": false
           },
           "data_date_range": {
             "anyOf": [
@@ -22803,7 +22931,7 @@
             },
             "type": "array",
             "title": "Party Totals Left Out",
-            "description": "the parties whose total rows a without_party_totals rendering left out of this version's frame: one entry per open party role and provenance that lost rows, in role order and then provenance order (null first). Absent when the rendering left nothing out or was not asked to"
+            "description": "the parties whose total rows a without_party_totals rendering left out of this version's frame: one entry per open party role, provenance that lost rows and set of kept cells, in role order, then provenance order (null first), then kept cells (entries without kept_in first, then by kept_in compared item by item: by series in its own order, then by time_periods). Absent when the rendering left nothing out or was not asked to"
           }
         },
         "additionalProperties": true,
