@@ -26,14 +26,19 @@ def test_the_served_document_names_its_commit() -> None:
 def test_records_load() -> None:
     assert dfo_client_contract.scenarios()
     assert dfo_client_contract.ref_examples()
+    assert dfo_client_contract.saved_file_examples()
+    assert dfo_client_contract.saved_file_schema()["title"] == "Saved file"
 
 
-@pytest.mark.parametrize("load", [contract.scenarios, contract.ref_examples])
+@pytest.mark.parametrize(
+    "load", [contract.scenarios, contract.ref_examples, contract.saved_file_examples]
+)
 def test_an_empty_record_set_is_a_hard_failure(
     load: object, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     (tmp_path / "scenarios").mkdir()
     (tmp_path / "refs").mkdir()
+    (tmp_path / "saved-files").mkdir()
     monkeypatch.setattr(contract, "contract_dir", lambda: tmp_path)
     assert callable(load)
     with pytest.raises(RuntimeError, match="no records found"):

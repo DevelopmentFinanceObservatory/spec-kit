@@ -50,6 +50,12 @@
       "condition": "The call's deadline passed before it finished."
     },
     {
+      "code": "definition_spec_id_mismatch",
+      "class": "FormatError",
+      "retryable": false,
+      "condition": "A stored DatasetRef member's definition names a spec_id other than the member's spec."
+    },
+    {
       "code": "digest_mismatch",
       "class": "ServerError",
       "retryable": false,
@@ -60,6 +66,18 @@
       "class": "ServerError",
       "retryable": true,
       "condition": "The signed URL a files route names refused, or its fetch failed, after the route was asked once more."
+    },
+    {
+      "code": "format_invalid",
+      "class": "FormatError",
+      "retryable": false,
+      "condition": "Stored JSON for a DatasetRef, a saved dataset or a bundle breaks its format, or a bundle's descriptor lists a file outside the bundle."
+    },
+    {
+      "code": "hash_mismatch",
+      "class": "BundleError",
+      "retryable": false,
+      "condition": "A bundle's file hashes to another value than its descriptor gives."
     },
     {
       "code": "header_invalid",
@@ -77,7 +95,7 @@
       "code": "invalid_argument",
       "class": "InvalidRequestError",
       "retryable": false,
-      "condition": "A call's arguments break a rule the client checks before any request."
+      "condition": "A call's or client's arguments, or a setting's environment variable, break a rule the client checks before any request."
     },
     {
       "code": "key_empty",
@@ -92,10 +110,40 @@
       "condition": "The api_key holds a character outside visible ASCII."
     },
     {
+      "code": "match_unresolved",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A lookup match whose status is not resolved is passed as an entity."
+    },
+    {
+      "code": "missing_file",
+      "class": "BundleError",
+      "retryable": false,
+      "condition": "A bundle lacks a file its descriptor lists."
+    },
+    {
       "code": "network_error",
       "class": "NetworkError",
       "retryable": true,
       "condition": "The connection failed before a response arrived."
+    },
+    {
+      "code": "no_data_resource",
+      "class": "BundleError",
+      "retryable": false,
+      "condition": "A bundle's descriptor names no data table."
+    },
+    {
+      "code": "no_descriptor",
+      "class": "BundleError",
+      "retryable": false,
+      "condition": "A bundle holds data with no datapackage.json."
+    },
+    {
+      "code": "not_a_bundle",
+      "class": "BundleError",
+      "retryable": false,
+      "condition": "A path holds neither a saved dataset nor part of a bundle, or a Parquet file or ZIP too damaged to read."
     },
     {
       "code": "offline",
@@ -116,10 +164,34 @@
       "condition": "The chosen profile in the credentials file has no key."
     },
     {
+      "code": "proxy_invalid",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A proxy URL read from the environment has a scheme other than http, https, socks5 or socks5h."
+    },
+    {
+      "code": "ref_unavailable",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A dataset read from a bundle folder, which names no version, is asked for its ref."
+    },
+    {
       "code": "refusal_without_code",
       "class": "by_status",
       "retryable": "by_status",
       "condition": "A refusal whose body carries no code: no problem document, or one without a code."
+    },
+    {
+      "code": "repeated_spec_id",
+      "class": "FormatError",
+      "retryable": false,
+      "condition": "A stored DatasetRef holds one spec_id in two members."
+    },
+    {
+      "code": "resource_limit",
+      "class": "BundleError",
+      "retryable": false,
+      "condition": "A bundle passes a bound its reader sets on its descriptor, entries, resources, bytes or workbooks."
     },
     {
       "code": "response_too_large",

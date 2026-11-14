@@ -10,7 +10,7 @@
   "call": [
     {
       "op": "search",
-      "question": "Kenya's GDP, and ODA disbursements from Germany to Congo"
+      "question": "Congo's GDP, and ODA disbursements from Germany to Congo"
     },
     {
       "op": "choose",
@@ -26,7 +26,7 @@
           "schema_version": 1,
           "input": {
             "kind": "raw_text",
-            "query": "Kenya's GDP, and ODA disbursements from Germany to Congo"
+            "query": "Congo's GDP, and ODA disbursements from Germany to Congo"
           }
         }
       },
@@ -34,32 +34,32 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "66ee9968495c4420baa91bae126c6a07"
+          "x-dfo-trace-id": "bb77ea7f5f384de0a5f43efefc8af840"
         },
         "json": {
           "schema_version": 1,
           "query_echo": {
             "entry_path": "raw_text",
-            "raw_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
-            "normalized_query": "Kenya's GDP, and ODA disbursements from Germany to Congo",
+            "raw_query": "Congo's GDP, and ODA disbursements from Germany to Congo",
+            "normalized_query": "Congo's GDP, and ODA disbursements from Germany to Congo",
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "66ee9968495c4420baa91bae126c6a07",
+            "engine_build": "aacbe6a4ab961d30f774cf89cacb0210e1280655",
+            "trace_id": "bb77ea7f5f384de0a5f43efefc8af840",
             "warnings": [],
             "timing_ms": {
-              "total": 1103,
+              "total": 2460,
               "by_step": {
                 "coverage": 0,
-                "extract": 1095,
-                "exclusion_read": 608,
+                "extract": 1201,
+                "exclusion_read": 768,
                 "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2790,
-              "output_tokens": 216,
+              "input_tokens": 2765,
+              "output_tokens": 247,
               "cached_tokens": 0
             },
             "timed_out": false
@@ -70,14 +70,14 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 4,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 4,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0
                 }
               },
-              "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "rendered_sentence": "\"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
               "sentence_plan": [
                 {
                   "kind": "text",
@@ -88,10 +88,9 @@
                 },
                 {
                   "kind": "slot",
-                  "text": "Congo",
+                  "text": "Congo's",
                   "axis": "where",
                   "segment": "heading",
-                  "role": "destination",
                   "entity_choice": 0,
                   "entity_refs": [],
                   "states": []
@@ -108,16 +107,8 @@
                 "variable_text": "GDP",
                 "entities": [
                   {
-                    "text": "Kenya",
-                    "role_text": "to"
-                  },
-                  {
-                    "text": "Germany",
-                    "role_text": "from"
-                  },
-                  {
-                    "text": "Congo",
-                    "role_text": "to"
+                    "text": "Congo's",
+                    "name": "Congo"
                   }
                 ],
                 "sources": [],
@@ -125,19 +116,7 @@
               },
               "entity_refs": [
                 {
-                  "text": "Kenya",
-                  "refs": [
-                    "country/KEN"
-                  ]
-                },
-                {
-                  "text": "Germany",
-                  "refs": [
-                    "country/DEU"
-                  ]
-                },
-                {
-                  "text": "Congo",
+                  "text": "Congo's",
                   "refs": []
                 }
               ],
@@ -148,13 +127,13 @@
               "no_data": {
                 "reason": "entity_ambiguous",
                 "category": "unresolved",
-                "message": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                "message": "\"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
                 "entity_terms": [
-                  "Congo"
+                  "Congo's"
                 ],
                 "ambiguous_entities": [
                   {
-                    "text": "Congo",
+                    "text": "Congo's",
                     "candidates": [
                       {
                         "ref": "country/COD",
@@ -175,7 +154,7 @@
                 "options": [
                   {
                     "mentions": [
-                      "Congo"
+                      "Congo's"
                     ],
                     "label": "Congo [DRC]",
                     "data_query": {
@@ -185,18 +164,7 @@
                           "variable_text": "GDP",
                           "entities": [
                             {
-                              "text": "Kenya",
-                              "role_text": "to",
-                              "dcid": "country/KEN"
-                            },
-                            {
-                              "text": "Germany",
-                              "role_text": "from",
-                              "dcid": "country/DEU"
-                            },
-                            {
-                              "text": "Congo",
-                              "role_text": "to",
+                              "text": "Congo's",
                               "dcid": "country/COD"
                             }
                           ],
@@ -209,7 +177,7 @@
                   },
                   {
                     "mentions": [
-                      "Congo"
+                      "Congo's"
                     ],
                     "label": "Congo [Republic]",
                     "data_query": {
@@ -219,18 +187,7 @@
                           "variable_text": "GDP",
                           "entities": [
                             {
-                              "text": "Kenya",
-                              "role_text": "to",
-                              "dcid": "country/KEN"
-                            },
-                            {
-                              "text": "Germany",
-                              "role_text": "from",
-                              "dcid": "country/DEU"
-                            },
-                            {
-                              "text": "Congo",
-                              "role_text": "to",
+                              "text": "Congo's",
                               "dcid": "country/COG"
                             }
                           ],
@@ -248,14 +205,14 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 6,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 5,
                   "phase_resolve_places": 0,
-                  "phase_check_entities": 0
+                  "phase_check_entities": 1
                 }
               },
-              "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "rendered_sentence": "\"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
               "sentence_plan": [
                 {
                   "kind": "text",
@@ -266,7 +223,7 @@
                 },
                 {
                   "kind": "slot",
-                  "text": "Congo",
+                  "text": "Congo's",
                   "axis": "where",
                   "segment": "heading",
                   "role": "destination",
@@ -286,15 +243,12 @@
                 "variable_text": "ODA disbursements",
                 "entities": [
                   {
-                    "text": "Kenya",
-                    "role_text": "to"
-                  },
-                  {
                     "text": "Germany",
                     "role_text": "from"
                   },
                   {
-                    "text": "Congo",
+                    "text": "Congo's",
+                    "name": "Congo",
                     "role_text": "to"
                   }
                 ],
@@ -303,19 +257,13 @@
               },
               "entity_refs": [
                 {
-                  "text": "Kenya",
-                  "refs": [
-                    "country/KEN"
-                  ]
-                },
-                {
                   "text": "Germany",
                   "refs": [
                     "country/DEU"
                   ]
                 },
                 {
-                  "text": "Congo",
+                  "text": "Congo's",
                   "refs": []
                 }
               ],
@@ -326,13 +274,13 @@
               "no_data": {
                 "reason": "entity_ambiguous",
                 "category": "unresolved",
-                "message": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+                "message": "\"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
                 "entity_terms": [
-                  "Congo"
+                  "Congo's"
                 ],
                 "ambiguous_entities": [
                   {
-                    "text": "Congo",
+                    "text": "Congo's",
                     "candidates": [
                       {
                         "ref": "country/COD",
@@ -353,7 +301,7 @@
                 "options": [
                   {
                     "mentions": [
-                      "Congo"
+                      "Congo's"
                     ],
                     "label": "Congo [DRC]",
                     "data_query": {
@@ -363,17 +311,12 @@
                           "variable_text": "ODA disbursements",
                           "entities": [
                             {
-                              "text": "Kenya",
-                              "role_text": "to",
-                              "dcid": "country/KEN"
-                            },
-                            {
                               "text": "Germany",
                               "role_text": "from",
                               "dcid": "country/DEU"
                             },
                             {
-                              "text": "Congo",
+                              "text": "Congo's",
                               "role_text": "to",
                               "dcid": "country/COD"
                             }
@@ -387,7 +330,7 @@
                   },
                   {
                     "mentions": [
-                      "Congo"
+                      "Congo's"
                     ],
                     "label": "Congo [Republic]",
                     "data_query": {
@@ -397,17 +340,12 @@
                           "variable_text": "ODA disbursements",
                           "entities": [
                             {
-                              "text": "Kenya",
-                              "role_text": "to",
-                              "dcid": "country/KEN"
-                            },
-                            {
                               "text": "Germany",
                               "role_text": "from",
                               "dcid": "country/DEU"
                             },
                             {
-                              "text": "Congo",
+                              "text": "Congo's",
                               "role_text": "to",
                               "dcid": "country/COG"
                             }
@@ -423,31 +361,67 @@
               }
             }
           ],
-          "rendered_sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+          "rendered_sentence": "\"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific. \"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
           "sentence_plan": [
             {
               "kind": "text",
               "text": "\"",
               "segment": "heading",
               "entity_refs": [],
-              "states": []
+              "states": [],
+              "part_index": 0
             },
             {
               "kind": "slot",
-              "text": "Congo",
+              "text": "Congo's",
               "axis": "where",
               "segment": "heading",
-              "role": "destination",
               "entity_choice": 0,
               "entity_refs": [],
-              "states": []
+              "states": [],
+              "part_index": 0
             },
             {
               "kind": "text",
               "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
               "segment": "heading",
               "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "heading",
+              "entity_refs": [],
               "states": []
+            },
+            {
+              "kind": "text",
+              "text": "\"",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 1
+            },
+            {
+              "kind": "slot",
+              "text": "Congo's",
+              "axis": "where",
+              "segment": "heading",
+              "role": "destination",
+              "entity_choice": 0,
+              "entity_refs": [],
+              "states": [],
+              "part_index": 1
+            },
+            {
+              "kind": "text",
+              "text": "\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 1
             }
           ],
           "status": "no_data"
@@ -460,7 +434,7 @@
       "answer": {
         "kind": "resolution",
         "status": "no_data",
-        "sentence": "\"Congo\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
+        "sentence": "\"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific. \"Congo's\" matches more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",
         "complete": false,
         "specs": [],
         "gaps": [
