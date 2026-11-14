@@ -170,7 +170,7 @@
           "additionalProperties": false
         },
         "order": {
-          "description": "Draws the series in value order instead of member-id order. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". `period` names the period the values are ranked at; omitted, they are ranked at the latest period most of the drawn series hold. A series with no value at that period comes last. A table needs one unit across its series to be ordered.",
+          "description": "Draws the series in value order instead of member-id order. Each series moves whole, so a table's rows keep their period order within a series. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". `period` names the period the series are ranked at; omitted, they are ranked at the period where the most drawn series hold a value, the later period on a tie. A series with no value at that period comes last. A table needs one unit across its series to be ordered. A refresh that can no longer rank as asked still draws the series, and the fact summary's `order` reports what it did.",
           "type": "object",
           "properties": {
             "by": {
@@ -338,7 +338,7 @@
           "$ref": "#/$defs/title"
         },
         "order": {
-          "description": "Draws the series in value order instead of member-id order. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". `period` names the period the values are ranked at; omitted, they are ranked at the latest period most of the drawn series hold. A series with no value at that period comes last. A table needs one unit across its series to be ordered.",
+          "description": "Draws the series in value order instead of member-id order. Each series moves whole, so a table's rows keep their period order within a series. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". `period` names the period the series are ranked at; omitted, they are ranked at the period where the most drawn series hold a value, the later period on a tie. A series with no value at that period comes last. A table needs one unit across its series to be ordered. A refresh that can no longer rank as asked still draws the series, and the fact summary's `order` reports what it did.",
           "type": "object",
           "properties": {
             "by": {

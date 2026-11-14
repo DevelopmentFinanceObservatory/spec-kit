@@ -11,7 +11,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `order` in the write-side intent grammar (`schemas/intent.v0.json`): on a
   `line_chart`, a `bar_chart` and a `table`, an optional
   `{by: "value", direction: "descending" | "ascending"}` that draws the series
-  in value order instead of member-id order. A `line_chart` and a `table` also
+  in value order instead of member-id order. Each series moves whole, so a
+  `table`'s rows keep their period order within a series. A `line_chart` and a `table` also
   admit an optional `period`, the period label the values are ranked at; a
   `bar_chart` admits none, since its bars stand at one period the platform
   chooses. A `stat_card`, `note_narration` and `source_card` refuse the member.
