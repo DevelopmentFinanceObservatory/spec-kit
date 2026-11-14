@@ -8,6 +8,20 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `order` in the write-side intent grammar (`schemas/intent.v0.json`): on a
+  `line_chart`, a `bar_chart` and a `table`, an optional
+  `{by: "value", direction: "descending" | "ascending"}` that draws the series
+  in value order instead of member-id order. Each series moves whole, so a
+  `table`'s rows keep their period order within a series. A `line_chart` and a `table` also
+  admit an optional `period`, the period label the values are ranked at; a
+  `bar_chart` admits none, since its bars stand at one period the platform
+  chooses. A `stat_card`, `note_narration` and `source_card` refuse the member.
+  Every intent the grammar admitted before still validates.
+- `catalog_version` moves from `2026.11.0` to `2026.11.1`, a minor change
+  under `policies/component-spec.toml`: the intent grammar gains an optional
+  member. A deployment on `2026.11.0` refuses an intent that carries `order`,
+  so a consumer comparing releases reads `2026.11.1` as the first that admits
+  one. The payload fixtures carry the new `catalog_version`.
 - An optional `description` on the envelope schema: the card revision's
   description, a `$ref` to
   `https://developmentfinance.org/descriptions/schema/v1/description.schema.json`
