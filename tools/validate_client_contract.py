@@ -126,9 +126,12 @@ import math
 import re
 import sys
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
+from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime
+from decimal import Decimal
 from functools import lru_cache, partial
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
@@ -1673,20 +1676,139 @@ def part_label(member: Mapping[str, Any]) -> str:
     return "; ".join(member["parts"]) or member["sentence"]
 
 
+def _jcs_text(value: Any) -> str:
+    """The RFC 8785 (JCS) text of a JSON value: object members sorted by the
+    UTF-16 code units of their names, no whitespace, and each number as
+    ECMAScript writes it."""
+    match value:
+        case None:
+            return "null"
+        case bool():
+            return "true" if value else "false"
+        case int():
+            return str(value)
+        case float():
+            return _jcs_number(value)
+        case str():
+            return json.dumps(value, ensure_ascii=False)
+        case list():
+            return "[" + ",".join(map(_jcs_text, value)) + "]"
+        case dict():
+            names = sorted(value, key=lambda name: name.encode("utf-16-be"))
+            return (
+                "{"
+                + ",".join(
+                    f"{_jcs_text(name)}:{_jcs_text(value[name])}" for name in names
+                )
+                + "}"
+            )
+    raise TypeError(f"not a JSON value: {value!r}")
+
+
+def _jcs_number(number: float) -> str:
+    """A finite float as ECMAScript's Number::toString writes it, from the
+    shortest digits that round-trip, which Python's repr also gives."""
+    if not math.isfinite(number):
+        raise ValueError(f"JCS has no form for {number!r}")
+    if number == 0:
+        return "0"
+    sign = "-" if number < 0 else ""
+    _, digit_tuple, exponent = Decimal(repr(abs(number))).normalize().as_tuple()
+    digits = "".join(map(str, digit_tuple))
+    point = len(digits) + int(exponent)
+    if len(digits) <= point <= 21:
+        return sign + digits + "0" * (point - len(digits))
+    if 0 < point <= 21:
+        return sign + digits[:point] + "." + digits[point:]
+    if -6 < point <= 0:
+        return sign + "0." + "0" * -point + digits
+    mantissa = digits[0] + ("." + digits[1:] if len(digits) > 1 else "")
+    shown = point - 1
+    return f"{sign}{mantissa}e{'+' if shown > 0 else '-'}{abs(shown)}"
+
+
+def _kept_series_order(item: Any) -> tuple[tuple[str, int, str], ...] | None:
+    """The order of a `kept_in` item, or None when the item is malformed: an
+    object of exactly a `series` object whose values are each a string, null
+    or an object, and `time_periods`, a non-empty list of non-empty strings
+    sorted by code point, each once. Items order by their series cells in
+    column-name order, each null first, then a string by code point, then an
+    object by the code points of its JCS text."""
+    if not isinstance(item, dict) or set(item) != {"series", "time_periods"}:
+        return None
+    series, periods = item["series"], item["time_periods"]
+    if (
+        not isinstance(series, dict)
+        or not isinstance(periods, list)
+        or not periods
+        or not all(isinstance(period, str) and period for period in periods)
+        or any(a >= b for a, b in pairwise(periods))
+    ):
+        return None
+    order: list[tuple[str, int, str]] = []
+    for name in sorted(series):
+        match series[name]:
+            case None:
+                order.append((name, 0, ""))
+            case str() as text:
+                order.append((name, 1, text))
+            case dict() as unit:
+                order.append((name, 2, _jcs_text(unit)))
+            case _:
+                return None
+    return tuple(order)
+
+
+def _kept_in(value: Any) -> bool:
+    """Whether a party-totals entry's `kept_in` reads: a non-empty list of
+    well-formed items (`_kept_series_order`), in that order, no two with the
+    same series."""
+    if not isinstance(value, list) or not value:
+        return False
+    previous = None
+    for item in value:
+        order = _kept_series_order(item)
+        if order is None or (previous is not None and order <= previous):
+            return False
+        previous = order
+    return True
+
+
+def _party_totals_entry_reads(item: Any) -> bool:
+    """Whether a served party-totals entry reads: an object with a non-empty
+    string `role`, a list of non-empty string `entities`, a `provenance`
+    absent, a string or null, and a `kept_in` absent or as `_kept_in` reads
+    it."""
+    if not isinstance(item, dict):
+        return False
+    role, entities = item.get("role"), item.get("entities")
+    return (
+        isinstance(role, str)
+        and bool(role)
+        and isinstance(entities, list)
+        and all(isinstance(entity, str) and entity for entity in entities)
+        and isinstance(item.get("provenance"), str | None)
+        and ("kept_in" not in item or _kept_in(item["kept_in"]))
+    )
+
+
 def party_totals_left_out(
     manifest: Mapping[str, Any], spec_id: str
 ) -> list[dict[str, Any]]:
     """The group totals a manifest's `trace.party_totals_left_out` names, each
     entry as served with the member's `spec_id` first: its `role`, its
-    `entities`, and its `provenance` when the entry holds one, null included.
-    An entry without `provenance` left the rows of every dataset. A key an
-    entry holds beyond these is dropped.
+    `entities`, its `provenance` when the entry holds one, null included, and
+    its `kept_in` when the entry holds it. An entry without `provenance` left
+    the rows of every dataset, and one with `kept_in` left its totals in the
+    rows of those series in their `time_periods`. A key an entry holds beyond
+    these is dropped. Several entries can share a role and a provenance, one
+    per set of kept series and periods, so entries are read in order and
+    never merged.
 
     The trace is no strict member, so it reads leniently: a trace that is not
     an object, or a `party_totals_left_out` that is not a list, names none,
-    and an entry reads only when it is an object with a string `role`, a list
-    of string `entities`, and a `provenance` absent, a string or null. Any
-    other entry reads as absent, and the entries beside it still read.
+    and an entry reads only as `_party_totals_entry_reads` reads it. Any other
+    entry reads as absent, and the entries beside it still read.
     """
     trace = manifest.get("trace")
     served = trace.get(PARTY_TOTALS_LEFT_OUT) if isinstance(trace, dict) else None
@@ -1694,20 +1816,17 @@ def party_totals_left_out(
         return []
     entries = []
     for item in served:
-        if not isinstance(item, dict):
+        if not _party_totals_entry_reads(item):
             continue
-        role, entities = item.get("role"), item.get("entities")
-        provenance = item.get("provenance")
-        if (
-            not isinstance(role, str)
-            or not isinstance(entities, list)
-            or not all(isinstance(entity, str) for entity in entities)
-            or not isinstance(provenance, str | None)
-        ):
-            continue
-        entry = {"spec_id": spec_id, "role": role, "entities": list(entities)}
+        entry = {
+            "spec_id": spec_id,
+            "role": item["role"],
+            "entities": list(item["entities"]),
+        }
         if "provenance" in item:
-            entry["provenance"] = provenance
+            entry["provenance"] = item["provenance"]
+        if "kept_in" in item:
+            entry["kept_in"] = deepcopy(item["kept_in"])
         entries.append(entry)
     return entries
 
@@ -4074,7 +4193,9 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
     holds a derived member, "1" when it is absent; one member citation and
     one row count per member of `dfo.ref`, none when it is absent; and each
-    `dfo.party_totals_left_out` entry naming a member of `dfo.ref`, in member
+    `dfo.party_totals_left_out` entry reading as a served entry reads
+    (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
+    a root of a derived member, in member order and then in the member's root
     order."""
     if not _calendar_dates_exist(decoded):
         return "format_invalid"
@@ -4090,13 +4211,37 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
         len(members),
     ):
         return "format_invalid"
-    order = {member["spec"]["spec_id"]: i for i, member in enumerate(members)}
-    named: list[int] = []
-    for entry in decoded.get("dfo.party_totals_left_out", []):
-        if (position := order.get(entry["spec_id"])) is None:
-            return "format_invalid"
-        named.append(position)
-    return "format_invalid" if named != sorted(named) else None
+    entries = decoded.get("dfo.party_totals_left_out", [])
+    if not all(map(_party_totals_entry_reads, entries)):
+        return "format_invalid"
+    return None if _party_totals_in_order(members, entries) else "format_invalid"
+
+
+def _party_totals_in_order(
+    members: Sequence[Mapping[str, Any]], entries: Sequence[Mapping[str, Any]]
+) -> bool:
+    """Whether each party-totals entry names a dataset member or a root of a
+    derived member, in member order and then in the member's root order. A
+    derived member's entries name its roots only, since its totals are what
+    each root's read left out. A spec_id can name more than one of these, so
+    each entry takes the first one at or after the one the entry before it
+    took, which finds an order whenever one exists."""
+    named = [
+        spec_id
+        for member in members
+        for spec_id in (
+            [root["spec_id"] for root in member["roots"]]
+            if _derived(member)
+            else [member["spec"]["spec_id"]]
+        )
+    ]
+    position = 0
+    for entry in entries:
+        try:
+            position = named.index(entry["spec_id"], position)
+        except ValueError:
+            return False
+    return True
 
 
 def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:

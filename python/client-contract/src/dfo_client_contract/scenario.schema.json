@@ -843,7 +843,7 @@
           }
         },
         "party_totals_left_out": {
-          "description": "The group totals the fetch left out of its members' rows, as each member's manifest names them in trace.party_totals_left_out: one entry per member, party role and provenance that lost rows, in member order and then in the manifest's order, each naming its member's spec_id. An entry gives provenance as served, null included, and leaves it out where the manifest's entry does, which means the rows of every dataset. Absent when no member's manifest names any.",
+          "description": "The group totals the fetch left out of its members' rows, as each member's manifest names them in trace.party_totals_left_out: one entry per member, party role, provenance that lost rows and set of kept series, in member order and then in the manifest's order, each naming its member's spec_id. A derived member's entries come from its derived manifest's roots, each root's party_totals_left_out named by the root's spec_id, in root order. No scenario serves one. An entry gives provenance as served, null included, and leaves it out where the manifest's entry does, which means the rows of every dataset. It gives kept_in where the manifest's entry does, which means the totals stayed in the rows of those series in their time_periods. Absent when no member's manifest names any.",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -874,6 +874,41 @@
                   "string",
                   "null"
                 ]
+              },
+              "kept_in": {
+                "description": "The series, each with its time_periods, in which the entry's totals stayed in its provenance's rows, as the manifest's entry serves them. A series maps each column of the frame's grain other than the entry's role, time_period and provenance to the cell the series holds there: a string, null, or a unit as a JSON object. Items are sorted by their series cells in column-name order, each null first, then a string by code point, then an object by the code points of its JCS text, and no two items hold the same series. An item's time_periods are sorted by code point, each once. Absent when the totals left every series in every period. Entries that share a role and a provenance differ by kept_in.",
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "series",
+                    "time_periods"
+                  ],
+                  "properties": {
+                    "series": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "null",
+                          "object"
+                        ]
+                      }
+                    },
+                    "time_periods": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
               }
             }
           }

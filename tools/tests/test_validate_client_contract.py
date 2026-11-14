@@ -3083,6 +3083,49 @@ def test_a_required_member_that_admits_null_stays_required() -> None:
 _TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
 
 
+def _kept(*periods: str, **series: Any) -> dict[str, Any]:
+    """A `kept_in` item of the series `series` kept in `periods`."""
+    return {"series": series, "time_periods": list(periods)}
+
+
+_UNIT = {"base_year": 2021, "currency": "USD", "prices": "constant"}
+# In order: by the series cells in column-name order, null before a string
+# before an object, and objects by their JCS text.
+_KEPT_IN = [
+    _kept("1968", "1970", stat_var="sv", unit=None),
+    _kept("1968", stat_var="sv", unit="CurrencyUSD"),
+    _kept("1968", stat_var="sv", unit=_UNIT),
+    _kept("1968", stat_var="sv", unit={**_UNIT, "base_year": 2022}),
+    _kept("1970", stat_var="sw", unit=None),
+]
+
+# Each breaks `kept_in`'s shape or order.
+_BAD_KEPT_IN = {
+    "kept-in-not-a-list": _kept("1968"),
+    "kept-in-empty": [],
+    "kept-in-item-not-an-object": ["1968"],
+    "kept-in-item-extra-key": [{**_kept("1968"), "x": 1}],
+    "kept-in-item-without-series": [{"time_periods": ["1968"]}],
+    "kept-in-item-without-periods": [{"series": {}}],
+    "kept-in-periods-not-a-list": [{"series": {}, "time_periods": "1968"}],
+    "kept-in-periods-empty": [_kept()],
+    "kept-in-period-not-text": [{"series": {}, "time_periods": [1968]}],
+    "kept-in-period-empty": [_kept("")],
+    "kept-in-periods-out-of-order": [_kept("1970", "1968")],
+    "kept-in-period-repeated": [_kept("1968", "1968")],
+    "kept-in-series-not-an-object": [{"series": [], "time_periods": ["1968"]}],
+    "kept-in-series-cell-a-number": [_kept("1968", unit=1)],
+    "kept-in-string-before-null": [_kept("1968", u="a"), _kept("1968", u=None)],
+    "kept-in-object-before-string": [_kept("1968", u={}), _kept("1968", u="a")],
+    "kept-in-objects-out-of-jcs-order": [
+        _kept("1968", u={"b": 1}),
+        _kept("1968", u={"a": 2}),
+    ],
+    "kept-in-columns-out-of-order": [_kept("1968", v="a"), _kept("1968", u="a")],
+    "kept-in-series-repeated": [_kept("1968", u="a"), _kept("1970", u="a")],
+}
+
+
 @pytest.mark.parametrize(
     ("trace", "entries"),
     [
@@ -3094,8 +3137,32 @@ _TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
             {"party_totals_left_out": [{**_TOTALS, "provenance": None, "x": 1}]},
             [{"spec_id": "spec_a", **_TOTALS, "provenance": None}],
         ),
+        (
+            {
+                "party_totals_left_out": [
+                    {**_TOTALS, "provenance": "p"},
+                    {**_TOTALS, "provenance": "p", "kept_in": _KEPT_IN},
+                ]
+            },
+            [
+                {"spec_id": "spec_a", **_TOTALS, "provenance": "p"},
+                {
+                    "spec_id": "spec_a",
+                    **_TOTALS,
+                    "provenance": "p",
+                    "kept_in": _KEPT_IN,
+                },
+            ],
+        ),
     ],
-    ids=["no-trace", "no-key", "null", "every-provenance", "null-provenance"],
+    ids=[
+        "no-trace",
+        "no-key",
+        "null",
+        "every-provenance",
+        "null-provenance",
+        "kept-in-beside-same-role-and-provenance",
+    ],
 )
 def test_party_totals_read_as_served_with_their_member(
     trace: Any, entries: list[dict[str, Any]]
@@ -3120,6 +3187,21 @@ def test_party_totals_read_as_served_with_their_member(
             {"party_totals_left_out": [{**_TOTALS, "provenance": 2}, _TOTALS]},
             [_TOTALS],
         ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "role": ""}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "entities": [""]}, _TOTALS]},
+            [_TOTALS],
+        ),
+        *(
+            (
+                {"party_totals_left_out": [{**_TOTALS, "kept_in": kept}, _TOTALS]},
+                [_TOTALS],
+            )
+            for kept in _BAD_KEPT_IN.values()
+        ),
     ],
     ids=[
         "trace-not-an-object",
@@ -3130,6 +3212,9 @@ def test_party_totals_read_as_served_with_their_member(
         "role-not-text",
         "entity-not-text",
         "provenance-not-text",
+        "role-empty",
+        "entity-empty",
+        *_BAD_KEPT_IN,
     ],
 )
 def test_party_totals_of_another_shape_read_as_absent(
@@ -3352,6 +3437,109 @@ def test_derived_roots_compare_by_the_cut_not_its_spelling(
     twin = _derived_member_with_root_rendering(other)
     problems = validator.derived_identity_problems([("a", cut), ("b", twin)])
     assert bool(problems) is conflicts
+
+
+def _saved_derived_member() -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "saved-files" / "saved-derived-member.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    return {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+
+
+_ROOT_TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
+
+
+@pytest.mark.parametrize(
+    ("named", "change", "broken"),
+    [
+        (["root", "root"], {"kept_in": _KEPT_IN}, None),
+        (["member"], {}, "format_invalid"),
+        (["member", "root"], {}, "format_invalid"),
+        (["other"], {}, "format_invalid"),
+        (["root"], {"kept_in": _KEPT_IN[::-1]}, "format_invalid"),
+        (["root"], {"kept_in": [_kept("")]}, "format_invalid"),
+        (["root"], {"role": ""}, "format_invalid"),
+        (["root"], {"entities": [""]}, "format_invalid"),
+    ],
+    ids=[
+        "root-twice-by-kept-in",
+        "derived-member-own-id",
+        "derived-member-own-id-then-root",
+        "neither-member-nor-root",
+        "kept-in-out-of-order",
+        "kept-in-period-empty",
+        "role-empty",
+        "entity-empty",
+    ],
+)
+def test_saved_party_totals_of_a_derived_member_name_its_roots(
+    named: list[str], change: dict[str, Any], broken: str | None
+) -> None:
+    """The second of two entries takes `change`, so the first stays well formed."""
+    decoded = _saved_derived_member()
+    member = decoded["dfo.ref"]["members"][0]
+    spec_ids = {
+        "member": member["spec"]["spec_id"],
+        "root": member["roots"][0]["spec_id"],
+        "other": "spec_00000000000000000000000000000000",
+    }
+    entries = [{"spec_id": spec_ids[name], **_ROOT_TOTALS} for name in named]
+    entries[-1] |= change
+    decoded["dfo.party_totals_left_out"] = entries
+    assert validator._saved_file_rule("2", decoded) == broken
+
+
+@pytest.mark.parametrize(
+    ("value", "text"),
+    [
+        ({"\ufb01": 1, "\U0001f600": 2}, '{"\U0001f600":2,"\ufb01":1}'),
+        ({"b": [True, None], "a": "x\ny"}, '{"a":"x\\ny","b":[true,null]}'),
+        (123.0, "123"),
+        (-0.0, "0"),
+        (1.5, "1.5"),
+        (1e20, "100000000000000000000"),
+        (1e21, "1e+21"),
+        (0.000001, "0.000001"),
+        (1e-7, "1e-7"),
+        (-2.5e-8, "-2.5e-8"),
+    ],
+    ids=[
+        "names-by-utf-16",
+        "nested",
+        "integral-float",
+        "negative-zero",
+        "fraction",
+        "below-1e21",
+        "1e21",
+        "1e-6",
+        "below-1e-6",
+        "negative-exponent",
+    ],
+)
+def test_kept_in_objects_order_by_their_jcs_text(value: Any, text: str) -> None:
+    """RFC 8785 orders names by UTF-16 code units, so U+1F600 precedes U+FB01,
+    and writes numbers as ECMAScript does."""
+    assert validator._jcs_text(value) == text
+
+
+def test_saved_party_totals_follow_member_order() -> None:
+    """The example's entries break the rule out of member order and break
+    none in it."""
+    path = validator.PACKAGE_DIR / "saved-files"
+    metadata = json.loads(
+        (path / "saved-party-totals-member-order-rejected.json").read_text()
+    )["metadata"]
+    decoded = {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+    assert validator._saved_file_rule("1", decoded) == "format_invalid"
+    decoded["dfo.party_totals_left_out"].reverse()
+    assert validator._saved_file_rule("1", decoded) is None
 
 
 @pytest.mark.parametrize(

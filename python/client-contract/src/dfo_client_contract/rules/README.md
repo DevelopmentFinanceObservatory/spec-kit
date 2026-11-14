@@ -131,6 +131,8 @@ The roles a spec takes are those its `definition.identity` binds in `entities` o
 
 A client checks each key the caller types before any request. A key outside the spec's roles raises `InvalidRequestError` `invalid_argument`, and the message names the key and the spec's roles. So GDP for Kenya refuses `origin` and `observationAbout` naming `place`, and a flow spec refuses `place` and a column name such as `financingRecipient` naming `origin` and `destination`. A spec that names no role leaves the check to the server, since the client cannot tell which roles it takes. Such a spec posts `place` as `observationAbout` and any other key as typed, and still refuses `observationAbout` naming `place`.
 
+A party-totals entry names the frame column that holds its party role, such as `financingRecipient`. `columns` in `role-keys.json` maps that column to its role key, `provider`, `creditor`, `source` and `financingProvider` to `origin` and `recipient`, `debtor`, `target` and `financingRecipient` to `destination`, and a column the table does not name, such as `observationAbout`, has no role key. A vector for a column gives the `column` and its `role_key`, null when it has none.
+
 The server replaces a spec's whole binding with the posted one, so a client posts the spec's own `identity.entities` with each role the caller names replaced by its dcids and each role the caller binds to null dropped. A vector gives the spec's `identity` and its `roles`. A vector that narrows adds the caller's `entities`, then either `posted`, the wire entities the build posts, or the `error` with its `reason` and the keys its message `names`, the typed key first.
 
 ## File selector (`file-selector`)

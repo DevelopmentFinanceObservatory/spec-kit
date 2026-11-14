@@ -406,7 +406,7 @@
       }
     },
     "dfo.party_totals_left_out": {
-      "description": "The group totals a fetch left out of each member's rows, each entry as the member's manifest serves it in trace.party_totals_left_out with the member's spec_id. An entry without provenance left the rows of every dataset. Written only when a fetch left any out.",
+      "description": "The group totals a fetch left out of each member's rows, each entry as the manifest serves it in trace.party_totals_left_out with the spec_id of the version it read: a member's for a dataset member, and a root's for a derived member, from the root's party_totals_left_out on the derived manifest, in member order and then in the member's root order. A derived member's entries name its roots only. An entry without provenance left the rows of every dataset, and one with kept_in left its totals in the rows of those series in their time_periods. Several entries can share a spec_id, role and provenance and differ by kept_in. Written only when a fetch left any out.",
       "type": "string",
       "contentMediaType": "application/json",
       "contentSchema": {
@@ -425,12 +425,14 @@
               "type": "string"
             },
             "role": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             },
             "entities": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               }
             },
             "provenance": {
@@ -438,6 +440,41 @@
                 "string",
                 "null"
               ]
+            },
+            "kept_in": {
+              "description": "The series, each with its time_periods, in which the entry's totals stayed in its provenance's rows, as the manifest's entry serves them. A series maps each column of the frame's grain other than the entry's role, time_period and provenance to the cell the series holds there: a string, null, or a unit as a JSON object. Items are sorted by their series cells in column-name order, each null first, then a string by code point, then an object by the code points of its JCS text, and no two items hold the same series. An item's time_periods are sorted by code point, each once. Absent when the totals left every series in every period. Entries that share a role and a provenance differ by kept_in.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "series",
+                  "time_periods"
+                ],
+                "properties": {
+                  "series": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "null",
+                        "object"
+                      ]
+                    }
+                  },
+                  "time_periods": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
             }
           }
         }

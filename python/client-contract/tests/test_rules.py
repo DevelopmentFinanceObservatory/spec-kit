@@ -367,6 +367,10 @@ def spec_roles(identity: dict[str, Any]) -> dict[str, list[str] | None]:
     return {key: bound.get(key) for key in dict.fromkeys(named)}
 
 
+def role_key_for_column(column: str) -> str | None:
+    return rule("role-keys")["columns"].get(column)
+
+
 def posted_entities(
     identity: dict[str, Any], entities: dict[str, list[str] | None]
 ) -> dict[str, list[str]]:
@@ -543,6 +547,9 @@ def test_client_identity(vector: dict[str, Any]) -> None:
 
 @pytest.mark.parametrize("vector", _vectors("role-keys"), ids=_ids("role-keys"))
 def test_role_keys(vector: dict[str, Any]) -> None:
+    if "column" in vector:
+        assert role_key_for_column(vector["column"]) == vector["role_key"]
+        return
     roles = spec_roles(vector["identity"])
     assert list(roles.items()) == list(vector["roles"].items())
     if "error" in vector:
