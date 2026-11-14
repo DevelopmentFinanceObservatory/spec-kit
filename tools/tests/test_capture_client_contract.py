@@ -430,8 +430,16 @@ def test_several_members_stack_with_a_part_column_first() -> None:
         2,
         ["stat_var", "x", "value"],
     )
+    left_out = {"spec_id": "spec_b", "role": "financingProvider", "entities": ["x"]}
     other = capture.Member(
-        [], {"spec_id": "spec_b"}, "cv_b", "B.", "sha256:b", 3, ["y", "z"]
+        [],
+        {"spec_id": "spec_b"},
+        "cv_b",
+        "B.",
+        "sha256:b",
+        3,
+        ["y", "z"],
+        party_totals=[left_out],
     )
     unnamed = capture.Member(
         ["p", "q"],
@@ -449,7 +457,10 @@ def test_several_members_stack_with_a_part_column_first() -> None:
         {"part": "A.", "rows": 2},
         {"part": "p; q", "rows": 3},
     ]
-    assert "part_rows" not in capture.dataset_outcome([other], RULES.reading)["dataset"]
+    alone = capture.dataset_outcome([other], RULES.reading)["dataset"]
+    assert "part_rows" not in alone
+    assert alone["party_totals_left_out"] == [left_out]
+    assert "party_totals_left_out" not in dataset
     columns = capture.dataset_outcome([member], RULES.reading)["dataset"]["columns"]
     assert columns == ["value", "x", "stat_var"]
 
@@ -734,8 +745,8 @@ def test_a_long_build_scan_starts_after_the_recorded_year(
 
 
 def test_the_long_build_scans_start_after_the_recorded_picks() -> None:
-    """The records hold the DAC pick at 1968 and the OECD pick at 1969."""
-    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1969, "OECD": 1970}
+    """The records hold the DAC pick at 1971 and the OECD pick at 1972."""
+    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1972, "OECD": 1973}
 
 
 def test_a_long_build_scan_skips_a_year_without_an_estimate(

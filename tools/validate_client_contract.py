@@ -96,7 +96,9 @@ document validates against its schema, then what the schemas cannot express:
   Each root of a derived member is a dataset member's `spec_id` and
   `content_version` of that scenario. Each member of an example the schema
   accepts records the rendering the scenario's build of its spec posted, and
-  each root of a derived one that rendering in the frame layout.
+  each root of a derived one that rendering in the frame layout, the party
+  totals cut read from `party_totals: false` or `without_party_totals: true`
+  alike.
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -124,8 +126,12 @@ import math
 import re
 import sys
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
+from copy import deepcopy
 from dataclasses import dataclass, field, replace
+from datetime import date, datetime
+from decimal import Decimal
 from functools import lru_cache, partial
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
@@ -196,6 +202,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
         "warning-codes.schema.json",
         "scenario.schema.json",
         "dataset-ref.schema.json",
+        "saved-file.schema.json",
         "rules/rules.schema.json",
     )
     schemas = {name: _load(PACKAGE_DIR / name) for name in names}
@@ -1657,11 +1664,171 @@ def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
     return {"answer": outcome}
 
 
+# The dataset outcome's key, and the manifest trace's, for the group totals a
+# fetch left out of its members' rows.
+PARTY_TOTALS_LEFT_OUT = "party_totals_left_out"
+
+
 def part_label(member: Mapping[str, Any]) -> str:
     """The `part` column's value on a member's rows in a dataset of several
     members. It is the member's parts joined by `; `, or its sentence when it
     answers no part."""
     return "; ".join(member["parts"]) or member["sentence"]
+
+
+def _jcs_text(value: Any) -> str:
+    """The RFC 8785 (JCS) text of a JSON value: object members sorted by the
+    UTF-16 code units of their names, no whitespace, and each number as
+    ECMAScript writes it."""
+    match value:
+        case None:
+            return "null"
+        case bool():
+            return "true" if value else "false"
+        case int():
+            return str(value)
+        case float():
+            return _jcs_number(value)
+        case str():
+            return json.dumps(value, ensure_ascii=False)
+        case list():
+            return "[" + ",".join(map(_jcs_text, value)) + "]"
+        case dict():
+            names = sorted(value, key=lambda name: name.encode("utf-16-be"))
+            return (
+                "{"
+                + ",".join(
+                    f"{_jcs_text(name)}:{_jcs_text(value[name])}" for name in names
+                )
+                + "}"
+            )
+    raise TypeError(f"not a JSON value: {value!r}")
+
+
+def _jcs_number(number: float) -> str:
+    """A finite float as ECMAScript's Number::toString writes it, from the
+    shortest digits that round-trip, which Python's repr also gives."""
+    if not math.isfinite(number):
+        raise ValueError(f"JCS has no form for {number!r}")
+    if number == 0:
+        return "0"
+    sign = "-" if number < 0 else ""
+    _, digit_tuple, exponent = Decimal(repr(abs(number))).normalize().as_tuple()
+    digits = "".join(map(str, digit_tuple))
+    point = len(digits) + int(exponent)
+    if len(digits) <= point <= 21:
+        return sign + digits + "0" * (point - len(digits))
+    if 0 < point <= 21:
+        return sign + digits[:point] + "." + digits[point:]
+    if -6 < point <= 0:
+        return sign + "0." + "0" * -point + digits
+    mantissa = digits[0] + ("." + digits[1:] if len(digits) > 1 else "")
+    shown = point - 1
+    return f"{sign}{mantissa}e{'+' if shown > 0 else '-'}{abs(shown)}"
+
+
+def _kept_series_order(item: Any) -> tuple[tuple[str, int, str], ...] | None:
+    """The order of a `kept_in` item, or None when the item is malformed: an
+    object of exactly a `series` object whose values are each a string, null
+    or an object, and `time_periods`, a non-empty list of non-empty strings
+    sorted by code point, each once. Items order by their series cells in
+    column-name order, each null first, then a string by code point, then an
+    object by the code points of its JCS text."""
+    if not isinstance(item, dict) or set(item) != {"series", "time_periods"}:
+        return None
+    series, periods = item["series"], item["time_periods"]
+    if (
+        not isinstance(series, dict)
+        or not isinstance(periods, list)
+        or not periods
+        or not all(isinstance(period, str) and period for period in periods)
+        or any(a >= b for a, b in pairwise(periods))
+    ):
+        return None
+    order: list[tuple[str, int, str]] = []
+    for name in sorted(series):
+        match series[name]:
+            case None:
+                order.append((name, 0, ""))
+            case str() as text:
+                order.append((name, 1, text))
+            case dict() as unit:
+                order.append((name, 2, _jcs_text(unit)))
+            case _:
+                return None
+    return tuple(order)
+
+
+def _kept_in(value: Any) -> bool:
+    """Whether a party-totals entry's `kept_in` reads: a non-empty list of
+    well-formed items (`_kept_series_order`), in that order, no two with the
+    same series."""
+    if not isinstance(value, list) or not value:
+        return False
+    previous = None
+    for item in value:
+        order = _kept_series_order(item)
+        if order is None or (previous is not None and order <= previous):
+            return False
+        previous = order
+    return True
+
+
+def _party_totals_entry_reads(item: Any) -> bool:
+    """Whether a served party-totals entry reads: an object with a non-empty
+    string `role`, a list of non-empty string `entities`, a `provenance`
+    absent, a string or null, and a `kept_in` absent or as `_kept_in` reads
+    it."""
+    if not isinstance(item, dict):
+        return False
+    role, entities = item.get("role"), item.get("entities")
+    return (
+        isinstance(role, str)
+        and bool(role)
+        and isinstance(entities, list)
+        and all(isinstance(entity, str) and entity for entity in entities)
+        and isinstance(item.get("provenance"), str | None)
+        and ("kept_in" not in item or _kept_in(item["kept_in"]))
+    )
+
+
+def party_totals_left_out(
+    manifest: Mapping[str, Any], spec_id: str
+) -> list[dict[str, Any]]:
+    """The group totals a manifest's `trace.party_totals_left_out` names, each
+    entry as served with the member's `spec_id` first: its `role`, its
+    `entities`, its `provenance` when the entry holds one, null included, and
+    its `kept_in` when the entry holds it. An entry without `provenance` left
+    the rows of every dataset, and one with `kept_in` left its totals in the
+    rows of those series in their `time_periods`. A key an entry holds beyond
+    these is dropped. Several entries can share a role and a provenance, one
+    per set of kept series and periods, so entries are read in order and
+    never merged.
+
+    The trace is no strict member, so it reads leniently: a trace that is not
+    an object, or a `party_totals_left_out` that is not a list, names none,
+    and an entry reads only as `_party_totals_entry_reads` reads it. Any other
+    entry reads as absent, and the entries beside it still read.
+    """
+    trace = manifest.get("trace")
+    served = trace.get(PARTY_TOTALS_LEFT_OUT) if isinstance(trace, dict) else None
+    if not isinstance(served, list):
+        return []
+    entries = []
+    for item in served:
+        if not _party_totals_entry_reads(item):
+            continue
+        entry = {
+            "spec_id": spec_id,
+            "role": item["role"],
+            "entities": list(item["entities"]),
+        }
+        if "provenance" in item:
+            entry["provenance"] = item["provenance"]
+        if "kept_in" in item:
+            entry["kept_in"] = deepcopy(item["kept_in"])
+        entries.append(entry)
+    return entries
 
 
 def dataset_summary(
@@ -1670,9 +1837,10 @@ def dataset_summary(
     *,
     search_warning: bool | None = None,
 ) -> dict[str, Any]:
-    """A dataset outcome's members and gaps, and for a fetch of an answer
-    whether it issued a SearchWarning, without the rows, columns and per-part
-    row counts the Parquet bodies hold."""
+    """A dataset outcome's members and gaps, the party totals its members'
+    manifests say were left out when there are any, and for a fetch of an
+    answer whether it issued a SearchWarning, without the rows, columns and
+    per-part row counts the Parquet bodies hold."""
     summary: dict[str, Any] = {
         "complete": not missing,
         "members": [
@@ -1686,6 +1854,11 @@ def dataset_summary(
         ],
         "missing": [{"part": gap["part"], "kind": gap["kind"]} for gap in missing],
     }
+    left_out = [
+        entry for member in members for entry in member.get(PARTY_TOTALS_LEFT_OUT, ())
+    ]
+    if left_out:
+        summary[PARTY_TOTALS_LEFT_OUT] = left_out
     if search_warning is not None:
         summary["search_warning"] = search_warning
     return summary
@@ -1829,9 +2002,12 @@ LAYOUT_RENDERINGS = {
     "long": {"format": "parquet", "bundle": False},
     "frame": {"format": "parquet", "bundle": False, "layout": "frame"},
 }
-# The rendering member a fetch posts as true unless the caller keeps party
-# totals, which leaves out the group totals of the identity's open party roles.
+# The rendering member a served rendering and a ref carry as true for the cut
+# that leaves out the group totals of the identity's open party roles, and the
+# request member a fetch posts as false for that cut unless the caller keeps
+# party totals. A ref may carry either, and a plain rendering carries neither.
 WITHOUT_PARTY_TOTALS = "without_party_totals"
+PARTY_TOTALS = "party_totals"
 # The column a client presents last, the column a stacked dataset puts
 # first, the measure no row sorts by, and the sort key that comes last.
 STAT_VAR = "stat_var"
@@ -1861,11 +2037,65 @@ def rendering_for(layout: str | None) -> dict[str, Any]:
 def fetch_rendering(
     layout: str | None, *, party_totals: bool = False
 ) -> dict[str, Any]:
-    """The build request's `options` for a fetch of an answer or a spec, or
-    a mint: the layout's rendering, with `without_party_totals` unless the
-    caller keeps party totals."""
+    """The rendering a fetch of an answer or a spec, or a mint, asks for and
+    a ref it writes records: the layout's rendering, with
+    `without_party_totals` unless the caller keeps party totals.
+    `posted_options` gives the `options` its build posts."""
     rendering = rendering_for(layout)
     if not party_totals:
+        rendering[WITHOUT_PARTY_TOTALS] = True
+    return rendering
+
+
+def party_totals_cut(rendering: Mapping[str, Any]) -> bool | None:
+    """Whether `rendering`, posted options or a ref's or a served rendering,
+    leaves out party totals. `party_totals: false` or `without_party_totals:
+    true` says so, alone or together, and neither key says it keeps them.
+    None when a present key holds any other value, `party_totals: true` and
+    `without_party_totals: false` included, alone or beside the other key.
+    A build that keeps party totals posts no cut key, and the server refuses
+    two keys that disagree with 400 `request_invalid`."""
+    cut = {PARTY_TOTALS: False, WITHOUT_PARTY_TOTALS: True}
+    present = [key for key in cut if key in rendering]
+    if any(rendering[key] is not cut[key] for key in present):
+        return None
+    return bool(present)
+
+
+def posted_options(rendering: Mapping[str, Any]) -> dict[str, Any]:
+    """The `options` a build posts for `rendering`: its members, with the
+    cut, from either key, posted as `party_totals: false`. A rendering
+    `party_totals_cut` finds invalid is posted as it stands."""
+    cut = party_totals_cut(rendering)
+    if cut is None:
+        return dict(rendering)
+    options = {
+        k: v
+        for k, v in rendering.items()
+        if k not in (PARTY_TOTALS, WITHOUT_PARTY_TOTALS)
+    }
+    if cut:
+        options[PARTY_TOTALS] = False
+    return options
+
+
+def served_rendering(options: Any) -> Any:
+    """The rendering a served manifest records for posted `options` or a
+    ref's rendering, in the spelling a ref compares on: its members, with
+    the cut, from either key, as `without_party_totals: true`. Anything that is
+    not an object, and options `party_totals_cut` finds invalid, stay as they
+    stand, so a build that posted them matches no expected build."""
+    if not isinstance(options, dict):
+        return options
+    cut = party_totals_cut(options)
+    if cut is None:
+        return options
+    rendering = {
+        k: v
+        for k, v in options.items()
+        if k not in (PARTY_TOTALS, WITHOUT_PARTY_TOTALS)
+    }
+    if cut:
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -1875,11 +2105,12 @@ def resumed_rendering(
 ) -> dict[str, Any]:
     """The rendering a resumed operation's build posted, as its done
     manifest records it: the layout's rendering, with `without_party_totals`
-    when the artifact for that rendering carries the cut."""
+    when the artifact for that rendering carries the cut in either
+    spelling."""
     rendering = rendering_for(layout)
     artifact = pick_artifact(manifest, rendering)
     found = artifact.get("rendering") if artifact is not None else None
-    if isinstance(found, dict) and found.get(WITHOUT_PARTY_TOTALS) is True:
+    if isinstance(found, dict) and party_totals_cut(found):
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -2258,7 +2489,7 @@ def build_body(
 ) -> dict[str, Any]:
     """The body a client posts to build `spec`, a step's `spec` or a ref's.
     It holds the spec_id and unmodified definition, `scope` when it narrows
-    anything, and `rendering` as the options."""
+    anything, and `rendering` as `posted_options` gives its options."""
     input_: dict[str, Any] = {
         "kind": "spec_id",
         "spec_id": spec["spec_id"],
@@ -2266,7 +2497,14 @@ def build_body(
     }
     if scope:
         input_["scope"] = dict(scope)
-    return {"schema_version": 1, "input": input_, "options": dict(rendering)}
+    return {"schema_version": 1, "input": input_, "options": posted_options(rendering)}
+
+
+def _same_build(body: Any) -> Any:
+    """A build body with its options read through `served_rendering`."""
+    if not isinstance(body, dict) or not isinstance(body.get("options"), dict):
+        return body
+    return {**body, "options": served_rendering(body["options"])}
 
 
 def pick_artifact(
@@ -2766,8 +3004,18 @@ class _Replay:
         scope: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """A build request whose recorded body is the one `build_body` gives
-        for `spec`, `scope` and `rendering`."""
-        return self.posted(_BUILD, build_body(spec, scope, rendering))
+        for `spec`, `scope` and `rendering`, its options read through
+        `served_rendering`, so a cut posted as `party_totals: false` or as
+        `without_party_totals: true` posts the same build."""
+        posts = build_body(spec, scope, rendering)
+        exchange = self.call(*_BUILD)
+        sent = exchange["request"].get("json")
+        if _same_build(sent) != _same_build(posts):
+            raise _UnfitError(
+                f"exchange {self.cursor - 1} posts {json.dumps(sent)[:300]}, "
+                f"where the rules post {json.dumps(posts)[:300]}"
+            )
+        return exchange
 
     def build(
         self,
@@ -2852,6 +3100,7 @@ class _Replay:
             "spec_id": built,
             "content_version": manifest["content_version"],
             "sentence": sentence,
+            PARTY_TOTALS_LEFT_OUT: party_totals_left_out(manifest, built),
             "served": served_table(data),
         }
 
@@ -2890,7 +3139,12 @@ class _Replay:
             data, refusal = self.stored_file(member, manifest)
             if data is None:
                 return None, refusal
-            return {**stored, "served": served_table(data)}, None
+            left_out = party_totals_left_out(manifest, spec_id)
+            return {
+                **stored,
+                PARTY_TOTALS_LEFT_OUT: left_out,
+                "served": served_table(data),
+            }, None
 
         def rebuilt(manifest: dict[str, Any]) -> dict[str, Any]:
             held = {**spec, "sentence": member["sentence"]}
@@ -3743,25 +3997,27 @@ def _answered_builds(scenario: Mapping[str, Any]) -> Iterator[tuple[Any, Any]]:
 
 
 def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the digest of the artifact each build's manifest lists for them. Builds
-    that answered the same file list each rendering in build order."""
+    """The renderings the builds in `scenario` posted as their `options`,
+    each as `served_rendering` reads it, by the digest of the artifact each
+    build's manifest lists for them. Builds that answered the same file list
+    each rendering in build order."""
     renderings: dict[str, list[Any]] = {}
     for manifest, options in _answered_builds(scenario):
         digest = _artifact_digest(manifest, options)
         if digest is not None:
-            renderings.setdefault(digest, []).append(options)
+            renderings.setdefault(digest, []).append(served_rendering(options))
     return renderings
 
 
 def _spec_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the spec_id each build's manifest answered, in build order."""
+    """The renderings the builds in `scenario` posted as their `options`,
+    each as `served_rendering` reads it, by the spec_id each build's manifest
+    answered, in build order."""
     renderings: dict[str, list[Any]] = {}
     for manifest, options in _answered_builds(scenario):
         spec_id = read_string(read_object(manifest, "definition"), "spec_id")
         if spec_id is not None:
-            renderings.setdefault(spec_id, []).append(options)
+            renderings.setdefault(spec_id, []).append(served_rendering(options))
     return renderings
 
 
@@ -3793,7 +4049,9 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     the build that answered its file in its `scenario` posted, since a ref
     records the rendering its fetch posted, or a derived member's root
     records one no build of its spec there posted, read as `_root_rendering`
-    gives. A root's `groupby` is the schema's alone to check."""
+    gives. Both sides are read through `served_rendering`, so either
+    spelling of the cut is the cut. A root's `groupby` is the schema's alone
+    to check."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
@@ -3809,7 +4067,7 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             for position, root in enumerate(read_objects(member, "roots")):
                 where = f"member {index} root {position}"
                 spec_id = read_string(root, "spec_id")
-                rendering = read_object(root, "rendering")
+                rendering = served_rendering(read_object(root, "rendering"))
                 if spec_id not in by_spec:
                     problems.append(
                         f"{label}: {where}'s spec is built by no {name} build"
@@ -3825,7 +4083,7 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             continue
         artifact = read_object(member, "artifact")
         digest = read_string(artifact, "digest")
-        rendering = read_object(artifact, "rendering")
+        rendering = served_rendering(read_object(artifact, "rendering"))
         if digest not in posted:
             problems.append(
                 f"{label}: member {index}'s file is answered by no {name} build"
@@ -3877,6 +4135,158 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
     return problems
 
 
+# --- saved files ------------------------------------------------------------
+
+JSON_MEDIA = "application/json"
+
+
+def _no_constant(name: str) -> Any:
+    raise ValueError(f"{name} is not JSON")
+
+
+def _decoded_metadata(
+    validator: jsonschema.Draft202012Validator, metadata: Mapping[str, Any]
+) -> tuple[dict[str, Any], list[str]]:
+    """Each key of a saved file's metadata the schema gives as JSON text,
+    decoded, and where a value breaks its key's `contentSchema`. JSON
+    Schema treats `contentSchema` as an annotation, so the check applies it.
+    JSON text that does not decode, NaN and Infinity included, breaks it."""
+    schema = validator.schema
+    decoded: dict[str, Any] = {}
+    problems = []
+    for key, entry in schema["properties"].items():
+        text = metadata.get(key)
+        if entry.get("contentMediaType") != JSON_MEDIA or not isinstance(text, str):
+            continue
+        try:
+            value = json.loads(text, parse_constant=_no_constant)
+        except ValueError:
+            problems.append(f"{key}: not JSON")
+            continue
+        content = validator.evolve(
+            schema={"$ref": f"{schema['$id']}#/properties/{key}/contentSchema"}
+        )
+        problems.extend(
+            f"{key}: {_where(error)}: {error.message}"
+            for error in content.iter_errors(value)
+        )
+        decoded[key] = value
+    return decoded, problems
+
+
+def _calendar_dates_exist(decoded: Mapping[str, Any]) -> bool:
+    """Whether a saved file's `dfo.fetched_at` and `held_until`, which the
+    schema checks by pattern, name a time and a date that exist."""
+    try:
+        if (fetched := decoded.get("dfo.fetched_at")) is not None:
+            datetime.fromisoformat(fetched)
+        if (held := decoded["dfo.dataset"].get("held_until")) is not None:
+            date.fromisoformat(held)
+    except ValueError:
+        return False
+    return True
+
+
+def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
+    """The first rule a saved file that meets its schema breaks, or None:
+    a `dfo.fetched_at` or `held_until` that is no real time or date, as both
+    loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
+    holds a derived member, "1" when it is absent; one member citation and
+    one row count per member of `dfo.ref`, none when it is absent; and each
+    `dfo.party_totals_left_out` entry reading as a served entry reads
+    (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
+    a root of a derived member, in member order and then in the member's root
+    order."""
+    if not _calendar_dates_exist(decoded):
+        return "format_invalid"
+    ref = decoded.get("dfo.ref")
+    if ref is not None and (broken := _ref_rule(ref)) is not None:
+        return broken
+    members = ref["members"] if ref is not None else []
+    if version != ("2" if any(map(_derived, members)) else "1"):
+        return "format_invalid"
+    dataset = decoded["dfo.dataset"]
+    if (len(dataset["member_citations"]), len(dataset["member_rows"])) != (
+        len(members),
+        len(members),
+    ):
+        return "format_invalid"
+    entries = decoded.get("dfo.party_totals_left_out", [])
+    if not all(map(_party_totals_entry_reads, entries)):
+        return "format_invalid"
+    return None if _party_totals_in_order(members, entries) else "format_invalid"
+
+
+def _party_totals_in_order(
+    members: Sequence[Mapping[str, Any]], entries: Sequence[Mapping[str, Any]]
+) -> bool:
+    """Whether each party-totals entry names a dataset member or a root of a
+    derived member, in member order and then in the member's root order. A
+    derived member's entries name its roots only, since its totals are what
+    each root's read left out. A spec_id can name more than one of these, so
+    each entry takes the first one at or after the one the entry before it
+    took, which finds an order whenever one exists."""
+    named = [
+        spec_id
+        for member in members
+        for spec_id in (
+            [root["spec_id"] for root in member["roots"]]
+            if _derived(member)
+            else [member["spec"]["spec_id"]]
+        )
+    ]
+    position = 0
+    for entry in entries:
+        try:
+            position = named.index(entry["spec_id"], position)
+        except ValueError:
+            return False
+    return True
+
+
+def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:
+    paths = sorted((PACKAGE_DIR / "saved-files").glob("*.json"))
+    problems = [] if paths else ["saved-files: no saved-file examples found"]
+    verdicts: set[str] = set()
+    for path in paths:
+        label = f"saved-files/{path.name}"
+        record = _load(path)
+        if not isinstance(record, dict) or record.get("name") != path.stem:
+            problems.append(f"{label}: name does not match the file name")
+            continue
+        error = record.get("error")
+        if ("expect" in record) == isinstance(error, dict):
+            problems.append(f"{label}: carries neither or both of expect and error")
+            continue
+        metadata = record.get("metadata")
+        found = _schema_problems(label, validator, metadata)
+        decoded: dict[str, Any] = {}
+        if isinstance(metadata, dict):
+            decoded, content = _decoded_metadata(validator, metadata)
+            found.extend(f"{label}: schema: {problem}" for problem in content)
+        by = error.get("by") if isinstance(error, dict) else None
+        verdicts.add(by or "accept")
+        if by == "schema":
+            if not found:
+                problems.append(
+                    f"{label}: the schema accepts a saved file it should reject"
+                )
+            continue
+        if found:
+            problems.extend(found)
+            continue
+        broken = _saved_file_rule(metadata["dfo.format_version"], decoded)
+        wanted = error.get("reason") if by == "rule" else None
+        if broken != wanted:
+            problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
+    problems.extend(
+        f"saved-files: no {verdict} example"
+        for verdict in ("accept", "schema", "rule")
+        if paths and verdict not in verdicts
+    )
+    return problems
+
+
 # --- derived identities -----------------------------------------------------
 
 # What fixes what among a derived member's identities. Two members that agree
@@ -3920,7 +4330,7 @@ def derived_identities(member: Mapping[str, Any]) -> dict[str, str | None]:
         [
             read_string(root, "spec_id"),
             read_string(root, "content_version"),
-            read_object(root, "rendering"),
+            served_rendering(read_object(root, "rendering")),
         ]
         for root in read_objects(member, "roots")
     ]
@@ -4323,6 +4733,7 @@ def validate() -> list[str]:
             f"scenarios: {size:,} bytes pass the {SCENARIOS_BUDGET:,}-byte budget"
         )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
+    problems.extend(_check_saved_files(validators["saved-file.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
     problems.extend(_check_derived_identities())
     return problems

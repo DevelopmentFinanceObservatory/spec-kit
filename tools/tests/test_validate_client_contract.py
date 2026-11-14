@@ -162,6 +162,30 @@ def _set_outcome(index: int, change: Callable[[Any], None]) -> Callable[[Any], N
     return lambda doc: change(doc["expect"][index])
 
 
+def _party_totals(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the `party_totals_left_out` of the record's outcome `index`."""
+    return _set_outcome(index, lambda o: change(o["dataset"]))
+
+
+_LEFT_OUT_ENTRY = {
+    "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+    "role": "financingProvider",
+    "entities": ["DACCountriesTotal"],
+}
+_SAVED = "saved-files/saved-answer-party-totals-left-out.json"
+
+
+def _saved_key(key: str, change: Callable[[Any], Any]) -> Callable[[Any], None]:
+    """Replaces a saved-file example's JSON text at `key` with the JSON of
+    what `change` makes of its decoded value."""
+
+    def edit(doc: Any) -> None:
+        value = json.loads(doc["metadata"][key])
+        doc["metadata"][key] = json.dumps(change(value))
+
+    return edit
+
+
 def _first_gap(**fields: Any) -> Callable[[Any], None]:
     return _set_outcome(0, lambda o: o["answer"]["gaps"][0].update(fields))
 
@@ -177,6 +201,15 @@ def _swap_columns(first: str, second: str) -> Callable[[Any], None]:
         columns[i], columns[j] = columns[j], columns[i]
 
     return change
+
+
+def _set_cut(doc: Any, cut: dict[str, Any]) -> None:
+    """Replaces the party totals cut the record's first build posts, in either
+    spelling, with `cut`."""
+    options = doc["exchanges"][0]["request"]["json"]["options"]
+    for key in ("party_totals", "without_party_totals"):
+        options.pop(key, None)
+    options.update(cut)
 
 
 def _selector_query_with_cut(doc: Any) -> None:
@@ -1867,8 +1900,13 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             _FETCH,
-            lambda doc: doc["exchanges"][0]["request"]["json"]["options"].pop(
-                "without_party_totals"
+            lambda doc: _set_cut(doc, {}),
+            f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
+        ),
+        (
+            _FETCH,
+            lambda doc: _set_cut(
+                doc, {"party_totals": True, "without_party_totals": True}
             ),
             f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
         ),
@@ -2064,6 +2102,52 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "rules/file-selector.json",
             lambda doc: doc.pop("query_keys"),
             "rules/file-selector.json: missing or unreadable, or holds no query_keys",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-left-out.json",
+            _party_totals(0, lambda d: d.pop("party_totals_left_out")),
+            "fetch-spec-party-totals-left-out.json: step 0 expects",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-kept.json",
+            _party_totals(
+                0, lambda d: d.update(party_totals_left_out=[_LEFT_OUT_ENTRY])
+            ),
+            "fetch-spec-party-totals-kept.json: step 0 expects",
+        ),
+        (
+            "scenarios/search-warning-top5.json",
+            _party_totals(2, lambda d: d["party_totals_left_out"][0].pop("provenance")),
+            "search-warning-top5.json: step 2 expects",
+        ),
+        (
+            "scenario.schema.json",
+            lambda doc: doc["$defs"]["error"]["properties"]["class"]["enum"].remove(
+                "BundleError"
+            ),
+            "'hash_mismatch' raises 'BundleError', a class no scenario names",
+        ),
+        (
+            _SAVED,
+            _saved_key("dfo.dataset", lambda d: {**d, "later": True}),
+            "dfo.dataset: <root>: Additional properties are not allowed",
+        ),
+        (
+            _SAVED,
+            lambda doc: doc["metadata"].update({"dfo.question": "NaN"}),
+            "dfo.question: not JSON",
+        ),
+        (
+            "saved-files/saved-fetched-at-not-json-rejected.json",
+            lambda doc: doc["metadata"].update(
+                {"dfo.fetched_at": '"2026-10-28T22:26:01Z"'}
+            ),
+            "the schema accepts a saved file it should reject",
+        ),
+        (
+            "saved-files/saved-member-rows-count-rejected.json",
+            _saved_key("dfo.dataset", lambda d: {**d, "member_rows": [96]}),
+            "breaks rule None, expected 'format_invalid'",
         ),
     ],
     ids=[
@@ -2322,6 +2406,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "mentions-as-a-string-matched",
         "candidate-spec-not-an-object-read",
         "party-totals-left-in-by-default",
+        "party-totals-cut-disagreeing",
         "party-totals-kept-without-the-option",
         "mint-party-totals-left-in-by-default",
         "columns-out-of-reading-order",
@@ -2350,6 +2435,14 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "file-selector-vector-carries-the-cut",
         "file-selector-vector-out-of-key-order",
         "file-selector-without-query-keys",
+        "party-totals-left-out-not-expected",
+        "party-totals-expected-where-none-were-left-out",
+        "party-totals-provenance-dropped",
+        "client-code-class-outside-the-scenario-schema",
+        "saved-dataset-with-a-key-it-does-not-name",
+        "saved-key-holding-nan",
+        "saved-reject-example-the-schema-accepts",
+        "saved-rule-example-that-breaks-no-rule",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -2463,6 +2556,80 @@ def test_a_spec_built_in_two_renderings_keys_each_by_its_file() -> None:
     scenario = {"exchanges": [build(cut, "sha256:a"), build(plain, "sha256:b")]}
     posted = validator.posted_renderings(scenario)
     assert posted == {"sha256:a": [cut], "sha256:b": [plain]}
+    requested = {"format": "parquet", "bundle": False, "party_totals": False}
+    scenario = {"exchanges": [build(requested, "sha256:a")]}
+    assert validator.posted_renderings(scenario) == {"sha256:a": [cut]}
+
+
+@pytest.mark.parametrize(
+    "cut",
+    [
+        {"party_totals": False},
+        {"without_party_totals": True},
+        {"party_totals": False, "without_party_totals": True},
+    ],
+    ids=["request-spelling", "served-spelling", "both"],
+)
+def test_a_build_may_post_the_cut_in_either_spelling(
+    package_dir: Path, cut: dict[str, Any]
+) -> None:
+    _edit(package_dir / _FETCH, lambda doc: _set_cut(doc, cut))
+    assert validator.validate() == []
+
+
+_KEEP_KEYS = [
+    {"party_totals": True},
+    {"without_party_totals": False},
+    {"party_totals": True, "without_party_totals": False},
+]
+_KEEP_IDS = ["request-spelling", "served-spelling", "both"]
+
+
+@pytest.mark.parametrize("kept", _KEEP_KEYS, ids=_KEEP_IDS)
+def test_a_build_that_keeps_party_totals_posts_no_cut_key(
+    package_dir: Path, kept: dict[str, Any]
+) -> None:
+    path = "scenarios/fetch-spec-party-totals-kept.json"
+    _edit(package_dir / path, lambda doc: _set_cut(doc, kept))
+    problems = validator.validate()
+    assert any("_UnfitError('exchange 0 posts" in problem for problem in problems)
+
+
+@pytest.mark.parametrize(
+    ("rendering", "cut"),
+    [
+        ({}, False),
+        ({"party_totals": False}, True),
+        ({"without_party_totals": True}, True),
+        ({"party_totals": False, "without_party_totals": True}, True),
+        *((kept, None) for kept in _KEEP_KEYS),
+        ({"party_totals": False, "without_party_totals": False}, None),
+        ({"party_totals": True, "without_party_totals": True}, None),
+        ({"party_totals": "false"}, None),
+    ],
+)
+def test_the_cut_reads_only_cut_values(
+    rendering: dict[str, Any], cut: bool | None
+) -> None:
+    assert validator.party_totals_cut(rendering) is cut
+
+
+def test_a_fetch_posts_the_cut_as_party_totals_false() -> None:
+    rendering = validator.fetch_rendering(None)
+    assert rendering == {
+        "format": "parquet",
+        "bundle": False,
+        "without_party_totals": True,
+    }
+    body = validator.build_body({"spec_id": "s", "definition": {}}, None, rendering)
+    assert body["options"] == {
+        "format": "parquet",
+        "bundle": False,
+        "party_totals": False,
+    }
+    kept = validator.fetch_rendering(None, party_totals=True)
+    body = validator.build_body({"spec_id": "s", "definition": {}}, None, kept)
+    assert body["options"] == {"format": "parquet", "bundle": False}
 
 
 def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
@@ -2475,6 +2642,12 @@ def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
 def test_a_resumed_result_takes_the_rendering_its_build_posted() -> None:
     cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
     manifest = {"artifacts": [{"artifact_digest": "sha256:a", "rendering": cut}]}
+    assert validator.resumed_rendering(None, manifest) == cut
+    manifest["artifacts"][0]["rendering"] = {
+        "format": "parquet",
+        "bundle": False,
+        "party_totals": False,
+    }
     assert validator.resumed_rendering(None, manifest) == cut
     manifest["artifacts"][0]["rendering"] = {"format": "parquet", "bundle": False}
     assert validator.resumed_rendering(None, manifest) == validator.rendering_for(None)
@@ -2907,6 +3080,151 @@ def test_a_required_member_that_admits_null_stays_required() -> None:
     assert any("'next_cursor' is a required property" in p for p in problems)
 
 
+_TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
+
+
+def _kept(*periods: str, **series: Any) -> dict[str, Any]:
+    """A `kept_in` item of the series `series` kept in `periods`."""
+    return {"series": series, "time_periods": list(periods)}
+
+
+_UNIT = {"base_year": 2021, "currency": "USD", "prices": "constant"}
+# In order: by the series cells in column-name order, null before a string
+# before an object, and objects by their JCS text.
+_KEPT_IN = [
+    _kept("1968", "1970", stat_var="sv", unit=None),
+    _kept("1968", stat_var="sv", unit="CurrencyUSD"),
+    _kept("1968", stat_var="sv", unit=_UNIT),
+    _kept("1968", stat_var="sv", unit={**_UNIT, "base_year": 2022}),
+    _kept("1970", stat_var="sw", unit=None),
+]
+
+# Each breaks `kept_in`'s shape or order.
+_BAD_KEPT_IN = {
+    "kept-in-not-a-list": _kept("1968"),
+    "kept-in-empty": [],
+    "kept-in-item-not-an-object": ["1968"],
+    "kept-in-item-extra-key": [{**_kept("1968"), "x": 1}],
+    "kept-in-item-without-series": [{"time_periods": ["1968"]}],
+    "kept-in-item-without-periods": [{"series": {}}],
+    "kept-in-periods-not-a-list": [{"series": {}, "time_periods": "1968"}],
+    "kept-in-periods-empty": [_kept()],
+    "kept-in-period-not-text": [{"series": {}, "time_periods": [1968]}],
+    "kept-in-period-empty": [_kept("")],
+    "kept-in-periods-out-of-order": [_kept("1970", "1968")],
+    "kept-in-period-repeated": [_kept("1968", "1968")],
+    "kept-in-series-not-an-object": [{"series": [], "time_periods": ["1968"]}],
+    "kept-in-series-cell-a-number": [_kept("1968", unit=1)],
+    "kept-in-string-before-null": [_kept("1968", u="a"), _kept("1968", u=None)],
+    "kept-in-object-before-string": [_kept("1968", u={}), _kept("1968", u="a")],
+    "kept-in-objects-out-of-jcs-order": [
+        _kept("1968", u={"b": 1}),
+        _kept("1968", u={"a": 2}),
+    ],
+    "kept-in-columns-out-of-order": [_kept("1968", v="a"), _kept("1968", u="a")],
+    "kept-in-series-repeated": [_kept("1968", u="a"), _kept("1970", u="a")],
+}
+
+
+@pytest.mark.parametrize(
+    ("trace", "entries"),
+    [
+        (None, []),
+        ({}, []),
+        ({"party_totals_left_out": None}, []),
+        ({"party_totals_left_out": [_TOTALS]}, [{"spec_id": "spec_a", **_TOTALS}]),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "provenance": None, "x": 1}]},
+            [{"spec_id": "spec_a", **_TOTALS, "provenance": None}],
+        ),
+        (
+            {
+                "party_totals_left_out": [
+                    {**_TOTALS, "provenance": "p"},
+                    {**_TOTALS, "provenance": "p", "kept_in": _KEPT_IN},
+                ]
+            },
+            [
+                {"spec_id": "spec_a", **_TOTALS, "provenance": "p"},
+                {
+                    "spec_id": "spec_a",
+                    **_TOTALS,
+                    "provenance": "p",
+                    "kept_in": _KEPT_IN,
+                },
+            ],
+        ),
+    ],
+    ids=[
+        "no-trace",
+        "no-key",
+        "null",
+        "every-provenance",
+        "null-provenance",
+        "kept-in-beside-same-role-and-provenance",
+    ],
+)
+def test_party_totals_read_as_served_with_their_member(
+    trace: Any, entries: list[dict[str, Any]]
+) -> None:
+    assert validator.party_totals_left_out({"trace": trace}, "spec_a") == entries
+
+
+@pytest.mark.parametrize(
+    ("trace", "entries"),
+    [
+        ([_TOTALS], []),
+        ({"party_totals_left_out": {}}, []),
+        ({"party_totals_left_out": "x"}, []),
+        ({"party_totals_left_out": [7, _TOTALS]}, [_TOTALS]),
+        ({"party_totals_left_out": [{"role": "r"}, _TOTALS]}, [_TOTALS]),
+        ({"party_totals_left_out": [{**_TOTALS, "role": 1}, _TOTALS]}, [_TOTALS]),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "entities": [1]}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "provenance": 2}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "role": ""}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "entities": [""]}, _TOTALS]},
+            [_TOTALS],
+        ),
+        *(
+            (
+                {"party_totals_left_out": [{**_TOTALS, "kept_in": kept}, _TOTALS]},
+                [_TOTALS],
+            )
+            for kept in _BAD_KEPT_IN.values()
+        ),
+    ],
+    ids=[
+        "trace-not-an-object",
+        "key-an-object",
+        "key-a-string",
+        "entry-not-an-object",
+        "no-entities",
+        "role-not-text",
+        "entity-not-text",
+        "provenance-not-text",
+        "role-empty",
+        "entity-empty",
+        *_BAD_KEPT_IN,
+    ],
+)
+def test_party_totals_of_another_shape_read_as_absent(
+    trace: Any, entries: list[dict[str, Any]]
+) -> None:
+    """Only the malformed entry drops, and the well-formed one beside it reads."""
+    read = validator.party_totals_left_out({"trace": trace}, "spec_a")
+    assert read == [{"spec_id": "spec_a", **entry} for entry in entries]
+
+
 def test_scenarios_past_their_budget_are_reported(
     package_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -3086,3 +3404,162 @@ def test_a_broken_long_build_is_reported(
     _edit(_write_long_build(package_dir, kind), change)
     problems = validator.validate()
     assert any(expected in problem for problem in problems), problems
+
+
+def _derived_member_with_root_rendering(rendering: dict[str, Any]) -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "refs" / "ref-derived-member.json"
+    member = copy.deepcopy(
+        json.loads(path.read_text(encoding="utf-8"))["ref"]["members"][0]
+    )
+    member["roots"][0]["rendering"] = rendering
+    return member
+
+
+_CUT_ROOT = {"format": "parquet", "bundle": False, "layout": "frame"}
+
+
+@pytest.mark.parametrize(
+    ("other", "conflicts"),
+    [
+        ({**_CUT_ROOT, "party_totals": False}, False),
+        ({**_CUT_ROOT, "party_totals": False, "without_party_totals": True}, False),
+        (_CUT_ROOT, True),
+        ({**_CUT_ROOT, "party_totals": True}, True),
+    ],
+    ids=["request-spelling", "both-spellings", "plain", "kept"],
+)
+def test_derived_roots_compare_by_the_cut_not_its_spelling(
+    other: dict[str, Any], conflicts: bool
+) -> None:
+    cut = _derived_member_with_root_rendering(
+        {**_CUT_ROOT, "without_party_totals": True}
+    )
+    twin = _derived_member_with_root_rendering(other)
+    problems = validator.derived_identity_problems([("a", cut), ("b", twin)])
+    assert bool(problems) is conflicts
+
+
+def _saved_derived_member() -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "saved-files" / "saved-derived-member.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    return {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+
+
+_ROOT_TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
+
+
+@pytest.mark.parametrize(
+    ("named", "change", "broken"),
+    [
+        (["root", "root"], {"kept_in": _KEPT_IN}, None),
+        (["member"], {}, "format_invalid"),
+        (["member", "root"], {}, "format_invalid"),
+        (["other"], {}, "format_invalid"),
+        (["root"], {"kept_in": _KEPT_IN[::-1]}, "format_invalid"),
+        (["root"], {"kept_in": [_kept("")]}, "format_invalid"),
+        (["root"], {"role": ""}, "format_invalid"),
+        (["root"], {"entities": [""]}, "format_invalid"),
+    ],
+    ids=[
+        "root-twice-by-kept-in",
+        "derived-member-own-id",
+        "derived-member-own-id-then-root",
+        "neither-member-nor-root",
+        "kept-in-out-of-order",
+        "kept-in-period-empty",
+        "role-empty",
+        "entity-empty",
+    ],
+)
+def test_saved_party_totals_of_a_derived_member_name_its_roots(
+    named: list[str], change: dict[str, Any], broken: str | None
+) -> None:
+    """The second of two entries takes `change`, so the first stays well formed."""
+    decoded = _saved_derived_member()
+    member = decoded["dfo.ref"]["members"][0]
+    spec_ids = {
+        "member": member["spec"]["spec_id"],
+        "root": member["roots"][0]["spec_id"],
+        "other": "spec_00000000000000000000000000000000",
+    }
+    entries = [{"spec_id": spec_ids[name], **_ROOT_TOTALS} for name in named]
+    entries[-1] |= change
+    decoded["dfo.party_totals_left_out"] = entries
+    assert validator._saved_file_rule("2", decoded) == broken
+
+
+@pytest.mark.parametrize(
+    ("value", "text"),
+    [
+        ({"\ufb01": 1, "\U0001f600": 2}, '{"\U0001f600":2,"\ufb01":1}'),
+        ({"b": [True, None], "a": "x\ny"}, '{"a":"x\\ny","b":[true,null]}'),
+        (123.0, "123"),
+        (-0.0, "0"),
+        (1.5, "1.5"),
+        (1e20, "100000000000000000000"),
+        (1e21, "1e+21"),
+        (0.000001, "0.000001"),
+        (1e-7, "1e-7"),
+        (-2.5e-8, "-2.5e-8"),
+    ],
+    ids=[
+        "names-by-utf-16",
+        "nested",
+        "integral-float",
+        "negative-zero",
+        "fraction",
+        "below-1e21",
+        "1e21",
+        "1e-6",
+        "below-1e-6",
+        "negative-exponent",
+    ],
+)
+def test_kept_in_objects_order_by_their_jcs_text(value: Any, text: str) -> None:
+    """RFC 8785 orders names by UTF-16 code units, so U+1F600 precedes U+FB01,
+    and writes numbers as ECMAScript does."""
+    assert validator._jcs_text(value) == text
+
+
+def test_saved_party_totals_follow_member_order() -> None:
+    """The example's entries break the rule out of member order and break
+    none in it."""
+    path = validator.PACKAGE_DIR / "saved-files"
+    metadata = json.loads(
+        (path / "saved-party-totals-member-order-rejected.json").read_text()
+    )["metadata"]
+    decoded = {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+    assert validator._saved_file_rule("1", decoded) == "format_invalid"
+    decoded["dfo.party_totals_left_out"].reverse()
+    assert validator._saved_file_rule("1", decoded) is None
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "saved-fetched-at-impossible-date-rejected",
+        "saved-held-until-impossible-date-rejected",
+    ],
+)
+def test_a_saved_file_with_an_impossible_date_breaks_format_invalid(name: str) -> None:
+    path = validator.PACKAGE_DIR / "saved-files" / f"{name}.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    decoded = {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key.startswith("dfo.")
+        and key != "dfo.format_version"
+        and key not in ("dfo.sentence", "dfo.licence")
+    }
+    assert validator._saved_file_rule("1", decoded) == "format_invalid"
+    # the same file with a real date breaks no rule
+    fixed = json.loads(json.dumps(decoded).replace("2026-02-30", "2026-02-28"))
+    assert validator._saved_file_rule("1", fixed) is None

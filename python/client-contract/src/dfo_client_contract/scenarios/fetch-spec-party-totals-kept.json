@@ -1,12 +1,12 @@
 {
   "format_version": 1,
   "name": "fetch-spec-party-totals-kept",
-  "description": "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no without_party_totals, so the build keeps the donor group totals and answers the plain version, with more rows.",
+  "description": "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no cut in its options, so the build keeps the donor group totals and answers the plain version, with more rows.",
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:38:14Z"
+    "dfo_commit": "aacbe6a4ab961d30f774cf89cacb0210e1280655",
+    "recorded_at": "2026-11-14T13:57:38Z"
   },
   "call": [
     {
@@ -510,7 +510,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "f802bd2833054fbebe1769dc8f96089f"
+          "x-dfo-trace-id": "caa52cb7545a4a078d3c07b23e9b19b1"
         },
         "json": {
           "schema_version": 1,
@@ -666,7 +666,10 @@
                       ]
                     }
                   ]
-                }
+                },
+                "licence": "OECD Terms and Conditions",
+                "licence_type": "OECDTermsAndConditions",
+                "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
               }
             ]
           },
@@ -736,7 +739,7 @@
             "frame_grammar_version": "1.1.0",
             "origin_catalogue_build_id": "20261013T114555Z-613cf5c2",
             "served_from": "head",
-            "confirmed_at": "2026-11-01T07:38:10.731097+00:00"
+            "confirmed_at": "2026-11-14T13:57:34.704617+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -760,22 +763,11 @@
               "tier": "working",
               "url": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_574e68a18917407b0f5534cfc9ff001b/files/sha256:7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4",
               "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
-            },
-            {
-              "artifact_digest": "sha256:3bb5d3b2b26768e57c233ccc76a2b1c79fdb7c916d105a2dbfd6a25646efd3c9",
-              "rendering": {
-                "statistics": "series"
-              },
-              "bytes": 10059,
-              "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-15T09:59:06.850277+00:00",
-              "tier": "working",
-              "url": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_574e68a18917407b0f5534cfc9ff001b/files/sha256:3bb5d3b2b26768e57c233ccc76a2b1c79fdb7c916d105a2dbfd6a25646efd3c9"
             }
           ],
           "series_count": 111,
           "output_options": {
-            "capability_version": "dset_5282a0674178a233",
+            "capability_version": "dset_af2827aa39ed8c0d",
             "columns": [
               {
                 "name": "stat_var",
@@ -1141,7 +1133,7 @@
               ]
             }
           },
-          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+          "series_coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
           "retention": {
             "pinned": true
           }
@@ -1218,7 +1210,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a5753a06386f4de3874484b22fda6f84"
+          "x-dfo-trace-id": "641b256c0cd04d30a7f3c3784b20fd61"
         },
         "json": {
           "schema_version": 1,
@@ -1227,11 +1219,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "a5753a06386f4de3874484b22fda6f84",
+            "engine_build": "aacbe6a4ab961d30f774cf89cacb0210e1280655",
+            "trace_id": "641b256c0cd04d30a7f3c3784b20fd61",
             "warnings": [],
             "timing_ms": {
-              "total": 4,
+              "total": 5,
               "by_step": {
                 "coverage": 0
               }
@@ -1269,7 +1261,13 @@
               },
               "entity_refs": [],
               "operations": [],
-              "departures": [],
+              "departures": [
+                {
+                  "code": "closest_match",
+                  "shown": "net disbursements",
+                  "text": "This shows net disbursements, the closest measure the data holds."
+                }
+              ],
               "assumptions": [
                 {
                   "kind": "open_role",
@@ -1552,7 +1550,9 @@
                       "ref": "country/KEN",
                       "label": "Kenya",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     }
                   ],
                   "coverage": {
@@ -1634,7 +1634,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+                  "coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
                   "facets": {
                     "provenance": {
                       "basis": "fallback",
@@ -2070,7 +2070,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_4913302d7a6b6435"
+                    "capability_version": "cap_b29a91445f7a4da3"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4172,13 +4172,14 @@
                     "default_base_year": 2024,
                     "role_currencies": {
                       "destination": "KES"
-                    }
+                    },
+                    "deflation_basis": "donor"
                   }
                 }
               }
             }
           ],
-          "rendered_sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. Assumed: every provider.",
+          "rendered_sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. This shows net disbursements, the closest measure the data holds. Assumed: every provider.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -4362,6 +4363,22 @@
             {
               "kind": "text",
               "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "This shows net disbursements, the closest measure the data holds.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
               "segment": "assumption",
               "entity_refs": [],
               "states": [],
@@ -4406,7 +4423,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "3161b93c0e844e15934681b0752bdaa3"
+          "x-dfo-trace-id": "711e3c4e7e7d4f129f50e02cf1135838"
         }
       }
     },

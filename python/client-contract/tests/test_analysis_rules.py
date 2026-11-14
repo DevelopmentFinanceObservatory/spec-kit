@@ -79,12 +79,29 @@ def output_digest(frame: dict[str, Any], variables: dict[str, str]) -> tuple[str
     return document, f"out_{digest[:32]}"
 
 
+_CUT_KEYS = ("party_totals", "without_party_totals")
+
+
+def _cut(rendering: dict[str, Any]) -> bool:
+    """Whether a rendering leaves out party totals, read from either key."""
+    return (
+        rendering.get("party_totals") is False
+        or rendering.get("without_party_totals") is True
+    )
+
+
+def _selector(rendering: dict[str, Any]) -> dict[str, Any]:
+    """A rendering with the cut spelt one way, so either spelling matches."""
+    kept = {k: v for k, v in rendering.items() if k not in _CUT_KEYS}
+    return {**kept, "without_party_totals": True} if _cut(rendering) else kept
+
+
 def _identity(member: dict[str, Any]) -> tuple[str, ...]:
     spec = member["spec"]
     return (
         spec["spec_id"],
         member["content_version"],
-        jcs(member["artifact"]["rendering"]),
+        jcs(_selector(member["artifact"]["rendering"])),
         jcs(spec.get("recipe")),
     )
 
@@ -92,8 +109,7 @@ def _identity(member: dict[str, Any]) -> tuple[str, ...]:
 def _output(member: dict[str, Any]) -> tuple[Any, ...]:
     if "output_digest" in member:
         return ("derived", member["output_digest"])
-    rendering = member["artifact"]["rendering"]
-    cut = rendering.get("without_party_totals", False)
+    cut = _cut(member["artifact"]["rendering"])
     return ("dataset", member["content_version"], cut)
 
 

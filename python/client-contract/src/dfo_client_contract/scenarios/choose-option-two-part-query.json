@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "96a2cbe778b34b8695d7cdf943243a76"
+          "x-dfo-trace-id": "ff4acc343b1c4f6eb52d20c213ba7063"
         },
         "json": {
           "schema_version": 1,
@@ -42,17 +42,19 @@
             "entry_path": "raw_text",
             "raw_query": "ODA disbursements from Germany to Congo in 2018",
             "normalized_query": "ODA disbursements from Germany to Congo in 2018",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "96a2cbe778b34b8695d7cdf943243a76",
+            "engine_build": "aacbe6a4ab961d30f774cf89cacb0210e1280655",
+            "trace_id": "ff4acc343b1c4f6eb52d20c213ba7063",
             "warnings": [],
             "timing_ms": {
-              "total": 2,
+              "total": 10,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 1
+                "extract": 1,
+                "exclusion_read": 0,
+                "cache_lookup": 1
               }
             },
             "llm_usage": {
@@ -68,10 +70,10 @@
               "variable_text": "ODA disbursements",
               "warnings": [],
               "timing_ms": {
-                "total": 871,
+                "total": 2,
                 "by_step": {
-                  "recall": 870,
-                  "phase_resolve_places": 1,
+                  "recall": 2,
+                  "phase_resolve_places": 0,
                   "phase_check_entities": 0
                 }
               },
@@ -300,7 +302,7 @@
       "error": {
         "class": "ContractError",
         "code": "contract_violation",
-        "trace_id": "96a2cbe778b34b8695d7cdf943243a76"
+        "trace_id": "ff4acc343b1c4f6eb52d20c213ba7063"
       }
     }
   ]
