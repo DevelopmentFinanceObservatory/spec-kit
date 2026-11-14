@@ -168,6 +168,31 @@
             "max"
           ],
           "additionalProperties": false
+        },
+        "order": {
+          "description": "Draws the series in value order instead of member-id order. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". `period` names the period the values are ranked at; omitted, they are ranked at the latest period most of the drawn series hold. A series with no value at that period comes last. A table needs one unit across its series to be ordered.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "const": "value"
+            },
+            "direction": {
+              "enum": [
+                "descending",
+                "ascending"
+              ]
+            },
+            "period": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 21
+            }
+          },
+          "required": [
+            "by",
+            "direction"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -245,6 +270,26 @@
             "max"
           ],
           "additionalProperties": false
+        },
+        "order": {
+          "description": "Draws the series in value order instead of member-id order. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". The bars are ranked at the period they stand at, which the platform chooses, so no `period` is named.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "const": "value"
+            },
+            "direction": {
+              "enum": [
+                "descending",
+                "ascending"
+              ]
+            }
+          },
+          "required": [
+            "by",
+            "direction"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -291,6 +336,31 @@
         },
         "title": {
           "$ref": "#/$defs/title"
+        },
+        "order": {
+          "description": "Draws the series in value order instead of member-id order. `by` is \"value\" and `direction` is \"descending\" (largest first) or \"ascending\". `period` names the period the values are ranked at; omitted, they are ranked at the latest period most of the drawn series hold. A series with no value at that period comes last. A table needs one unit across its series to be ordered.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "const": "value"
+            },
+            "direction": {
+              "enum": [
+                "descending",
+                "ascending"
+              ]
+            },
+            "period": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 21
+            }
+          },
+          "required": [
+            "by",
+            "direction"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
