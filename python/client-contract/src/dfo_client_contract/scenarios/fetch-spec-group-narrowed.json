@@ -5,17 +5,17 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "aacbe6a4ab961d30f774cf89cacb0210e1280655",
-    "recorded_at": "2026-11-14T13:57:41Z"
+    "dfo_commit": "7af2d8dd04797724b716496aea8182590a1a26d0",
+    "recorded_at": "2026-11-15T21:49:50Z"
   },
   "call": [
     {
       "op": "fetch",
       "spec": {
-        "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+        "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
         "definition": {
           "schema_version": 1,
-          "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+          "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
           "identity": {
             "identity_version": "spec1",
             "shape": {
@@ -107,10 +107,16 @@
             },
             "requested_window": {
               "kind": "all"
+            },
+            "facets": {
+              "provenance": {
+                "state": "value",
+                "ref": "provenance/ONEDAC2aBilateral"
+              }
             }
           }
         },
-        "sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Germany's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
         "entity_groups": {
           "destination": {
             "label": "Least Developed Countries",
@@ -133,10 +139,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+            "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+              "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -228,6 +234,12 @@
                 },
                 "requested_window": {
                   "kind": "all"
+                },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/ONEDAC2aBilateral"
+                  }
                 }
               }
             },
@@ -250,13 +262,13 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "19fb69af36564ebb8528086c6944614f"
+          "x-dfo-trace-id": "891e665fa212451fa4efc9973380f05a"
         },
         "json": {
           "schema_version": 1,
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
+            "spec_id": "spec_0cbc2682d8858844f8b1b14a96415b09",
             "identity": {
               "shape": {
                 "kind": "statvar_schema",
@@ -294,6 +306,12 @@
                   "property": "nettingBasis"
                 }
               ],
+              "facets": {
+                "provenance": {
+                  "ref": "provenance/ONEDAC2aBilateral",
+                  "state": "value"
+                }
+              },
               "entities": {
                 "origin": [
                   "country/DEU"
@@ -353,8 +371,8 @@
               }
             }
           },
-          "content_version": "cv_c836c8b3ecbb63dde4177d8c5e23c9e3",
-          "prepared_at": "2026-11-01T07:38:21Z",
+          "content_version": "cv_bb74b3683595b00ac708fc3a5250c406",
+          "prepared_at": "2026-11-15T21:46:05Z",
           "coverage": {
             "rows": 170,
             "dimensions": [
@@ -486,13 +504,13 @@
           "trace": {
             "facets": [
               {
-                "ref": "provenance/OECDDAC2A",
+                "ref": "provenance/ONEDAC2aBilateral",
                 "axis": "provenance",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253",
-                "default_policy_version": "1"
+                "basis": "bound",
+                "default_policy": null,
+                "selection_reason": "the composite OECD DAC2a",
+                "dispatch_facet_id": "provenance/ONEDAC2aBilateral",
+                "default_policy_version": null
               },
               {
                 "ref": null,
@@ -513,17 +531,68 @@
                 "default_policy_version": "1"
               }
             ],
+            "components": [
+              {
+                "role": "bilateral",
+                "rows": 170,
+                "facets": [
+                  {
+                    "ref": "provenance/OECDDAC2A",
+                    "axis": "provenance",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": null,
+                    "axis": "measurementMethod",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "absent_on_selected_facet",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": "CurrencyUSD",
+                    "axis": "unit",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  }
+                ],
+                "periods": [
+                  [
+                    2020,
+                    2023
+                  ]
+                ],
+                "warnings": [
+                  "coverage_below_scope"
+                ],
+                "stat_vars": [
+                  "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal"
+                ],
+                "zero_rows": 0,
+                "provenance": "provenance/OECDDAC2A",
+                "dropped_years": [],
+                "content_version": "cv_c836c8b3ecbb63dde4177d8c5e23c9e3"
+              }
+            ],
             "applied_window": {
               "kind": "range",
               "origin": "query",
               "end_year": 2023,
               "start_year": 2020
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00284-j2f",
+            "graph_revision": "dfo-dev-dc-datacommons-service-00292-njf",
             "normalisations": [],
             "code_index_stamp": {
-              "exported_at": "2026-11-01T03:08:18Z",
-              "content_hash": "a1bde3be8710f5ba073e52aaaba73cf9156079c273c874372f54bb07a81b0f94",
+              "exported_at": "2026-11-12T22:30:30Z",
+              "content_hash": "68c74212b6a5f923d3543f7bb04f7b791c28b62bfccd3d073ab03bfcb50216da",
               "graph_endpoint": "graph_release"
             },
             "source_revisions": [
@@ -532,8 +601,8 @@
                 "revision": "2026-10-29"
               }
             ],
-            "capability_version": "dset_5282a0674178a233",
-            "materialiser_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+            "capability_version": "dset_af2827aa39ed8c0d",
+            "materialiser_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
@@ -544,18 +613,18 @@
                 "observation_count": 170
               }
             ],
-            "family_member_count": 1,
-            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
-            "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261029T171521Z-7d0a5854",
+            "family_member_count": null,
+            "family_member_digest": null,
+            "frame_grammar_version": "1.2.0",
+            "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "head",
-            "confirmed_at": "2026-11-14T13:57:44.975846+00:00"
+            "confirmed_at": "2026-11-15T21:46:05.204630+00:00"
           },
           "warnings": [
             {
               "code": "coverage_below_scope",
               "severity": "warn",
-              "message": "The served coverage falls short of the requested scope. No observations were served for 1 requested entity.",
+              "message": "The served coverage falls short of the requested scope. No observations were served for 1 requested entity. Of these, the bilateral component leaves out 1.",
               "unserved_entities": {
                 "count": 1,
                 "refs": [
@@ -573,30 +642,30 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:dfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2",
+              "artifact_digest": "sha256:3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
                 "layout": 4,
                 "without_party_totals": true
               },
-              "bytes": 8800,
+              "bytes": 8701,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-11-01T07:38:21.430053+00:00",
+              "created_at": "2026-11-15T21:46:05.154787+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_53102a787c202df65dcbb4d112c7bf33/cv_c836c8b3ecbb63dde4177d8c5e23c9e3/files/sha256:dfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2",
+              "url": "/api/datasets/spec_0cbc2682d8858844f8b1b14a96415b09/cv_bb74b3683595b00ac708fc3a5250c406/files/sha256:3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c",
               "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
             },
             {
-              "artifact_digest": "sha256:c959529fa024aa5d9129d7d666cd9d4a63bef22171eb97097270df2d2d814cad",
+              "artifact_digest": "sha256:654644a9b2a9dfd1f2dd7f0ced991ff8e5d6581df744cc06e84c637e0af34bc0",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 7752,
+              "bytes": 7794,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-11-01T07:38:21.430053+00:00",
+              "created_at": "2026-11-15T21:46:05.154787+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_53102a787c202df65dcbb4d112c7bf33/cv_c836c8b3ecbb63dde4177d8c5e23c9e3/files/sha256:c959529fa024aa5d9129d7d666cd9d4a63bef22171eb97097270df2d2d814cad"
+              "url": "/api/datasets/spec_0cbc2682d8858844f8b1b14a96415b09/cv_bb74b3683595b00ac708fc3a5250c406/files/sha256:654644a9b2a9dfd1f2dd7f0ced991ff8e5d6581df744cc06e84c637e0af34bc0"
             }
           ],
           "series_count": 43,
@@ -907,7 +976,7 @@
           "series_coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
           "retention": {
             "pinned": false,
-            "held_until": "2026-12-01T07:38:21.430340Z"
+            "held_until": "2026-12-15T21:46:05.155827Z"
           }
         }
       }
@@ -961,6 +1030,12 @@
                       "property": "nettingBasis"
                     }
                   ],
+                  "facets": {
+                    "provenance": {
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "state": "value"
+                    }
+                  },
                   "entities": {
                     "origin": [
                       "country/DEU"
@@ -1034,7 +1109,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "5353fb064a784841b27a7c78dba78c7a"
+          "x-dfo-trace-id": "5c454a6886c14ddc8d50586a47fdfdd4"
         },
         "json": {
           "schema_version": 1,
@@ -1043,11 +1118,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "aacbe6a4ab961d30f774cf89cacb0210e1280655",
-            "trace_id": "5353fb064a784841b27a7c78dba78c7a",
+            "engine_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
+            "trace_id": "5c454a6886c14ddc8d50586a47fdfdd4",
             "warnings": [],
             "timing_ms": {
-              "total": 153,
+              "total": 5,
               "by_step": {
                 "coverage": 0
               }
@@ -1060,39 +1135,11 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 140,
+                "total": 0,
                 "by_step": {
-                  "validate": 1,
-                  "phase_validate": 0,
-                  "walk": 15,
-                  "reread_arcs": 0,
-                  "phase_reread_arcs": 0,
-                  "detect_edits": 0,
-                  "phase_detect_edits": 0,
-                  "resolve_survivors": 0,
-                  "phase_resolve_survivors": 0,
-                  "shape": 1,
-                  "phase_build_shape": 0,
-                  "bind": 0,
-                  "phase_build_bindings": 0,
-                  "where_places": 1,
-                  "phase_where_places": 0,
-                  "materialise": 33,
-                  "phase_materialise": 0,
-                  "ground_related": 1,
-                  "ground_units": 0,
-                  "ground_facets": 0,
-                  "ground_convert": 0,
-                  "answer": 17,
-                  "ground_gates": 5,
-                  "phase_ground_build": 61,
-                  "finalize_preview": 0,
-                  "options": 3,
-                  "finalize_related": 0,
-                  "finalize_wholes": 1,
-                  "finalize_relaunch": 0,
-                  "phase_finalize": 1,
-                  "served_entry": 0
+                  "response_cache_part_memo": 0,
+                  "served_entry": 0,
+                  "as_composite": 0
                 }
               },
               "entity_refs": [],
@@ -1100,8 +1147,8 @@
               "departures": [
                 {
                   "code": "closest_match",
-                  "shown": "net disbursements",
-                  "text": "This shows net disbursements, the closest measure the data holds."
+                  "shown": "net disbursements (bilateral flows)",
+                  "text": "This shows net disbursements (bilateral flows), the closest measure the data holds."
                 },
                 {
                   "code": "entity_unavailable",
@@ -1117,10 +1164,10 @@
               "assumptions": [],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
+                "spec_id": "spec_0cbc2682d8858844f8b1b14a96415b09",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
+                  "spec_id": "spec_0cbc2682d8858844f8b1b14a96415b09",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -1214,6 +1261,12 @@
                       "kind": "range",
                       "start_year": 2020,
                       "end_year": 2023
+                    },
+                    "facets": {
+                      "provenance": {
+                        "state": "value",
+                        "ref": "provenance/ONEDAC2aBilateral"
+                      }
                     }
                   }
                 },
@@ -1728,6 +1781,7 @@
                     "member_count": 1,
                     "member_count_exact": true,
                     "served_count": 1,
+                    "sums_components": true,
                     "data_date_range": {
                       "start": "2020",
                       "end": "2023"
@@ -2107,20 +2161,6 @@
                     "has_data": true,
                     "observation_count": 170,
                     "evidence": "facet_metadata",
-                    "dimensions": [
-                      {
-                        "label": "sources",
-                        "count": 1
-                      },
-                      {
-                        "label": "observations",
-                        "count": 4
-                      },
-                      {
-                        "label": "variables",
-                        "count": 1
-                      }
-                    ],
                     "window": {
                       "start_year": 2020,
                       "end_year": 2023
@@ -2171,7 +2211,7 @@
                   },
                   "download": {
                     "rows": 170,
-                    "rows_exact": true,
+                    "rows_exact": false,
                     "series": 43,
                     "window": {
                       "start_year": 2020,
@@ -2184,9 +2224,9 @@
                   "coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
                   "facets": {
                     "provenance": {
-                      "basis": "fallback",
-                      "ref": "provenance/OECDDAC2A",
-                      "label": "OECD DAC2A",
+                      "basis": "bound",
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "label": "OECD DAC2a (bilateral flows)",
                       "source": {
                         "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
                         "label": "Organisation for Economic Co-operation and Development (OECD)"
@@ -2195,7 +2235,6 @@
                         "id": "dfo",
                         "label": "Development Finance Observatory"
                       },
-                      "documentation": "/api/graph/documentation/provenance/OECDDAC2A",
                       "account": "provider"
                     },
                     "unit": {
@@ -2296,7 +2335,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Germany's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -2327,7 +2366,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "net disbursements",
+                      "text": "net disbursements (bilateral flows)",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -2996,7 +3035,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_b29a91445f7a4da3"
+                    "capability_version": "cap_eed8849e3076f272"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -3144,7 +3183,7 @@
                       "served_rows_exact": true
                     }
                   ],
-                  "measure_label": "net disbursements",
+                  "measure_label": "net disbursements (bilateral flows)",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -5158,7 +5197,7 @@
               }
             }
           ],
-          "rendered_sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a. This shows net disbursements, the closest measure the data holds. The data holds no values for 1 of the 44 Least Developed Countries. This shows the 44 Least Developed Countries, each on its own.",
+          "rendered_sentence": "Germany's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a. This shows net disbursements (bilateral flows), the closest measure the data holds. The data holds no values for 1 of the 44 Least Developed Countries. This shows the 44 Least Developed Countries, each on its own.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -5192,7 +5231,7 @@
             },
             {
               "kind": "slot",
-              "text": "net disbursements",
+              "text": "net disbursements (bilateral flows)",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -5402,7 +5441,7 @@
             },
             {
               "kind": "text",
-              "text": "This shows net disbursements, the closest measure the data holds.",
+              "text": "This shows net disbursements (bilateral flows), the closest measure the data holds.",
               "segment": "departure",
               "entity_refs": [],
               "states": [],
@@ -5448,21 +5487,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_53102a787c202df65dcbb4d112c7bf33/cv_c836c8b3ecbb63dde4177d8c5e23c9e3/files/sha256:dfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2"
+        "origin_path": "/api/datasets/spec_0cbc2682d8858844f8b1b14a96415b09/cv_bb74b3683595b00ac708fc3a5250c406/files/sha256:3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Adfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "fee39f0b86fb4dc5a7b8e7efd2f451f9"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "5c6d7069914f4efaa12bec354a84652f"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Adfab152c9d79c0c3c7c1269ee875140a2afeac20859331d30f2931c819d80fc2?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -5483,13 +5522,12 @@
           "financingRecipient_label",
           "value",
           "unit_label",
-          "dac2aAidType_label",
           "provenance_label",
           "financingRecipient",
+          "stat_var_label",
           "financingProvider",
           "financingProvider_kind",
           "financingRecipient_kind",
-          "dac2aAidType",
           "unit",
           "currency",
           "price_basis",
@@ -5503,9 +5541,9 @@
         "members": [
           {
             "parts": [],
-            "spec_id": "spec_53102a787c202df65dcbb4d112c7bf33",
-            "content_version": "cv_c836c8b3ecbb63dde4177d8c5e23c9e3",
-            "sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_0cbc2682d8858844f8b1b14a96415b09",
+            "content_version": "cv_bb74b3683595b00ac708fc3a5250c406",
+            "sentence": "Germany's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 2020 to 2023. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": []
