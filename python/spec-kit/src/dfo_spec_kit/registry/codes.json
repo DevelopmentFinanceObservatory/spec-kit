@@ -195,6 +195,26 @@
       "lifecycle": "retired"
     },
     {
+      "code": "bilateral_reading_unavailable",
+      "classification": "warning",
+      "definition": "A part reading DAC2a total ODA with no provider axis, such as top recipients over every donor, would read its bilateral destinations alone, and that reading cannot serve it, so the figures are total ODA and include donors' core contributions to multilateral agencies. The params name why (why): destination_unclassified where the data holds a destination no side declaration places, option_not_covered where the bilateral reading does not cover every year of the answer, the slot the bilateral composite cannot serve, or scope_undecided where the part's scope could not be decided, so it states no scope.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "binding_folded",
       "classification": "warning",
       "definition": "Several parts of a query resolved to the same shape, so the engine merged them onto one spec and folded every binding but the first into that spec's slot options; the part carrying this warning is answered by the merged spec.",
