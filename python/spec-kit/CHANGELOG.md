@@ -8,14 +8,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Warning code `bilateral_reading_unavailable` in `registries/codes.json` and
-  its bundled mirror: a `search.resolve` warning on the raw_text, parsed and
-  dataset_resubmit doors. It flags a part reading DAC2a total ODA, such as top
-  recipients over every donor, whose bilateral-destinations reading cannot
-  serve it, so its figures include donors' core contributions to multilateral
-  agencies. Its params name why (`why`): `destination_unclassified`,
-  `option_not_covered`, `scope_undecided`, or the slot the bilateral composite
-  cannot serve.
+- Warning code `bilateral_reading_unavailable` in `registries/codes.json` and its bundled mirror: a `search.resolve` warning on the raw_text, parsed and dataset_resubmit doors. It marks a DAC2a total ODA answer or reading whose bilateral reading is unavailable or undecided, so its figures include donors' core contributions to multilateral agencies. It carries the reading's spec_id, and `params.why` names the reason from the values the Search API conformance document lists.
 - The limit-name registry: `registries/limit-names.json`, its schema
   `schemas/registry/limit-name-registry.schema.json`, a bundled mirror, and
   `dfo_spec_kit.registry.LIMIT_NAMES` (a mapping of `LimitName` entries keyed
