@@ -27,7 +27,6 @@ _REASON = {
     "code": "bilateral_reading_unavailable",
     "reason": "scope_undecided",
     "definition": "A reason.",
-    "lifecycle": "active",
 }
 
 # Repo root is four levels up from this file (tests/ -> spec-kit -> python ->
@@ -136,8 +135,8 @@ def test_entries_are_sorted_by_code() -> None:
     assert codes == sorted(codes)
 
 
-def test_limit_names_mirror_is_byte_identical_to_canonical_registry() -> None:
-    name = "limit-names.json"
+@pytest.mark.parametrize("name", ["limit-names.json", "warning-reasons.json"])
+def test_mirror_is_byte_identical_to_canonical_registry_file(name: str) -> None:
     assert (_MIRROR_PATH.parent / name).read_bytes() == (
         _REPO_ROOT / "registries" / name
     ).read_bytes()
@@ -150,21 +149,13 @@ def test_limit_names_are_keyed_by_name() -> None:
     assert all(key == value.name for key, value in LIMIT_NAMES.items())
 
 
-def test_warning_reasons_mirror_is_byte_identical_to_canonical_registry() -> None:
-    name = "warning-reasons.json"
-    assert (_MIRROR_PATH.parent / name).read_bytes() == (
-        _REPO_ROOT / "registries" / name
-    ).read_bytes()
-
-
 def test_warning_reasons_are_keyed_by_code_then_reason() -> None:
     entry = WARNING_REASONS["bilateral_reading_unavailable"]["slot_not_served"]
-    assert (entry.code, entry.reason, entry.lifecycle) == (
+    assert (entry.code, entry.reason) == (
         "bilateral_reading_unavailable",
         "slot_not_served",
-        "active",
     )
-    assert set(entry.params) == {"slot"}
+    assert [name for name, _ in entry.params] == ["slot"]
     assert all(
         code == value.code and reason == value.reason
         for code, reasons in WARNING_REASONS.items()
@@ -172,12 +163,9 @@ def test_warning_reasons_are_keyed_by_code_then_reason() -> None:
     )
 
 
-def test_every_warning_reason_names_a_registered_warning() -> None:
-    for code, reasons in WARNING_REASONS.items():
-        entry = REGISTRY[code]
-        assert entry.classification == "warning", code
-        if any(reason.lifecycle == "active" for reason in reasons.values()):
-            assert entry.lifecycle == "active", code
+def test_warning_reasons_are_hashable() -> None:
+    entry = WARNING_REASONS["bilateral_reading_unavailable"]["slot_not_served"]
+    assert hash(entry) == hash(entry)
 
 
 @pytest.mark.parametrize(

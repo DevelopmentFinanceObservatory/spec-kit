@@ -14,13 +14,11 @@ uv run tools/validate_registry.py
 uv run tools/validate_limit_registry.py
 ```
 
-`validate_warning_reasons.py` validates `registries/warning-reasons.json` against `schemas/registry/warning-reason-registry.schema.json` and checks what the schema cannot express: entries sorted by `code` then `reason` with each pair once, every `code` a warning in `registries/codes.json` and an active code for each active reason, and byte-identity with the packaged mirror. Once a release tag is reachable from HEAD, it compares the file with the copy at that tag: a reason published there must keep its `definition` and `params`, may move to `lifecycle: retired`, and may not leave it, while new reasons pass. With no tag it prints the notice `validate_registry.py` prints and skips the comparison. It does not import `dfo_spec_kit`. Also a PEP 723 script:
+`validate_warning_reasons.py` validates `registries/warning-reasons.json` against `schemas/registry/warning-reason-registry.schema.json` and checks what the schema cannot express: entries sorted by `code` then `reason` with each pair once, every `code` an active warning in `registries/codes.json`, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 
 ```bash
 uv run tools/validate_warning_reasons.py
 ```
-
-`registry_checks.py` holds what these registry validators share: JSON loading that refuses a repeated key, schema checking, the mirror comparison, reading a file at the latest release tag, and the NOTE, FAIL and OK lines they print. Every FAIL line names the file at fault.
 
 `validate_unit_registry.py` validates `registries/units.json` against `schemas/registry/unit-registry.schema.json` (closed rows per kind, member types and the `format_version` pin) and checks what the schema cannot express: rows sorted by `ref` with each `ref` once, `currency_codes` sorted, no row that also matches a currency prefix rule, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 

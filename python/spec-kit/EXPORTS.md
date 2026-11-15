@@ -248,7 +248,7 @@ name = "WARNING_REASONS"
 module = "dfo_spec_kit.registry"
 kind = "constant"
 stability = "provisional"
-policy = "contents track registries/warning-reasons.json; a reason is added or retired, never redefined or removed"
+policy = "contents track registries/warning-reasons.json; a reason is added, never redefined"
 reason = "bundled-data"
 
 [[export]]

@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from importlib import resources
 from types import MappingProxyType
 from typing import Any, Literal
@@ -179,16 +179,15 @@ LIMIT_NAMES: Mapping[str, LimitName] = load_limit_names()
 class WarningReason:
     """One reason a warning of `code` can name in `params.why`.
 
-    `params` maps each param the warning carries beside `why` for this
-    reason to its one-sentence definition, and is empty when the reason adds
-    none.
+    `params` lists each param the warning carries beside `why` for this
+    reason as a (name, definition) pair, sorted by name, and is empty when
+    the reason adds none.
     """
 
     code: str
     reason: str
     definition: str
-    lifecycle: Lifecycle
-    params: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
+    params: tuple[tuple[str, str], ...] = ()
 
 
 _WARNING_REASONS_FORMAT_VERSION = 1
@@ -224,8 +223,7 @@ def _warning_reasons_from_json(
             code=raw["code"],
             reason=raw["reason"],
             definition=raw["definition"],
-            lifecycle=raw["lifecycle"],
-            params=MappingProxyType(dict(raw.get("params", {}))),
+            params=tuple(sorted(raw.get("params", {}).items())),
         )
         reasons = by_code.setdefault(entry.code, {})
         if entry.reason in reasons:

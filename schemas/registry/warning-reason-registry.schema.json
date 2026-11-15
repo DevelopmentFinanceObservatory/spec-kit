@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/schemas/registry/warning-reason-registry.schema.json",
   "title": "Warning-reason registry",
-  "description": "The values a warning carries in params.why, each the reason the warning of one code fired. See schemas/registry/README.md. tools/validate_warning_reasons.py checks sort order, uniqueness, that each code is a registered warning, that a published reason keeps its definition and params, and the package mirror, which this schema cannot express.",
+  "description": "The values a warning carries in params.why, each the reason the warning of one code fired. See schemas/registry/README.md. tools/validate_warning_reasons.py checks sort order, uniqueness, that each code is an active warning, and the package mirror, which this schema cannot express.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -29,12 +29,11 @@
       "required": [
         "code",
         "reason",
-        "definition",
-        "lifecycle"
+        "definition"
       ],
       "properties": {
         "code": {
-          "description": "The warning code in registries/codes.json whose params.why carries the reason. An active reason needs an active code.",
+          "description": "The warning code in registries/codes.json whose params.why carries the reason. The code must be an active warning.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
         },
@@ -62,13 +61,6 @@
             "type": "string",
             "minLength": 1
           }
-        },
-        "lifecycle": {
-          "description": "active while the warning can carry the reason; retired once it no longer does, which keeps the spelling and its meaning reserved. A published reason is never removed.",
-          "enum": [
-            "active",
-            "retired"
-          ]
         }
       }
     }
