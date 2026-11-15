@@ -130,6 +130,9 @@ jobs:
       - name: Validate limit-name registry
         run: uv run tools/validate_limit_registry.py
 
+      - name: Validate warning-reason registry
+        run: uv run tools/validate_warning_reasons.py
+
       - name: Test the registry validator
         run: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 
