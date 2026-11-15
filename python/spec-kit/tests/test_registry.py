@@ -9,6 +9,9 @@ check `tools/validate_registry.py` runs in CI).
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 from dfo_spec_kit.registry import (
     LIMIT_NAMES,
@@ -16,8 +19,16 @@ from dfo_spec_kit.registry import (
     WARNING_REASONS,
     CodeEntry,
     CodeMapping,
+    _warning_reasons_from_json,
     load_registry,
 )
+
+_REASON = {
+    "code": "bilateral_reading_unavailable",
+    "reason": "scope_undecided",
+    "definition": "A reason.",
+    "lifecycle": "active",
+}
 
 # Repo root is four levels up from this file (tests/ -> spec-kit -> python ->
 # repo root); the canonical registry is always present in-repo.
@@ -147,14 +158,37 @@ def test_warning_reasons_mirror_is_byte_identical_to_canonical_registry() -> Non
 
 
 def test_warning_reasons_are_keyed_by_code_then_reason() -> None:
-    entry = WARNING_REASONS["bilateral_reading_unavailable"]["scope_undecided"]
-    assert (entry.code, entry.reason) == (
+    entry = WARNING_REASONS["bilateral_reading_unavailable"]["slot_not_served"]
+    assert (entry.code, entry.reason, entry.lifecycle) == (
         "bilateral_reading_unavailable",
-        "scope_undecided",
+        "slot_not_served",
+        "active",
     )
+    assert set(entry.params) == {"slot"}
     assert all(
         code == value.code and reason == value.reason
         for code, reasons in WARNING_REASONS.items()
         for reason, value in reasons.items()
     )
-    assert set(WARNING_REASONS) <= REGISTRY.codes
+
+
+def test_every_warning_reason_names_a_registered_warning() -> None:
+    for code, reasons in WARNING_REASONS.items():
+        entry = REGISTRY[code]
+        assert entry.classification == "warning", code
+        if any(reason.lifecycle == "active" for reason in reasons.values()):
+            assert entry.lifecycle == "active", code
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param({"format_version": 2, "entries": []}, id="format-version"),
+        pytest.param(
+            {"format_version": 1, "entries": [_REASON, _REASON]}, id="duplicate"
+        ),
+    ],
+)
+def test_warning_reasons_loader_refuses(data: dict[str, Any]) -> None:
+    with pytest.raises(ValueError):
+        _warning_reasons_from_json(data)

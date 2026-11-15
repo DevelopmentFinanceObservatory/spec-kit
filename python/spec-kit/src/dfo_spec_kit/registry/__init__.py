@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib import resources
 from types import MappingProxyType
 from typing import Any, Literal
@@ -177,25 +177,62 @@ LIMIT_NAMES: Mapping[str, LimitName] = load_limit_names()
 
 @dataclass(frozen=True, slots=True)
 class WarningReason:
-    """One reason a warning of `code` can name in `params.why`."""
+    """One reason a warning of `code` can name in `params.why`.
+
+    `params` maps each param the warning carries beside `why` for this
+    reason to its one-sentence definition, and is empty when the reason adds
+    none.
+    """
 
     code: str
     reason: str
     definition: str
+    lifecycle: Lifecycle
+    params: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
+
+
+_WARNING_REASONS_FORMAT_VERSION = 1
 
 
 def load_warning_reasons() -> Mapping[str, Mapping[str, WarningReason]]:
     """Load and parse the packaged warning-reason mirror
-    (`registry/warning-reasons.json`), keyed by code and then by reason."""
+    (`registry/warning-reasons.json`), keyed by code and then by reason.
+
+    Raises:
+        ValueError: The file's `format_version` is not the one this loader
+            reads, or it lists one reason twice for a code.
+    """
     raw_text = (
         resources.files("dfo_spec_kit.registry")
         .joinpath("warning-reasons.json")
         .read_text(encoding="utf-8")
     )
+    return _warning_reasons_from_json(json.loads(raw_text))
+
+
+def _warning_reasons_from_json(
+    data: dict[str, Any],
+) -> Mapping[str, Mapping[str, WarningReason]]:
+    if data["format_version"] != _WARNING_REASONS_FORMAT_VERSION:
+        raise ValueError(
+            f"warning-reasons.json has format_version {data['format_version']!r}; "
+            f"this loader reads {_WARNING_REASONS_FORMAT_VERSION}"
+        )
     by_code: dict[str, dict[str, WarningReason]] = {}
-    for raw in json.loads(raw_text)["entries"]:
-        entry = WarningReason(**raw)
-        by_code.setdefault(entry.code, {})[entry.reason] = entry
+    for raw in data["entries"]:
+        entry = WarningReason(
+            code=raw["code"],
+            reason=raw["reason"],
+            definition=raw["definition"],
+            lifecycle=raw["lifecycle"],
+            params=MappingProxyType(dict(raw.get("params", {}))),
+        )
+        reasons = by_code.setdefault(entry.code, {})
+        if entry.reason in reasons:
+            raise ValueError(
+                f"warning-reasons.json lists {entry.code}/{entry.reason} twice"
+            )
+        reasons[entry.reason] = entry
     return MappingProxyType(
         {code: MappingProxyType(reasons) for code, reasons in by_code.items()}
     )

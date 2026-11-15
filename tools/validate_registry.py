@@ -22,12 +22,12 @@ check_mapping_growth).
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 import jsonschema
+from registry_checks import json_at_tag, latest_release_tag
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "registry" / "code-registry.schema.json"
@@ -203,39 +203,9 @@ def check_mirror() -> list[str]:
     return []
 
 
-def latest_release_tag() -> str | None:
-    """Return the most recent tag reachable from HEAD, or None if there isn't one."""
-    try:
-        result = subprocess.run(
-            ["git", "describe", "--tags", "--abbrev=0"],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    except OSError:
-        return None
-    if result.returncode != 0:
-        return None
-    tag = result.stdout.strip()
-    return tag or None
-
-
 def registry_at_tag(tag: str) -> Any | None:
     """Return the parsed registry as it existed at `tag`, or None if unreadable."""
-    result = subprocess.run(
-        ["git", "show", f"{tag}:{REGISTRY_RELATIVE_PATH}"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return None
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return None
+    return json_at_tag(tag, REGISTRY_RELATIVE_PATH)
 
 
 def _doors_set(mapping: dict[str, Any]) -> frozenset[str] | None:
