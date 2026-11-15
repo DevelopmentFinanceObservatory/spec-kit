@@ -14,8 +14,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   recipients over every donor, whose bilateral-destinations reading cannot
   serve it, so its figures include donors' core contributions to multilateral
   agencies. Its params name why (`why`): `destination_unclassified`,
-  `option_not_covered`, `scope_undecided`, or the slot the bilateral composite
-  cannot serve.
+  `option_not_covered`, `read_window_not_covered`, `scope_undecided`, or the
+  slot the bilateral composite cannot serve.
 - The limit-name registry: `registries/limit-names.json`, its schema
   `schemas/registry/limit-name-registry.schema.json`, a bundled mirror, and
   `dfo_spec_kit.registry.LIMIT_NAMES` (a mapping of `LimitName` entries keyed
