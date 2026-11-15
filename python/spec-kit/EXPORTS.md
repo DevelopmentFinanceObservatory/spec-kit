@@ -243,6 +243,28 @@ kind = "function"
 stability = "provisional"
 reason = "bundled-data"
 
+[[export]]
+name = "WARNING_REASONS"
+module = "dfo_spec_kit.registry"
+kind = "constant"
+stability = "provisional"
+policy = "contents track registries/warning-reasons.json; a reason is added, never redefined"
+reason = "bundled-data"
+
+[[export]]
+name = "WarningReason"
+module = "dfo_spec_kit.registry"
+kind = "model"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "load_warning_reasons"
+module = "dfo_spec_kit.registry"
+kind = "function"
+stability = "provisional"
+reason = "bundled-data"
+
 # --- dfo_spec_kit.currency ---------------------------------------------
 # The currency-code shape test, in a module that reads no data file.
 [[export]]

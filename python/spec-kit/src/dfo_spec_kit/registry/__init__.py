@@ -19,6 +19,11 @@ The limit-name registry (`registries/limit-names.json`, mirrored the same way
 and checked by `tools/validate_limit_registry.py`) lists the values a
 `resource_exhausted` problem body carries in `limit_name`. `LIMIT_NAMES` is
 that registry, keyed by name.
+
+The warning-reason registry (`registries/warning-reasons.json`, mirrored the
+same way and checked by `tools/validate_warning_reasons.py`) lists the values
+a warning carries in `params.why`. `WARNING_REASONS` is that registry, keyed
+by code and then by reason.
 """
 
 from __future__ import annotations
@@ -169,15 +174,47 @@ def load_limit_names() -> Mapping[str, LimitName]:
 
 LIMIT_NAMES: Mapping[str, LimitName] = load_limit_names()
 
+
+@dataclass(frozen=True, slots=True)
+class WarningReason:
+    """One reason a warning of `code` can name in `params.why`."""
+
+    code: str
+    reason: str
+    definition: str
+
+
+def load_warning_reasons() -> Mapping[str, Mapping[str, WarningReason]]:
+    """Load and parse the packaged warning-reason mirror
+    (`registry/warning-reasons.json`), keyed by code and then by reason."""
+    raw_text = (
+        resources.files("dfo_spec_kit.registry")
+        .joinpath("warning-reasons.json")
+        .read_text(encoding="utf-8")
+    )
+    by_code: dict[str, dict[str, WarningReason]] = {}
+    for raw in json.loads(raw_text)["entries"]:
+        entry = WarningReason(**raw)
+        by_code.setdefault(entry.code, {})[entry.reason] = entry
+    return MappingProxyType(
+        {code: MappingProxyType(reasons) for code, reasons in by_code.items()}
+    )
+
+
+WARNING_REASONS: Mapping[str, Mapping[str, WarningReason]] = load_warning_reasons()
+
 __all__ = [
     "LIMIT_NAMES",
     "REGISTRY",
+    "WARNING_REASONS",
     "Classification",
     "CodeEntry",
     "CodeMapping",
     "CodeRegistry",
     "Lifecycle",
     "LimitName",
+    "WarningReason",
     "load_limit_names",
     "load_registry",
+    "load_warning_reasons",
 ]

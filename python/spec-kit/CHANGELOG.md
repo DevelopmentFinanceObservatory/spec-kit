@@ -8,7 +8,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Warning code `bilateral_reading_unavailable` in `registries/codes.json` and its bundled mirror: a `search.resolve` warning on the raw_text, parsed and dataset_resubmit doors. It marks a DAC2a total ODA answer or reading whose bilateral reading is unavailable or undecided, so its figures include donors' core contributions to multilateral agencies. It carries the reading's spec_id, and `params.why` names the reason from the values the Search API conformance document lists.
+- Warning code `bilateral_reading_unavailable` in `registries/codes.json` and its bundled mirror: a `search.resolve` warning on the raw_text, parsed and dataset_resubmit doors. It marks a DAC2a total ODA answer or reading whose bilateral reading is unavailable or undecided, so its figures include donors' core contributions to multilateral agencies. It carries the reading's spec_id, and `params.why` names the reason, one of the values `registries/warning-reasons.json` lists for this code.
+- The warning-reason registry: `registries/warning-reasons.json`, its schema `schemas/registry/warning-reason-registry.schema.json`, a bundled mirror, and `dfo_spec_kit.registry.WARNING_REASONS` (a mapping of `WarningReason` entries keyed by code, then reason). It lists the values a warning carries in `params.why`, starting with the five reasons of `bilateral_reading_unavailable`. `tools/validate_warning_reasons.py` checks the file, that each code is registered, and its mirror.
 - The limit-name registry: `registries/limit-names.json`, its schema
   `schemas/registry/limit-name-registry.schema.json`, a bundled mirror, and
   `dfo_spec_kit.registry.LIMIT_NAMES` (a mapping of `LimitName` entries keyed

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/schemas/registry/warning-reason-registry.schema.json",
+  "title": "Warning-reason registry",
+  "description": "The values a warning carries in params.why, each the reason the warning of one code fired. See schemas/registry/README.md. tools/validate_warning_reasons.py checks sort order, uniqueness, that each code is registered and the package mirror, which this schema cannot express.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "entries"
+  ],
+  "properties": {
+    "format_version": {
+      "description": "The registry format's own version, pinned to the version this schema validates.",
+      "const": 1
+    },
+    "entries": {
+      "description": "Every reason, sorted by code and then reason.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "reason",
+        "definition"
+      ],
+      "properties": {
+        "code": {
+          "description": "The warning code in registries/codes.json whose params.why carries the reason.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+        },
+        "reason": {
+          "description": "The lower-snake-case spelling clients match on, unique within its code.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+        },
+        "definition": {
+          "description": "One sentence saying what the reason means.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

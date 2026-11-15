@@ -112,3 +112,7 @@ The registry has no severity or message template. Each occurrence supplies them 
 ## Limit-name registry
 
 `limit-name-registry.schema.json` (draft 2020-12) validates `registries/limit-names.json`, the names a `resource_exhausted` problem body carries in `limit_name`. Clients match on these values. The file is `{"format_version": 1, "entries": [...]}` with entries sorted by `name`, and each entry is closed to `name` (upper snake case, unique), `definition` (one sentence) and `owning_contract` (spelled as in the code registry). `uv run tools/validate_limit_registry.py` checks the schema, the sort order, uniqueness and the package mirror.
+
+## Warning-reason registry
+
+`warning-reason-registry.schema.json` (draft 2020-12) validates `registries/warning-reasons.json`, the values a warning carries in `params.why`. Clients match on these values. The file is `{"format_version": 1, "entries": [...]}` with entries sorted by `code` then `reason`, and each entry is closed to `code` (a code registered in `registries/codes.json`), `reason` (lower snake case, unique within its code) and `definition` (one sentence). `uv run tools/validate_warning_reasons.py` checks the schema, the sort order, uniqueness, that each code is registered and the package mirror.

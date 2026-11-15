@@ -13,6 +13,7 @@ from pathlib import Path
 from dfo_spec_kit.registry import (
     LIMIT_NAMES,
     REGISTRY,
+    WARNING_REASONS,
     CodeEntry,
     CodeMapping,
     load_registry,
@@ -136,3 +137,24 @@ def test_limit_names_are_keyed_by_name() -> None:
     assert entry.name == "MAX_TABLE_ROWS"
     assert entry.owning_contract == "presentation"
     assert all(key == value.name for key, value in LIMIT_NAMES.items())
+
+
+def test_warning_reasons_mirror_is_byte_identical_to_canonical_registry() -> None:
+    name = "warning-reasons.json"
+    assert (_MIRROR_PATH.parent / name).read_bytes() == (
+        _REPO_ROOT / "registries" / name
+    ).read_bytes()
+
+
+def test_warning_reasons_are_keyed_by_code_then_reason() -> None:
+    entry = WARNING_REASONS["bilateral_reading_unavailable"]["scope_undecided"]
+    assert (entry.code, entry.reason) == (
+        "bilateral_reading_unavailable",
+        "scope_undecided",
+    )
+    assert all(
+        code == value.code and reason == value.reason
+        for code, reasons in WARNING_REASONS.items()
+        for reason, value in reasons.items()
+    )
+    assert set(WARNING_REASONS) <= REGISTRY.codes

@@ -14,6 +14,12 @@ uv run tools/validate_registry.py
 uv run tools/validate_limit_registry.py
 ```
 
+`validate_warning_reasons.py` validates `registries/warning-reasons.json` against `schemas/registry/warning-reason-registry.schema.json` and checks what the schema cannot express: entries sorted by `code` then `reason` with each pair once, every `code` registered in `registries/codes.json`, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
+
+```bash
+uv run tools/validate_warning_reasons.py
+```
+
 `validate_unit_registry.py` validates `registries/units.json` against `schemas/registry/unit-registry.schema.json` (closed rows per kind, member types and the `format_version` pin) and checks what the schema cannot express: rows sorted by `ref` with each `ref` once, `currency_codes` sorted, no row that also matches a currency prefix rule, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 
 ```bash
