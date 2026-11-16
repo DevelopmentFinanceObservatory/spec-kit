@@ -107,6 +107,33 @@ def _digest_vector(document: Any, name: str) -> Any:
     return next(vector for vector in document["vectors"] if vector["name"] == name)
 
 
+def _proxy_problem(code: str, retryable: bool) -> dict[str, Any]:
+    return {
+        "headers": {"content-type": "application/problem+json"},
+        "status": 401,
+        "json": {
+            "type": f"/codes/{code}",
+            "title": "x",
+            "status": 401,
+            "detail": "x",
+            "code": code,
+            "trace_id": "t",
+            "retryable": retryable,
+        },
+    }
+
+
+def test_an_invalid_api_key_problem_is_not_retryable() -> None:
+    check = validator._check_proxy_problem
+    assert check("l", _proxy_problem("invalid_api_key", False)) == []
+    assert check("l", _proxy_problem("invalid_api_key", True)) == [
+        "l: a proxy problem document is not retryable: false"
+    ]
+    assert check("l", _proxy_problem("rate_limited", False)) == [
+        "l: a proxy problem document is not retryable: true"
+    ]
+
+
 def test_the_real_contract_is_valid(package_dir: Path) -> None:
     assert validator.validate() == []
     assert validator.main() == 0

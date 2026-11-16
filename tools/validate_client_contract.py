@@ -53,7 +53,8 @@ document validates against its schema, then what the schemas cannot express:
   included, is an active code registered with its status or a code
   `proxy-codes.json` lists with its status. A document with a proxy code is
   `application/problem+json` and carries PROXY_PROBLEM_MEMBERS, its own
-  status and `retryable` true, and no 202's operation reads `done`.
+  status and `retryable` true, or false for `invalid_api_key`, and no 202's
+  operation reads `done`.
 - Each error a scenario expects, other than a `SearchWarning` or
   `DataWarning`, carries a refusal's code from its exchanges, a failed
   operation's included, or a client code of its class.
@@ -762,11 +763,15 @@ def _check_accepted(label: str, response: Mapping[str, Any]) -> list[str]:
 # The members every problem document the website proxy answers itself carries.
 PROXY_PROBLEM_MEMBERS = ("type", "title", "status", "detail", "code", "trace_id")
 PROXY_PROBLEM_MEDIA = "application/problem+json"
+# A proxy code whose problem document is `retryable: false`, because the same
+# call refused again gets the same answer. Every other proxy code is retryable.
+PROXY_NOT_RETRYABLE = frozenset({"invalid_api_key"})
 
 
 def _check_proxy_problem(label: str, response: Mapping[str, Any]) -> list[str]:
     """A proxy problem document is `application/problem+json`, has the common
-    members, carries the response's status, and has `retryable` true."""
+    members, carries the response's status, and has `retryable` true, or false
+    for a code in `PROXY_NOT_RETRYABLE`."""
     body = response["json"]
     problems = []
     content_type = response.get("headers", {}).get("content-type", "")
@@ -779,8 +784,12 @@ def _check_proxy_problem(label: str, response: Mapping[str, Any]) -> list[str]:
         problems.append(f"{label}: a proxy problem document lacks {missing}")
     if "status" in body and body["status"] != response["status"]:
         problems.append(f"{label}: a proxy problem document's status is not its own")
-    if body.get("retryable") is not True:
-        problems.append(f"{label}: a proxy problem document is not retryable: true")
+    retryable = body.get("code") not in PROXY_NOT_RETRYABLE
+    if body.get("retryable") is not retryable:
+        problems.append(
+            f"{label}: a proxy problem document is not "
+            f"retryable: {str(retryable).lower()}"
+        )
     return problems
 
 
