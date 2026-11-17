@@ -105,7 +105,8 @@ document validates against its schema, then what the schemas cannot express:
   `ref` follows the ref rules, that `members` holds one entry per member
   of `ref`, none when it is null, each naming its ref member's `spec_id`,
   `content_version`, artifact digest, `parts` and `sentence`, and that the
-  record's `pinned` and `held_until` agree with its members' (`_retention_agrees`).
+  record's `pinned` and `held_until` are what its members' give, members or
+  none (`_retention_agrees`).
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -4207,24 +4208,21 @@ def _calendar_dates_exist(decoded: Mapping[str, Any]) -> bool:
 def _retention_agrees(
     pinned: bool, held_until: str | None, members: Sequence[Mapping[str, Any]]
 ) -> bool:
-    """Whether a dataset's `pinned` and `held_until` agree with its members'
-    retention, each `{pinned, held_until}`. With no member there is nothing to
-    agree with. Otherwise `pinned` is true exactly when every member's is. When
-    every member's `pinned` is known, `held_until` is the earliest `held_until`
-    of the members not pinned, or null when none has one; a member whose
-    `pinned` is null leaves `held_until` unchecked."""
-    if not members:
-        return True
-    if pinned != all(member["pinned"] is True for member in members):
-        return False
-    if any(member["pinned"] is None for member in members):
-        return True
+    """Whether a dataset's `pinned` and `held_until` are what its members'
+    retention, each `{pinned, held_until}`, gives: `pinned` true exactly when
+    there are members and every member's is, and `held_until` null when every
+    member is pinned and otherwise the earliest `held_until` of the members not
+    pinned, or null when none has one. A member whose `pinned` is null counts
+    as not pinned, and a dataset with no member is not pinned and has no
+    `held_until`, so a reader takes what the record states."""
+    if members and all(member["pinned"] is True for member in members):
+        return pinned is True and held_until is None
     days = [
         member["held_until"]
         for member in members
         if member["pinned"] is not True and member["held_until"] is not None
     ]
-    return held_until == (min(days) if days else None)
+    return pinned is False and held_until == (min(days) if days else None)
 
 
 def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
@@ -4233,8 +4231,10 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
     holds a derived member, "1" when it is absent; one member citation and
     one row count per member of `dfo.ref`, none when it is absent; one
-    `dfo.retention` entry per member when the key is present, agreeing with
-    `dfo.dataset`'s `pinned` and `held_until` (`_retention_agrees`); and each
+    `dfo.retention` entry per member when the key is present; the members'
+    retention, as `dfo.retention` gives it or as a file without it reads
+    (`_retention_before_key`), agreeing with `dfo.dataset`'s `pinned` and
+    `held_until` (`_retention_agrees`); and each
     `dfo.party_totals_left_out` entry reading as a served entry reads
     (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
     a root of a derived member, in member order and then in the member's root
@@ -4253,15 +4253,29 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
         len(members),
     ):
         return "format_invalid"
-    if (retention := decoded.get("dfo.retention")) is not None and (
-        len(retention) != len(members)
-        or not _retention_agrees(dataset["pinned"], dataset["held_until"], retention)
+    retention = decoded.get("dfo.retention", _retention_before_key(dataset, members))
+    if len(retention) != len(members) or not _retention_agrees(
+        dataset["pinned"], dataset["held_until"], retention
     ):
         return "format_invalid"
     entries = decoded.get("dfo.party_totals_left_out", [])
     if not all(map(_party_totals_entry_reads, entries)):
         return "format_invalid"
     return None if _party_totals_in_order(members, entries) else "format_invalid"
+
+
+def _retention_before_key(
+    dataset: Mapping[str, Any], members: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """The members' retention a file without `dfo.retention` reads: each
+    member pinned when `dfo.dataset`'s `pinned` is true, and otherwise with
+    `pinned` null and `dfo.dataset`'s `held_until`."""
+    entry = (
+        {"pinned": True, "held_until": None}
+        if dataset["pinned"]
+        else {"pinned": None, "held_until": dataset["held_until"]}
+    )
+    return [entry] * len(members)
 
 
 def _party_totals_in_order(

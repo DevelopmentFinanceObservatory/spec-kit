@@ -56,11 +56,11 @@
       ]
     },
     "pinned": {
-      "description": "Whether every member's version is kept without a time limit: true exactly when every member's pinned is true, and false for a record with no member.",
+      "description": "Whether every member's version is kept without a time limit: true exactly when the record has members and every member's pinned is true. A reader refuses a record whose pinned is the other value.",
       "type": "boolean"
     },
     "held_until": {
-      "description": "The earliest date any member's version can still be fetched without being pinned, as YYYY-MM-DD on a date that exists, or null when every member is pinned or the server did not say. When every member's pinned is known, it is the earliest held_until of the members that are not pinned, or null when none has one.",
+      "description": "The earliest date any member's version can still be fetched without being pinned, as YYYY-MM-DD on a date that exists: null when every member is pinned, and otherwise the earliest held_until of the members not pinned, a member whose pinned is null counting as not pinned, or null when none has one or the record has no member. A reader refuses a record whose held_until is any other date.",
       "type": [
         "string",
         "null"
