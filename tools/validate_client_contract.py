@@ -99,6 +99,12 @@ document validates against its schema, then what the schemas cannot express:
   each root of a derived one that rendering in the frame layout, the party
   totals cut read from `party_totals: false` or `without_party_totals: true`
   alike.
+- Each provenance example's file name matches its `name` and gets the
+  verdict it states: from `provenance.schema.json`, then from the rules that
+  `fetched_at` and `held_until` name a time and a date that exist, that
+  `ref` follows the ref rules, and that `members` holds one entry per member
+  of `ref`, none when it is null, each naming its ref member's `spec_id`,
+  `content_version`, artifact digest, `parts` and `sentence`.
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -203,6 +209,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
         "scenario.schema.json",
         "dataset-ref.schema.json",
         "saved-file.schema.json",
+        "provenance.schema.json",
         "rules/rules.schema.json",
     )
     schemas = {name: _load(PACKAGE_DIR / name) for name in names}
@@ -4287,6 +4294,80 @@ def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:
     return problems
 
 
+# --- provenance -------------------------------------------------------------
+
+
+def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
+    """The first rule a provenance record that meets its schema breaks, or
+    None: a `fetched_at` or `held_until` that is no real time or date; `ref`'s
+    ref rules; and one `members` entry per member of `ref`, none when it is
+    null, each naming its ref member's `spec_id`, `content_version`, artifact
+    digest, `parts` and `sentence`."""
+    try:
+        if (fetched := provenance["fetched_at"]) is not None:
+            datetime.fromisoformat(fetched)
+        if (held := provenance["held_until"]) is not None:
+            date.fromisoformat(held)
+    except ValueError:
+        return "format_invalid"
+    ref = provenance["ref"]
+    if ref is not None and (broken := _ref_rule(ref)) is not None:
+        return broken
+    named = [
+        {
+            "spec_id": member["spec"]["spec_id"],
+            "content_version": member["content_version"],
+            "digest": member["artifact"]["digest"],
+            "parts": member["parts"],
+            "sentence": member["sentence"],
+        }
+        for member in (ref["members"] if ref is not None else [])
+    ]
+    given = [
+        {key: value for key, value in entry.items() if key != "citation"}
+        for entry in provenance["members"]
+    ]
+    return None if given == named else "format_invalid"
+
+
+def _check_provenance(validator: jsonschema.Draft202012Validator) -> list[str]:
+    paths = sorted((PACKAGE_DIR / "provenance").glob("*.json"))
+    problems = [] if paths else ["provenance: no provenance examples found"]
+    verdicts: set[str] = set()
+    for path in paths:
+        label = f"provenance/{path.name}"
+        record = _load(path)
+        if not isinstance(record, dict) or record.get("name") != path.stem:
+            problems.append(f"{label}: name does not match the file name")
+            continue
+        error = record.get("error")
+        if ("expect" in record) == isinstance(error, dict):
+            problems.append(f"{label}: carries neither or both of expect and error")
+            continue
+        found = _schema_problems(label, validator, record.get("provenance"))
+        by = error.get("by") if isinstance(error, dict) else None
+        verdicts.add(by or "accept")
+        if by == "schema":
+            if not found:
+                problems.append(
+                    f"{label}: the schema accepts a provenance it should reject"
+                )
+            continue
+        if found:
+            problems.extend(found)
+            continue
+        broken = _provenance_rule(record["provenance"])
+        wanted = error.get("reason") if by == "rule" else None
+        if broken != wanted:
+            problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
+    problems.extend(
+        f"provenance: no {verdict} example"
+        for verdict in ("accept", "schema", "rule")
+        if paths and verdict not in verdicts
+    )
+    return problems
+
+
 # --- derived identities -----------------------------------------------------
 
 # What fixes what among a derived member's identities. Two members that agree
@@ -4734,6 +4815,7 @@ def validate() -> list[str]:
         )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
     problems.extend(_check_saved_files(validators["saved-file.schema.json"]))
+    problems.extend(_check_provenance(validators["provenance.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
     problems.extend(_check_derived_identities())
     return problems

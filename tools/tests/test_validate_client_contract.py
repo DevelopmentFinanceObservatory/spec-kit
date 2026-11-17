@@ -2149,6 +2149,18 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             _saved_key("dfo.dataset", lambda d: {**d, "member_rows": [96]}),
             "breaks rule None, expected 'format_invalid'",
         ),
+        (
+            "provenance/provenance-answer.json",
+            lambda doc: doc["provenance"].update({"licence": ""}),
+            "provenance-answer.json: schema: <root>: Additional properties",
+        ),
+        (
+            "provenance/provenance-member-disagrees-rejected.json",
+            lambda doc: doc["provenance"]["members"][0].update(
+                {"content_version": "cv_219fc5386675dcca1fc91197c39ac885"}
+            ),
+            "breaks rule None, expected 'format_invalid'",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -2443,6 +2455,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "saved-key-holding-nan",
         "saved-reject-example-the-schema-accepts",
         "saved-rule-example-that-breaks-no-rule",
+        "provenance-with-a-key-it-does-not-name",
+        "provenance-rule-example-that-breaks-no-rule",
     ],
 )
 def test_a_broken_contract_is_reported(

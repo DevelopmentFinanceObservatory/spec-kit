@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/provenance.schema.json",
+  "title": "Provenance",
+  "description": "Where a dataset came from, as a client's data.provenance.to_object() writes it and Provenance.from_object reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention, the warnings and each member's citation. The object is closed, and every key is required.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "sentence",
+    "citation",
+    "fetched_at",
+    "question",
+    "ref",
+    "pinned",
+    "held_until",
+    "warnings",
+    "members"
+  ],
+  "properties": {
+    "format_version": {
+      "description": "The record's format. A reader refuses a version it does not know.",
+      "const": 1
+    },
+    "sentence": {
+      "description": "What the data shows, in Search's words, or the members' sentences in order when there are several.",
+      "type": "string"
+    },
+    "citation": {
+      "description": "How to cite the data, every member's sources together.",
+      "$ref": "saved-file.schema.json#/$defs/citation"
+    },
+    "fetched_at": {
+      "description": "When the data left the server, the earliest member's time, as an ISO 8601 time with a zone, on a date that exists on the calendar. A client writes it in UTC to the second, as 2026-11-27T09:14:05Z, and null when any member's fetch time is unknown.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "question": {
+      "description": "The question the data answers, for a dataset fetched from an answer, else null.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ref": {
+      "description": "The dataset's ref, or null for a dataset that names no version, as a website bundle read from a folder.",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "dataset-ref.schema.json"
+        }
+      ]
+    },
+    "pinned": {
+      "description": "Whether every member's version is kept without a time limit.",
+      "type": "boolean"
+    },
+    "held_until": {
+      "description": "The earliest date any member's version can still be fetched without being pinned, as YYYY-MM-DD on a date that exists, or null when every member is pinned or the server did not say.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "warnings": {
+      "description": "The datasets surface's warnings about the members' data.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "severity",
+          "message",
+          "spec_id"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "spec_id": {
+            "description": "The spec the warning concerns, or null when the server names none or the client did not keep it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "members": {
+      "description": "One entry per member of ref, in its order, naming the member as ref does and adding its citation. Empty when ref is null.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "spec_id",
+          "content_version",
+          "digest",
+          "parts",
+          "sentence",
+          "citation"
+        ],
+        "properties": {
+          "spec_id": {
+            "description": "The member's spec_id: a dataset spec's spec_ id, or a derived member's ops_ id.",
+            "type": "string"
+          },
+          "content_version": {
+            "description": "The member's exact version: a cv_ id, or a derived member's ocv_ id.",
+            "type": "string"
+          },
+          "digest": {
+            "description": "The SHA-256 digest of the artifact the member's data came from, the ref member's artifact.digest.",
+            "type": "string"
+          },
+          "parts": {
+            "description": "The variable text of each answer part the member answers, in query order.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sentence": {
+            "type": "string"
+          },
+          "citation": {
+            "$ref": "saved-file.schema.json#/$defs/citation"
+          }
+        }
+      }
+    }
+  }
+}

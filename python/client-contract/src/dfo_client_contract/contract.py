@@ -127,6 +127,11 @@ def saved_file_schema() -> dict[str, Any]:
     return _load("saved-file.schema.json")
 
 
+def provenance_schema() -> dict[str, Any]:
+    """`provenance.schema.json`: the record `data.provenance.to_object()` writes."""
+    return _load("provenance.schema.json")
+
+
 def rules_schema() -> dict[str, Any]:
     """`rules/rules.schema.json`: the shape of every rule file."""
     return _load("rules/rules.schema.json")
@@ -157,6 +162,15 @@ def saved_file_examples() -> list[dict[str, Any]]:
         RuntimeError: No example is installed.
     """
     return _records("saved-files")
+
+
+def provenance_examples() -> list[dict[str, Any]]:
+    """Every provenance example, sorted by file name.
+
+    Raises:
+        RuntimeError: No example is installed.
+    """
+    return _records("provenance")
 
 
 def rule(name: str) -> dict[str, Any]:
