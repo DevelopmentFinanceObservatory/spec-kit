@@ -2151,8 +2151,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             "provenance/provenance-answer.json",
-            lambda doc: doc["provenance"].update({"licence": ""}),
-            "provenance-answer.json: schema: <root>: Additional properties",
+            lambda doc: doc["provenance"]["members"][0].update({"pinned": "no"}),
+            "provenance-answer.json: schema: members/0/pinned",
         ),
         (
             "provenance/provenance-member-disagrees-rejected.json",

@@ -101,10 +101,11 @@ document validates against its schema, then what the schemas cannot express:
   alike.
 - Each provenance example's file name matches its `name` and gets the
   verdict it states: from `provenance.schema.json`, then from the rules that
-  `fetched_at` and `held_until` name a time and a date that exist, that
-  `ref` follows the ref rules, and that `members` holds one entry per member
+  `fetched_at` and every `held_until` name a time and a date that exist, that
+  `ref` follows the ref rules, that `members` holds one entry per member
   of `ref`, none when it is null, each naming its ref member's `spec_id`,
-  `content_version`, artifact digest, `parts` and `sentence`.
+  `content_version`, artifact digest, `parts` and `sentence`, and that the
+  record's `pinned` and `held_until` agree with its members' (`_retention_agrees`).
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -4186,16 +4187,44 @@ def _decoded_metadata(
 
 
 def _calendar_dates_exist(decoded: Mapping[str, Any]) -> bool:
-    """Whether a saved file's `dfo.fetched_at` and `held_until`, which the
-    schema checks by pattern, name a time and a date that exist."""
+    """Whether a saved file's `dfo.fetched_at` and every `held_until`, in
+    `dfo.dataset` and in `dfo.retention`, which the schema checks by pattern,
+    name a time and a date that exist."""
+    held = [decoded["dfo.dataset"].get("held_until")] + [
+        entry["held_until"] for entry in decoded.get("dfo.retention", [])
+    ]
     try:
         if (fetched := decoded.get("dfo.fetched_at")) is not None:
             datetime.fromisoformat(fetched)
-        if (held := decoded["dfo.dataset"].get("held_until")) is not None:
-            date.fromisoformat(held)
+        for day in held:
+            if day is not None:
+                date.fromisoformat(day)
     except ValueError:
         return False
     return True
+
+
+def _retention_agrees(
+    pinned: bool, held_until: str | None, members: Sequence[Mapping[str, Any]]
+) -> bool:
+    """Whether a dataset's `pinned` and `held_until` agree with its members'
+    retention, each `{pinned, held_until}`. With no member there is nothing to
+    agree with. Otherwise `pinned` is true exactly when every member's is. When
+    every member's `pinned` is known, `held_until` is the earliest `held_until`
+    of the members not pinned, or null when none has one; a member whose
+    `pinned` is null leaves `held_until` unchecked."""
+    if not members:
+        return True
+    if pinned != all(member["pinned"] is True for member in members):
+        return False
+    if any(member["pinned"] is None for member in members):
+        return True
+    days = [
+        member["held_until"]
+        for member in members
+        if member["pinned"] is not True and member["held_until"] is not None
+    ]
+    return held_until == (min(days) if days else None)
 
 
 def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
@@ -4203,7 +4232,9 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     a `dfo.fetched_at` or `held_until` that is no real time or date, as both
     loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
     holds a derived member, "1" when it is absent; one member citation and
-    one row count per member of `dfo.ref`, none when it is absent; and each
+    one row count per member of `dfo.ref`, none when it is absent; one
+    `dfo.retention` entry per member when the key is present, agreeing with
+    `dfo.dataset`'s `pinned` and `held_until` (`_retention_agrees`); and each
     `dfo.party_totals_left_out` entry reading as a served entry reads
     (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
     a root of a derived member, in member order and then in the member's root
@@ -4220,6 +4251,11 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     if (len(dataset["member_citations"]), len(dataset["member_rows"])) != (
         len(members),
         len(members),
+    ):
+        return "format_invalid"
+    if (retention := decoded.get("dfo.retention")) is not None and (
+        len(retention) != len(members)
+        or not _retention_agrees(dataset["pinned"], dataset["held_until"], retention)
     ):
         return "format_invalid"
     entries = decoded.get("dfo.party_totals_left_out", [])
@@ -4300,18 +4336,27 @@ def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:
 
 # --- provenance -------------------------------------------------------------
 
+# The keys of a provenance member that name its ref member.
+_PROVENANCE_NAMED_KEYS = ("spec_id", "content_version", "digest", "parts", "sentence")
+
 
 def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
     """The first rule a provenance record that meets its schema breaks, or
-    None: a `fetched_at` or `held_until` that is no real time or date; `ref`'s
-    ref rules; and one `members` entry per member of `ref`, none when it is
-    null, each naming its ref member's `spec_id`, `content_version`, artifact
-    digest, `parts` and `sentence`."""
+    None: a `fetched_at` or any `held_until` that is no real time or date;
+    `ref`'s ref rules; one `members` entry per member of `ref`, none when it
+    is null, each naming its ref member's `spec_id`, `content_version`,
+    artifact digest, `parts` and `sentence`; and the record's `pinned` and
+    `held_until` agreeing with its members' (`_retention_agrees`). A key the
+    format does not name is ignored, at the top level and in a member."""
+    held = [provenance["held_until"]] + [
+        entry["held_until"] for entry in provenance["members"]
+    ]
     try:
         if (fetched := provenance["fetched_at"]) is not None:
             datetime.fromisoformat(fetched)
-        if (held := provenance["held_until"]) is not None:
-            date.fromisoformat(held)
+        for day in held:
+            if day is not None:
+                date.fromisoformat(day)
     except ValueError:
         return "format_invalid"
     ref = provenance["ref"]
@@ -4328,10 +4373,16 @@ def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
         for member in (ref["members"] if ref is not None else [])
     ]
     given = [
-        {key: value for key, value in entry.items() if key != "citation"}
+        {key: entry[key] for key in _PROVENANCE_NAMED_KEYS}
         for entry in provenance["members"]
     ]
-    return None if given == named else "format_invalid"
+    if given != named:
+        return "format_invalid"
+    agrees = _retention_agrees(
+        provenance["pinned"], provenance["held_until"], provenance["members"]
+    )
+    return None if agrees else "format_invalid"
+
 
 
 def _check_provenance(validator: jsonschema.Draft202012Validator) -> list[str]:

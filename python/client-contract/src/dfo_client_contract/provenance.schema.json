@@ -2,9 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/provenance.schema.json",
   "title": "Provenance",
-  "description": "Where a dataset came from, as a client's data.provenance.to_json() writes it and Provenance.from_json reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention, the warnings and each member's citation. The object is closed, and every key is required.",
+  "description": "Where a dataset came from, as a client's data.provenance.to_json() writes it and Provenance.from_json reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention of the dataset and of each member, the warnings and each member's citation. Every key named here is required. The record and each member are open: a reader ignores a key it does not name, so a later client can add one without a new format_version, and writes back only the keys it names. A key that changes the meaning of the record comes with a new format_version, which a reader refuses.",
   "type": "object",
-  "additionalProperties": false,
   "required": [
     "format_version",
     "sentence",
@@ -57,11 +56,11 @@
       ]
     },
     "pinned": {
-      "description": "Whether every member's version is kept without a time limit.",
+      "description": "Whether every member's version is kept without a time limit: true exactly when every member's pinned is true, and false for a record with no member.",
       "type": "boolean"
     },
     "held_until": {
-      "description": "The earliest date any member's version can still be fetched without being pinned, as YYYY-MM-DD on a date that exists, or null when every member is pinned or the server did not say.",
+      "description": "The earliest date any member's version can still be fetched without being pinned, as YYYY-MM-DD on a date that exists, or null when every member is pinned or the server did not say. When every member's pinned is known, it is the earliest held_until of the members that are not pinned, or null when none has one.",
       "type": [
         "string",
         "null"
@@ -101,18 +100,19 @@
       }
     },
     "members": {
-      "description": "One entry per member of ref, in its order, naming the member as ref does and adding its citation. Empty when ref is null.",
+      "description": "One entry per member of ref, in its order, naming the member as ref does and adding its citation and its retention. Empty when ref is null.",
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
         "required": [
           "spec_id",
           "content_version",
           "digest",
           "parts",
           "sentence",
-          "citation"
+          "citation",
+          "pinned",
+          "held_until"
         ],
         "properties": {
           "spec_id": {
@@ -139,6 +139,21 @@
           },
           "citation": {
             "$ref": "saved-file.schema.json#/$defs/citation"
+          },
+          "pinned": {
+            "description": "Whether the member's version is kept without a time limit, or null when the client does not know, as for a file saved before clients recorded each member's retention.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "held_until": {
+            "description": "The date the member's version can still be fetched without being pinned, as YYYY-MM-DD on a date that exists, or null when the member is pinned, the server did not say, or the client does not know.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
           }
         }
       }
