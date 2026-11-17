@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/provenance.schema.json",
   "title": "Provenance",
-  "description": "Where a dataset came from, as a client's data.provenance.to_json() writes it and Provenance.from_json reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention of the dataset and of each member, the warnings and each member's citation. Every key named here is required. The record, each member and every nested object but the ref are open: a reader ignores a key it does not name, so a later client can add one without a new format_version, and writes back only the keys it names. A key that changes the meaning of the record comes with a new format_version, which a reader refuses. The ref keeps its own versioned format, dataset-ref.schema.json, which is closed.",
+  "description": "Where a dataset came from, as a client's data.provenance.to_json() writes it and Provenance.from_json reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention of the dataset and of each member, the warnings, whether the dataset is complete and the parts it left out, and each member's citation. Every key named here is required. The record, each member and every nested object but the ref are open: a reader ignores a key it does not name, so a later client can add one without a new format_version, and writes back only the keys it names. A key that changes the meaning of the record comes with a new format_version, which a reader refuses. The ref keeps its own versioned format, dataset-ref.schema.json, which is closed.",
   "type": "object",
   "required": [
     "format_version",
@@ -14,6 +14,8 @@
     "pinned",
     "held_until",
     "warnings",
+    "complete",
+    "missing",
     "members"
   ],
   "properties": {
@@ -94,6 +96,69 @@
               "string",
               "null"
             ]
+          }
+        }
+      }
+    },
+    "complete": {
+      "description": "Whether every part of the question has a member, the dataset's complete. A fetch of a ref is complete for the members it names. A reader refuses a record whose complete is true while missing holds a part.",
+      "type": "boolean"
+    },
+    "missing": {
+      "description": "The parts a partial fetch left out, in the dataset's order, each as the saved file's dfo.dataset missing entry gives it for the same part, so the record and the file agree. Empty for a complete dataset.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "part_index",
+          "part",
+          "kind",
+          "message",
+          "options"
+        ],
+        "properties": {
+          "part_index": {
+            "description": "The part's position in the answer.",
+            "type": "integer"
+          },
+          "part": {
+            "description": "The answer part as served.",
+            "type": "object",
+            "required": [
+              "status"
+            ]
+          },
+          "kind": {
+            "$ref": "scenario.schema.json#/$defs/gap_kind"
+          },
+          "message": {
+            "type": "string"
+          },
+          "options": {
+            "description": "The choices of place or source the part awaits, empty for any other part.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "label",
+                "mentions",
+                "data_query"
+              ],
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "mentions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "data_query": {
+                  "type": "object"
+                }
+              }
+            }
           }
         }
       }

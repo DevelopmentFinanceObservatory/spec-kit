@@ -1,0 +1,208 @@
+{
+  "format_version": 1,
+  "name": "provenance-complete-with-missing-rejected",
+  "description": "provenance-partial with complete true while missing still holds the part left out, which the rules refuse.",
+  "provenance": {
+    "format_version": 1,
+    "sentence": "Kenya's external debt service owed to all creditors, 1970 to 2025. Current US dollars · World Bank International Debt Statistics (IDS).",
+    "citation": {
+      "text": "World Bank International Debt Statistics (IDS) (2026), via the Development Finance Observatory",
+      "sources": [
+        {
+          "ref": "provenance/WorldBankInternationalDebtStatistics",
+          "label": "World Bank International Debt Statistics (IDS)",
+          "licence": "Creative Commons Attribution License",
+          "licence_url": "https://datacatalog.worldbank.org/public-licenses?fragment=cc",
+          "url": "https://datacatalog.worldbank.org/search/dataset/0038015/international-debt-statistics"
+        }
+      ]
+    },
+    "fetched_at": "2026-11-15T21:49:33Z",
+    "question": "debt service of Kenya and the price of tea in Kenya",
+    "ref": {
+      "format_version": 1,
+      "members": [
+        {
+          "parts": [
+            "debt service"
+          ],
+          "sentence": "Kenya's external debt service owed to all creditors, 1970 to 2025. Current US dollars · World Bank International Debt Statistics (IDS).",
+          "spec": {
+            "spec_id": "spec_78d04fefc3b3f1ef71acd622957e4995",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_78d04fefc3b3f1ef71acd622957e4995",
+              "identity": {
+                "shape": {
+                  "kind": "statvar_schema",
+                  "stat_type": "measuredValue",
+                  "population_type": "FinancialFlow",
+                  "measured_property": "amount",
+                  "measurement_qualifier": "Nominal"
+                },
+                "slots": [
+                  {
+                    "binding": {
+                      "ref": "ServicingPayment",
+                      "state": "value"
+                    },
+                    "property": "financialFlowType"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "financingResource"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "guaranteeStatus"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "idsConcessionality"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "idsCreditorType"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "idsDebtorType"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "includesIMFCredit"
+                  },
+                  {
+                    "binding": {
+                      "state": "unbound"
+                    },
+                    "property": "maturityBand"
+                  }
+                ],
+                "entities": {
+                  "destination": [
+                    "country/KEN"
+                  ]
+                },
+                "identity_version": "spec1",
+                "requested_window": {
+                  "kind": "all"
+                }
+              }
+            }
+          },
+          "content_version": "cv_a1084f7e1f919df607b0c54c90ac7d55",
+          "artifact": {
+            "digest": "sha256:750c79d2b819ea712f21ff401fec9e3f8815c6258bd4c7e9e0ad263a9517ff96",
+            "rendering": {
+              "format": "parquet",
+              "bundle": false,
+              "without_party_totals": true
+            }
+          }
+        }
+      ]
+    },
+    "pinned": false,
+    "held_until": "2026-12-13",
+    "warnings": [],
+    "complete": true,
+    "missing": [
+      {
+        "part_index": 1,
+        "part": {
+          "variable_text": "price of tea",
+          "warnings": [],
+          "timing_ms": {
+            "total": 14,
+            "by_step": {
+              "recall": 2,
+              "phase_resolve_places": 0,
+              "phase_check_entities": 0,
+              "shape_arcs": 0,
+              "shape_probe": 5,
+              "shape_groups": 1,
+              "shape_labels": 0,
+              "shape_admission": 2,
+              "phase_derive_shapes": 0,
+              "shape_denominators": 0,
+              "shape_quantity": 0,
+              "shape": 12,
+              "phase_prune_and_rank": 0
+            }
+          },
+          "rendered_sentence": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+          "sentence_plan": [
+            {
+              "kind": "text",
+              "text": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+              "segment": "heading",
+              "entity_refs": [],
+              "states": []
+            }
+          ],
+          "entity_refs": [],
+          "operations": [],
+          "departures": [],
+          "assumptions": [],
+          "status": "no_data",
+          "no_data": {
+            "reason": "variable_not_resolved",
+            "category": "unresolved",
+            "message": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+            "entity_terms": [],
+            "ambiguous_entities": [],
+            "source_terms": [],
+            "ambiguous_sources": [],
+            "unbound_qualifiers": [],
+            "options": []
+          }
+        },
+        "kind": "not_understood",
+        "message": "Could not match \"price of tea\" to a supported indicator. Try a different wording or a related indicator.",
+        "options": []
+      }
+    ],
+    "members": [
+      {
+        "spec_id": "spec_78d04fefc3b3f1ef71acd622957e4995",
+        "content_version": "cv_a1084f7e1f919df607b0c54c90ac7d55",
+        "digest": "sha256:750c79d2b819ea712f21ff401fec9e3f8815c6258bd4c7e9e0ad263a9517ff96",
+        "parts": [
+          "debt service"
+        ],
+        "sentence": "Kenya's external debt service owed to all creditors, 1970 to 2025. Current US dollars · World Bank International Debt Statistics (IDS).",
+        "citation": {
+          "text": "World Bank International Debt Statistics (IDS) (2026), via the Development Finance Observatory",
+          "sources": [
+            {
+              "ref": "provenance/WorldBankInternationalDebtStatistics",
+              "label": "World Bank International Debt Statistics (IDS)",
+              "licence": "Creative Commons Attribution License",
+              "licence_url": "https://datacatalog.worldbank.org/public-licenses?fragment=cc",
+              "url": "https://datacatalog.worldbank.org/search/dataset/0038015/international-debt-statistics"
+            }
+          ]
+        },
+        "pinned": false,
+        "held_until": "2026-12-13"
+      }
+    ]
+  },
+  "error": {
+    "by": "rule",
+    "reason": "format_invalid"
+  }
+}

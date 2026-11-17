@@ -104,9 +104,10 @@ document validates against its schema, then what the schemas cannot express:
   `fetched_at` and every `held_until` name a time and a date that exist, that
   `ref` follows the ref rules, that `members` holds one entry per member
   of `ref`, none when it is null, each naming its ref member's `spec_id`,
-  `content_version`, artifact digest, `parts` and `sentence`, and that the
+  `content_version`, artifact digest, `parts` and `sentence`, that the
   record's `pinned` and `held_until` are what its members' give, members or
-  none (`_retention_agrees`).
+  none (`_retention_agrees`), and that a record whose `complete` is true
+  names no `missing` part.
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -4234,7 +4235,8 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     `dfo.retention` entry per member when the key is present; the members'
     retention, as `dfo.retention` gives it or as a file without it reads
     (`_retention_before_key`), agreeing with `dfo.dataset`'s `pinned` and
-    `held_until` (`_retention_agrees`); and each
+    `held_until` (`_retention_agrees`); no `dfo.dataset` `missing` part
+    beside a `complete` that is true; and each
     `dfo.party_totals_left_out` entry reading as a served entry reads
     (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
     a root of a derived member, in member order and then in the member's root
@@ -4257,6 +4259,8 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     if len(retention) != len(members) or not _retention_agrees(
         dataset["pinned"], dataset["held_until"], retention
     ):
+        return "format_invalid"
+    if dataset["complete"] and dataset["missing"]:
         return "format_invalid"
     entries = decoded.get("dfo.party_totals_left_out", [])
     if not all(map(_party_totals_entry_reads, entries)):
@@ -4359,9 +4363,10 @@ def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
     None: a `fetched_at` or any `held_until` that is no real time or date;
     `ref`'s ref rules; one `members` entry per member of `ref`, none when it
     is null, each naming its ref member's `spec_id`, `content_version`,
-    artifact digest, `parts` and `sentence`; and the record's `pinned` and
-    `held_until` agreeing with its members' (`_retention_agrees`). A key the
-    format does not name is ignored, at the top level and in a member."""
+    artifact digest, `parts` and `sentence`; the record's `pinned` and
+    `held_until` agreeing with its members' (`_retention_agrees`); and no
+    `missing` part beside a `complete` that is true. A key the format does not
+    name is ignored, at the top level and in a member."""
     held = [provenance["held_until"]] + [
         entry["held_until"] for entry in provenance["members"]
     ]
@@ -4395,8 +4400,9 @@ def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
     agrees = _retention_agrees(
         provenance["pinned"], provenance["held_until"], provenance["members"]
     )
-    return None if agrees else "format_invalid"
-
+    if not agrees or (provenance["complete"] and provenance["missing"]):
+        return "format_invalid"
+    return None
 
 
 def _check_provenance(validator: jsonschema.Draft202012Validator) -> list[str]:
