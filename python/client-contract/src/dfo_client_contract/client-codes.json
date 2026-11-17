@@ -11,7 +11,7 @@
       "code": "answer_incomplete",
       "class": "IncompleteAnswerError",
       "retryable": false,
-      "condition": "Fetching an answer with a part that has no reading, when the fetch is not partial or no part has a reading."
+      "condition": "Fetching an answer with a part that has no reading, or whose reading holds a source code other than the one the part asked for, when the fetch is not partial or no part has a reading."
     },
     {
       "code": "base_url_invalid",
@@ -204,6 +204,12 @@
       "class": "ContractError",
       "retryable": false,
       "condition": "A response of a status or form the call does not act on: a redirect it does not follow, a body that is not JSON, or a status the route does not answer."
+    },
+    {
+      "code": "version_not_pinned",
+      "class": "InvalidRequestError",
+      "retryable": false,
+      "condition": "A file URL is asked for a stored version that is not pinned."
     },
     {
       "code": "version_unavailable",
