@@ -37,7 +37,7 @@ document validates against its schema, then what the schemas cannot express:
   none of them a code another table or `registries/codes.json` holds, except
   that a proxy code may share a registry code whose every mapping is
   `mcp_refusal`. The warning codes are those the client rules issue:
-  `ref_digest_changed`,
+  `ref_digest_changed`, `name_deprecated`,
   `route_deprecated`, `server_warning`, one `key_<reason>` per key-format
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
@@ -99,6 +99,15 @@ document validates against its schema, then what the schemas cannot express:
   each root of a derived one that rendering in the frame layout, the party
   totals cut read from `party_totals: false` or `without_party_totals: true`
   alike.
+- Each provenance example's file name matches its `name` and gets the
+  verdict it states: from `provenance.schema.json`, then from the rules that
+  `fetched_at` and every `held_until` name a time and a date that exist, that
+  `ref` follows the ref rules, that `members` holds one entry per member
+  of `ref`, none when it is null, each naming its ref member's `spec_id`,
+  `content_version`, artifact digest, `parts` and `sentence`, that the
+  record's `pinned` and `held_until` are what its members' give, members or
+  none (`_retention_agrees`), and that its `complete` is true exactly when
+  `missing` is empty.
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -203,6 +212,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
         "scenario.schema.json",
         "dataset-ref.schema.json",
         "saved-file.schema.json",
+        "provenance.schema.json",
         "rules/rules.schema.json",
     )
     schemas = {name: _load(PACKAGE_DIR / name) for name in names}
@@ -524,13 +534,14 @@ def _check_warning_codes(
     rules_schema: Mapping[str, Any],
 ) -> list[str]:
     """As `_check_other_codes`, and the codes are those a client's rules
-    issue: `ref_digest_changed`, each header warning, one `key_<reason>`
+    issue: `ref_digest_changed`, `name_deprecated`, each header warning, one `key_<reason>`
     warning per key-format reason, and each warning the series-left-out
     rule issues."""
     codes = [row["code"] for row in document["codes"]]
     problems = _check_other_codes("warning-codes.json", codes, taken)
     wanted = {
         REF_DIGEST_CHANGED,
+        NAME_DEPRECATED,
         ROUTE_DEPRECATED,
         SERVER_WARNING,
         *(f"key_{r}" for r in key_format_reasons(rules_schema)),
@@ -944,6 +955,9 @@ def retry_wait(headers: Mapping[str, str], attempt: int) -> float:
 
 # The warning a client issues when a ref's file digest has changed.
 REF_DIGEST_CHANGED = "ref_digest_changed"
+
+# The warning a client issues when a caller uses one of its deprecated names.
+NAME_DEPRECATED = "name_deprecated"
 
 # The headers a client warns on, and the warning-codes.json code of each.
 DEPRECATION_HEADERS = ("deprecation", "sunset")
@@ -4175,16 +4189,41 @@ def _decoded_metadata(
 
 
 def _calendar_dates_exist(decoded: Mapping[str, Any]) -> bool:
-    """Whether a saved file's `dfo.fetched_at` and `held_until`, which the
-    schema checks by pattern, name a time and a date that exist."""
+    """Whether a saved file's `dfo.fetched_at` and every `held_until`, in
+    `dfo.dataset` and in `dfo.retention`, which the schema checks by pattern,
+    name a time and a date that exist."""
+    held = [decoded["dfo.dataset"].get("held_until")] + [
+        entry["held_until"] for entry in decoded.get("dfo.retention", [])
+    ]
     try:
         if (fetched := decoded.get("dfo.fetched_at")) is not None:
             datetime.fromisoformat(fetched)
-        if (held := decoded["dfo.dataset"].get("held_until")) is not None:
-            date.fromisoformat(held)
+        for day in held:
+            if day is not None:
+                date.fromisoformat(day)
     except ValueError:
         return False
     return True
+
+
+def _retention_agrees(
+    pinned: bool, held_until: str | None, members: Sequence[Mapping[str, Any]]
+) -> bool:
+    """Whether a dataset's `pinned` and `held_until` are what its members'
+    retention, each `{pinned, held_until}`, gives: `pinned` true exactly when
+    there are members and every member's is, and `held_until` null when every
+    member is pinned and otherwise the earliest `held_until` of the members not
+    pinned, or null when none has one. A member whose `pinned` is null counts
+    as not pinned, and a dataset with no member is not pinned and has no
+    `held_until`, so a reader takes what the record states."""
+    if members and all(member["pinned"] is True for member in members):
+        return pinned is True and held_until is None
+    days = [
+        member["held_until"]
+        for member in members
+        if member["pinned"] is not True and member["held_until"] is not None
+    ]
+    return pinned is False and held_until == (min(days) if days else None)
 
 
 def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
@@ -4192,7 +4231,12 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     a `dfo.fetched_at` or `held_until` that is no real time or date, as both
     loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
     holds a derived member, "1" when it is absent; one member citation and
-    one row count per member of `dfo.ref`, none when it is absent; and each
+    one row count per member of `dfo.ref`, none when it is absent; one
+    `dfo.retention` entry per member when the key is present; the members'
+    retention, as `dfo.retention` gives it or as a file without it reads
+    (`_retention_before_key`), agreeing with `dfo.dataset`'s `pinned` and
+    `held_until` (`_retention_agrees`); `dfo.dataset`'s `complete` true
+    exactly when its `missing` is empty; and each
     `dfo.party_totals_left_out` entry reading as a served entry reads
     (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
     a root of a derived member, in member order and then in the member's root
@@ -4211,10 +4255,31 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
         len(members),
     ):
         return "format_invalid"
+    retention = decoded.get("dfo.retention", _retention_before_key(dataset, members))
+    if len(retention) != len(members) or not _retention_agrees(
+        dataset["pinned"], dataset["held_until"], retention
+    ):
+        return "format_invalid"
+    if dataset["complete"] == bool(dataset["missing"]):
+        return "format_invalid"
     entries = decoded.get("dfo.party_totals_left_out", [])
     if not all(map(_party_totals_entry_reads, entries)):
         return "format_invalid"
     return None if _party_totals_in_order(members, entries) else "format_invalid"
+
+
+def _retention_before_key(
+    dataset: Mapping[str, Any], members: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """The members' retention a file without `dfo.retention` reads: each
+    member pinned when `dfo.dataset`'s `pinned` is true, and otherwise with
+    `pinned` null and `dfo.dataset`'s `held_until`."""
+    entry = (
+        {"pinned": True, "held_until": None}
+        if dataset["pinned"]
+        else {"pinned": None, "held_until": dataset["held_until"]}
+    )
+    return [entry] * len(members)
 
 
 def _party_totals_in_order(
@@ -4281,6 +4346,97 @@ def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:
             problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
     problems.extend(
         f"saved-files: no {verdict} example"
+        for verdict in ("accept", "schema", "rule")
+        if paths and verdict not in verdicts
+    )
+    return problems
+
+
+# --- provenance -------------------------------------------------------------
+
+# The keys of a provenance member that name its ref member.
+_PROVENANCE_NAMED_KEYS = ("spec_id", "content_version", "digest", "parts", "sentence")
+
+
+def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
+    """The first rule a provenance record that meets its schema breaks, or
+    None: a `fetched_at` or any `held_until` that is no real time or date;
+    `ref`'s ref rules; one `members` entry per member of `ref`, none when it
+    is null, each naming its ref member's `spec_id`, `content_version`,
+    artifact digest, `parts` and `sentence`; the record's `pinned` and
+    `held_until` agreeing with its members' (`_retention_agrees`); and
+    `complete` true exactly when `missing` is empty. A key the format does not
+    name is ignored, at the top level and in a member."""
+    held = [provenance["held_until"]] + [
+        entry["held_until"] for entry in provenance["members"]
+    ]
+    try:
+        if (fetched := provenance["fetched_at"]) is not None:
+            datetime.fromisoformat(fetched)
+        for day in held:
+            if day is not None:
+                date.fromisoformat(day)
+    except ValueError:
+        return "format_invalid"
+    ref = provenance["ref"]
+    if ref is not None and (broken := _ref_rule(ref)) is not None:
+        return broken
+    named = [
+        {
+            "spec_id": member["spec"]["spec_id"],
+            "content_version": member["content_version"],
+            "digest": member["artifact"]["digest"],
+            "parts": member["parts"],
+            "sentence": member["sentence"],
+        }
+        for member in (ref["members"] if ref is not None else [])
+    ]
+    given = [
+        {key: entry[key] for key in _PROVENANCE_NAMED_KEYS}
+        for entry in provenance["members"]
+    ]
+    if given != named:
+        return "format_invalid"
+    agrees = _retention_agrees(
+        provenance["pinned"], provenance["held_until"], provenance["members"]
+    )
+    if not agrees or provenance["complete"] == bool(provenance["missing"]):
+        return "format_invalid"
+    return None
+
+
+def _check_provenance(validator: jsonschema.Draft202012Validator) -> list[str]:
+    paths = sorted((PACKAGE_DIR / "provenance").glob("*.json"))
+    problems = [] if paths else ["provenance: no provenance examples found"]
+    verdicts: set[str] = set()
+    for path in paths:
+        label = f"provenance/{path.name}"
+        record = _load(path)
+        if not isinstance(record, dict) or record.get("name") != path.stem:
+            problems.append(f"{label}: name does not match the file name")
+            continue
+        error = record.get("error")
+        if ("expect" in record) == isinstance(error, dict):
+            problems.append(f"{label}: carries neither or both of expect and error")
+            continue
+        found = _schema_problems(label, validator, record.get("provenance"))
+        by = error.get("by") if isinstance(error, dict) else None
+        verdicts.add(by or "accept")
+        if by == "schema":
+            if not found:
+                problems.append(
+                    f"{label}: the schema accepts a provenance it should reject"
+                )
+            continue
+        if found:
+            problems.extend(found)
+            continue
+        broken = _provenance_rule(record["provenance"])
+        wanted = error.get("reason") if by == "rule" else None
+        if broken != wanted:
+            problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
+    problems.extend(
+        f"provenance: no {verdict} example"
         for verdict in ("accept", "schema", "rule")
         if paths and verdict not in verdicts
     )
@@ -4734,6 +4890,7 @@ def validate() -> list[str]:
         )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
     problems.extend(_check_saved_files(validators["saved-file.schema.json"]))
+    problems.extend(_check_provenance(validators["provenance.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
     problems.extend(_check_derived_identities())
     return problems

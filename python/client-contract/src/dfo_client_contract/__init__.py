@@ -3,9 +3,9 @@
 Ships, as package data, what the DFO Python and TypeScript clients generate
 from and replay: the served OpenAPI document, the strict fields, the caller
 action for each refusal code, the code of each error and warning a client
-raises or issues itself, the website proxy's refusal codes,
-the scenario, DatasetRef and saved-file formats with their records, and the client rules
-with their vectors. Every accessor reads the installed files through
+raises or issues itself, the website proxy's refusal codes, the scenario,
+DatasetRef, saved-file and provenance formats with their records, and the
+client rules with their vectors. Every accessor reads the installed files through
 `importlib.resources`.
 """
 
@@ -18,6 +18,8 @@ from dfo_client_contract.contract import (
     contract_dir,
     dataset_ref_schema,
     openapi,
+    provenance_examples,
+    provenance_schema,
     proxy_codes,
     proxy_codes_schema,
     ref_examples,
@@ -43,6 +45,8 @@ __all__ = [
     "contract_dir",
     "dataset_ref_schema",
     "openapi",
+    "provenance_examples",
+    "provenance_schema",
     "proxy_codes",
     "proxy_codes_schema",
     "ref_examples",
