@@ -37,7 +37,7 @@ document validates against its schema, then what the schemas cannot express:
   none of them a code another table or `registries/codes.json` holds, except
   that a proxy code may share a registry code whose every mapping is
   `mcp_refusal`. The warning codes are those the client rules issue:
-  `ref_digest_changed`,
+  `ref_digest_changed`, `name_deprecated`,
   `route_deprecated`, `server_warning`, one `key_<reason>` per key-format
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
@@ -531,13 +531,14 @@ def _check_warning_codes(
     rules_schema: Mapping[str, Any],
 ) -> list[str]:
     """As `_check_other_codes`, and the codes are those a client's rules
-    issue: `ref_digest_changed`, each header warning, one `key_<reason>`
+    issue: `ref_digest_changed`, `name_deprecated`, each header warning, one `key_<reason>`
     warning per key-format reason, and each warning the series-left-out
     rule issues."""
     codes = [row["code"] for row in document["codes"]]
     problems = _check_other_codes("warning-codes.json", codes, taken)
     wanted = {
         REF_DIGEST_CHANGED,
+        NAME_DEPRECATED,
         ROUTE_DEPRECATED,
         SERVER_WARNING,
         *(f"key_{r}" for r in key_format_reasons(rules_schema)),
@@ -951,6 +952,9 @@ def retry_wait(headers: Mapping[str, str], attempt: int) -> float:
 
 # The warning a client issues when a ref's file digest has changed.
 REF_DIGEST_CHANGED = "ref_digest_changed"
+
+# The warning a client issues when a caller uses one of its deprecated names.
+NAME_DEPRECATED = "name_deprecated"
 
 # The headers a client warns on, and the warning-codes.json code of each.
 DEPRECATION_HEADERS = ("deprecation", "sunset")

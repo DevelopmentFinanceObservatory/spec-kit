@@ -128,7 +128,7 @@ def saved_file_schema() -> dict[str, Any]:
 
 
 def provenance_schema() -> dict[str, Any]:
-    """`provenance.schema.json`: the record `data.provenance.to_object()` writes."""
+    """`provenance.schema.json`: the record `data.provenance.to_json()` writes."""
     return _load("provenance.schema.json")
 
 
