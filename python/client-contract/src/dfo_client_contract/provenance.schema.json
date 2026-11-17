@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/provenance.schema.json",
   "title": "Provenance",
-  "description": "Where a dataset came from, as a client's data.provenance.to_json() writes it and Provenance.from_json reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention of the dataset and of each member, the warnings and each member's citation. Every key named here is required. The record and each member are open: a reader ignores a key it does not name, so a later client can add one without a new format_version, and writes back only the keys it names. A key that changes the meaning of the record comes with a new format_version, which a reader refuses.",
+  "description": "Where a dataset came from, as a client's data.provenance.to_json() writes it and Provenance.from_json reads it back, so a record one client stores as JSON loads in the other. It holds the facts the saved file's dfo.* keys hold of the same dataset: the sentence, the citation, the fetch time, the question, the ref, the retention of the dataset and of each member, the warnings and each member's citation. Every key named here is required. The record, each member and every nested object but the ref are open: a reader ignores a key it does not name, so a later client can add one without a new format_version, and writes back only the keys it names. A key that changes the meaning of the record comes with a new format_version, which a reader refuses. The ref keeps its own versioned format, dataset-ref.schema.json, which is closed.",
   "type": "object",
   "required": [
     "format_version",
@@ -27,7 +27,7 @@
     },
     "citation": {
       "description": "How to cite the data, every member's sources together.",
-      "$ref": "saved-file.schema.json#/$defs/citation"
+      "$ref": "#/$defs/citation"
     },
     "fetched_at": {
       "description": "When the data left the server, the earliest member's time, as an ISO 8601 time with a zone, on a date that exists on the calendar. A client writes it in UTC to the second, as 2026-11-27T09:14:05Z, and null when any member's fetch time is unknown.",
@@ -72,7 +72,6 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
         "required": [
           "code",
           "severity",
@@ -138,7 +137,7 @@
             "type": "string"
           },
           "citation": {
-            "$ref": "saved-file.schema.json#/$defs/citation"
+            "$ref": "#/$defs/citation"
           },
           "pinned": {
             "description": "Whether the member's version is kept without a time limit, or null when the client does not know, as for a file saved before clients recorded each member's retention.",
@@ -157,6 +156,57 @@
           }
         }
       }
+    }
+  },
+  "$defs": {
+    "citation": {
+      "type": "object",
+      "required": [
+        "text",
+        "sources"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "ref",
+              "label"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "licence": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "licence_url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "description": "A citation as the saved file's dfo.citation gives it, open: a reader ignores a key it does not name, in the citation and in each source."
     }
   }
 }

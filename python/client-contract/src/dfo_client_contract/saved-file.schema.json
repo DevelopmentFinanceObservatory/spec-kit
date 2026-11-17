@@ -498,7 +498,7 @@
       }
     },
     "dfo.retention": {
-      "description": "Each member's retention, one entry per member of dfo.ref in its order, as the provenance record's members give it. A client writes it whenever dfo.ref is present. A file without it, as one saved before this key, reads each member as pinned when dfo.dataset's pinned is true, and as unknown, pinned and held_until null, otherwise. Each entry is open: a reader ignores a key it does not name.",
+      "description": "Each member's retention, one entry per member of dfo.ref in its order, as the provenance record's members give it. A client writes it whenever dfo.ref is present. A file without it, as one saved before this key, reads each member as pinned when dfo.dataset's pinned is true, and otherwise with pinned null, unknown, and held_until dfo.dataset's held_until, the earliest date of the members, which each member is held until at least, so the dataset's pinned and held_until read as the file states them. Each entry is open: a reader ignores a key it does not name.",
       "type": "string",
       "contentMediaType": "application/json",
       "contentSchema": {
