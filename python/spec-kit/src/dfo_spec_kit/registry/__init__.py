@@ -24,6 +24,11 @@ The warning-reason registry (`registries/warning-reasons.json`, mirrored the
 same way and checked by `tools/validate_warning_reasons.py`) lists the values
 a warning carries in `params.why`. `WARNING_REASONS` is that registry, keyed
 by code and then by reason.
+
+The flow role-axis registry (`registries/flow-role-axes.json`, mirrored the
+same way and checked by `tools/validate_flow_role_axes.py`) places each party
+role name of a flow on the `origin` or `destination` axis. `FLOW_ROLE_AXES` is
+that registry, keyed by role name.
 """
 
 from __future__ import annotations
@@ -37,6 +42,7 @@ from typing import Any, Literal
 
 Classification = Literal["refusal", "warning"]
 Lifecycle = Literal["active", "retired"]
+FlowAxis = Literal["origin", "destination"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -238,7 +244,23 @@ def _warning_reasons_from_json(
 
 WARNING_REASONS: Mapping[str, Mapping[str, WarningReason]] = load_warning_reasons()
 
+
+def load_flow_role_axes() -> Mapping[str, FlowAxis]:
+    """Load and parse the packaged flow role-axis mirror
+    (`registry/flow-role-axes.json`), keyed by role name."""
+    raw_text = (
+        resources.files("dfo_spec_kit.registry")
+        .joinpath("flow-role-axes.json")
+        .read_text(encoding="utf-8")
+    )
+    entries = json.loads(raw_text)["entries"]
+    return MappingProxyType({raw["role"]: raw["axis"] for raw in entries})
+
+
+FLOW_ROLE_AXES: Mapping[str, FlowAxis] = load_flow_role_axes()
+
 __all__ = [
+    "FLOW_ROLE_AXES",
     "LIMIT_NAMES",
     "REGISTRY",
     "WARNING_REASONS",
@@ -246,9 +268,11 @@ __all__ = [
     "CodeEntry",
     "CodeMapping",
     "CodeRegistry",
+    "FlowAxis",
     "Lifecycle",
     "LimitName",
     "WarningReason",
+    "load_flow_role_axes",
     "load_limit_names",
     "load_registry",
     "load_warning_reasons",

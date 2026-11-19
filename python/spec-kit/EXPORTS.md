@@ -244,6 +244,21 @@ stability = "provisional"
 reason = "bundled-data"
 
 [[export]]
+name = "FLOW_ROLE_AXES"
+module = "dfo_spec_kit.registry"
+kind = "constant"
+stability = "provisional"
+policy = "contents track registries/flow-role-axes.json; a role is added, never moved to the other axis"
+reason = "bundled-data"
+
+[[export]]
+name = "load_flow_role_axes"
+module = "dfo_spec_kit.registry"
+kind = "function"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
 name = "WARNING_REASONS"
 module = "dfo_spec_kit.registry"
 kind = "constant"

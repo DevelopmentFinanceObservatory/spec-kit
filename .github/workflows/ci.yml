@@ -133,6 +133,9 @@ jobs:
       - name: Validate warning-reason registry
         run: uv run tools/validate_warning_reasons.py
 
+      - name: Validate flow role-axis registry
+        run: uv run tools/validate_flow_role_axes.py
+
       - name: Test the registry validator
         run: uv run --with jsonschema --with pyarrow --with pytest pytest tools/tests -q
 
