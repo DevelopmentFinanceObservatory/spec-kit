@@ -6808,6 +6808,27 @@
       "lifecycle": "active"
     },
     {
+      "code": "verify_not_permitted",
+      "classification": "refusal",
+      "definition": "The caller of a verification, a `POST /api/datasets/analysis` request with `verify: true` or a `GET /api/presentation/share-sample` request, did not send the deployment's verify principal in its `x-dfo-principal` header, or the deployment sets no verify principal.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 403
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 403
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "whole_total_available",
       "classification": "warning",
       "definition": "The answer lists each member of a flow side whose dataset publishes the total of that side's whole population for the answer's years, so a sum of the listed members can differ from the published figure. The params name the total (total, total_label) and the party classes it covers (whole_of: official, private or residual, comma-joined).",
