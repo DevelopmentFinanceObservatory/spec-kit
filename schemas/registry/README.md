@@ -113,6 +113,10 @@ The registry has no severity or message template. Each occurrence supplies them 
 
 `limit-name-registry.schema.json` (draft 2020-12) validates `registries/limit-names.json`, the names a `resource_exhausted` problem body carries in `limit_name`. Clients match on these values. The file is `{"format_version": 1, "entries": [...]}` with entries sorted by `name`, and each entry is closed to `name` (upper snake case, unique), `definition` (one sentence) and `owning_contract` (spelled as in the code registry). `uv run tools/validate_limit_registry.py` checks the schema, the sort order, uniqueness and the package mirror.
 
+## Flow role-axis registry
+
+`flow-role-axis-registry.schema.json` (draft 2020-12) validates `registries/flow-role-axes.json`, the party role names of a flow and the axis each sits on. The file is `{"format_version": 1, "entries": [...]}` with entries sorted by `role`, and each entry is closed to `role` (the name as the graph declares it, unique) and `axis` (`origin` or `destination`). `uv run tools/validate_flow_role_axes.py` checks the schema, the sort order, uniqueness and the package mirror.
+
 ## Warning-reason registry
 
 `warning-reason-registry.schema.json` (draft 2020-12) validates `registries/warning-reasons.json`, the values a warning carries in `params.why`. Clients match on these values. The file is `{"format_version": 1, "entries": [...]}` with entries sorted by `code` then `reason`, and each entry is closed to `code` (an active warning registered in `registries/codes.json`), `reason` (lower snake case, unique within its code), `definition` (one sentence) and an optional `params` object mapping each param the warning carries beside `why` for this reason to a one-sentence definition. `params` names no `why` and holds at least one param when present. `uv run tools/validate_warning_reasons.py` checks the schema, the sort order, uniqueness, that each code is an active warning and the package mirror.

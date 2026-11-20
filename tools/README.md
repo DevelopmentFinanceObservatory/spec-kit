@@ -14,6 +14,12 @@ uv run tools/validate_registry.py
 uv run tools/validate_limit_registry.py
 ```
 
+`validate_flow_role_axes.py` validates `registries/flow-role-axes.json` against `schemas/registry/flow-role-axis-registry.schema.json` and checks what the schema cannot express: entries sorted by `role` with each `role` once, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
+
+```bash
+uv run tools/validate_flow_role_axes.py
+```
+
 `validate_warning_reasons.py` validates `registries/warning-reasons.json` against `schemas/registry/warning-reason-registry.schema.json` and checks what the schema cannot express: entries sorted by `code` then `reason` with each pair once, every `code` an active warning in `registries/codes.json`, and byte-identity with the packaged mirror. It does not import `dfo_spec_kit`. Also a PEP 723 script:
 
 ```bash
