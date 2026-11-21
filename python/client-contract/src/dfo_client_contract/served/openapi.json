@@ -715,6 +715,71 @@
                   "$ref": "#/components/schemas/Manifest"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Strong, over the body and `x-dfo-freshness`. A gzip-encoded body carries it weak.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-dfo-freshness": {
+                "description": "`current`: the head was confirmed inside the recheck window. `pending`: past it, and its check is pending or running. `stale`: past it, and no check is running.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "current",
+                    "pending",
+                    "stale"
+                  ]
+                }
+              },
+              "x-dfo-content-version": {
+                "description": "The served content version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "`no-cache`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "`If-None-Match` names the current answer's ETag.",
+            "headers": {
+              "ETag": {
+                "description": "Strong, over the body and `x-dfo-freshness`. A gzip-encoded body carries it weak.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-dfo-freshness": {
+                "description": "`current`: the head was confirmed inside the recheck window. `pending`: past it, and its check is pending or running. `stale`: past it, and no check is running.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "current",
+                    "pending",
+                    "stale"
+                  ]
+                }
+              },
+              "x-dfo-content-version": {
+                "description": "The served content version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "`no-cache`.",
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           },
           "202": {
@@ -1026,7 +1091,7 @@
           "Datasets"
         ],
         "summary": "Post Analysis",
-        "description": "Compute a recipe tree and store its frame. Answers the stored frame's format 2 ref,\n`pending` while a root builds, or the refusal with its fix.",
+        "description": "Compute a recipe tree and store its frame. Answers the stored frame's format 2 ref,\n`pending` while a root builds, or the refusal with its fix. With `verify`, compute it\nagain at its pinned versions, storing nothing, for the `verify` grant's holder.",
         "operationId": "datasets_post_analysis",
         "requestBody": {
           "content": {
@@ -1044,7 +1109,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnalysisReady"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AnalysisReady"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnalysisVerified"
+                    }
+                  ],
+                  "title": "Response Datasets Post Analysis"
                 }
               }
             }
@@ -2545,6 +2618,37 @@
         }
       }
     },
+    "/api/graph/schema/terms/un_system": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Un Schema Terms",
+        "operationId": "graph_get_un_schema_terms",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaTerms"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/graph/schema/usage": {
       "get": {
         "tags": [
@@ -2565,6 +2669,120 @@
           },
           "default": {
             "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/graph/schema/usage/base": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Schema Usage Base",
+        "operationId": "graph_get_schema_usage_base",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetUsage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/graph/schema/usage/un_system": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Schema Usage Un System",
+        "operationId": "graph_get_schema_usage_un_system",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetUsage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/graph/schema/node/{dcid}": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Schema Node",
+        "operationId": "graph_get_schema_node",
+        "parameters": [
+          {
+            "name": "dcid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dcid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaNodeView"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "the request body or parameters failed validation (request_invalid)",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2600,6 +2818,77 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SchemaCheckResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "the request body or parameters failed validation (request_invalid)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/graph/schema/search": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Schema Search",
+        "operationId": "graph_get_schema_search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SearchQuery"
+            }
+          },
+          {
+            "name": "base",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Base"
+            }
+          },
+          {
+            "name": "un",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Un"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaSearch"
                 }
               }
             }
@@ -4180,6 +4469,102 @@
         }
       }
     },
+    "/api/presentation/share-sample": {
+      "get": {
+        "tags": [
+          "Presentation"
+        ],
+        "summary": "Read Share Sample",
+        "description": "Draw up to limit shares at random from those not taken down, optionally made within [created_after, created_before), each with its kind, mode, created_at and the number of slots showing a card. It states no owner, title, token or payload. Admits the verify principal alone.",
+        "operationId": "presentation_read_share_sample",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "the most shares the sample draws, 1 to 500",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "the most shares the sample draws, 1 to 500"
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "draw only shares made at or after this ISO 8601 timestamp",
+              "title": "Created After"
+            },
+            "description": "draw only shares made at or after this ISO 8601 timestamp"
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "draw only shares made before this ISO 8601 timestamp",
+              "title": "Created Before"
+            },
+            "description": "draw only shares made before this ISO 8601 timestamp"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareSampleResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "any non-2xx response uses this envelope",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "the request body or parameters failed validation (request_invalid)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/presentation/shares/{share_id}/history": {
       "get": {
         "tags": [
@@ -4872,6 +5257,22 @@
             "type": "array",
             "title": "Resolved Periods",
             "description": "each period the recipe states relative to the latest, with its period"
+          },
+          "derived_roots": {
+            "items": {
+              "$ref": "#/components/schemas/RootVersion"
+            },
+            "type": "array",
+            "title": "Derived Roots",
+            "description": "each root the tree read whose rendering is a version of its own, a groupby sum or a party-totals cut, with the dataset version it derives from, so a caller matches it to the dataset version an anchor records"
+          },
+          "stat_vars_summed": {
+            "items": {
+              "$ref": "#/components/schemas/StatVarsSummed"
+            },
+            "type": "array",
+            "title": "Stat Vars Summed",
+            "description": "each root read summed over its StatVars, with how many it summed; a root that states no groupby, holds several StatVars and is read under steps that name no stat_var is summed by the service itself, keeping the summable axes the steps name"
           }
         },
         "additionalProperties": false,
@@ -4944,6 +5345,12 @@
               }
             ],
             "title": "Anchor Roots"
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "description": "compute the tree again at the versions it names and compare its frame with the one stored under its pair, storing nothing; first-party callers only",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -4952,7 +5359,173 @@
           "tree"
         ],
         "title": "AnalysisRequest",
-        "description": "`POST /api/datasets/analysis`: the tree to compute, and whether its roots follow their\ndatasets' newest versions. A `tree` that is a derived root alone computes that frame's\nstored recipe again, so `latest` reads it on its datasets' newest versions under the\nrecipe's own ids. `rolling` `\"tree\"` takes the populations and the latest period of every\nrolling overlay a derived root's recipe holds from the whole tree, so derived rolling inputs\nare computed again under one latest period. Left out, each keeps its stored populations and\nperiods."
+        "description": "`POST /api/datasets/analysis`: the tree to compute, and whether its roots follow their\ndatasets' newest versions. A `tree` that is a derived root alone computes that frame's\nstored recipe again, so `latest` reads it on its datasets' newest versions under the\nrecipe's own ids. `rolling` `\"tree\"` takes the populations and the latest period of every\nrolling overlay a derived root's recipe holds from the whole tree, so derived rolling inputs\nare computed again under one latest period. Left out, each keeps its stored populations and\nperiods. `verify` computes the tree again at the versions it names, past any stored answer,\nand stores nothing (`verify_analysis`). It reads pinned versions only, so it refuses\n`latest` and a Spec root, which reads its dataset's newest version."
+      },
+      "AnalysisVerified": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "verified",
+            "title": "Status",
+            "default": "verified"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "same",
+              "different",
+              "not_stored",
+              "roots_unavailable"
+            ],
+            "title": "Outcome"
+          },
+          "frame": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frame",
+            "description": "the pair the computation names"
+          },
+          "frame_content_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^cv_[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frame Content Version"
+          },
+          "output_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^out_[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Digest"
+          },
+          "stored": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stored",
+            "description": "the pair compared with"
+          },
+          "stored_frame_content_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^cv_[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stored Frame Content Version"
+          },
+          "stored_output_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^out_[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stored Output Digest",
+            "description": "the stored frame's output digest, read when the two cv_s differ"
+          },
+          "stored_execution_identity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stored Execution Identity",
+            "description": "the execution identity the stored frame's recipe records"
+          },
+          "execution_identity": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Execution Identity"
+          },
+          "refusal_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refusal Code",
+            "description": "the engine's refusal code, or over_ceiling, the computation met"
+          },
+          "refusal_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refusal Reason"
+          },
+          "unavailable_roots": {
+            "items": {
+              "$ref": "#/components/schemas/UnavailableRootBody"
+            },
+            "type": "array",
+            "title": "Unavailable Roots"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "outcome",
+          "frame",
+          "frame_content_version",
+          "output_digest",
+          "stored",
+          "stored_frame_content_version",
+          "stored_output_digest",
+          "stored_execution_identity",
+          "execution_identity",
+          "refusal_code",
+          "refusal_reason",
+          "unavailable_roots"
+        ],
+        "title": "AnalysisVerified",
+        "description": "A tree computed again at the versions it names, beside the frame stored under its pair\n(`analysis.Verification`)."
       },
       "AnchorAnswer": {
         "properties": {
@@ -4973,14 +5546,11 @@
           },
           "roots": {
             "items": {
-              "additionalProperties": {
-                "type": "string"
-              },
-              "type": "object"
+              "$ref": "#/components/schemas/RootVersion"
             },
             "type": "array",
             "title": "Roots",
-            "description": "the dataset versions the period was taken over"
+            "description": "the dataset versions the period was taken over, each with the dataset version its rendering derives from"
           }
         },
         "additionalProperties": false,
@@ -6077,6 +6647,27 @@
         ],
         "title": "CapabilityKind",
         "description": "One mint-request `kind`'s liveness in this deployment."
+      },
+      "CappedListing": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref",
+            "description": "the node whose listing was cut"
+          },
+          "property": {
+            "type": "string",
+            "title": "Property",
+            "description": "the property listed: an in-arc's subjects point through it, the centre's own values sit under it, subClassOf+ for the classes below the centre, rangeIncludes/subClassOf+ for a property's range classes read for a value list, or typeOf/rangeIncludes for a value's type classes read for their rangeIncludes subjects and value list"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ref",
+          "property"
+        ],
+        "title": "CappedListing",
+        "description": "One listing a view cut: an in-arc listing at its cap of 1,000 subjects or past the 2 MiB\nbyte cap, a literal property of the centre whose values total past 32 KiB, left out of the\ncentre, a property of the centre past 100 values or with a literal past 2,000 characters,\nthe classes below a Class centre (`subClassOf+`) at 1,000 classes or 12 levels with a class\nbelow them unread, a Property centre's range classes past the third\n(`rangeIncludes/subClassOf+`), or a value centre's type classes past the third\n(`typeOf/rangeIncludes`)."
       },
       "CatalogueAnswer": {
         "properties": {
@@ -8161,6 +8752,10 @@
           },
           "aid": {
             "$ref": "#/components/schemas/AidCounts"
+          },
+          "by_origin": {
+            "$ref": "#/components/schemas/OriginCounts",
+            "description": "indicators, datasets and publishers counted for the Development Finance Observatory origin and for the Data Commons origins. Something both hold counts in each, so the split can exceed the global figures"
           }
         },
         "additionalProperties": false,
@@ -8170,7 +8765,8 @@
           "datasets",
           "publishers",
           "countries",
-          "aid"
+          "aid",
+          "by_origin"
         ],
         "title": "Counts",
         "description": "What DFO holds, counted from one origin catalogue build and one\ncoverage index build."
@@ -8951,10 +9547,10 @@
               }
             },
             "type": "array",
-            "maxItems": 6,
+            "maxItems": 32,
             "minItems": 1,
             "title": "Entries",
-            "description": "one entry per response part, in response part order; a single-entry request whose entry is an identity re-resolves exactly that one part"
+            "description": "one entry per response part, in response part order; a single-entry request whose entry is an identity re-resolves exactly that one part. At most 6 entries (caps.max_parts), or 32 (caps.max_code_parts) when no entry is a candidates entry and every parsed entry's part names a source_code, so an answer of that many code parts posts back whole as identity, placeholder and parsed entries; a longer list refuses request_invalid"
           },
           "raw_query": {
             "anyOf": [
@@ -9013,6 +9609,21 @@
             "type": "array",
             "title": "Provenances",
             "description": "sorted by ref"
+          },
+          "terms": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/UsageTerm"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terms",
+            "description": "on `/schema/usage/base` and `/schema/usage/un_system`: every node the patterns and constraint values name, sorted by ref; absent on `/schema/usage`"
           }
         },
         "type": "object",
@@ -9020,7 +9631,7 @@
           "provenances"
         ],
         "title": "DatasetUsage",
-        "description": "How each Provenance of the code index uses the model."
+        "description": "How each Provenance a usage route serves uses the model: those of the code index on\n`/schema/usage`, the base or UN System ones of the origin catalogue on\n`/schema/usage/base` and `/schema/usage/un_system`."
       },
       "DatasetVersion": {
         "properties": {
@@ -15049,6 +15660,54 @@
         ],
         "title": "OrganisationNode"
       },
+      "OriginCounts": {
+        "properties": {
+          "dfo": {
+            "$ref": "#/components/schemas/OriginSplit",
+            "description": "the Development Finance Observatory origin (`dfo`): DFO variables, the coverage variables search serves on a facet of a DFO provenance, and the provenances of that origin"
+          },
+          "data_commons": {
+            "$ref": "#/components/schemas/OriginSplit",
+            "description": "the `base` and `un_system` origins: base variables, the coverage variables search serves under a base provenance, UN variables, and the provenances of those origins. A StatVar both groups hold counts in both"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dfo",
+          "data_commons"
+        ],
+        "title": "OriginCounts",
+        "description": "`Counts` split by origin. An indicator, dataset or publisher held by\nboth groups counts in each, so the two groups can sum to more than the\nglobal figure. The global `indicators` is the union of the two indicator\nfigures."
+      },
+      "OriginSplit": {
+        "properties": {
+          "indicators": {
+            "type": "integer",
+            "title": "Indicators",
+            "description": "distinct StatVars the origins hold"
+          },
+          "datasets": {
+            "type": "integer",
+            "title": "Datasets",
+            "description": "distinct source-index entries of the origins' provenances"
+          },
+          "publishers": {
+            "type": "integer",
+            "title": "Publishers",
+            "description": "distinct sources of the origins' provenances"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "indicators",
+          "datasets",
+          "publishers"
+        ],
+        "title": "OriginSplit",
+        "description": "The indicators, datasets and publishers one group of origins holds."
+      },
       "OtherNode": {
         "properties": {
           "ref": {
@@ -15310,10 +15969,10 @@
               "$ref": "#/components/schemas/ParsedPart"
             },
             "type": "array",
-            "maxItems": 6,
+            "maxItems": 32,
             "minItems": 1,
             "title": "Parts",
-            "description": "one entry per variable ask; conjunctions pre-split by the caller. Parts that are byte-identical across every field collapse to one before resolution, so the response's own parts list can hold fewer entries than this list."
+            "description": "one entry per variable ask; conjunctions pre-split by the caller. At most 6 parts (caps.max_parts), or 32 (caps.max_code_parts) when every part names a source_code; a longer list refuses request_invalid. Parts that are byte-identical across every field collapse to one before resolution, so the response's own parts list can hold fewer entries than this list."
           },
           "raw_query": {
             "anyOf": [
@@ -16320,7 +16979,7 @@
               }
             ],
             "title": "Label",
-            "description": "the Provenance node's name in the graph; null when it has none"
+            "description": "the Provenance's name: its graph node's on `/schema/usage`, the origin catalogue's on `/schema/usage/base` and `/schema/usage/un_system`; null when it has none"
           },
           "description": {
             "anyOf": [
@@ -16332,7 +16991,7 @@
               }
             ],
             "title": "Description",
-            "description": "the Provenance node's description in the graph; null when it has none"
+            "description": "the Provenance's description: its graph node's on `/schema/usage`, its source's in the origin catalogue on `/schema/usage/base` and `/schema/usage/un_system`; null when it has none, as for every UN System Provenance"
           },
           "stat_var_count": {
             "type": "integer",
@@ -16356,7 +17015,7 @@
           },
           "facets": {
             "$ref": "#/components/schemas/SchemaFacets",
-            "description": "facts of the coverage facets; empty lists when coverage holds none"
+            "description": "facts of the coverage facets; empty lists when coverage holds none, as for every Provenance on `/schema/usage/base` and `/schema/usage/un_system`"
           }
         },
         "type": "object",
@@ -19196,6 +19855,38 @@
         "title": "RootRendering",
         "description": "How a dataset root's frame is read. `columns` left out takes the enrichment its\ndataset's roles need (`default_enrichment`); `[]` reads the stored frame\nalone. `groupby` reads the frame summed as a mint with that `options.groupby` sums it."
       },
+      "RootVersion": {
+        "properties": {
+          "spec_id": {
+            "type": "string",
+            "title": "Spec Id"
+          },
+          "content_version": {
+            "type": "string",
+            "title": "Content Version",
+            "description": "the version the root reads"
+          },
+          "base_content_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Content Version",
+            "description": "the dataset version `content_version` renders, for a groupby sum or a party-totals cut; absent when the root reads the dataset version itself"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "spec_id",
+          "content_version"
+        ],
+        "title": "RootVersion"
+      },
       "Roots": {
         "properties": {
           "code_systems": {
@@ -19790,6 +20481,51 @@
         "title": "SchemaNodeReference",
         "description": "A value that names a node of the graph, by its dcid."
       },
+      "SchemaNodeView": {
+        "properties": {
+          "generation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation",
+            "description": "the graph generation the view was read from; null when unknown"
+          },
+          "centre": {
+            "$ref": "#/components/schemas/SchemaNode",
+            "description": "the node, with every outgoing arc the graph holds"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/SchemaNode"
+            },
+            "type": "array",
+            "title": "Nodes",
+            "description": "the centre's neighbours, sorted by ref. Each carries its label and types and only the arcs the graph answered that tie it to the centre, to the centre's subClassOf chain or, for a Class centre, to the classes below it, so a walk down sub_class_of from the centre reaches every class the view lists below it. provenances are those of the arcs read from the neighbour (a member's typeOf, an in-arc subject's arc, a chain class's subClassOf edges) and declared_by follows from them; both are empty and null for a neighbour no arc was read from, such as a target of the centre's arcs"
+          },
+          "capped": {
+            "items": {
+              "$ref": "#/components/schemas/CappedListing"
+            },
+            "type": "array",
+            "title": "Capped",
+            "description": "the listings the view cut, sorted by ref and property: an in-arc listing at 1,000 subjects or past 2 MiB (the centre's typeOf for a value list's members, any schema arc of the centre, and a value's type class under rangeIncludes), a property of the centre whose values are all literals and total past 32 KiB, such as a country's geoJsonCoordinates, which the centre leaves out, a property of the centre's other_properties past 100 values or with a literal past 2,000 characters, subClassOf+ on a Class centre whose classes below it stopped at 1,000 or at 12 levels with a class below them unread, rangeIncludes/subClassOf+ on a Property centre with more than three range classes, and typeOf/rangeIncludes on a value centre with more than three type classes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "generation",
+          "centre",
+          "nodes",
+          "capped"
+        ],
+        "title": "SchemaNodeView",
+        "description": "One node of the graph and its schema neighbours."
+      },
       "SchemaPattern": {
         "properties": {
           "population_type": {
@@ -19840,13 +20576,25 @@
             ],
             "title": "Measurement Denominator"
           },
+          "measurement_denominator_unresolved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measurement Denominator Unresolved",
+            "description": "on `/schema/usage/base` and `/schema/usage/un_system`: true when the StatVars' measurementDenominator arc names no value or only ProvisionalNode targets, which keeps their pattern apart from one with no denominator; absent on `/schema/usage`, whose StatVars all carry resolved denominators"
+          },
           "constraint_properties": {
             "items": {
               "type": "string"
             },
             "type": "array",
             "title": "Constraint Properties",
-            "description": "the names of the constraint properties the StatVars set, sorted"
+            "description": "the names of the constraint properties the StatVars declare, sorted; on `/schema/usage/base` and `/schema/usage/un_system` a declared property with no value arc is listed here and adds nothing to `constraint_values`"
           },
           "observation_properties": {
             "items": {
@@ -19884,6 +20632,106 @@
         ],
         "title": "SchemaPattern",
         "description": "One distinct way a Provenance's StatVars use the model."
+      },
+      "SchemaSearch": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "description": "the query, stripped of surrounding whitespace"
+          },
+          "hits": {
+            "items": {
+              "$ref": "#/components/schemas/SchemaSearchHit"
+            },
+            "type": "array",
+            "title": "Hits",
+            "description": "the dcid hit first, then the entity resolver's, then the indicator resolves' merged by descending score, ties in source order (dfo, base, un_system), each ref once; empty when nothing matched"
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/SearchSource"
+            },
+            "type": "array",
+            "title": "Unavailable",
+            "description": "the parts that failed or ran out of time: a leg, so its hits are missing, or labels, so some hits lack their label, types and declared_by"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "hits",
+          "unavailable"
+        ],
+        "title": "SchemaSearch",
+        "description": "The nodes a search box query reaches in the graph."
+      },
+      "SchemaSearchHit": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref",
+            "description": "the node's dcid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "the node's name; null when the graph gives none, or for an indicator hit when the label read failed (labels in unavailable)"
+          },
+          "types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Types",
+            "description": "the node's typeOf values, sorted; when the label read failed, none for a name hit and StatisticalVariable for an indicator hit the resolver typed so"
+          },
+          "declared_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeclaredBy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the origin declaring the node, by the schema node's rule; null when the graph names no declaring Provenance for it or the label read failed"
+          },
+          "via": {
+            "$ref": "#/components/schemas/SearchVia",
+            "description": "dcid when the query is the node's whole dcid, name when the entity resolver named it, indicator when an indicator resolve returned it"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "the indicator resolver's score for an indicator hit, at least 0.30; null for a dcid or name hit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ref",
+          "label",
+          "types",
+          "declared_by",
+          "via",
+          "score"
+        ],
+        "title": "SchemaSearchHit",
+        "description": "One node a search found."
       },
       "SchemaTerm": {
         "properties": {
@@ -19933,7 +20781,7 @@
                 "type": "null"
               }
             ],
-            "description": "the origin declaring the term, by the node's rule; null when the graph names no declaring Provenance for the term: its listing entries carry none"
+            "description": "the origin declaring the term, by the node's rule on /schema/terms and always un_system on /schema/terms/un_system; null when the graph names no declaring Provenance for the term: its listing entries carry none"
           }
         },
         "type": "object",
@@ -19975,7 +20823,7 @@
           "terms"
         ],
         "title": "SchemaTerms",
-        "description": "Every Class and Property the DFO graph lists by `typeOf`, base Data Commons terms\nincluded. The UN origin's terms are not listed, even where the deployment serves it."
+        "description": "Every Class and Property one graph lists by `typeOf`. `GET /schema/terms` lists the DFO\ngraph's, base Data Commons terms included and the UN origin's left out.\n`GET /schema/terms/un_system` lists those the UN System Data Commons declares."
       },
       "SchemaValueCount": {
         "properties": {
@@ -20221,6 +21069,30 @@
         ],
         "title": "ScopeChoice",
         "description": "How one axis of the part was counted, and the options it could take."
+      },
+      "SearchQuery": {
+        "type": "string",
+        "maxLength": 256,
+        "minLength": 1
+      },
+      "SearchSource": {
+        "type": "string",
+        "enum": [
+          "dcid",
+          "names",
+          "dfo",
+          "base",
+          "un_system",
+          "labels"
+        ]
+      },
+      "SearchVia": {
+        "type": "string",
+        "enum": [
+          "dcid",
+          "name",
+          "indicator"
+        ]
       },
       "SentenceToken": {
         "properties": {
@@ -21263,6 +22135,75 @@
         ],
         "title": "ShareRetentionModel",
         "description": "How long a served frame can still be fetched."
+      },
+      "ShareSampleModel": {
+        "properties": {
+          "share_id": {
+            "type": "string",
+            "title": "Share Id",
+            "description": "the share's id, 8 letters and digits"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "card",
+              "canvas",
+              "search",
+              "conversation"
+            ],
+            "title": "Kind",
+            "description": "what the share publishes"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "snapshot"
+            ],
+            "title": "Mode",
+            "description": "the share's mode"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "description": "when the share was made, as an ISO 8601 timestamp"
+          },
+          "slots": {
+            "type": "integer",
+            "title": "Slots",
+            "description": "how many slots of the share's latest revision show a card"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "share_id",
+          "kind",
+          "mode",
+          "created_at",
+          "slots"
+        ],
+        "title": "ShareSampleModel",
+        "description": "One share a sample drew."
+      },
+      "ShareSampleResponse": {
+        "properties": {
+          "shares": {
+            "items": {
+              "$ref": "#/components/schemas/ShareSampleModel"
+            },
+            "type": "array",
+            "title": "Shares",
+            "description": "up to limit shares drawn at random from those not taken down, in no order"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "shares"
+        ],
+        "title": "ShareSampleResponse",
+        "description": "`GET /api/presentation/share-sample`'s 200 body."
       },
       "ShareServedModel": {
         "properties": {
@@ -23365,6 +24306,32 @@
         "title": "StatVarSetInput",
         "description": "`kind: \"statvar_set\"` -- resolves one `dcid:`-prefixed StatVar to its\nregistered shape and mints a fully pinned spec for it. `statvars` holds\nexactly one StatVar."
       },
+      "StatVarsSummed": {
+        "properties": {
+          "spec_id": {
+            "type": "string",
+            "title": "Spec Id"
+          },
+          "content_version": {
+            "type": "string",
+            "title": "Content Version"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "spec_id",
+          "content_version",
+          "count"
+        ],
+        "title": "StatVarsSummed",
+        "description": "A root whose groupby summed its StatVars into one series, the version it summed into\nand how many StatVars with data it summed (its `sum_variables` step's `summed.count`)."
+      },
       "Step": {
         "properties": {
           "id": {
@@ -24007,6 +24974,36 @@
           "reason"
         ],
         "title": "UnavailableFormatModel"
+      },
+      "UnavailableRootBody": {
+        "properties": {
+          "spec_id": {
+            "type": "string",
+            "title": "Spec Id"
+          },
+          "content_version": {
+            "type": "string",
+            "title": "Content Version"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "the Datasets code a run refuses the root with"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "spec_id",
+          "content_version",
+          "code",
+          "reason"
+        ],
+        "title": "UnavailableRootBody"
       },
       "UnitAlternative": {
         "properties": {
@@ -24675,6 +25672,43 @@
         ],
         "title": "UsageEntry",
         "description": "The shape a non-null `Usage.api_access`/`.python` entry takes. Both\nof its own members are always `None`, and no dcid produces an entry at\nall -- `graph_api.usage`'s own docstring is the record of why."
+      },
+      "UsageTerm": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref",
+            "description": "the node's dcid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "the node's display name, as `/node/{dcid}` gives it; null when it has none, and when its only name equals its dcid"
+          },
+          "types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Types",
+            "description": "the node's types on the arcs naming it, sorted; empty when they give none"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ref",
+          "label",
+          "types"
+        ],
+        "title": "UsageTerm",
+        "description": "One node a usage document's patterns or constraint values name, with the label\n`/node/{dcid}` gives it and the types the StatVars' arcs to it carry."
       },
       "VariableDefinition": {
         "properties": {
@@ -25948,7 +26982,7 @@
           "node_pool_size": {
             "type": "integer",
             "title": "Node Pool Size",
-            "description": "the bounded DCP-read executor's own worker count, shared by resolve confirmation reads and every node read"
+            "description": "the bounded DCP-read executor's own worker count, shared by resolve confirmation reads, every node read, and the entity resolver reads of GET /api/graph/schema/search, of which one search runs at a time"
           },
           "resolve_timeout_seconds": {
             "type": "integer",
@@ -25963,7 +26997,7 @@
           "max_dcid_chars": {
             "type": "integer",
             "title": "Max Dcid Chars",
-            "description": "ceiling on the length of the dcid path parameter of GET /api/graph/node/{dcid} and GET /api/graph/documentation/{dcid}, and of each dcid POST /api/graph/nodes takes; a longer value is refused 400 request_invalid"
+            "description": "ceiling on the length of the dcid path parameter of GET /api/graph/node/{dcid}, GET /api/graph/documentation/{dcid} and GET /api/graph/schema/node/{dcid}, and of each dcid POST /api/graph/nodes takes; a longer value is refused 400 request_invalid"
           },
           "max_node_batch_dcids": {
             "type": "integer",
@@ -25984,6 +27018,11 @@
             "type": "integer",
             "title": "Max Check Observation Properties",
             "description": "the most entries in one POST /api/graph/schema/check row's observation_properties; a row with more is refused 400 request_invalid"
+          },
+          "max_search_query_chars": {
+            "type": "integer",
+            "title": "Max Search Query Chars",
+            "description": "the most characters the q parameter of GET /api/graph/schema/search holds once stripped of surrounding whitespace; a longer or blank value is refused 400 request_invalid"
           }
         },
         "type": "object",
@@ -25995,7 +27034,8 @@
           "max_node_batch_dcids",
           "max_check_rows",
           "max_check_constraint_properties",
-          "max_check_observation_properties"
+          "max_check_observation_properties",
+          "max_search_query_chars"
         ],
         "title": "GraphCapabilityCaps",
         "description": "Published input limits, one field per enforced constant."
@@ -26005,7 +27045,7 @@
           "name": {
             "type": "string",
             "title": "Name",
-            "description": "resolve, node, members, roots, sources, json_schema, or schema"
+            "description": "resolve, node, members, roots, sources, json_schema, schema, or schema_search"
           },
           "live": {
             "type": "boolean",
@@ -26235,7 +27275,17 @@
           "max_parts": {
             "type": "integer",
             "title": "Max Parts",
-            "description": "parsed.parts list length ceiling; a request over this refuses request_invalid. Distinct from max_variables: raw_text clamps an over-limit extraction with a variables_clamped warning and keeps resolving, while parsed enforces this as a hard schema cap"
+            "description": "parsed.parts list length ceiling for a request with any part that names no source_code; a request over this refuses request_invalid. Distinct from max_variables: raw_text clamps an over-limit extraction with a variables_clamped warning and keeps resolving, while parsed refuses"
+          },
+          "max_code_parts": {
+            "type": "integer",
+            "title": "Max Code Parts",
+            "description": "parsed.parts list length ceiling when every part names a source_code, and dataset_resubmit.entries ceiling when no entry is a candidates entry and every parsed entry's part names one; a request over this refuses request_invalid"
+          },
+          "max_entities": {
+            "type": "integer",
+            "title": "Max Entities",
+            "description": "distinct entities one request resolves; over this refuses request_invalid. A raw_text query counts its distinct entity names. A parsed request counts across its parts, and a dataset_resubmit across its parsed entries, each pinned dcid once and each entity posted without a dcid once per identity and the text it resolves through"
           },
           "max_part_entities": {
             "type": "integer",
@@ -26298,6 +27348,8 @@
           "role_bulk_rank_max_rows",
           "max_options",
           "max_parts",
+          "max_code_parts",
+          "max_entities",
           "max_part_entities",
           "max_variable_text_chars",
           "max_entity_text_chars",
