@@ -42,8 +42,8 @@ document validates against its schema, then what the schemas cannot express:
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
-  one, an analysis step's tree passes `tree_argument_problems`, a synthetic scenario derives from a recorded one, and every body file
-  exists and is the scenario's own or, for a synthetic scenario, one its
+  one, an analysis step's tree passes `tree_argument_problems`, a synthetic
+  scenario derives from a recorded one, and every body file exists and is the scenario's own or, for a synthetic scenario, one its
   parent names. In a recorded scenario each API request matches a route and
   method in `served/openapi.json`, its JSON body validates against the
   route's request schema, each JSON response body validates against the
@@ -3524,8 +3524,8 @@ def analysis_outcome(body: Any) -> dict[str, Any]:
     }
 
 
-# The verb arguments the served document leaves open that the contract
-# pins: the verbs each may name, and the values each takes.
+# The verbs that take `allow_sparse_breakdowns`, an argument the served
+# document leaves open.
 _SPARSE_VERBS = frozenset({"aggregate", "rank"})
 
 
