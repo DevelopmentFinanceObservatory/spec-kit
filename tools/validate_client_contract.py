@@ -4424,8 +4424,11 @@ def _retention_agrees(
 def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     """The first rule a saved file that meets its schema breaks, or None:
     a `dfo.fetched_at` or `held_until` that is no real time or date, as both
-    loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "2" exactly when `dfo.ref`
-    holds a derived member, "1" when it is absent; one member citation and
+    loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "3"
+    when a `dfo.steps` item holds `per`, which only a derived member's recipe
+    has and which names no role the item's `by` names, "2" or "3" when
+    `dfo.ref` holds a derived member and none does, and "1" when it is absent;
+    one member citation and
     one row count per member of `dfo.ref`, none when it is absent; one
     `dfo.retention` entry per member when the key is present; the members'
     retention, as `dfo.retention` gives it or as a file without it reads
@@ -4442,7 +4445,15 @@ def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
     if ref is not None and (broken := _ref_rule(ref)) is not None:
         return broken
     members = ref["members"] if ref is not None else []
-    if version != ("2" if any(map(_derived, members)) else "1"):
+    derived = any(map(_derived, members))
+    steps = decoded.get("dfo.steps", [])
+    partitioned = [step for step in steps if "per" in step]
+    if partitioned and not derived:
+        return "format_invalid"
+    if any(set(step["per"]) & set(step["by"]) for step in partitioned):
+        return "format_invalid"
+    allowed = ("3",) if partitioned else ("2", "3") if derived else ("1",)
+    if version not in allowed:
         return "format_invalid"
     dataset = decoded["dfo.dataset"]
     if (len(dataset["member_citations"]), len(dataset["member_rows"])) != (

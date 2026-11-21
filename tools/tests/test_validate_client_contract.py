@@ -3650,6 +3650,51 @@ def test_saved_party_totals_follow_member_order() -> None:
     assert validator._saved_file_rule("1", decoded) is None
 
 
+def _saved_decoded(name: str) -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "saved-files" / f"{name}.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    return {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+
+
+@pytest.mark.parametrize(
+    ("name", "version", "broken"),
+    [
+        ("saved-derived-member-partitioned-rank", "3", None),
+        ("saved-derived-member-partitioned-rank", "2", "format_invalid"),
+        ("saved-per-in-format-2-rejected", "2", "format_invalid"),
+        ("saved-per-in-format-2-rejected", "3", None),
+        ("saved-derived-member-format-3-without-per", "3", None),
+        ("saved-derived-member-format-3-without-per", "2", None),
+        ("saved-derived-member-format-3-without-per", "1", "format_invalid"),
+        ("saved-per-names-by-role-rejected", "3", "format_invalid"),
+    ],
+)
+def test_format_3_exactly_when_a_step_holds_per(
+    name: str, version: str, broken: str | None
+) -> None:
+    decoded = _saved_decoded(name)
+    assert validator._saved_file_rule(version, decoded) == broken
+
+
+def test_per_names_no_role_of_the_steps_by() -> None:
+    decoded = _saved_decoded("saved-derived-member-partitioned-rank")
+    assert validator._saved_file_rule("3", decoded) is None
+    decoded["dfo.steps"][1]["per"] = ["financingProvider", "financingRecipient"]
+    assert validator._saved_file_rule("3", decoded) == "format_invalid"
+
+
+def test_per_in_a_file_without_a_derived_member_breaks_format_invalid() -> None:
+    decoded = _saved_decoded("saved-minimal")
+    decoded["dfo.steps"] = [{"verb": "rank", "by": [], "per": ["a"], "limit": None}]
+    assert validator._saved_file_rule("3", decoded) == "format_invalid"
+    del decoded["dfo.steps"]
+    assert validator._saved_file_rule("1", decoded) is None
+
+
 @pytest.mark.parametrize(
     "name",
     [
