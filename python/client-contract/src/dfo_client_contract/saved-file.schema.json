@@ -15,7 +15,7 @@
   },
   "properties": {
     "dfo.format_version": {
-      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member, and 3 for one whose recipe holds a rank partitioned by `per`. A reader refuses a version it does not know.",
+      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member, and 3 for one whose recipe holds a rank partitioned by `per`. A reader accepts 3 for any file that holds a derived member, and a writer uses 3 only when a step holds `per`, so a file without `per` stays at 2 and a 0.5.0 reader still loads it. A reader refuses a version it does not know.",
       "enum": [
         "1",
         "2",

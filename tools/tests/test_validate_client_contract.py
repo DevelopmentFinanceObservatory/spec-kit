@@ -3673,11 +3673,41 @@ def _saved_decoded(name: str) -> dict[str, Any]:
         ("saved-per-names-by-role-rejected", "3", "format_invalid"),
     ],
 )
-def test_format_3_exactly_when_a_step_holds_per(
+def test_saved_format_rule_by_version_and_per(
     name: str, version: str, broken: str | None
 ) -> None:
     decoded = _saved_decoded(name)
     assert validator._saved_file_rule(version, decoded) == broken
+
+
+@pytest.mark.parametrize(
+    ("tree", "expected"),
+    [
+        ({"verb": 7}, "/tree: verb is a string, not 7"),
+        ({"verb": ["rank"], "arguments": {"partition_by": ["a"]}}, "verb is a string"),
+        (
+            {"verb": "rank", "arguments": {"rank_by": [["a"]], "partition_by": ["a"]}},
+            "rank_by is a list of strings",
+        ),
+        (
+            {"verb": "rank", "arguments": {"rank_by": "a"}},
+            "rank_by is a list of strings",
+        ),
+        (
+            {"verb": "rank", "arguments": {"partition_by": [["a"]], "rank_by": [{}]}},
+            "partition_by is a non-empty list of distinct column words",
+        ),
+        (
+            {"verb": "aggregate", "inputs": {"data": {"verb": None}}},
+            "/tree/inputs/data: verb is a string, not null",
+        ),
+    ],
+)
+def test_a_malformed_tree_is_a_problem_and_no_crash(
+    tree: dict[str, Any], expected: str
+) -> None:
+    problems = validator.tree_argument_problems(tree)
+    assert any(expected in problem for problem in problems)
 
 
 def test_per_names_no_role_of_the_steps_by() -> None:

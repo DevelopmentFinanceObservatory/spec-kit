@@ -702,6 +702,10 @@ class ShapeError(Exception):
     """The live answer lacks the shape the scenario is named for."""
 
 
+# The total seconds a recording waits on one pending analysis before it fails.
+ANALYSIS_WAIT_BUDGET_S = 600.0
+
+
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise ShapeError(message)
@@ -1056,6 +1060,11 @@ class Session:
                 if response.status != 202:
                     raise ClientError("unexpected_response")
                 waits.append(analysis_wait(response.headers, body))
+                require(
+                    sum(waits) <= ANALYSIS_WAIT_BUDGET_S,
+                    f"the analysis was still pending after {sum(waits):g} s of "
+                    f"waits, over the {ANALYSIS_WAIT_BUDGET_S:g} s budget",
+                )
                 self.sleep(waits[-1])
             outcome = analysis_outcome(body)
             if waits:
@@ -2027,8 +2036,8 @@ def _analysis_summed_root(s: Session, ctx: Context) -> None:
 def _analysis_party_totals_cut(s: Session, ctx: Context) -> None:
     """Totals the PARTY_TOTALS_FLOW read by donor, at the version that keeps
     the donor group totals and at the version that cuts them: the cut drops
-    the totals' rows, and neither root is listed in derived_roots, since a
-    cut names no base."""
+    the totals' rows, and neither root is listed in derived_roots, since each
+    root reads a stored dataset version itself, one kept and one cut."""
     narrowing = {"window": PARTY_TOTALS_WINDOW, "entities": PARTY_TOTALS_ENTITIES}
     kept = _prebuilt(ctx, PARTY_TOTALS_FLOW, party_totals=True, **narrowing)
     cut = _prebuilt(ctx, PARTY_TOTALS_FLOW, **narrowing)

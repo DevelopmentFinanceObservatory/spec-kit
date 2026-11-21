@@ -3535,13 +3535,26 @@ def tree_argument_problems(tree: Any, at: str = "/tree") -> list[str]:
     `allow_sparse_breakdowns` is given only on `aggregate` and `rank`, and
     only as true, since a client sends the flag only when it is set.
     `partition_by` is given only on `rank`, as a non-empty list of distinct
-    non-empty strings, none of which `rank_by` names."""
+    non-empty strings, none of which `rank_by` names. A `verb` that is not a
+    string and a `rank_by` that is not a list of strings are problems too."""
     if not isinstance(tree, dict) or "verb" not in tree:
         return []
     problems = []
     verb = tree["verb"]
     arguments = tree.get("arguments")
     arguments = arguments if isinstance(arguments, dict) else {}
+    if not isinstance(verb, str):
+        problems.append(f"{at}: verb is a string, not {json.dumps(verb)}")
+        arguments = {}
+    rank_by = arguments.get("rank_by")
+    if (
+        verb == "rank"
+        and "rank_by" in arguments
+        and not (isinstance(rank_by, list) and all(isinstance(w, str) for w in rank_by))
+    ):
+        problems.append(
+            f"{at}: rank_by is a list of strings, not {json.dumps(rank_by)}"
+        )
     if "allow_sparse_breakdowns" in arguments:
         if verb not in _SPARSE_VERBS:
             problems.append(f"{at}: {verb} takes no allow_sparse_breakdowns")
@@ -3552,8 +3565,11 @@ def tree_argument_problems(tree: Any, at: str = "/tree") -> list[str]:
             )
     if "partition_by" in arguments:
         partition = arguments["partition_by"]
-        rank_by = arguments.get("rank_by")
-        ranked = set(rank_by) if isinstance(rank_by, list) else set()
+        ranked = (
+            {w for w in rank_by if isinstance(w, str)}
+            if isinstance(rank_by, list)
+            else set()
+        )
         if verb != "rank":
             problems.append(f"{at}: {verb} takes no partition_by")
         elif (

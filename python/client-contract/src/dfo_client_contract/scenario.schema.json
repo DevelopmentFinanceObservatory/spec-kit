@@ -395,7 +395,7 @@
             {
               "properties": {
                 "format_version": {
-                  "description": "Format 1, a ref of dataset members. No scenario serves a derived member yet, so a format 2 ref fails here.",
+                  "description": "Format 1, a ref of dataset members. No fetch scenario serves a derived member's frame, so a format 2 ref fails here.",
                   "const": 1
                 }
               }
@@ -1043,7 +1043,7 @@
           }
         },
         "derived_roots": {
-          "description": "Each root whose rendering is a version of its own, with `base_content_version`, the dataset version it renders, where the answer names one. A rendering that cuts party totals names none.",
+          "description": "Each root whose rendering is a version of its own, with `base_content_version`, the dataset version it renders, where the answer names one. A root read as a stored dataset version names none, since it is that version; `analysis-party-totals-cut` lists none because each root reads its own stored version, one kept and one cut.",
           "type": "array",
           "items": {
             "type": "object",
