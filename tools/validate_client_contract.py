@@ -42,7 +42,7 @@ document validates against its schema, then what the schemas cannot express:
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
-  one, a synthetic scenario derives from a recorded one, and every body file
+  one, an analysis step's tree passes `tree_argument_problems`, a synthetic scenario derives from a recorded one, and every body file
   exists and is the scenario's own or, for a synthetic scenario, one its
   parent names. In a recorded scenario each API request matches a route and
   method in `served/openapi.json`, its JSON body validates against the
@@ -74,7 +74,8 @@ document validates against its schema, then what the schemas cannot express:
   entity groups of the roles its build left bound as they were, and each
   build posts the body `build_body` gives for the spec the step builds, its
   narrowing, its layout and, for a fetch or a mint, its party totals, and each Search request the whole body
-  `search_body` gives. A POST carries its body, a refused request repeated is
+  `search_body` gives, and each analysis request the whole body
+  `analysis_body` gives. A POST carries its body, a refused request repeated is
   a retry only as `may_retry` allows, a record that ends a run of retries
   while `may_retry` holds does not fit, each poll names the operation the
   client holds, each files route is where `artifact_route` places the
@@ -2011,6 +2012,11 @@ _BUILD = ("POST", "/datasets")
 POLL_PATH = "/datasets/operations/{operation_id}"
 _MANIFEST = {"$ref": "#/components/schemas/Manifest"}
 _OPERATION = {"$ref": "#/components/schemas/OperationResource"}
+ANALYSIS_PATH = "/datasets/analysis"
+_ANALYSIS = ("POST", ANALYSIS_PATH)
+# The bounds a client holds the wait before posting a pending analysis again.
+ANALYSIS_WAIT_MIN_S = 1.0
+ANALYSIS_WAIT_MAX_S = 60.0
 # The bare Parquet rendering a fetch asks for, by layout.
 LAYOUT_RENDERINGS = {
     "long": {"format": "parquet", "bundle": False},
@@ -3361,6 +3367,28 @@ class _Replay:
         member = self.member([], minted.spec, manifest, rendering, False)
         return self.dataset([member], [])
 
+    def _analysis(self, step: dict[str, Any]) -> dict[str, Any]:
+        """A recipe tree posted to the analysis route, whose recorded body is
+        `analysis_body`'s. A 202 is pending: the client waits `analysis_wait`
+        and posts the same body again, noting each wait in `pending_waits`. A
+        200 answers `analysis_outcome`, a refusal raises, and any other
+        status raises ContractError `unexpected_response`."""
+        posts = analysis_body(step)
+        waits: list[float] = []
+        while True:
+            exchange = self.posted(_ANALYSIS, posts)
+            response = exchange["response"]
+            body = self.acted_on(exchange)
+            if response["status"] == 200:
+                outcome = analysis_outcome(body)
+                break
+            if response["status"] != 202:
+                raise ClientError("unexpected_response")
+            waits.append(analysis_wait(response.get("headers", {}), body))
+        if waits:
+            outcome["analysis"]["pending_waits"] = waits
+        return outcome
+
     def dataset(
         self,
         members: Sequence[Mapping[str, Any]],
@@ -3383,6 +3411,168 @@ class _Replay:
 def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
     operation = resource["operation"]
     return {"operation": {k: operation[k] for k in ("operation_id", "status")}}
+
+
+def analysis_body(step: Mapping[str, Any]) -> dict[str, Any]:
+    """The whole body a client posts to the analysis route for an `analysis`
+    step: its `tree` as given, and `latest`, false when the step leaves it
+    out."""
+    return {"tree": step["tree"], "latest": step.get("latest", False)}
+
+
+def analysis_wait(headers: Mapping[str, str], body: Any) -> float:
+    """The wait before a pending analysis is posted again: the 202's
+    `Retry-After`, else its body's `retry_after_s`, else none, held between
+    ANALYSIS_WAIT_MIN_S and ANALYSIS_WAIT_MAX_S."""
+    wait = retry_after(headers)
+    if wait is None:
+        seconds = body.get("retry_after_s") if isinstance(body, dict) else None
+        number = isinstance(seconds, int | float) and not isinstance(seconds, bool)
+        wait = float(seconds) if number else 0.0
+    return min(max(wait, ANALYSIS_WAIT_MIN_S), ANALYSIS_WAIT_MAX_S)
+
+
+_OPS_ID = re.compile(r"^ops_[0-9a-f]{32}$")
+_OCV = re.compile(r"^ocv_[0-9a-f]{32}$")
+
+
+def _id_entry(item: Any, *, extra: str | None = None) -> dict[str, Any] | None:
+    """`{spec_id, content_version}` of a listed root, each a string, with the
+    member `extra` when `item` carries it as a string or null, or None when
+    any does not read."""
+    if not isinstance(item, dict):
+        return None
+    entry = {k: item.get(k) for k in ("spec_id", "content_version")}
+    if not all(isinstance(v, str) for v in entry.values()):
+        return None
+    if extra is not None and extra in item:
+        if not isinstance(item[extra], str | None):
+            return None
+        entry[extra] = item[extra]
+    return entry
+
+
+def _listed(body: dict[str, Any], name: str) -> list[Any]:
+    """The items of `body`'s list member `name`, none when it is absent or
+    null.
+
+    Raises:
+        ClientError: `contract_violation`, when it is another type.
+    """
+    value = body.get(name)
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ClientError("contract_violation")
+    return value
+
+
+def analysis_outcome(body: Any) -> dict[str, Any]:
+    """The outcome of a ready analysis answer: the derived member its format
+    2 ref names, by `spec_id` and `content_version`; its `rows`; each root
+    read summed over its StatVars, from `stat_vars_summed`; and each root
+    whose rendering is a version of its own, from `derived_roots`. Either
+    list left out reads as empty.
+
+    Raises:
+        ClientError: `contract_violation`, when the ref is not one derived
+            member, `rows` is not a count, a `stat_vars_summed` entry is not
+            `{spec_id, content_version, count}` with `count` at least 2, or a
+            `derived_roots` entry is not `{spec_id, content_version}` with an
+            optional `base_content_version`.
+    """
+    violation = ClientError("contract_violation")
+    ref = read_object(body, "ref")
+    members = read_list(ref, "members")
+    if ref is None or ref.get("format_version") != 2 or members is None:
+        raise violation
+    match members:
+        case [{"roots": list(), "spec": {"spec_id": str(spec_id)}, **member}]:
+            version = member.get("content_version")
+        case _:
+            raise violation
+    if not _OPS_ID.match(spec_id) or not isinstance(version, str):
+        raise violation
+    if not _OCV.match(version):
+        raise violation
+    rows = body.get("rows")
+    if isinstance(rows, bool) or not isinstance(rows, int) or rows < 0:
+        raise violation
+    summed = []
+    for item in _listed(body, "stat_vars_summed"):
+        entry = _id_entry(item)
+        if entry is None:
+            raise violation
+        count = item.get("count")
+        if isinstance(count, bool) or not isinstance(count, int) or count < 2:
+            raise violation
+        summed.append({**entry, "count": count})
+    derived = []
+    for item in _listed(body, "derived_roots"):
+        entry = _id_entry(item, extra="base_content_version")
+        if entry is None:
+            raise violation
+        derived.append(entry)
+    return {
+        "analysis": {
+            "spec_id": spec_id,
+            "content_version": version,
+            "rows": rows,
+            "stat_vars_summed": summed,
+            "derived_roots": derived,
+        }
+    }
+
+
+# The verb arguments the served document leaves open that the contract
+# pins: the verbs each may name, and the values each takes.
+_SPARSE_VERBS = frozenset({"aggregate", "rank"})
+
+
+def tree_argument_problems(tree: Any, at: str = "/tree") -> list[str]:
+    """Where a recipe tree's step arguments break the rules the served
+    document cannot state, since it types verb arguments as an open object.
+    `allow_sparse_breakdowns` is given only on `aggregate` and `rank`, and
+    only as true, since a client sends the flag only when it is set.
+    `partition_by` is given only on `rank`, as a non-empty list of distinct
+    non-empty strings, none of which `rank_by` names."""
+    if not isinstance(tree, dict) or "verb" not in tree:
+        return []
+    problems = []
+    verb = tree["verb"]
+    arguments = tree.get("arguments")
+    arguments = arguments if isinstance(arguments, dict) else {}
+    if "allow_sparse_breakdowns" in arguments:
+        if verb not in _SPARSE_VERBS:
+            problems.append(f"{at}: {verb} takes no allow_sparse_breakdowns")
+        elif arguments["allow_sparse_breakdowns"] is not True:
+            problems.append(
+                f"{at}: allow_sparse_breakdowns is given only as true, not "
+                f"{json.dumps(arguments['allow_sparse_breakdowns'])}"
+            )
+    if "partition_by" in arguments:
+        partition = arguments["partition_by"]
+        rank_by = arguments.get("rank_by")
+        ranked = set(rank_by) if isinstance(rank_by, list) else set()
+        if verb != "rank":
+            problems.append(f"{at}: {verb} takes no partition_by")
+        elif (
+            not isinstance(partition, list)
+            or not partition
+            or not all(isinstance(word, str) and word for word in partition)
+            or len(set(partition)) != len(partition)
+        ):
+            problems.append(
+                f"{at}: partition_by is a non-empty list of distinct column "
+                f"words, not {json.dumps(partition)}"
+            )
+        elif both := sorted(ranked & set(partition)):
+            problems.append(f"{at}: partition_by and rank_by both name {both}")
+    inputs = tree.get("inputs")
+    for side in ("data", "other"):
+        if isinstance(inputs, dict) and side in inputs:
+            problems.extend(tree_argument_problems(inputs[side], f"{at}/inputs/{side}"))
+    return problems
 
 
 def with_step_notes(
@@ -3902,6 +4092,11 @@ def _check_steps(file_name: str, record: dict[str, Any]) -> list[str]:
             problems.append(
                 f"scenarios/{file_name}: step {index} ({op}) does not follow "
                 f"a step in {sorted(needs)}"
+            )
+        if op == "analysis":
+            problems.extend(
+                f"scenarios/{file_name}: step {index}: {problem}"
+                for problem in tree_argument_problems(step["tree"])
             )
         previous = op
     return problems

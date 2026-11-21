@@ -75,6 +75,7 @@ from typing import Any, Protocol
 from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
 from validate_client_contract import (
+    ANALYSIS_PATH,
     FILE_EXPIRED,
     FILE_GONE,
     FILES_ROUTE_FILE,
@@ -95,6 +96,9 @@ from validate_client_contract import (
     LongBuild,
     ServedTable,
     absolute_url_problems,
+    analysis_body,
+    analysis_outcome,
+    analysis_wait,
     answer_from_body,
     answer_gaps,
     answer_members,
@@ -1032,6 +1036,36 @@ class Session:
 
         self._step({"op": "result"}, run)
 
+    def analysis(self, tree: dict[str, Any], *, latest: bool = False) -> dict[str, Any]:
+        """Posts a recipe tree to the analysis route as `analysis_body` gives,
+        posting it again after each 202 once `analysis_wait` has passed, and
+        returns the ready answer's body, or {} when the step refused."""
+        step: dict[str, Any] = {"op": "analysis", "tree": tree}
+        if latest:
+            step["latest"] = True
+        posts = analysis_body(step)
+        answers: list[dict[str, Any]] = []
+
+        def run() -> dict[str, Any]:
+            waits: list[float] = []
+            while True:
+                response = self._api("POST", ANALYSIS_PATH, posts)
+                body = self._acted(response)
+                if response.status == 200:
+                    break
+                if response.status != 202:
+                    raise ClientError("unexpected_response")
+                waits.append(analysis_wait(response.headers, body))
+                self.sleep(waits[-1])
+            outcome = analysis_outcome(body)
+            if waits:
+                outcome["analysis"]["pending_waits"] = waits
+            answers.append(body)
+            return outcome
+
+        self._step(step, run)
+        return answers[0] if answers else {}
+
     # -- building --
 
     def build(
@@ -1369,6 +1403,18 @@ PARTY_TOTALS_FLOW = (
 PARTY_TOTALS_WINDOW = (2022, 2022)
 PARTY_TOTALS_ENTITIES = {"origin": None, "destination": ["country/KEN"]}
 SYNC_ROWS = 100_000
+# The reads the analysis scenarios run on. Each answer is JSON alone, some
+# 7 KB for the rank and up to 100 KB for the sparse breakdown, whose summary
+# lists every group.
+RANK_FLOW = (
+    "ODA disbursements from the G7 countries to Kenya and Nigeria from 2020 to 2022"
+)
+RANK_LIMIT = 3
+SPARSE_FLOW = "ODA disbursements to Kenya for health and for education in 2022"
+SUMMED_FLOW = (
+    "ODA disbursements from Germany to Kenya for health and for education "
+    "from 2020 to 2022"
+)
 
 
 @dataclass
@@ -1494,6 +1540,53 @@ class Context:
                 self.async_spec("OECD"), party_totals=True
             )
         return self._cache["operation"]
+
+
+def _spec_root(spec: Spec) -> dict[str, Any]:
+    """A Spec root as a client sends it: read at its newest version without
+    party totals."""
+    return {"spec_id": spec.spec_id, "rendering": {"without_party_totals": True}}
+
+
+def _version_root(member: Member) -> dict[str, Any]:
+    """A dataset version root as a client sends a fetched member: read at its
+    version in the member's party-totals cut."""
+    cut = member.rendering.get("without_party_totals") is True
+    return {
+        "spec_id": member.spec_id,
+        "content_version": member.content_version,
+        "rendering": {"without_party_totals": cut},
+    }
+
+
+def _tree_step(
+    verb: str, arguments: dict[str, Any], data: dict[str, Any]
+) -> dict[str, Any]:
+    return {"verb": verb, "arguments": arguments, "inputs": {"data": data}}
+
+
+def _read_spec(ctx: Context, question: str) -> Spec:
+    """The one spec `question`'s definite answer reads, which Search may name
+    in several folded parts."""
+    specs = {spec.spec_id: spec for _, spec in _members(ctx.definite_answer(question))}
+    require(len(specs) == 1, f"{question!r} reads one spec, not {sorted(specs)}")
+    (spec,) = specs.values()
+    return spec
+
+
+def _prebuilt(ctx: Context, question: str, **narrowing: Any) -> Member:
+    """The member a fetch of `question`'s spec builds, outside the record, so
+    the server holds the spec and the version a root names."""
+    (member,) = ctx.session("prerequisite").fetch_spec(
+        _read_spec(ctx, question), **narrowing
+    )
+    return member
+
+
+def _analysed(s: Session, step: int) -> dict[str, Any]:
+    outcome = s.expect[step]
+    require("analysis" in outcome, f"step {step} answers a frame, not {outcome}")
+    return outcome["analysis"]
 
 
 @dataclass(frozen=True)
@@ -1865,6 +1958,91 @@ def _resubmit_placeholder(s: Session, ctx: Context) -> None:
     )
 
 
+def _analysis_rank_partitioned(s: Session, ctx: Context) -> None:
+    """Ranks the RANK_FLOW donors by their total over the window, once over
+    every recipient and once per recipient, and checks the partitioned rank
+    keeps RANK_LIMIT donors in each recipient's group."""
+    member = _prebuilt(ctx, RANK_FLOW)
+    root = _spec_root(_read_spec(ctx, RANK_FLOW))
+    ranked = {"rank_by": ["origin"], "aggregation": "sum", "limit": RANK_LIMIT}
+    s.analysis(_tree_step("rank", ranked, root))
+    s.analysis(_tree_step("rank", {**ranked, "partition_by": ["destination"]}, root))
+    recipients = len(member.definition["identity"]["entities"]["destination"])
+    require(recipients > 1, "the read names several recipients")
+    require(_analysed(s, 0)["rows"] == RANK_LIMIT, "one ranking keeps the limit")
+    require(
+        _analysed(s, 1)["rows"] == RANK_LIMIT * recipients,
+        "each recipient's ranking keeps the limit",
+    )
+
+
+def _analysis_aggregate_sparse(s: Session, ctx: Context) -> None:
+    """Totals SPARSE_FLOW by donor and sector, which most donors fund only in
+    part: without the flag the empty breakdown cells count as missing and
+    the step refuses coverage_insufficient, and with it the step answers."""
+    spec = _prebuilt(ctx, SPARSE_FLOW)
+    root = _spec_root(_read_spec(ctx, SPARSE_FLOW))
+    require(root["spec_id"] == spec.spec_id, "the build keeps the spec_id")
+    totals = {"group_by": ["time_period", "origin", "crsPurpose"], "aggregation": "sum"}
+    s.analysis(_tree_step("aggregate", totals, root))
+    s.analysis(
+        _tree_step("aggregate", {**totals, "allow_sparse_breakdowns": True}, root)
+    )
+    refused = s.expect[0].get("error", {})
+    require(
+        refused.get("code") == "coverage_insufficient",
+        f"without the flag the step refuses coverage_insufficient, not {refused}",
+    )
+    require(_analysed(s, 1)["stat_vars_summed"], "the root is read summed")
+
+
+def _analysis_summed_root(s: Session, ctx: Context) -> None:
+    """Totals each year of SUMMED_FLOW, a read of many StatVars fetched with
+    party totals, so the service sums the root over its StatVars into a
+    version of its own that names the fetched version as its base."""
+    member = _prebuilt(ctx, SUMMED_FLOW, party_totals=True)
+    root = _version_root(member)
+    s.analysis(
+        _tree_step(
+            "aggregate", {"group_by": ["time_period"], "aggregation": "sum"}, root
+        )
+    )
+    answer = _analysed(s, 0)
+    (summed,) = answer["stat_vars_summed"]
+    require(summed["spec_id"] == member.spec_id, "the fetched spec is summed")
+    require(summed["count"] >= 2, "several StatVars are summed")
+    require(
+        answer["derived_roots"]
+        == [
+            {
+                "spec_id": member.spec_id,
+                "content_version": summed["content_version"],
+                "base_content_version": member.content_version,
+            }
+        ],
+        "the summed version names the fetched version as its base",
+    )
+
+
+def _analysis_party_totals_cut(s: Session, ctx: Context) -> None:
+    """Totals the PARTY_TOTALS_FLOW read by donor, at the version that keeps
+    the donor group totals and at the version that cuts them: the cut drops
+    the totals' rows, and neither root is listed in derived_roots, since a
+    cut names no base."""
+    narrowing = {"window": PARTY_TOTALS_WINDOW, "entities": PARTY_TOTALS_ENTITIES}
+    kept = _prebuilt(ctx, PARTY_TOTALS_FLOW, party_totals=True, **narrowing)
+    cut = _prebuilt(ctx, PARTY_TOTALS_FLOW, **narrowing)
+    totals = {"group_by": ["time_period", "origin"], "aggregation": "sum"}
+    s.analysis(_tree_step("aggregate", totals, _version_root(kept)))
+    s.analysis(_tree_step("aggregate", totals, _version_root(cut)))
+    with_totals, without = _analysed(s, 0), _analysed(s, 1)
+    require(without["rows"] < with_totals["rows"], "the cut drops the totals' rows")
+    require(
+        not with_totals["derived_roots"] and not without["derived_roots"],
+        "a root read unsummed renders no version of its own",
+    )
+
+
 RECORDED = (
     Recorded(
         "answer-definite-fetch",
@@ -2118,6 +2296,39 @@ RECORDED = (
         "Choosing candidate 0 on part 0 posts part 1, a no_data part with no restatement, as a "
         "placeholder entry with its variable_text, status and reason.",
         _resubmit_placeholder,
+    ),
+    Recorded(
+        "analysis-rank-partitioned",
+        "A rank posts its recipe tree to the analysis route as {tree, latest}. Ranking the G7 "
+        "donors to two recipients by their 2020 to 2022 total with limit 3 keeps 3 rows; "
+        "with partition_by [destination] each recipient's donors rank on their own, so the "
+        "frame keeps 3 rows for each recipient, 6 in all.",
+        _analysis_rank_partitioned,
+    ),
+    Recorded(
+        "analysis-aggregate-sparse-breakdowns",
+        "Totalling all donors' 2022 health and education ODA to Kenya by donor and sector "
+        "refuses coverage_insufficient, since most donors fund only some sectors and the "
+        "grid counts each empty breakdown cell as missing. The same tree with "
+        "allow_sparse_breakdowns true answers the frame.",
+        _analysis_aggregate_sparse,
+    ),
+    Recorded(
+        "analysis-summed-root",
+        "A root that holds many StatVars, read at a version fetched with party totals and "
+        "named by no step's stat_var, is summed by the service: the answer's "
+        "stat_vars_summed gives the summed version and how many StatVars it summed, and "
+        "derived_roots gives that version with the fetched version as its "
+        "base_content_version.",
+        _analysis_summed_root,
+    ),
+    Recorded(
+        "analysis-party-totals-cut",
+        "Totalling a DAC2a read with its donors left open by donor, first at the version that "
+        "keeps the donor group totals and then at the version that cuts them, answers fewer "
+        "rows for the cut. A root read unsummed renders no version of its own, so neither "
+        "answer lists derived_roots.",
+        _analysis_party_totals_cut,
     ),
 )
 
@@ -4850,6 +5061,8 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 session.resume(operation_id, layout=step.get("layout"))
             case {"op": "result"}:
                 session.result()
+            case {"op": "analysis", "tree": tree}:
+                session.analysis(tree, latest=step.get("latest", False))
 
 
 def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:

@@ -780,3 +780,36 @@ def test_the_running_operation_keeps_party_totals(
     monkeypatch.setattr(capture.Session, "mint", mint)
     assert ctx.running_operation() == "op_x"
     assert minted == [{"party_totals": True}]
+
+
+def test_a_pending_analysis_sleeps_its_wait_and_posts_the_same_body_again() -> None:
+    record = _load("analysis-summed-root")
+    posted = record["exchanges"][0]
+    pending = {
+        "request": copy.deepcopy(posted["request"]),
+        "response": {
+            "status": 202,
+            "headers": {
+                "content-type": "application/json",
+                "x-dfo-trace-id": "6" * 32,
+                "retry-after": "3",
+            },
+            "json": {"status": "pending", "retry_after_s": 0.25, "operations": []},
+        },
+    }
+    record["exchanges"].insert(0, pending)
+    served = capture.Served(record, SCENARIOS)
+    recorder = capture.Recorder(record["name"], served.base_url, served)
+    slept: list[float] = []
+    session = capture.Session(
+        recorder, ACTIONS, CLIENT_CODES, RULES, read_shape=_shape, sleep=slept.append
+    )
+    capture.drive(session, record["call"])
+    assert served.pending == []
+    assert slept == [3.0]
+    (outcome,) = session.expect
+    assert outcome["analysis"]["pending_waits"] == [3.0]
+    assert {**outcome["analysis"], "pending_waits": None} == {
+        **record["expect"][0]["analysis"],
+        "pending_waits": None,
+    }
