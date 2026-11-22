@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "7af2d8dd04797724b716496aea8182590a1a26d0",
-    "recorded_at": "2026-11-15T21:50:46Z"
+    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
+    "recorded_at": "2026-11-21T15:13:26Z"
   },
   "call": [
     {
@@ -31,7 +31,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "22720754908a43c59e56059ebe972d49"
+          "x-dfo-trace-id": "336d6c0e1bbc42e88b8b83dba8f497c9"
         },
         "json": {
           "schema_version": 1,
@@ -39,22 +39,24 @@
             "entry_path": "raw_text",
             "raw_query": "aid from Congo to Congo",
             "normalized_query": "aid from Congo to Congo",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
-            "trace_id": "22720754908a43c59e56059ebe972d49",
+            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
+            "trace_id": "336d6c0e1bbc42e88b8b83dba8f497c9",
             "warnings": [],
             "timing_ms": {
-              "total": 1,
+              "total": 1420,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 0
+                "extract": 963,
+                "exclusion_read": 577,
+                "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
+              "input_tokens": 2747,
+              "output_tokens": 176,
               "cached_tokens": 0
             },
             "timed_out": false
@@ -65,11 +67,11 @@
               "variable_text": "aid",
               "warnings": [],
               "timing_ms": {
-                "total": 2021,
+                "total": 453,
                 "by_step": {
-                  "recall": 2021,
+                  "recall": 452,
                   "phase_resolve_places": 0,
-                  "phase_check_entities": 0
+                  "phase_check_entities": 1
                 }
               },
               "rendered_sentence": "\"Congo\" (from) and \"Congo\" (to) each match more than one entity: \"Congo [DRC]\" and \"Congo [Republic]\". Be more specific.",

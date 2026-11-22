@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "7af2d8dd04797724b716496aea8182590a1a26d0",
-    "recorded_at": "2026-11-15T21:51:03Z"
+    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
+    "recorded_at": "2026-11-21T15:14:02Z"
   },
   "call": [
     {
@@ -36,7 +36,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "1cd390ecb4974ec2910573f90daa1618"
+          "x-dfo-trace-id": "b1ff0c4763e5439d973172ca22c74386"
         },
         "json": {
           "schema_version": 1,
@@ -44,23 +44,27 @@
             "entry_path": "raw_text",
             "raw_query": "GDP of the G20 in 2015, and Germany India ODA",
             "normalized_query": "GDP of the G20 in 2015, and Germany India ODA",
-            "extract_skipped": true
+            "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
-            "trace_id": "1cd390ecb4974ec2910573f90daa1618",
+            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
+            "trace_id": "b1ff0c4763e5439d973172ca22c74386",
             "warnings": [],
             "timing_ms": {
-              "total": 3,
+              "total": 4132,
               "by_step": {
                 "coverage": 0,
-                "response_cache_layer1": 0
+                "extract": 1134,
+                "exclusion_read": 650,
+                "cache_lookup": 1
               }
             },
             "llm_usage": {
-              "input_tokens": 0,
-              "output_tokens": 0,
-              "cached_tokens": 0
+              "input_tokens": 2773,
+              "output_tokens": 283,
+              "cached_tokens": 0,
+              "jev_input_tokens": 25232,
+              "jev_output_tokens": 5154
             },
             "timed_out": false
           },
@@ -70,33 +74,33 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 3352,
+                "total": 2714,
                 "by_step": {
-                  "recall": 3,
+                  "recall": 4,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 1,
+                  "shape_arcs": 2,
                   "shape_probe": 0,
-                  "shape_groups": 690,
-                  "shape_labels": 10,
+                  "shape_groups": 115,
+                  "shape_labels": 16,
                   "shape_admission": 3,
                   "phase_derive_shapes": 0,
                   "shape_denominators": 1,
-                  "shape_quantity": 85,
-                  "shape_rank": 4,
-                  "shape_availability": 217,
-                  "shape": 1834,
+                  "shape_quantity": 259,
+                  "shape_rank": 5,
+                  "shape_availability": 230,
+                  "shape": 1681,
                   "phase_prune_and_rank": 0,
-                  "bind": 133,
-                  "phase_bind": 15,
-                  "phase_settle": 9,
-                  "phase_place_bindings": 7,
+                  "bind": 161,
+                  "phase_bind": 20,
+                  "phase_settle": 11,
+                  "phase_place_bindings": 11,
                   "phase_facet_requests": 0,
-                  "materialise": 392,
-                  "phase_materialise": 18,
-                  "answer": 546,
-                  "options": 240,
-                  "phase_outcome": 155
+                  "materialise": 189,
+                  "phase_materialise": 21,
+                  "answer": 224,
+                  "options": 233,
+                  "phase_outcome": 159
                 }
               },
               "restatement": {
@@ -1942,7 +1946,7 @@
                       "start_year": 2015,
                       "end_year": 2015
                     },
-                    "capability_version": "cap_eed8849e3076f272",
+                    "capability_version": "cap_347c5393b96434eb",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -2842,7 +2846,7 @@
                             "start_year": 2015,
                             "end_year": 2015
                           },
-                          "capability_version": "cap_eed8849e3076f272",
+                          "capability_version": "cap_347c5393b96434eb",
                           "default_reading": {
                             "applied": true,
                             "removed_stat_vars": []
@@ -4895,27 +4899,27 @@
                 }
               ],
               "timing_ms": {
-                "total": 2647,
+                "total": 1764,
                 "by_step": {
-                  "recall": 2038,
+                  "recall": 196,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 1,
-                  "shape_probe_coverage": 7,
-                  "shape_probe": 183,
-                  "shape_groups": 142,
+                  "shape_arcs": 2,
+                  "shape_probe_coverage": 11,
+                  "shape_probe": 118,
+                  "shape_groups": 206,
                   "shape_labels": 0,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
                   "shape_denominators": 0,
-                  "shape_quantity": 90,
+                  "shape_quantity": 106,
                   "shape_rank": 2,
-                  "shape": 462,
+                  "shape": 1437,
                   "phase_prune_and_rank": 0,
-                  "bind": 131,
-                  "phase_bind": 4,
-                  "phase_settle": 7,
-                  "phase_place_bindings": 5
+                  "bind": 111,
+                  "phase_bind": 6,
+                  "phase_settle": 8,
+                  "phase_place_bindings": 6
                 }
               },
               "rendered_sentence": "Could not tell who is giving and who is receiving among \"Germany\" and \"India\". Put \"from\" or \"to\" before a name.",
@@ -5330,7 +5334,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "fd01158f8a0d4ea0968db0047fa599c5"
+          "x-dfo-trace-id": "02fe7df01d5241579c288624d80cbdb7"
         },
         "json": {
           "schema_version": 1,
@@ -5339,11 +5343,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
-            "trace_id": "fd01158f8a0d4ea0968db0047fa599c5",
+            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
+            "trace_id": "02fe7df01d5241579c288624d80cbdb7",
             "warnings": [],
             "timing_ms": {
-              "total": 1809,
+              "total": 2736,
               "by_step": {
                 "coverage": 0
               }
@@ -5363,10 +5367,39 @@
               "variable_text": "GDP",
               "warnings": [],
               "timing_ms": {
-                "total": 1,
+                "total": 2269,
                 "by_step": {
-                  "response_cache_part_memo": 0,
-                  "served_entry": 1
+                  "validate": 1,
+                  "phase_validate": 0,
+                  "walk": 156,
+                  "reread_arcs": 0,
+                  "phase_reread_arcs": 0,
+                  "detect_edits": 0,
+                  "phase_detect_edits": 0,
+                  "resolve_survivors": 0,
+                  "phase_resolve_survivors": 0,
+                  "shape": 1122,
+                  "phase_build_shape": 0,
+                  "bind": 1,
+                  "phase_build_bindings": 0,
+                  "where_places": 123,
+                  "phase_where_places": 0,
+                  "materialise": 198,
+                  "phase_materialise": 0,
+                  "ground_related": 1,
+                  "ground_units": 0,
+                  "ground_facets": 5,
+                  "ground_convert": 0,
+                  "answer": 270,
+                  "ground_gates": 193,
+                  "phase_ground_build": 8,
+                  "finalize_preview": 0,
+                  "options": 190,
+                  "finalize_related": 0,
+                  "finalize_wholes": 1,
+                  "finalize_relaunch": 0,
+                  "phase_finalize": 0,
+                  "served_entry": 0
                 }
               },
               "entity_refs": [],
@@ -6881,7 +6914,7 @@
                       "start_year": 2015,
                       "end_year": 2015
                     },
-                    "capability_version": "cap_eed8849e3076f272"
+                    "capability_version": "cap_347c5393b96434eb"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -6963,33 +6996,33 @@
                 }
               ],
               "timing_ms": {
-                "total": 1801,
+                "total": 2526,
                 "by_step": {
-                  "recall": 1,
+                  "recall": 285,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 1,
-                  "shape_probe_coverage": 7,
-                  "shape_probe": 347,
-                  "shape_groups": 775,
+                  "shape_arcs": 3,
+                  "shape_probe_coverage": 20,
+                  "shape_probe": 105,
+                  "shape_groups": 786,
                   "shape_labels": 0,
-                  "shape_admission": 1,
+                  "shape_admission": 4,
                   "phase_derive_shapes": 0,
-                  "shape_denominators": 0,
-                  "shape_quantity": 66,
-                  "shape_rank": 64,
-                  "shape": 1292,
+                  "shape_denominators": 1,
+                  "shape_quantity": 245,
+                  "shape_rank": 238,
+                  "shape": 1443,
                   "phase_prune_and_rank": 0,
-                  "bind": 117,
-                  "phase_bind": 120,
-                  "phase_settle": 5,
-                  "phase_place_bindings": 67,
+                  "bind": 141,
+                  "phase_bind": 185,
+                  "phase_settle": 14,
+                  "phase_place_bindings": 202,
                   "phase_facet_requests": 0,
-                  "materialise": 24,
-                  "phase_materialise": 5,
-                  "answer": 8,
-                  "options": 43,
-                  "phase_outcome": 119
+                  "materialise": 42,
+                  "phase_materialise": 6,
+                  "answer": 32,
+                  "options": 26,
+                  "phase_outcome": 150
                 }
               },
               "restatement": {
@@ -7371,7 +7404,7 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "2ccb4207be7e12f0a536535864d13ad9c840110bf9e82085dff4625037ed346b",
+                  "coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
                   "facets": {
                     "provenance": {
                       "basis": "bound",
@@ -7812,7 +7845,7 @@
                       "start_year": 2015,
                       "end_year": 2015
                     },
-                    "capability_version": "cap_eed8849e3076f272",
+                    "capability_version": "cap_347c5393b96434eb",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
