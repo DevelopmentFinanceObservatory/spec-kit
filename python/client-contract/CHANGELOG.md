@@ -4,6 +4,10 @@ All notable changes to the `dfo-spec-kit-client-contract` Python package will be
 
 ## [Unreleased]
 
+### Changed
+
+- A client's stored recipe fetch sends each one-member dataset root as a Spec root, its `spec_id` and rendering without `content_version`, since DFO refuses a dataset root naming a version it does not store before it resolves the stored head.
+
 ### Added
 
 - `latest: "stored"` and `include` on `POST /datasets/analysis`, and the derived digest file route, stated in the contract README. Under `latest: "stored"` each root reads the version its dataset's stored head names, by the head gets rule and with its freshness check submitted as the GET submits it, with no rendering, frame or graph read and no wait on a rebuild while a head exists; a dataset with no servable head answers 202 `pending` naming its queued rebuild. The request key is taken over the resolved versions as a pinned request's is, so stored and pinned requests share answers, and the 200 adds `resolved_roots`, each dataset's head version and freshness, composed per request. `include` names `manifest`, which embeds the derived manifest unchanged, and `summary`; a request that states `include` receives `summary` only when it names it, so new requests skip the per-row `group_summaries` that make a large aggregate's answer megabytes. `GET /datasets/derived/{spec_id}/{content_version}/files/{digest}` serves the ref member's file as the dataset digest link does, its 302 cacheable `public` for no longer than the signed URL lives, less 60 seconds, and the frame's `held_until`. Requests without the new members receive the bodies they receive today. The `analysis` scenario step takes `latest: "stored"` and `include`, its outcome gives `freshness` and `left_out_series` for them, and the synthetic `analysis-stored-roots` and `analysis-stored-manifest` pin both.
