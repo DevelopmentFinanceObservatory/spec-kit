@@ -170,8 +170,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   once exact, and an `about.source_codes` list in descending order.
 - `freshness.partial_periods`, an optional member on every kind: `[{source, period}]`, up to 64 entries, naming each source whose import held only part
   of a period's data when retrieved, with that period. An empty list means
-  the version was recorded and no drawn source marked a period partial;
-  `null` means it was recorded before versions stated it; an absent member is
-  also accepted. Four accepted and two rejected description vectors pin it.
+  a judgement was recorded and no drawn source marked a period partial;
+  `null` and an absent member both mean no judgement was recorded. Four accepted and two rejected description vectors pin it.
 
 [unreleased]: https://github.com/DevelopmentFinanceObservatory/spec-kit/commits/main/python
