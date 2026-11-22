@@ -479,7 +479,7 @@
       }
     },
     "analysis_step": {
-      "description": "A recipe tree posted to `POST /datasets/analysis`, with `latest` false when left out, as `{tree, latest}`. A 202 is pending, and the client posts the same body again after the 202's `Retry-After`, else its `retry_after_s`, held between 1 and 60 seconds; a 200 answers the stored frame. The served document types verb arguments as an open object, so the validator holds `allow_sparse_breakdowns` to `aggregate` and `rank` and to true, and `partition_by` to `rank`, as a non-empty list of distinct column words none of which `rank_by` names.",
+      "description": "A recipe tree posted to `POST /datasets/analysis`, with `latest` false when left out, and `include` when the step names it, as `{tree, latest, include?}`. `latest` `\"stored\"` reads each root at the version its dataset's stored head names, and `include: [\"manifest\"]` asks for the derived manifest in the 200. A 202 is pending, and the client posts the same body again after the 202's `Retry-After`, else its `retry_after_s`, held between 1 and 60 seconds; a 200 answers the stored frame. The served document types verb arguments as an open object, so the validator holds `allow_sparse_breakdowns` to `aggregate` and `rank` and to true, and `partition_by` to `rank`, as a non-empty list of distinct column words none of which `rank_by` names.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -495,7 +495,25 @@
           "type": "object"
         },
         "latest": {
-          "type": "boolean"
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "stored"
+            }
+          ]
+        },
+        "include": {
+          "description": "The optional 200 members the step asks for, `manifest` and `summary`. A post that states `include` receives `summary` only when the list names it, so `[]` asks for the lean body.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "manifest",
+              "summary"
+            ]
+          }
         }
       }
     },
@@ -992,7 +1010,7 @@
       }
     },
     "analysis": {
-      "description": "A ready analysis answer: the derived member its format 2 ref names, the frame's `rows`, and the answer's `stat_vars_summed` and `derived_roots` as served, each empty when the answer leaves it out.",
+      "description": "A ready analysis answer: the derived member its format 2 ref names, the frame's `rows`, and the answer's `stat_vars_summed` and `derived_roots` as served, each empty when the answer leaves it out, with `freshness` for a step that posts `latest: \"stored\"` and `left_out_series` for one that posts `include: [\"manifest\"]`.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1067,6 +1085,23 @@
               }
             }
           }
+        },
+        "freshness": {
+          "description": "Given only for a step that posts `latest: \"stored\"`: the worst freshness the answer's `resolved_roots` state, `current` before `pending` before `stale`, or null when the member is absent or not a list, or any entry is not an object stating one of the three.",
+          "enum": [
+            "current",
+            "pending",
+            "stale",
+            null
+          ]
+        },
+        "left_out_series": {
+          "description": "Given only for a step that posts `include: [\"manifest\"]`: the number of series the embedded manifest's `left_out` lists, or null when it is null.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
         },
         "pending_waits": {
           "description": "The seconds the client waited before each post again after a 202, in order. Given only when it waited.",

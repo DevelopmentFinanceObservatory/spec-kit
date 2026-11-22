@@ -829,3 +829,18 @@ def test_a_pending_analysis_fails_the_recording_past_the_wait_budget() -> None:
     with pytest.raises(capture.ShapeError, match="660 s of waits"):
         capture.drive(session, record["call"])
     assert sum(slept) == 600.0
+
+
+def test_each_embedded_manifest_is_a_served_derived_manifest() -> None:
+    """The derived manifest a synthetic answer embeds validates against the
+    served `DerivedManifest`, as the derived manifest route answers it."""
+    openapi = json.loads((capture.PACKAGE_DIR / "served" / "openapi.json").read_text())
+    routes = sys.modules["validate_client_contract"]._Routes(openapi)
+    embedded = [
+        exchange["response"]["json"]["manifest"]
+        for exchange in _load("analysis-stored-manifest")["exchanges"]
+        if "manifest" in exchange["response"].get("json", {})
+    ]
+    assert embedded
+    for manifest in embedded:
+        assert routes.validate("/components/schemas/DerivedManifest", manifest) == []
