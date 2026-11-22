@@ -18,11 +18,17 @@
     "built_from"
   ],
   "dependentRequired": {
-    "rendering": ["frame"],
-    "frame": ["rendering"]
+    "rendering": [
+      "frame"
+    ],
+    "frame": [
+      "rendering"
+    ]
   },
   "if": {
-    "required": ["rendering"]
+    "required": [
+      "rendering"
+    ]
   },
   "then": {
     "properties": {
@@ -83,7 +89,12 @@
             }
           },
           "cite": {
-            "required": ["id", "content_version", "retrieved", "data"],
+            "required": [
+              "id",
+              "content_version",
+              "retrieved",
+              "data"
+            ],
             "properties": {
               "id": {
                 "pattern": "^spec_"
@@ -118,7 +129,12 @@
       "then": {
         "properties": {
           "about": {
-            "required": ["name", "series", "period", "unit"],
+            "required": [
+              "name",
+              "series",
+              "period",
+              "unit"
+            ],
             "properties": {
               "measure": false,
               "fixed": false,
@@ -208,7 +224,9 @@
         "if": {
           "properties": {
             "about": {
-              "required": ["name"]
+              "required": [
+                "name"
+              ]
             }
           }
         },
@@ -284,7 +302,10 @@
           },
           "properties": {
             "about": {
-              "required": ["drawn", "unit"]
+              "required": [
+                "drawn",
+                "unit"
+              ]
             },
             "freshness": {
               "required": [
@@ -369,7 +390,10 @@
     "built_from": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["facts_schema", "vocabulary"],
+      "required": [
+        "facts_schema",
+        "vocabulary"
+      ],
       "properties": {
         "facts_schema": {
           "description": "The `schema_version` of the stored facts and evidence.",
@@ -394,7 +418,9 @@
     "served_step": {
       "description": "A step as served: a stored step's members plus `text`, the composer's sentence for it. A stored step list refuses `text`.",
       "$ref": "steps.schema.json#/$defs/step_members",
-      "required": ["text"],
+      "required": [
+        "text"
+      ],
       "properties": {
         "text": {
           "type": "string",
@@ -408,13 +434,18 @@
     "ref": {
       "description": "A reference as served: the step schema's reference with its label required.",
       "$ref": "steps.schema.json#/$defs/ref",
-      "required": ["label"]
+      "required": [
+        "label"
+      ]
     },
     "defined_ref": {
       "description": "A reference as served with the definition of what it names: `ref`, `label` and `at_mint` as in `ref`, and `definition`, the graph's description of the node, absent when the graph holds none.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["ref", "label"],
+      "required": [
+        "ref",
+        "label"
+      ],
       "properties": {
         "ref": {
           "$ref": "steps.schema.json#/$defs/text"
@@ -440,7 +471,10 @@
       "description": "A value a card draws on a dimension: `ref`, `label`, `at_mint` and `definition` as in `defined_ref`, and `source_codes`, the codes of the drawn variables that hold the value, present only on a dimension the variables themselves declare, absent when none of them has a code.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["ref", "label"],
+      "required": [
+        "ref",
+        "label"
+      ],
       "properties": {
         "ref": {
           "$ref": "steps.schema.json#/$defs/text"
@@ -481,7 +515,10 @@
       "description": "A code a publisher files a series under, such as World Bank `DT.TDS.DEGG.CD`, from the variable's `sourceIndicatorCode` arc: `provenance`, the dcid of the provenance issuing it, and `code`, upper-cased. `exact: true` when the code names the whole of what lists it: every series there is read from `provenance` alone and is one the code names, `provenance` gives none of them another code, and the version is a dataset version. Absent, the series are built from the codes listed, or hold others beside them.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["provenance", "code"],
+      "required": [
+        "provenance",
+        "code"
+      ],
       "properties": {
         "provenance": {
           "$ref": "steps.schema.json#/$defs/text"
@@ -501,7 +538,11 @@
       "description": "A computed version's input as served: its id, content version and label. `id` is `null` when the version holds no step that retrieves the input, with a gap naming it; the label is then the one stored with the input, else its content version with a gap.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "content_version", "label"],
+      "required": [
+        "id",
+        "content_version",
+        "label"
+      ],
       "properties": {
         "id": {
           "anyOf": [
@@ -527,7 +568,9 @@
     },
     "simple_unit": {
       "$ref": "steps.schema.json#/$defs/simple_unit",
-      "required": ["label"]
+      "required": [
+        "label"
+      ]
     },
     "unit_side": {
       "description": "One side of a composed unit as served, a unit or a variable, with its label required.",
@@ -537,7 +580,9 @@
         },
         {
           "$ref": "steps.schema.json#/$defs/variable_side",
-          "required": ["label"]
+          "required": [
+            "label"
+          ]
         }
       ]
     },
@@ -550,7 +595,10 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["numerator", "denominator"],
+          "required": [
+            "numerator",
+            "denominator"
+          ],
           "properties": {
             "numerator": {
               "$ref": "#/$defs/unit_side"
@@ -614,7 +662,10 @@
       "description": "A Datasets version's identity: a `spec_` id with a `cv_` content version, or an `ops_` id with an `ocv_` one.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "content_version"],
+      "required": [
+        "id",
+        "content_version"
+      ],
       "$ref": "steps.schema.json#/$defs/version_family",
       "properties": {
         "id": {
@@ -631,7 +682,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "id", "content_version"],
+          "required": [
+            "kind",
+            "id",
+            "content_version"
+          ],
           "properties": {
             "kind": {
               "const": "dataset_version"
@@ -647,7 +702,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "id", "content_version"],
+          "required": [
+            "kind",
+            "id",
+            "content_version"
+          ],
           "properties": {
             "kind": {
               "const": "computed_version"
@@ -663,7 +722,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "component_id", "revision"],
+          "required": [
+            "kind",
+            "component_id",
+            "revision"
+          ],
           "properties": {
             "kind": {
               "const": "card_revision"
@@ -682,7 +745,10 @@
     "span": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["start", "end"],
+      "required": [
+        "start",
+        "end"
+      ],
       "properties": {
         "start": {
           "$ref": "#/$defs/period"
@@ -717,7 +783,10 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["label", "definition"],
+              "required": [
+                "label",
+                "definition"
+              ],
               "properties": {
                 "ref": {
                   "$ref": "steps.schema.json#/$defs/text"
@@ -752,7 +821,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["property", "value"],
+            "required": [
+              "property",
+              "value"
+            ],
             "properties": {
               "property": {
                 "$ref": "#/$defs/ref"
@@ -774,7 +846,10 @@
         "variables": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["admitted_at_mint", "with_data"],
+          "required": [
+            "admitted_at_mint",
+            "with_data"
+          ],
           "properties": {
             "admitted_at_mint": {
               "$ref": "#/$defs/nullable_count"
@@ -815,7 +890,11 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["property", "count", "of"],
+                "required": [
+                  "property",
+                  "count",
+                  "of"
+                ],
                 "properties": {
                   "property": {
                     "$ref": "#/$defs/ref"
@@ -851,7 +930,10 @@
     "open_dimension": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["property", "count"],
+      "required": [
+        "property",
+        "count"
+      ],
       "if": {
         "properties": {
           "count": {
@@ -863,19 +945,29 @@
         "not": {
           "anyOf": [
             {
-              "required": ["top"]
+              "required": [
+                "top"
+              ]
             },
             {
-              "required": ["more"]
+              "required": [
+                "more"
+              ]
             },
             {
-              "required": ["values"]
+              "required": [
+                "values"
+              ]
             }
           ]
         }
       },
       "else": {
-        "required": ["top", "more", "values"]
+        "required": [
+          "top",
+          "more",
+          "values"
+        ]
       },
       "properties": {
         "property": {
@@ -903,7 +995,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["label", "variables"],
+            "required": [
+              "label",
+              "variables"
+            ],
             "properties": {
               "ref": {
                 "$ref": "steps.schema.json#/$defs/text"
@@ -933,27 +1028,42 @@
       "description": "A source used, or for a computed version or a card drawn from one an input. A source that is not an input, carrying no `content_version`, always carries `publisher`, `licence` and `series`, each `null` with a gap when unknown. Publisher and licence are as recorded at mint. An input names its version id as `ref`, of its content version's family, or has `ref: null` when its id is unknown, with a gap naming it and no `description` link; a source without `content_version` always names its `ref`.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["ref", "label"],
+      "required": [
+        "ref",
+        "label"
+      ],
       "if": {
         "properties": {
           "ref": {
             "type": "null"
           }
         },
-        "required": ["ref"]
+        "required": [
+          "ref"
+        ]
       },
       "then": {
-        "required": ["content_version"],
+        "required": [
+          "content_version"
+        ],
         "not": {
-          "required": ["description"]
+          "required": [
+            "description"
+          ]
         }
       },
       "anyOf": [
         {
-          "required": ["content_version"]
+          "required": [
+            "content_version"
+          ]
         },
         {
-          "required": ["publisher", "licence", "series"]
+          "required": [
+            "publisher",
+            "licence",
+            "series"
+          ]
         }
       ],
       "dependentSchemas": {
@@ -1085,6 +1195,34 @@
         "provisional_values": {
           "$ref": "#/$defs/nullable_count"
         },
+        "partial_periods": {
+          "description": "The sources whose import held only part of a period's data when retrieved, each with that period. Empty when a judgement was recorded and no drawn source marked a period partial; null, like an absent member, when no judgement was recorded.",
+          "anyOf": [
+            {
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source",
+                  "period"
+                ],
+                "properties": {
+                  "source": {
+                    "$ref": "#/$defs/ref"
+                  },
+                  "period": {
+                    "$ref": "#/$defs/period"
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "inputs": {
           "description": "A computed version's inputs, each at the version it used.",
           "type": "array",
@@ -1099,7 +1237,10 @@
       "description": "How it is cited: one citation line, the identity it cites with its retrieval date, and a link to the data. Its id and content version are of one family, `spec_` with `cv_` or `ops_` with `ocv_`. A dataset version cites its `spec_` identity; a computed version its `ops_` identity and each input's version; a card revision its id and revision, then the version it draws from.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "text"],
+      "required": [
+        "title",
+        "text"
+      ],
       "$ref": "steps.schema.json#/$defs/version_family",
       "properties": {
         "title": {
@@ -1142,19 +1283,30 @@
       "description": "A fact about the data, naming what it applies to: series, entities, periods, or the step that left data out, with `text`, the composer's sentence for it. A stored caveat holds the facts and no `text`. A `step` names a step in the description's `steps`, which `check_description` checks.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "text"],
+      "required": [
+        "kind",
+        "text"
+      ],
       "anyOf": [
         {
-          "required": ["series"]
+          "required": [
+            "series"
+          ]
         },
         {
-          "required": ["entities"]
+          "required": [
+            "entities"
+          ]
         },
         {
-          "required": ["periods"]
+          "required": [
+            "periods"
+          ]
         },
         {
-          "required": ["step"]
+          "required": [
+            "step"
+          ]
         }
       ],
       "properties": {
