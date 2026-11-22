@@ -55,6 +55,10 @@ _DROPPED = "scenarios/fetch-spec-entity-dropped.json"
 _GROUP_NARROWED = "scenarios/fetch-spec-group-narrowed.json"
 _GROUP_REBOUND = "scenarios/fetch-spec-group-origin-rebound.json"
 _ORIGIN_GROUP = {"label": "G7", "group_id": "groups/G7"}
+_RANK = "scenarios/analysis-rank-partitioned.json"
+_SPARSE = "scenarios/analysis-aggregate-sparse-breakdowns.json"
+_SUMMED = "scenarios/analysis-summed-root.json"
+_PENDING_TRACE_ID = "6" * 32
 
 
 def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -182,6 +186,44 @@ def _saved_key(key: str, change: Callable[[Any], Any]) -> Callable[[Any], None]:
     def edit(doc: Any) -> None:
         value = json.loads(doc["metadata"][key])
         doc["metadata"][key] = json.dumps(change(value))
+
+    return edit
+
+
+def _tree_arguments(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the top step's arguments of analysis step `index` and of the
+    request it posts alike, so the posted body still matches the step."""
+
+    def edit(doc: Any) -> None:
+        change(doc["call"][index]["tree"]["arguments"])
+        change(doc["exchanges"][index]["request"]["json"]["tree"]["arguments"])
+
+    return edit
+
+
+def _pending_first(headers: dict[str, str] | None = None) -> Callable[[Any], None]:
+    """Answers the record's one analysis post 202 pending first, with
+    `retry_after_s` 0.25 and `headers`, before the 200 it recorded."""
+
+    def edit(doc: Any) -> None:
+        exchange = doc["exchanges"][0]
+        pending = {
+            "request": copy.deepcopy(exchange["request"]),
+            "response": {
+                "status": 202,
+                "headers": {
+                    "content-type": "application/json",
+                    "x-dfo-trace-id": _PENDING_TRACE_ID,
+                    **(headers or {}),
+                },
+                "json": {
+                    "status": "pending",
+                    "retry_after_s": 0.25,
+                    "operations": ["op_" + "a" * 64],
+                },
+            },
+        }
+        doc["exchanges"].insert(0, pending)
 
     return edit
 
@@ -2161,6 +2203,49 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             ),
             "breaks rule None, expected 'format_invalid'",
         ),
+        (
+            _RANK,
+            _tree_arguments(1, lambda a: a.update(partition_by=["origin"])),
+            "partition_by and rank_by both name ['origin']",
+        ),
+        (
+            _RANK,
+            _tree_arguments(1, lambda a: a.update(partition_by=[])),
+            "partition_by is a non-empty list of distinct column words",
+        ),
+        (
+            _SUMMED,
+            _tree_arguments(0, lambda a: a.update(partition_by=["destination"])),
+            "aggregate takes no partition_by",
+        ),
+        (
+            _SPARSE,
+            _tree_arguments(1, lambda a: a.update(allow_sparse_breakdowns=False)),
+            "allow_sparse_breakdowns is given only as true, not false",
+        ),
+        (
+            _RANK,
+            lambda doc: doc["call"][1]["tree"]["arguments"].pop("partition_by"),
+            "where the rules post",
+        ),
+        (
+            _RANK,
+            lambda doc: doc["call"][0].update(latest=True),
+            "where the rules post",
+        ),
+        (
+            _SUMMED,
+            _set_outcome(
+                0, lambda o: o["analysis"]["stat_vars_summed"][0].update(count=47)
+            ),
+            "step 0 expects",
+        ),
+        (
+            _SUMMED,
+            _set_outcome(0, lambda o: o["analysis"].update(derived_roots=[])),
+            "step 0 expects",
+        ),
+        (_SUMMED, _pending_first(), "step 0 expects"),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -2457,6 +2542,15 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "saved-rule-example-that-breaks-no-rule",
         "provenance-with-a-key-it-does-not-name",
         "provenance-rule-example-that-breaks-no-rule",
+        "partition-by-names-a-ranked-column",
+        "partition-by-empty",
+        "partition-by-outside-rank",
+        "sparse-breakdowns-false",
+        "analysis-post-other-than-its-step",
+        "analysis-post-without-the-steps-latest",
+        "stat-vars-summed-count-not-served",
+        "derived-roots-not-served",
+        "pending-wait-not-expected",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -3556,6 +3650,81 @@ def test_saved_party_totals_follow_member_order() -> None:
     assert validator._saved_file_rule("1", decoded) is None
 
 
+def _saved_decoded(name: str) -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "saved-files" / f"{name}.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    return {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+
+
+@pytest.mark.parametrize(
+    ("name", "version", "broken"),
+    [
+        ("saved-derived-member-partitioned-rank", "3", None),
+        ("saved-derived-member-partitioned-rank", "2", "format_invalid"),
+        ("saved-per-in-format-2-rejected", "2", "format_invalid"),
+        ("saved-per-in-format-2-rejected", "3", None),
+        ("saved-derived-member-format-3-without-per", "3", None),
+        ("saved-derived-member-format-3-without-per", "2", None),
+        ("saved-derived-member-format-3-without-per", "1", "format_invalid"),
+        ("saved-per-names-by-role-rejected", "3", "format_invalid"),
+    ],
+)
+def test_saved_format_rule_by_version_and_per(
+    name: str, version: str, broken: str | None
+) -> None:
+    decoded = _saved_decoded(name)
+    assert validator._saved_file_rule(version, decoded) == broken
+
+
+@pytest.mark.parametrize(
+    ("tree", "expected"),
+    [
+        ({"verb": 7}, "/tree: verb is a string, not 7"),
+        ({"verb": ["rank"], "arguments": {"partition_by": ["a"]}}, "verb is a string"),
+        (
+            {"verb": "rank", "arguments": {"rank_by": [["a"]], "partition_by": ["a"]}},
+            "rank_by is a list of strings",
+        ),
+        (
+            {"verb": "rank", "arguments": {"rank_by": "a"}},
+            "rank_by is a list of strings",
+        ),
+        (
+            {"verb": "rank", "arguments": {"partition_by": [["a"]], "rank_by": [{}]}},
+            "partition_by is a non-empty list of distinct column words",
+        ),
+        (
+            {"verb": "aggregate", "inputs": {"data": {"verb": None}}},
+            "/tree/inputs/data: verb is a string, not null",
+        ),
+    ],
+)
+def test_a_malformed_tree_is_a_problem_and_no_crash(
+    tree: dict[str, Any], expected: str
+) -> None:
+    problems = validator.tree_argument_problems(tree)
+    assert any(expected in problem for problem in problems)
+
+
+def test_per_names_no_role_of_the_steps_by() -> None:
+    decoded = _saved_decoded("saved-derived-member-partitioned-rank")
+    assert validator._saved_file_rule("3", decoded) is None
+    decoded["dfo.steps"][1]["per"] = ["financingProvider", "financingRecipient"]
+    assert validator._saved_file_rule("3", decoded) == "format_invalid"
+
+
+def test_per_in_a_file_without_a_derived_member_breaks_format_invalid() -> None:
+    decoded = _saved_decoded("saved-minimal")
+    decoded["dfo.steps"] = [{"verb": "rank", "by": [], "per": ["a"], "limit": None}]
+    assert validator._saved_file_rule("3", decoded) == "format_invalid"
+    del decoded["dfo.steps"]
+    assert validator._saved_file_rule("1", decoded) is None
+
+
 @pytest.mark.parametrize(
     "name",
     [
@@ -3577,3 +3746,109 @@ def test_a_saved_file_with_an_impossible_date_breaks_format_invalid(name: str) -
     # the same file with a real date breaks no rule
     fixed = json.loads(json.dumps(decoded).replace("2026-02-30", "2026-02-28"))
     assert validator._saved_file_rule("1", fixed) is None
+
+
+@pytest.mark.parametrize(
+    ("headers", "waits"),
+    [({}, [1.0]), ({"retry-after": "3"}, [3.0]), ({"retry-after": "90"}, [60.0])],
+    ids=["retry-after-s-held-at-one", "retry-after-header", "header-held-at-sixty"],
+)
+def test_a_pending_analysis_is_posted_again_after_its_wait(
+    package_dir: Path, headers: dict[str, str], waits: list[float]
+) -> None:
+    def change(doc: Any) -> None:
+        _pending_first(headers)(doc)
+        doc["expect"][0]["analysis"]["pending_waits"] = waits
+
+    _edit(package_dir / _SUMMED, change)
+    assert validator.validate() == []
+
+
+_READY = {
+    "ref": {
+        "format_version": 2,
+        "members": [
+            {
+                "roots": [],
+                "spec": {"spec_id": "ops_" + "1" * 32},
+                "content_version": "ocv_" + "2" * 32,
+            }
+        ],
+    },
+    "rows": 4,
+}
+
+
+def _ready(**members: Any) -> dict[str, Any]:
+    body = copy.deepcopy(_READY)
+    body.update(members)
+    return body
+
+
+def test_an_answer_without_its_lists_reads_them_as_empty() -> None:
+    assert validator.analysis_outcome(_ready(stat_vars_summed=None)) == {
+        "analysis": {
+            "spec_id": "ops_" + "1" * 32,
+            "content_version": "ocv_" + "2" * 32,
+            "rows": 4,
+            "stat_vars_summed": [],
+            "derived_roots": [],
+        }
+    }
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        _ready(ref={**_READY["ref"], "format_version": 1}),
+        _ready(ref={**_READY["ref"], "members": _READY["ref"]["members"] * 2}),
+        _ready(
+            ref={
+                **_READY["ref"],
+                "members": [
+                    {
+                        **_READY["ref"]["members"][0],
+                        "spec": {"spec_id": "spec_" + "1" * 32},
+                    }
+                ],
+            }
+        ),
+        _ready(rows=True),
+        _ready(stat_vars_summed={}),
+        _ready(
+            stat_vars_summed=[
+                {"spec_id": "spec_a", "content_version": "cv_a", "count": 1}
+            ]
+        ),
+        _ready(
+            stat_vars_summed=[
+                {"spec_id": "spec_a", "content_version": "cv_a", "count": True}
+            ]
+        ),
+        _ready(derived_roots=[{"spec_id": "spec_a"}]),
+        _ready(
+            derived_roots=[
+                {
+                    "spec_id": "spec_a",
+                    "content_version": "cv_a",
+                    "base_content_version": 7,
+                }
+            ]
+        ),
+    ],
+    ids=[
+        "format-1-ref",
+        "two-members",
+        "dataset-member",
+        "rows-a-boolean",
+        "summed-not-a-list",
+        "summed-count-one",
+        "summed-count-a-boolean",
+        "derived-root-without-version",
+        "derived-root-base-a-number",
+    ],
+)
+def test_an_unreadable_analysis_answer_is_a_contract_violation(body: Any) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.analysis_outcome(body)
+    assert raised.value.code == "contract_violation"

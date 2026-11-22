@@ -15,10 +15,11 @@
   },
   "properties": {
     "dfo.format_version": {
-      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member. A reader refuses a version it does not know.",
+      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member, and 3 for one whose recipe holds a rank partitioned by `per`. A reader accepts 3 for any file that holds a derived member, and a writer uses 3 only when a step holds `per`, so a file without `per` stays at 2 and a 0.5.0 reader still loads it. A reader refuses a version it does not know.",
       "enum": [
         "1",
-        "2"
+        "2",
+        "3"
       ]
     },
     "dfo.sentence": {
@@ -372,7 +373,7 @@
       }
     },
     "dfo.steps": {
-      "description": "The steps of the recipe of a dataset with a derived member, in the order they ran.",
+      "description": "The steps of the recipe of a dataset with a derived member, in the order they ran. A rank partitioned by roles carries them as `per`, which only a format 3 file holds.",
       "type": "string",
       "contentMediaType": "application/json",
       "contentSchema": {
@@ -400,6 +401,28 @@
                 "integer",
                 "null"
               ]
+            },
+            "per": {
+              "description": "The roles a rank was partitioned by, each once. Only a rank step carries it, no role it names is in the step's by, and a file with a step that holds it is format 3.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "if": {
+            "required": [
+              "per"
+            ]
+          },
+          "then": {
+            "properties": {
+              "verb": {
+                "const": "rank"
+              }
             }
           }
         }
