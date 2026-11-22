@@ -58,6 +58,8 @@ _ORIGIN_GROUP = {"label": "G7", "group_id": "groups/G7"}
 _RANK = "scenarios/analysis-rank-partitioned.json"
 _SPARSE = "scenarios/analysis-aggregate-sparse-breakdowns.json"
 _SUMMED = "scenarios/analysis-summed-root.json"
+_STORED = "scenarios/analysis-stored-roots.json"
+_STORED_MANIFEST = "scenarios/analysis-stored-manifest.json"
 _PENDING_TRACE_ID = "6" * 32
 
 
@@ -2246,6 +2248,25 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "step 0 expects",
         ),
         (_SUMMED, _pending_first(), "step 0 expects"),
+        (
+            _STORED_MANIFEST,
+            lambda doc: doc["call"][0].pop("include"),
+            "where the rules post",
+        ),
+        (
+            _STORED,
+            lambda doc: doc["exchanges"][1]["response"]["json"]["resolved_roots"][
+                0
+            ].update(freshness="stale"),
+            "step 1 expects",
+        ),
+        (
+            _STORED_MANIFEST,
+            lambda doc: doc["exchanges"][0]["response"]["json"]["manifest"].update(
+                content_version="ocv_" + "0" * 32
+            ),
+            "step 0 expects",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -2551,6 +2572,9 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "stat-vars-summed-count-not-served",
         "derived-roots-not-served",
         "pending-wait-not-expected",
+        "analysis-post-without-the-steps-include",
+        "stored-freshness-not-expected",
+        "embedded-manifest-of-another-pair",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -3795,6 +3819,84 @@ def test_an_answer_without_its_lists_reads_them_as_empty() -> None:
             "derived_roots": [],
         }
     }
+
+
+def _resolved(*freshness: Any) -> list[Any]:
+    return [
+        {
+            "spec_id": "spec_" + "1" * 32,
+            "content_version": "cv_" + "1" * 32,
+            "freshness": f,
+        }
+        for f in freshness
+    ]
+
+
+@pytest.mark.parametrize(
+    ("resolved", "freshness"),
+    [
+        (_resolved("current", "stale", "pending"), "stale"),
+        (_resolved("current", "pending"), "pending"),
+        (_resolved("current", "fresh"), None),
+        ([*_resolved("current"), "spec"], None),
+        ({}, None),
+        ([], None),
+        (None, None),
+    ],
+    ids=["worst", "pending", "unknown", "item-not-object", "object", "empty", "absent"],
+)
+def test_a_stored_answer_gives_the_worst_freshness_its_roots_state(
+    resolved: Any, freshness: str | None
+) -> None:
+    body = _ready() if resolved is None else _ready(resolved_roots=resolved)
+    outcome = validator.analysis_outcome(body, stored=True)["analysis"]
+    assert outcome["freshness"] == freshness
+    assert "freshness" not in validator.analysis_outcome(body)["analysis"]
+
+
+def _manifest(**members: Any) -> dict[str, Any]:
+    return {
+        "spec_id": "ops_" + "1" * 32,
+        "content_version": "ocv_" + "2" * 32,
+        "left_out": [],
+        **members,
+    }
+
+
+@pytest.mark.parametrize(
+    ("manifest", "series"),
+    [
+        (_manifest(), 0),
+        (_manifest(left_out=[{}, {}]), 2),
+        (_manifest(left_out=None), None),
+    ],
+    ids=["none-left-out", "two-left-out", "left-out-null"],
+)
+def test_an_embedded_manifest_gives_the_series_it_left_out(
+    manifest: Any, series: int | None
+) -> None:
+    outcome = validator.analysis_outcome(_ready(manifest=manifest), manifest=True)
+    assert outcome["analysis"]["left_out_series"] == series
+
+
+@pytest.mark.parametrize(
+    "manifest",
+    [
+        None,
+        [],
+        _manifest(spec_id="ops_" + "3" * 32),
+        _manifest(content_version="ocv_" + "3" * 32),
+        _manifest(left_out={}),
+    ],
+    ids=["absent", "a-list", "other-spec", "other-version", "left-out-an-object"],
+)
+def test_an_asked_for_manifest_that_does_not_read_is_a_contract_violation(
+    manifest: Any,
+) -> None:
+    body = _ready() if manifest is None else _ready(manifest=manifest)
+    with pytest.raises(validator.ClientError) as raised:
+        validator.analysis_outcome(body, manifest=True)
+    assert raised.value.code == "contract_violation"
 
 
 @pytest.mark.parametrize(

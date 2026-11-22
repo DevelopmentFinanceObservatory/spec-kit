@@ -3380,7 +3380,11 @@ class _Replay:
             response = exchange["response"]
             body = self.acted_on(exchange)
             if response["status"] == 200:
-                outcome = analysis_outcome(body)
+                outcome = analysis_outcome(
+                    body,
+                    stored=posts["latest"] == "stored",
+                    manifest="manifest" in posts.get("include", ()),
+                )
                 break
             if response["status"] != 202:
                 raise ClientError("unexpected_response")
@@ -3415,9 +3419,12 @@ def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
 
 def analysis_body(step: Mapping[str, Any]) -> dict[str, Any]:
     """The whole body a client posts to the analysis route for an `analysis`
-    step: its `tree` as given, and `latest`, false when the step leaves it
-    out."""
-    return {"tree": step["tree"], "latest": step.get("latest", False)}
+    step: its `tree` as given, `latest`, false when the step leaves it out,
+    and `include` when the step names it."""
+    body = {"tree": step["tree"], "latest": step.get("latest", False)}
+    if "include" in step:
+        body["include"] = list(step["include"])
+    return body
 
 
 def analysis_wait(headers: Mapping[str, str], body: Any) -> float:
@@ -3467,19 +3474,68 @@ def _listed(body: dict[str, Any], name: str) -> list[Any]:
     return value
 
 
-def analysis_outcome(body: Any) -> dict[str, Any]:
+# The freshness a stored root states, best first.
+FRESHNESS = ("current", "pending", "stale")
+
+
+def stored_freshness(body: Mapping[str, Any]) -> str | None:
+    """The worst freshness the answer's `resolved_roots` state, or None when
+    the member is absent or not a list, or any entry is not an object stating
+    one of FRESHNESS."""
+    entries = body.get("resolved_roots")
+    if not isinstance(entries, list) or not entries:
+        return None
+    stated = [
+        entry.get("freshness") if isinstance(entry, dict) else None for entry in entries
+    ]
+    if any(value not in FRESHNESS for value in stated):
+        return None
+    return max(stated, key=FRESHNESS.index)
+
+
+def embedded_left_out(
+    body: Mapping[str, Any], spec_id: str, version: str
+) -> int | None:
+    """The number of series the embedded derived manifest's `left_out` lists,
+    or None when it is null.
+
+    Raises:
+        ClientError: `contract_violation`, when `manifest` is not an object,
+            names another pair than the ref's member, or its `left_out` is
+            neither a list nor null.
+    """
+    manifest = body.get("manifest")
+    if not isinstance(manifest, dict):
+        raise ClientError("contract_violation")
+    if manifest.get("spec_id") != spec_id or manifest.get("content_version") != version:
+        raise ClientError("contract_violation")
+    left_out = manifest.get("left_out")
+    if left_out is None:
+        return None
+    if not isinstance(left_out, list):
+        raise ClientError("contract_violation")
+    return len(left_out)
+
+
+def analysis_outcome(
+    body: Any, *, stored: bool = False, manifest: bool = False
+) -> dict[str, Any]:
     """The outcome of a ready analysis answer: the derived member its format
     2 ref names, by `spec_id` and `content_version`; its `rows`; each root
     read summed over its StatVars, from `stat_vars_summed`; and each root
     whose rendering is a version of its own, from `derived_roots`. Either
-    list left out reads as empty.
+    list left out reads as empty. An answer to a `latest: "stored"` post
+    gives `freshness` (`stored_freshness`), and one to an
+    `include: ["manifest"]` post gives `left_out_series`
+    (`embedded_left_out`).
 
     Raises:
         ClientError: `contract_violation`, when the ref is not one derived
             member, `rows` is not a count, a `stat_vars_summed` entry is not
-            `{spec_id, content_version, count}` with `count` at least 2, or a
+            `{spec_id, content_version, count}` with `count` at least 2, a
             `derived_roots` entry is not `{spec_id, content_version}` with an
-            optional `base_content_version`.
+            optional `base_content_version`, or an asked-for manifest does
+            not read.
     """
     violation = ClientError("contract_violation")
     ref = read_object(body, "ref")
@@ -3513,15 +3569,18 @@ def analysis_outcome(body: Any) -> dict[str, Any]:
         if entry is None:
             raise violation
         derived.append(entry)
-    return {
-        "analysis": {
-            "spec_id": spec_id,
-            "content_version": version,
-            "rows": rows,
-            "stat_vars_summed": summed,
-            "derived_roots": derived,
-        }
+    outcome: dict[str, Any] = {
+        "spec_id": spec_id,
+        "content_version": version,
+        "rows": rows,
+        "stat_vars_summed": summed,
+        "derived_roots": derived,
     }
+    if stored:
+        outcome["freshness"] = stored_freshness(body)
+    if manifest:
+        outcome["left_out_series"] = embedded_left_out(body, spec_id, version)
+    return {"analysis": outcome}
 
 
 # The verbs that take `allow_sparse_breakdowns`, an argument the served
