@@ -746,7 +746,7 @@ def test_a_long_build_scan_starts_after_the_recorded_year(
 
 def test_the_long_build_scans_start_after_the_recorded_picks() -> None:
     """The records hold the DAC pick at 1973 and the OECD pick at 1974."""
-    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1974, "OECD": 1975}
+    assert capture.long_build_starts(SCENARIOS) == {"DAC": 1975, "OECD": 1976}
 
 
 def test_a_long_build_scan_skips_a_year_without_an_estimate(
@@ -780,3 +780,67 @@ def test_the_running_operation_keeps_party_totals(
     monkeypatch.setattr(capture.Session, "mint", mint)
     assert ctx.running_operation() == "op_x"
     assert minted == [{"party_totals": True}]
+
+
+def _pending_session(
+    pendings: int, retry_after: str
+) -> tuple[capture.Session, capture.Served, dict[str, Any], list[float]]:
+    """A session over `analysis-summed-root` with `pendings` 202s answered
+    before its 200, each with `retry_after`."""
+    record = _load("analysis-summed-root")
+    posted = record["exchanges"][0]
+    pending = {
+        "request": copy.deepcopy(posted["request"]),
+        "response": {
+            "status": 202,
+            "headers": {
+                "content-type": "application/json",
+                "x-dfo-trace-id": "6" * 32,
+                "retry-after": retry_after,
+            },
+            "json": {"status": "pending", "retry_after_s": 0.25, "operations": []},
+        },
+    }
+    record["exchanges"][:0] = [copy.deepcopy(pending) for _ in range(pendings)]
+    served = capture.Served(record, SCENARIOS)
+    recorder = capture.Recorder(record["name"], served.base_url, served)
+    slept: list[float] = []
+    session = capture.Session(
+        recorder, ACTIONS, CLIENT_CODES, RULES, read_shape=_shape, sleep=slept.append
+    )
+    return session, served, record, slept
+
+
+def test_a_pending_analysis_sleeps_its_wait_and_posts_the_same_body_again() -> None:
+    session, served, record, slept = _pending_session(1, "3")
+    capture.drive(session, record["call"])
+    assert served.pending == []
+    assert slept == [3.0]
+    (outcome,) = session.expect
+    assert outcome["analysis"]["pending_waits"] == [3.0]
+    assert {**outcome["analysis"], "pending_waits": None} == {
+        **record["expect"][0]["analysis"],
+        "pending_waits": None,
+    }
+
+
+def test_a_pending_analysis_fails_the_recording_past_the_wait_budget() -> None:
+    session, _, record, slept = _pending_session(11, "60")
+    with pytest.raises(capture.ShapeError, match="660 s of waits"):
+        capture.drive(session, record["call"])
+    assert sum(slept) == 600.0
+
+
+def test_each_embedded_manifest_is_a_served_derived_manifest() -> None:
+    """The derived manifest a synthetic answer embeds validates against the
+    served `DerivedManifest`, as the derived manifest route answers it."""
+    openapi = json.loads((capture.PACKAGE_DIR / "served" / "openapi.json").read_text())
+    routes = sys.modules["validate_client_contract"]._Routes(openapi)
+    embedded = [
+        exchange["response"]["json"]["manifest"]
+        for exchange in _load("analysis-stored-manifest")["exchanges"]
+        if "manifest" in exchange["response"].get("json", {})
+    ]
+    assert embedded
+    for manifest in embedded:
+        assert routes.validate("/components/schemas/DerivedManifest", manifest) == []

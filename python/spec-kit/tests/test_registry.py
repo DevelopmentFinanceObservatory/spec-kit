@@ -14,6 +14,7 @@ from typing import Any
 import pytest
 
 from dfo_spec_kit.registry import (
+    FLOW_ROLE_AXES,
     LIMIT_NAMES,
     REGISTRY,
     WARNING_REASONS,
@@ -135,7 +136,9 @@ def test_entries_are_sorted_by_code() -> None:
     assert codes == sorted(codes)
 
 
-@pytest.mark.parametrize("name", ["limit-names.json", "warning-reasons.json"])
+@pytest.mark.parametrize(
+    "name", ["flow-role-axes.json", "limit-names.json", "warning-reasons.json"]
+)
 def test_mirror_is_byte_identical_to_canonical_registry_file(name: str) -> None:
     assert (_MIRROR_PATH.parent / name).read_bytes() == (
         _REPO_ROOT / "registries" / name
@@ -147,6 +150,19 @@ def test_limit_names_are_keyed_by_name() -> None:
     assert entry.name == "MAX_TABLE_ROWS"
     assert entry.owning_contract == "presentation"
     assert all(key == value.name for key, value in LIMIT_NAMES.items())
+
+
+def test_flow_role_axes_place_every_role_on_one_axis() -> None:
+    assert FLOW_ROLE_AXES == {
+        "provider": "origin",
+        "creditor": "origin",
+        "source": "origin",
+        "financingProvider": "origin",
+        "recipient": "destination",
+        "debtor": "destination",
+        "target": "destination",
+        "financingRecipient": "destination",
+    }
 
 
 def test_warning_reasons_are_keyed_by_code_then_reason() -> None:

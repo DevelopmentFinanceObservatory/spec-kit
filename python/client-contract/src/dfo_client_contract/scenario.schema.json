@@ -256,6 +256,9 @@
             "$ref": "#/$defs/operation_step"
           },
           {
+            "$ref": "#/$defs/analysis_step"
+          },
+          {
             "$ref": "#/$defs/result_step"
           }
         ]
@@ -392,7 +395,7 @@
             {
               "properties": {
                 "format_version": {
-                  "description": "Format 1, a ref of dataset members. No scenario serves a derived member yet, so a format 2 ref fails here.",
+                  "description": "Format 1, a ref of dataset members. No fetch scenario serves a derived member's frame, so a format 2 ref fails here.",
                   "const": 1
                 }
               }
@@ -472,6 +475,45 @@
       "properties": {
         "op": {
           "const": "result"
+        }
+      }
+    },
+    "analysis_step": {
+      "description": "A recipe tree posted to `POST /datasets/analysis`, with `latest` false when left out, and `include` when the step names it, as `{tree, latest, include?}`. `latest` `\"stored\"` reads each root at the version its dataset's stored head names, and `include: [\"manifest\"]` asks for the derived manifest in the 200. A 202 is pending, and the client posts the same body again after the 202's `Retry-After`, else its `retry_after_s`, held between 1 and 60 seconds; a 200 answers the stored frame. The served document types verb arguments as an open object, so the validator holds `allow_sparse_breakdowns` to `aggregate` and `rank` and to true, and `partition_by` to `rank`, as a non-empty list of distinct column words none of which `rank_by` names.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "tree"
+      ],
+      "properties": {
+        "op": {
+          "const": "analysis"
+        },
+        "tree": {
+          "description": "The recipe tree, as the request's `tree` holds it: a step `{verb, arguments, inputs: {data, other?}}` or a derived root.",
+          "type": "object"
+        },
+        "latest": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "stored"
+            }
+          ]
+        },
+        "include": {
+          "description": "The optional 200 members the step asks for, `manifest` and `summary`. A post that states `include` receives `summary` only when the list names it, so `[]` asks for the lean body.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "manifest",
+              "summary"
+            ]
+          }
         }
       }
     },
@@ -655,6 +697,18 @@
           "properties": {
             "newest_version": {
               "$ref": "#/$defs/newest_version"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "analysis"
+          ],
+          "properties": {
+            "analysis": {
+              "$ref": "#/$defs/analysis"
             }
           }
         },
@@ -955,6 +1009,117 @@
         }
       }
     },
+    "analysis": {
+      "description": "A ready analysis answer: the derived member its format 2 ref names, the frame's `rows`, and the answer's `stat_vars_summed` and `derived_roots` as served, each empty when the answer leaves it out, with `freshness` for a step that posts `latest: \"stored\"` and `left_out_series` for one that posts `include: [\"manifest\"]`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "content_version",
+        "rows",
+        "stat_vars_summed",
+        "derived_roots"
+      ],
+      "properties": {
+        "spec_id": {
+          "type": "string",
+          "pattern": "^ops_[0-9a-f]{32}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "content_version": {
+          "type": "string",
+          "pattern": "^ocv_[0-9a-f]{32}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stat_vars_summed": {
+          "description": "Each root read as the sum of its StatVars: the version summed into and how many StatVars it summed.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec_id",
+              "content_version",
+              "count"
+            ],
+            "properties": {
+              "spec_id": {
+                "type": "string"
+              },
+              "content_version": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 2
+              }
+            }
+          }
+        },
+        "derived_roots": {
+          "description": "Each root whose rendering is a version of its own, with `base_content_version`, the dataset version it renders, where the answer names one. A root read as a stored dataset version names none, since it is that version; `analysis-party-totals-cut` lists none because each root reads its own stored version, one kept and one cut.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec_id",
+              "content_version"
+            ],
+            "properties": {
+              "spec_id": {
+                "type": "string"
+              },
+              "content_version": {
+                "type": "string"
+              },
+              "base_content_version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "freshness": {
+          "description": "Given only for a step that posts `latest: \"stored\"`: the worst freshness the answer's `resolved_roots` state, `current` before `pending` before `stale`, or null when the member is absent or not a list, or any entry is not an object stating one of the three.",
+          "enum": [
+            "current",
+            "pending",
+            "stale",
+            null
+          ]
+        },
+        "left_out_series": {
+          "description": "Given only for a step that posts `include: [\"manifest\"]`: the number of series the embedded manifest's `left_out` lists, or null when it is null.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "pending_waits": {
+          "description": "The seconds the client waited before each post again after a 202, in order. Given only when it waited.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
     "newest_version": {
       "description": "The newest stored version a newest_version step finds, or null when the spec has none.",
       "type": "object",
@@ -997,6 +1162,7 @@
             "IncompleteAnswerError",
             "DeclinedError",
             "VersionUnavailableError",
+            "VersionNotPinnedError",
             "AuthenticationError",
             "PermissionDeniedError",
             "RateLimitError",

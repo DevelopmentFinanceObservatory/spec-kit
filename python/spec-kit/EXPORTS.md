@@ -89,6 +89,7 @@ modules = [
   "dfo_spec_kit.currency",
   "dfo_spec_kit.identity",
   "dfo_spec_kit.models",
+  "dfo_spec_kit.place_type",
   "dfo_spec_kit.registry",
   "dfo_spec_kit.units",
 ]
@@ -238,6 +239,21 @@ reason = "bundled-data"
 
 [[export]]
 name = "load_limit_names"
+module = "dfo_spec_kit.registry"
+kind = "function"
+stability = "provisional"
+reason = "bundled-data"
+
+[[export]]
+name = "FLOW_ROLE_AXES"
+module = "dfo_spec_kit.registry"
+kind = "constant"
+stability = "provisional"
+policy = "contents track registries/flow-role-axes.json; a role is added, never moved to the other axis"
+reason = "bundled-data"
+
+[[export]]
+name = "load_flow_role_axes"
 module = "dfo_spec_kit.registry"
 kind = "function"
 stability = "provisional"
@@ -459,6 +475,163 @@ module = "dfo_spec_kit.models"
 kind = "model"
 stability = "stable"
 reason = "the canonical definition a registry stores and a permalink carries; the root of a published schema"
+# --- dfo_spec_kit.place_type -------------------------------------------
+# Place levels and the enrichment columns apis adds to a place or party role.
+
+[[export]]
+name = "PARTY_KINDS"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PARTY_ROLES"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PLACE_LEVELS"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PLACE_ROLE"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PRIVATE_CLASS"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "TOTAL_KIND"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "TYPED_ROLES"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "UNTYPED"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "WHOLE_CELL"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "WHOLE_SIDE_POPULATIONS"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "FLOW_ROLE_COLUMNS"
+module = "dfo_spec_kit.place_type"
+kind = "constant"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PartyClass"
+module = "dfo_spec_kit.place_type"
+kind = "alias"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PartyKind"
+module = "dfo_spec_kit.place_type"
+kind = "alias"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "PlaceLevel"
+module = "dfo_spec_kit.place_type"
+kind = "alias"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "at_one_level"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "class_column"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "enrichment_columns"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "enrichment_role"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "kind_column"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "levels_of"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "type_column"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
+[[export]]
+name = "whole_column"
+module = "dfo_spec_kit.place_type"
+kind = "function"
+stability = "provisional"
+reason = "two independent consumers"
+
 ```
 
 ## Excluded models

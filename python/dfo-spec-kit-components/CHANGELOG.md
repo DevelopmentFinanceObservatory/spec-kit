@@ -124,6 +124,12 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `freshness.partial_period` in `schemas/envelope.schema.json` carries a
+  `$comment`: `true` means a source marked a period the card draws as
+  partial, `false` means no source marked one. `manifest.json` carries the
+  refreshed digests of the envelope schema and of `description.schema.json`,
+  which gains the optional `freshness.partial_periods`.
+
 - `manifest.json` publishes `resource_exhausted` with retry mode
   `correct_and_retry`, where it said `do_not_retry`. Every Presentation body
   for the code states `correct_and_retry`: the client shrinks the request and

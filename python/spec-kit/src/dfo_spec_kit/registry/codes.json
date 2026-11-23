@@ -291,6 +291,26 @@
       "lifecycle": "active"
     },
     {
+      "code": "breakdown_label_ambiguous",
+      "classification": "refusal",
+      "definition": "A filter value on a breakdown column is a label that names several codes of its axis.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "candidates_collapsed_definite",
       "classification": "warning",
       "definition": "A replayed candidate set collapsed to exactly one survivor, so the part is reported as a definite answer to the replayed selection rather than as the candidate set the caller posted.",
@@ -6803,6 +6823,27 @@
             "parsed"
           ],
           "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "verify_not_permitted",
+      "classification": "refusal",
+      "definition": "The caller of a verification, a `POST /api/datasets/analysis` request with `verify: true` or a `GET /api/presentation/share-sample` request, did not send the deployment's verify principal in its `x-dfo-principal` header, or the deployment sets no verify principal.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 403
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 403
         }
       ],
       "lifecycle": "active"

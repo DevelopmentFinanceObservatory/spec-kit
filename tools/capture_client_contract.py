@@ -69,12 +69,13 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
 from validate_client_contract import (
+    ANALYSIS_PATH,
     FILE_EXPIRED,
     FILE_GONE,
     FILES_ROUTE_FILE,
@@ -95,6 +96,9 @@ from validate_client_contract import (
     LongBuild,
     ServedTable,
     absolute_url_problems,
+    analysis_body,
+    analysis_outcome,
+    analysis_wait,
     answer_from_body,
     answer_gaps,
     answer_members,
@@ -698,6 +702,10 @@ class ShapeError(Exception):
     """The live answer lacks the shape the scenario is named for."""
 
 
+# The total seconds a recording waits on one pending analysis before it fails.
+ANALYSIS_WAIT_BUDGET_S = 600.0
+
+
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise ShapeError(message)
@@ -1031,6 +1039,51 @@ class Session:
             return dataset_outcome([member], self.rules.reading)
 
         self._step({"op": "result"}, run)
+
+    def analysis(
+        self,
+        tree: dict[str, Any],
+        *,
+        latest: bool | Literal["stored"] = False,
+        include: Sequence[str] = (),
+    ) -> dict[str, Any]:
+        """Posts a recipe tree to the analysis route as `analysis_body` gives,
+        posting it again after each 202 once `analysis_wait` has passed, and
+        returns the ready answer's body, or {} when the step refused."""
+        step: dict[str, Any] = {"op": "analysis", "tree": tree}
+        if latest:
+            step["latest"] = latest
+        if include:
+            step["include"] = list(include)
+        posts = analysis_body(step)
+        answers: list[dict[str, Any]] = []
+
+        def run() -> dict[str, Any]:
+            waits: list[float] = []
+            while True:
+                response = self._api("POST", ANALYSIS_PATH, posts)
+                body = self._acted(response)
+                if response.status == 200:
+                    break
+                if response.status != 202:
+                    raise ClientError("unexpected_response")
+                waits.append(analysis_wait(response.headers, body))
+                require(
+                    sum(waits) <= ANALYSIS_WAIT_BUDGET_S,
+                    f"the analysis was still pending after {sum(waits):g} s of "
+                    f"waits, over the {ANALYSIS_WAIT_BUDGET_S:g} s budget",
+                )
+                self.sleep(waits[-1])
+            outcome = analysis_outcome(
+                body, stored=latest == "stored", manifest="manifest" in include
+            )
+            if waits:
+                outcome["analysis"]["pending_waits"] = waits
+            answers.append(body)
+            return outcome
+
+        self._step(step, run)
+        return answers[0] if answers else {}
 
     # -- building --
 
@@ -1369,6 +1422,18 @@ PARTY_TOTALS_FLOW = (
 PARTY_TOTALS_WINDOW = (2022, 2022)
 PARTY_TOTALS_ENTITIES = {"origin": None, "destination": ["country/KEN"]}
 SYNC_ROWS = 100_000
+# The reads the analysis scenarios run on. Each answer is JSON alone, some
+# 7 KB for the rank and up to 100 KB for the sparse breakdown, whose summary
+# lists every group.
+RANK_FLOW = (
+    "ODA disbursements from the G7 countries to Kenya and Nigeria from 2020 to 2022"
+)
+RANK_LIMIT = 3
+SPARSE_FLOW = "ODA disbursements to Kenya for health and for education in 2022"
+SUMMED_FLOW = (
+    "ODA disbursements from Germany to Kenya for health and for education "
+    "from 2020 to 2022"
+)
 
 
 @dataclass
@@ -1494,6 +1559,53 @@ class Context:
                 self.async_spec("OECD"), party_totals=True
             )
         return self._cache["operation"]
+
+
+def _spec_root(spec: Spec) -> dict[str, Any]:
+    """A Spec root as a client sends it: read at its newest version without
+    party totals."""
+    return {"spec_id": spec.spec_id, "rendering": {"without_party_totals": True}}
+
+
+def _version_root(member: Member) -> dict[str, Any]:
+    """A dataset version root as a client sends a fetched member: read at its
+    version in the member's party-totals cut."""
+    cut = member.rendering.get("without_party_totals") is True
+    return {
+        "spec_id": member.spec_id,
+        "content_version": member.content_version,
+        "rendering": {"without_party_totals": cut},
+    }
+
+
+def _tree_step(
+    verb: str, arguments: dict[str, Any], data: dict[str, Any]
+) -> dict[str, Any]:
+    return {"verb": verb, "arguments": arguments, "inputs": {"data": data}}
+
+
+def _read_spec(ctx: Context, question: str) -> Spec:
+    """The one spec `question`'s definite answer reads, which Search may name
+    in several folded parts."""
+    specs = {spec.spec_id: spec for _, spec in _members(ctx.definite_answer(question))}
+    require(len(specs) == 1, f"{question!r} reads one spec, not {sorted(specs)}")
+    (spec,) = specs.values()
+    return spec
+
+
+def _prebuilt(ctx: Context, question: str, **narrowing: Any) -> Member:
+    """The member a fetch of `question`'s spec builds, outside the record, so
+    the server holds the spec and the version a root names."""
+    (member,) = ctx.session("prerequisite").fetch_spec(
+        _read_spec(ctx, question), **narrowing
+    )
+    return member
+
+
+def _analysed(s: Session, step: int) -> dict[str, Any]:
+    outcome = s.expect[step]
+    require("analysis" in outcome, f"step {step} answers a frame, not {outcome}")
+    return outcome["analysis"]
 
 
 @dataclass(frozen=True)
@@ -1865,6 +1977,91 @@ def _resubmit_placeholder(s: Session, ctx: Context) -> None:
     )
 
 
+def _analysis_rank_partitioned(s: Session, ctx: Context) -> None:
+    """Ranks the RANK_FLOW donors by their total over the window, once over
+    every recipient and once per recipient, and checks the partitioned rank
+    keeps RANK_LIMIT donors in each recipient's group."""
+    member = _prebuilt(ctx, RANK_FLOW)
+    root = _spec_root(_read_spec(ctx, RANK_FLOW))
+    ranked = {"rank_by": ["origin"], "aggregation": "sum", "limit": RANK_LIMIT}
+    s.analysis(_tree_step("rank", ranked, root))
+    s.analysis(_tree_step("rank", {**ranked, "partition_by": ["destination"]}, root))
+    recipients = len(member.definition["identity"]["entities"]["destination"])
+    require(recipients > 1, "the read names several recipients")
+    require(_analysed(s, 0)["rows"] == RANK_LIMIT, "one ranking keeps the limit")
+    require(
+        _analysed(s, 1)["rows"] == RANK_LIMIT * recipients,
+        "each recipient's ranking keeps the limit",
+    )
+
+
+def _analysis_aggregate_sparse(s: Session, ctx: Context) -> None:
+    """Totals SPARSE_FLOW by donor and sector, which most donors fund only in
+    part: without the flag the empty breakdown cells count as missing and
+    the step refuses coverage_insufficient, and with it the step answers."""
+    spec = _prebuilt(ctx, SPARSE_FLOW)
+    root = _spec_root(_read_spec(ctx, SPARSE_FLOW))
+    require(root["spec_id"] == spec.spec_id, "the build keeps the spec_id")
+    totals = {"group_by": ["time_period", "origin", "crsPurpose"], "aggregation": "sum"}
+    s.analysis(_tree_step("aggregate", totals, root))
+    s.analysis(
+        _tree_step("aggregate", {**totals, "allow_sparse_breakdowns": True}, root)
+    )
+    refused = s.expect[0].get("error", {})
+    require(
+        refused.get("code") == "coverage_insufficient",
+        f"without the flag the step refuses coverage_insufficient, not {refused}",
+    )
+    require(_analysed(s, 1)["stat_vars_summed"], "the root is read summed")
+
+
+def _analysis_summed_root(s: Session, ctx: Context) -> None:
+    """Totals each year of SUMMED_FLOW, a read of many StatVars fetched with
+    party totals, so the service sums the root over its StatVars into a
+    version of its own that names the fetched version as its base."""
+    member = _prebuilt(ctx, SUMMED_FLOW, party_totals=True)
+    root = _version_root(member)
+    s.analysis(
+        _tree_step(
+            "aggregate", {"group_by": ["time_period"], "aggregation": "sum"}, root
+        )
+    )
+    answer = _analysed(s, 0)
+    (summed,) = answer["stat_vars_summed"]
+    require(summed["spec_id"] == member.spec_id, "the fetched spec is summed")
+    require(summed["count"] >= 2, "several StatVars are summed")
+    require(
+        answer["derived_roots"]
+        == [
+            {
+                "spec_id": member.spec_id,
+                "content_version": summed["content_version"],
+                "base_content_version": member.content_version,
+            }
+        ],
+        "the summed version names the fetched version as its base",
+    )
+
+
+def _analysis_party_totals_cut(s: Session, ctx: Context) -> None:
+    """Totals the PARTY_TOTALS_FLOW read by donor, at the version that keeps
+    the donor group totals and at the version that cuts them: the cut drops
+    the totals' rows, and neither root is listed in derived_roots, since each
+    root reads a stored dataset version itself, one kept and one cut."""
+    narrowing = {"window": PARTY_TOTALS_WINDOW, "entities": PARTY_TOTALS_ENTITIES}
+    kept = _prebuilt(ctx, PARTY_TOTALS_FLOW, party_totals=True, **narrowing)
+    cut = _prebuilt(ctx, PARTY_TOTALS_FLOW, **narrowing)
+    totals = {"group_by": ["time_period", "origin"], "aggregation": "sum"}
+    s.analysis(_tree_step("aggregate", totals, _version_root(kept)))
+    s.analysis(_tree_step("aggregate", totals, _version_root(cut)))
+    with_totals, without = _analysed(s, 0), _analysed(s, 1)
+    require(without["rows"] < with_totals["rows"], "the cut drops the totals' rows")
+    require(
+        not with_totals["derived_roots"] and not without["derived_roots"],
+        "a root read unsummed renders no version of its own",
+    )
+
+
 RECORDED = (
     Recorded(
         "answer-definite-fetch",
@@ -2118,6 +2315,39 @@ RECORDED = (
         "Choosing candidate 0 on part 0 posts part 1, a no_data part with no restatement, as a "
         "placeholder entry with its variable_text, status and reason.",
         _resubmit_placeholder,
+    ),
+    Recorded(
+        "analysis-rank-partitioned",
+        "A rank posts its recipe tree to the analysis route as {tree, latest}. Ranking the G7 "
+        "donors to two recipients by their 2020 to 2022 total with limit 3 keeps 3 rows; "
+        "with partition_by [destination] each recipient's donors rank on their own, so the "
+        "frame keeps 3 rows for each recipient, 6 in all.",
+        _analysis_rank_partitioned,
+    ),
+    Recorded(
+        "analysis-aggregate-sparse-breakdowns",
+        "Totalling all donors' 2022 health and education ODA to Kenya by donor and sector "
+        "refuses coverage_insufficient, since most donors fund only some sectors and the "
+        "grid counts each empty breakdown cell as missing. The same tree with "
+        "allow_sparse_breakdowns true answers the frame.",
+        _analysis_aggregate_sparse,
+    ),
+    Recorded(
+        "analysis-summed-root",
+        "A root that holds many StatVars, read at a version fetched with party totals and "
+        "named by no step's stat_var, is summed by the service: the answer's "
+        "stat_vars_summed gives the summed version and how many StatVars it summed, and "
+        "derived_roots gives that version with the fetched version as its "
+        "base_content_version.",
+        _analysis_summed_root,
+    ),
+    Recorded(
+        "analysis-party-totals-cut",
+        "Totalling a DAC2a read with its donors left open by donor, first at the version that "
+        "keeps the donor group totals and then at the version that cuts them, answers fewer "
+        "rows for the cut. A root read unsummed renders no version of its own, so neither "
+        "answer lists derived_roots.",
+        _analysis_party_totals_cut,
     ),
 )
 
@@ -3797,6 +4027,211 @@ def _empty_narrowing(parent: dict[str, Any], ctx: Context) -> Derived:
     return derived
 
 
+# --- stored roots and the embedded manifest ----------------------------------
+
+# The operation a `latest: "stored"` post waits on when a root's dataset has no
+# stored head, and the wait its 202 names.
+_STORED_REBUILD = "op_" + "5" * 64
+_STORED_PENDING_S = 2
+
+# How long DFO holds a working-tier frame after it stores it.
+_WORKING_RETENTION = timedelta(days=30)
+
+
+def _as_spec_root(tree: dict[str, Any]) -> dict[str, Any]:
+    """`tree` with its `data` root as the Spec root of the same spec and
+    rendering, which names no version."""
+    tree = copy.deepcopy(tree)
+    root = tree["inputs"]["data"]
+    tree["inputs"]["data"] = {
+        "spec_id": root["spec_id"],
+        "rendering": root["rendering"],
+    }
+    return tree
+
+
+def _stored_head(parent: dict[str, Any]) -> dict[str, Any]:
+    """The head the parent's spec stores: the version its first step reads,
+    the plain build its party-totals cut renders."""
+    root = parent["call"][0]["tree"]["inputs"]["data"]
+    require(
+        root["rendering"].get("without_party_totals") is False,
+        "the parent's first step reads the plain build",
+    )
+    return {"spec_id": root["spec_id"], "content_version": root["content_version"]}
+
+
+def _derived_manifest(
+    parent: dict[str, Any], body: Mapping[str, Any], tree: Mapping[str, Any]
+) -> dict[str, Any]:
+    """The derived manifest of the frame `body` names, as
+    `GET /datasets/derived/{spec_id}/{content_version}` answers it: held for
+    _WORKING_RETENTION from the record's time, with the recipe the answer's
+    ref names over the tree `tree` holds, and no series left out."""
+    (member,) = body["ref"]["members"]
+    stored = datetime.strptime(parent["origin"]["recorded_at"], "%Y-%m-%dT%H:%M:%SZ")
+    held = (stored + _WORKING_RETENTION).strftime("%Y-%m-%dT%H:%M:%SZ")
+    recipe = member["spec"]["recipe"]
+    return {
+        "spec_id": member["spec"]["spec_id"],
+        "content_version": member["content_version"],
+        "retention": {"pinned": False, "held_until": held},
+        "citation": {"text": "Computed by DFO.", "sources": []},
+        "recipe": {
+            "normal_form_hash": recipe["normal_form_hash"],
+            "replay_key": recipe["replay_key"],
+            "execution_identity": member["execution_identity"],
+            "tree": {
+                "verb": tree["verb"],
+                "arguments": copy.deepcopy(tree["arguments"]),
+                "inputs": {"data": {"root": 0}},
+            },
+            "roots": copy.deepcopy(member["roots"]),
+        },
+        "roots": copy.deepcopy(member["roots"]),
+        "resolved_periods": [],
+        "anchor": None,
+        "left_out": [],
+        "left_out_complete": True,
+    }
+
+
+def _ready_with(
+    exchange: Mapping[str, Any],
+    step: Mapping[str, Any],
+    **members: Any,
+) -> dict[str, Any]:
+    """`exchange`'s 200 answering the post `step` makes, its body with
+    `members` added, and without `summary` when the step states an `include`
+    that does not name it."""
+    response = copy.deepcopy(exchange["response"])
+    require(response["status"] == 200, "the parent's post answers 200")
+    response["json"].update(members)
+    if "summary" not in step.get("include", ("summary",)):
+        del response["json"]["summary"]
+    return {
+        "request": {
+            "method": "POST",
+            "path": ANALYSIS_PATH,
+            "json": analysis_body(step),
+        },
+        "response": response,
+    }
+
+
+def _stored_pending(step: Mapping[str, Any]) -> dict[str, Any]:
+    """The 202 a `latest: "stored"` post answers while a root's dataset has
+    no stored head and its rebuild runs as _STORED_REBUILD."""
+    return {
+        "request": {
+            "method": "POST",
+            "path": ANALYSIS_PATH,
+            "json": analysis_body(step),
+        },
+        "response": {
+            "status": 202,
+            "headers": {
+                "cache-control": "no-store",
+                "content-type": "application/json",
+                "retry-after": str(_STORED_PENDING_S),
+                "x-dfo-trace-id": "5" * 32,
+            },
+            "json": {
+                "status": "pending",
+                "retry_after_s": float(_STORED_PENDING_S),
+                "operations": [_STORED_REBUILD],
+            },
+        },
+    }
+
+
+def _run_analysis_steps(
+    ctx: Context, steps: Sequence[dict[str, Any]], canned: list[dict[str, Any]]
+) -> Derived:
+    """`steps` run over `canned`, each of which they must post."""
+    session = ctx.session("synthetic", canned=canned)
+    for step in steps:
+        session.analysis(
+            step["tree"],
+            latest=step.get("latest", False),
+            include=step.get("include", ()),
+        )
+    require(not session.recorder.canned, "the steps post every canned exchange")
+    return Derived(session.call, session.recorder.exchanges, session.expect)
+
+
+def _same_frames(derived: Derived, parent: dict[str, Any], *at: int) -> None:
+    """Require each outcome of `derived` to name the frame and rows the
+    parent's step `at[i]` names."""
+    for outcome, index in zip(derived.expect, at, strict=True):
+        named = {
+            k: outcome["analysis"][k] for k in ("spec_id", "content_version", "rows")
+        }
+        held = parent["expect"][index]["analysis"]
+        require(
+            named == {k: held[k] for k in named},
+            f"the stored read answers the frame the parent's step {index} answers",
+        )
+
+
+def _stored_roots(parent: dict[str, Any], ctx: Context) -> Derived:
+    """Both parent steps posted with Spec roots under `latest: "stored"`.
+    Each root resolves to the spec's stored head, the plain build, and the
+    cut root reads that build's cut, so each post shares the stored answer
+    of the parent's pinned post and adds `resolved_roots`: `current` for the
+    first, `pending` for the second, whose head's check runs."""
+    head = _stored_head(parent)
+    steps: list[dict[str, Any]] = []
+    canned: list[dict[str, Any]] = []
+    for index, freshness in enumerate(("current", "pending")):
+        step = {
+            "op": "analysis",
+            "tree": _as_spec_root(parent["call"][index]["tree"]),
+            "latest": "stored",
+        }
+        steps.append(step)
+        canned.append(
+            _ready_with(
+                parent["exchanges"][index],
+                step,
+                resolved_roots=[{**head, "freshness": freshness}],
+            )
+        )
+    derived = _run_analysis_steps(ctx, steps, canned)
+    _same_frames(derived, parent, 0, 1)
+    return derived
+
+
+def _stored_manifest(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's cut post with `include: ["manifest"]`, then the same tree
+    with a Spec root under `latest: "stored"` and `include: ["manifest"]`,
+    which answers 202 pending while the dataset has no stored head and then
+    the parent's answer with `resolved_roots` and the embedded manifest."""
+    pinned_tree = parent["call"][1]["tree"]
+    pinned = {"op": "analysis", "tree": pinned_tree, "include": ["manifest"]}
+    stored = {
+        "op": "analysis",
+        "tree": _as_spec_root(pinned_tree),
+        "latest": "stored",
+        "include": ["manifest"],
+    }
+    answered = parent["exchanges"][1]
+    manifest = _derived_manifest(parent, answered["response"]["json"], pinned_tree)
+    canned = [
+        _ready_with(answered, pinned, manifest=manifest),
+        _stored_pending(stored),
+        _ready_with(
+            answered,
+            stored,
+            resolved_roots=[{**_stored_head(parent), "freshness": "current"}],
+            manifest=manifest,
+        ),
+    ]
+    derived = _run_analysis_steps(ctx, [pinned, stored], canned)
+    _same_frames(derived, parent, 1, 1)
+    return derived
+
+
 SYNTHETIC = (
     Synthetic(
         "search-retry-after-503",
@@ -4628,6 +5063,27 @@ SYNTHETIC = (
         "InvalidRequestError with no request.",
         _choice_refused("Congo [DRC]", "Congo"),
     ),
+    Synthetic(
+        "analysis-stored-roots",
+        "analysis-party-totals-cut",
+        'Both posts name a Spec root in the root\'s rendering with latest "stored", and each '
+        "200 adds resolved_roots naming the stored head, current then pending.",
+        'Under latest "stored" each root reads the version its dataset\'s stored head names, '
+        "and a cut root that head's cut, so the posts answer the frames the pinned posts "
+        "stored, and the outcome gives the worst freshness resolved_roots states.",
+        _stored_roots,
+    ),
+    Synthetic(
+        "analysis-stored-manifest",
+        "analysis-party-totals-cut",
+        'The cut post asks include ["manifest"], then posts again with a Spec root and '
+        'latest "stored", answered 202 pending before its 200; both 200s embed the '
+        "derived manifest.",
+        'include ["manifest"] embeds the derived manifest of the answer\'s pair in the 200, '
+        'pinned or stored, and a latest "stored" root whose dataset has no stored head '
+        "answers 202 pending naming the rebuild, after which the post answers.",
+        _stored_manifest,
+    ),
 )
 
 
@@ -4850,6 +5306,12 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 session.resume(operation_id, layout=step.get("layout"))
             case {"op": "result"}:
                 session.result()
+            case {"op": "analysis", "tree": tree}:
+                session.analysis(
+                    tree,
+                    latest=step.get("latest", False),
+                    include=step.get("include", ()),
+                )
 
 
 def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:

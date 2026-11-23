@@ -15,10 +15,11 @@
   },
   "properties": {
     "dfo.format_version": {
-      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member. A reader refuses a version it does not know.",
+      "description": "1 for a dataset of dataset versions, 2 for one that holds a derived member, and 3 for one whose recipe holds a rank partitioned by `per`. A reader accepts 3 for any file that holds a derived member, and a writer uses 3 only when a step holds `per`, so a file without `per` stays at 2 and a 0.5.0 reader still loads it. A reader refuses a version it does not know.",
       "enum": [
         "1",
-        "2"
+        "2",
+        "3"
       ]
     },
     "dfo.sentence": {
@@ -372,7 +373,7 @@
       }
     },
     "dfo.steps": {
-      "description": "The steps of the recipe of a dataset with a derived member, in the order they ran.",
+      "description": "The steps of the recipe of a dataset with a derived member, in the order they ran. A rank partitioned by roles carries them as `per`, which only a format 3 file holds.",
       "type": "string",
       "contentMediaType": "application/json",
       "contentSchema": {
@@ -400,6 +401,28 @@
                 "integer",
                 "null"
               ]
+            },
+            "per": {
+              "description": "The roles a rank was partitioned by, each once. Only a rank step carries it, no role it names is in the step's by, and a file with a step that holds it is format 3.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "if": {
+            "required": [
+              "per"
+            ]
+          },
+          "then": {
+            "properties": {
+              "verb": {
+                "const": "rank"
+              }
             }
           }
         }
@@ -495,6 +518,36 @@
       "contentSchema": {
         "type": "string",
         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+      }
+    },
+    "dfo.retention": {
+      "description": "Each member's retention, one entry per member of dfo.ref in its order, as the provenance record's members give it. A client writes it whenever dfo.ref is present. A file without it, as one saved before this key, reads each member as pinned when dfo.dataset's pinned is true, and otherwise with pinned null, unknown, and held_until dfo.dataset's held_until, the earliest date of the members, which each member is held until at least, so the dataset's pinned and held_until read as the file states them. Either way, dfo.dataset's pinned and held_until are what the members' retention gives, as a provenance record's are what its members give, and a reader refuses a file whose pinned or held_until differs, a file with no member included. Each entry is open: a reader ignores a key it does not name.",
+      "type": "string",
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "pinned",
+            "held_until"
+          ],
+          "properties": {
+            "pinned": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "held_until": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            }
+          }
+        }
       }
     }
   },
