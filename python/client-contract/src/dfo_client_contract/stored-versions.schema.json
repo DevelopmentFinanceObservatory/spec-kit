@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DevelopmentFinanceObservatory/spec-kit/main/python/client-contract/src/dfo_client_contract/stored-versions.schema.json",
+  "title": "StoredVersions",
+  "description": "The saved form of a stored-versions check: for each spec the check named, the version a `latest: \"stored\"` read of it would serve from its stored head, or null when that read would not serve from the head. `to_json()` (`toJSON()` in TypeScript) writes it and `StoredVersions.from_json` (`StoredVersions.fromJSON`) reads it back, so a page built in one language checks freshness in another. A writer lists the heads sorted by `spec_id` by code point, each spec once.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "heads"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "heads": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/head"
+      }
+    }
+  },
+  "$defs": {
+    "head": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "content_version"
+      ],
+      "properties": {
+        "spec_id": {
+          "type": "string",
+          "pattern": "^spec_[0-9a-f]{32}$"
+        },
+        "content_version": {
+          "description": "The dataset version the stored head names, or null when a stored read would not serve from the head: no head, a head whose import was replaced, a head past the serve-stale ceiling, a revoked version, or a spec DFO has not registered.",
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^cv_[0-9a-f]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

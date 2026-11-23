@@ -1,0 +1,174 @@
+{
+  "format_version": 1,
+  "name": "stored-versions-mixed",
+  "description": "A check names each spec its targets read once, sorted, in one GET; the answer gives a version, a null and a version newer than the built check records, so only that spec changed, and a head null in both did not.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "analysis-party-totals-cut",
+    "edit": "The steps and exchanges are one stored-versions check of the answer's derived ref, the cut tree, a Spec and a recipe of the dataset and a second spec, answered 200."
+  },
+  "call": [
+    {
+      "op": "stored_versions",
+      "targets": [
+        {
+          "ref": {
+            "members": [
+              {
+                "spec": {
+                  "recipe": {
+                    "replay_key": "rpk_602473be1210cd102753a6b8add22ef6",
+                    "normal_form_hash": "rnf_269c09ad7e75f8e0ca1f161c895551d4"
+                  },
+                  "spec_id": "ops_8041713ce9ea002355a2cfa4f0dc94fd"
+                },
+                "parts": [],
+                "roots": [
+                  {
+                    "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "rendering": {
+                      "bundle": false,
+                      "format": "parquet",
+                      "layout": "frame"
+                    },
+                    "content_version": "cv_6405444d04fda3b7ee8eb651528ab410"
+                  }
+                ],
+                "artifact": {
+                  "digest": "sha256:a8a3ac338f94b54048da35c296653034e81879b51ec10bec5be09d5cbc8f2da9",
+                  "rendering": {
+                    "bundle": false,
+                    "format": "parquet",
+                    "layout": "frame"
+                  }
+                },
+                "sentence": "Computed by DFO: aggregate.",
+                "output_digest": "out_2bcc82aac8f8babc8d429621ded19332",
+                "content_version": "ocv_2a7a117c5d28d69b26ddc32540f4caeb",
+                "resolved_periods": [],
+                "execution_identity": "0.9.1|1.2.0|0.2.0"
+              }
+            ],
+            "format_version": 2
+          }
+        },
+        {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "spec": {
+            "spec_id": "spec_4ee93359df630c2c67388714e7630aae",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_4ee93359df630c2c67388714e7630aae"
+            }
+          }
+        },
+        {
+          "tree": {
+            "verb": "quotient_of",
+            "arguments": {},
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273"
+              },
+              "other": {
+                "spec_id": "spec_04af26c563b858861c1d17653899127c"
+              }
+            }
+          }
+        }
+      ],
+      "built": {
+        "format_version": 1,
+        "heads": [
+          {
+            "spec_id": "spec_04af26c563b858861c1d17653899127c",
+            "content_version": "cv_0747a2859aa6177afb6a2dfbb268c9c4"
+          },
+          {
+            "spec_id": "spec_4ee93359df630c2c67388714e7630aae",
+            "content_version": null
+          },
+          {
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "content_version": "cv_6405444d04fda3b7ee8eb651528ab410"
+          }
+        ]
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/heads?spec_id=spec_04af26c563b858861c1d17653899127c&spec_id=spec_4ee93359df630c2c67388714e7630aae&spec_id=spec_c9f9d816838bf8da08a3de2849783273"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "public, max-age=300",
+          "x-dfo-trace-id": "3b6f0e2c9a4d47e1b8c5d2f7a0e9c614"
+        },
+        "json": {
+          "heads": [
+            {
+              "spec_id": "spec_04af26c563b858861c1d17653899127c",
+              "content_version": "cv_0747a2859aa6177afb6a2dfbb268c9c4"
+            },
+            {
+              "spec_id": "spec_4ee93359df630c2c67388714e7630aae",
+              "content_version": null
+            },
+            {
+              "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+              "content_version": "cv_0df0e8bb079c6f4ce282a300f99f3b19"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "stored_versions": {
+        "heads": [
+          {
+            "spec_id": "spec_04af26c563b858861c1d17653899127c",
+            "content_version": "cv_0747a2859aa6177afb6a2dfbb268c9c4"
+          },
+          {
+            "spec_id": "spec_4ee93359df630c2c67388714e7630aae",
+            "content_version": null
+          },
+          {
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "content_version": "cv_0df0e8bb079c6f4ce282a300f99f3b19"
+          }
+        ],
+        "changed": [
+          "spec_c9f9d816838bf8da08a3de2849783273"
+        ]
+      }
+    }
+  ]
+}
