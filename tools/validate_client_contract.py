@@ -42,7 +42,9 @@ document validates against its schema, then what the schemas cannot express:
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
-  one, an analysis step's tree passes `tree_argument_problems`, a synthetic
+  one, an analysis step's tree passes `tree_argument_problems`, a
+  stored-versions step's `built` lists its heads sorted by spec_id, each
+  once, a synthetic
   scenario derives from a recorded one, and every body file exists and is the scenario's own or, for a synthetic scenario, one its
   parent names. In a recorded scenario each API request matches a route and
   method in `served/openapi.json`, its JSON body validates against the
@@ -203,7 +205,8 @@ def _schema_problems(
 
 def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
     """One validator per packaged schema, sharing a registry so the scenario
-    schema's `$ref` to `dataset-ref.schema.json` resolves by `$id`."""
+    schema's `$ref`s to `dataset-ref.schema.json` and
+    `stored-versions.schema.json` resolve by `$id`."""
     names = (
         "strict-fields.schema.json",
         "actions.schema.json",
@@ -212,6 +215,7 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
         "warning-codes.schema.json",
         "scenario.schema.json",
         "dataset-ref.schema.json",
+        "stored-versions.schema.json",
         "saved-file.schema.json",
         "provenance.schema.json",
         "rules/rules.schema.json",
@@ -3358,6 +3362,17 @@ class _Replay:
             "newest_version": {"content_version": self.newest(step["spec"]["spec_id"])}
         }
 
+    def _stored_versions(self, step: dict[str, Any]) -> dict[str, Any]:
+        """The stored head version of each spec the targets read, from one
+        GET of the stored-head check, and the specs changed since `built`
+        when the step names it."""
+        spec_ids = stored_spec_ids(step["targets"])
+        exchange = self.call("GET", heads_path(spec_ids))
+        # `read_heads` checks the whole body, and the served document's
+        # `/datasets/{id}` template would otherwise read it as a manifest.
+        heads = read_heads(self.acted_on(exchange, {}), spec_ids)
+        return stored_versions_outcome(spec_ids, heads, step.get("built"))
+
     def _result(self, step: dict[str, Any]) -> dict[str, Any]:
         if self.minted is None:
             raise _UnfitError("result follows no mint or operation")
@@ -3437,6 +3452,145 @@ def analysis_wait(headers: Mapping[str, str], body: Any) -> float:
         number = isinstance(seconds, int | float) and not isinstance(seconds, bool)
         wait = float(seconds) if number else 0.0
     return min(max(wait, ANALYSIS_WAIT_MIN_S), ANALYSIS_WAIT_MAX_S)
+
+
+# The stored-head check: the path under the base URL, and the most spec ids
+# one request names.
+HEADS_PATH = "/datasets/heads"
+HEADS_MAX = 64
+_SPEC_ID = re.compile(r"^spec_[0-9a-f]{32}$")
+_CV = re.compile(r"^cv_[0-9a-f]{32}$")
+
+
+def _tree_roots(tree: Any) -> Iterator[Any]:
+    """Each root a recipe tree reads, in the order the tree holds them: a
+    node with a `verb` is a step, whose `inputs` name `data` and `other`, and
+    any other node is a root."""
+    if isinstance(tree, dict) and "verb" in tree:
+        inputs = tree.get("inputs")
+        for side in ("data", "other"):
+            if isinstance(inputs, dict) and side in inputs:
+                yield from _tree_roots(inputs[side])
+    else:
+        yield tree
+
+
+def _target_spec_ids(target: Mapping[str, Any]) -> list[str]:
+    """The spec ids one target of a stored-versions step reads: a spec's
+    own; each dataset member's, and each derived member's roots', of a
+    ref; and each root's of a recipe tree.
+
+    Raises:
+        ClientError: `invalid_argument`, for a tree root that names a frame
+            DFO computed, since a tree holds no roots for it.
+    """
+    if "spec" in target:
+        return [target["spec"]["spec_id"]]
+    if "ref" in target:
+        found = []
+        for member in target["ref"]["members"]:
+            if _derived(member):
+                found.extend(root["spec_id"] for root in member["roots"])
+            else:
+                found.append(member["spec"]["spec_id"])
+        return found
+    found = []
+    for root in _tree_roots(target["tree"]):
+        spec_id = root.get("spec_id") if isinstance(root, dict) else None
+        if not isinstance(spec_id, str) or not _SPEC_ID.match(spec_id):
+            raise ClientError("invalid_argument")
+        found.append(spec_id)
+    return found
+
+
+def stored_spec_ids(targets: Sequence[Mapping[str, Any]]) -> list[str]:
+    """The spec ids a stored-versions check names: every id its targets read,
+    each once, sorted by code point, so two checks of the same specs send the
+    same URL.
+
+    Raises:
+        ClientError: `invalid_argument`, before any request, when the targets
+            read no spec or more than HEADS_MAX, or a tree root names a
+            computed frame.
+    """
+    ids = sorted({i for target in targets for i in _target_spec_ids(target)})
+    if not ids or len(ids) > HEADS_MAX:
+        raise ClientError("invalid_argument")
+    return ids
+
+
+def heads_path(spec_ids: Sequence[str]) -> str:
+    """The stored-head check's path for `spec_ids`, one `spec_id` query
+    member each, in the order given."""
+    return f"{HEADS_PATH}?" + "&".join(
+        f"spec_id={quote(spec_id, safe='')}" for spec_id in spec_ids
+    )
+
+
+def read_heads(body: Any, spec_ids: Sequence[str]) -> dict[str, str | None]:
+    """Each asked spec id's stored head version, or None, from a 200 of the
+    stored-head check. The body is an object whose `heads` lists one
+    `{spec_id, content_version}` object per asked id, `content_version` a
+    `cv_` version or null, in any order.
+
+    Raises:
+        ClientError: `contract_violation`, when the body is another shape,
+            an entry names a spec the request did not, or an asked spec is
+            missing or listed twice.
+    """
+    heads = body.get("heads") if isinstance(body, dict) else None
+    if not isinstance(heads, list):
+        raise ClientError("contract_violation")
+    found: dict[str, str | None] = {}
+    for entry in heads:
+        spec_id = entry.get("spec_id") if isinstance(entry, dict) else None
+        if (
+            spec_id not in spec_ids
+            or spec_id in found
+            or "content_version" not in entry
+        ):
+            raise ClientError("contract_violation")
+        version = entry["content_version"]
+        if version is not None and not (
+            isinstance(version, str) and _CV.match(version)
+        ):
+            raise ClientError("contract_violation")
+        found[spec_id] = version
+    if len(found) != len(spec_ids):
+        raise ClientError("contract_violation")
+    return found
+
+
+def stored_versions_outcome(
+    spec_ids: Sequence[str],
+    heads: Mapping[str, str | None],
+    built: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """A stored-versions step's outcome: one head per asked spec in the
+    order asked, and with `built` the specs `changed_since` gives."""
+    outcome: dict[str, Any] = {
+        "heads": [
+            {"spec_id": spec_id, "content_version": heads[spec_id]}
+            for spec_id in spec_ids
+        ]
+    }
+    if built is not None:
+        outcome["changed"] = changed_since(heads, built)
+    return {"stored_versions": outcome}
+
+
+def changed_since(
+    heads: Mapping[str, str | None], built: Mapping[str, Any]
+) -> list[str]:
+    """The spec ids, sorted, whose stored head differs from the one `built`,
+    an earlier check's saved form, records: another version, a version where
+    `built` held null or the reverse, or a spec `built` does not list."""
+    before = {h["spec_id"]: h["content_version"] for h in built["heads"]}
+    return sorted(
+        spec_id
+        for spec_id, version in heads.items()
+        if spec_id not in before or before[spec_id] != version
+    )
 
 
 _OPS_ID = re.compile(r"^ops_[0-9a-f]{32}$")
@@ -4173,6 +4327,13 @@ def _check_steps(file_name: str, record: dict[str, Any]) -> list[str]:
                 f"scenarios/{file_name}: step {index}: {problem}"
                 for problem in tree_argument_problems(step["tree"])
             )
+        if op == "stored_versions" and "built" in step:
+            built = [head["spec_id"] for head in step["built"]["heads"]]
+            if built != sorted(set(built)):
+                problems.append(
+                    f"scenarios/{file_name}: step {index}: built lists its heads "
+                    "sorted by spec_id, each once"
+                )
         previous = op
     return problems
 

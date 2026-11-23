@@ -122,6 +122,12 @@ def dataset_ref_schema() -> dict[str, Any]:
     return _load("dataset-ref.schema.json")
 
 
+def stored_versions_schema() -> dict[str, Any]:
+    """`stored-versions.schema.json`: the saved form of a stored-versions
+    check."""
+    return _load("stored-versions.schema.json")
+
+
 def saved_file_schema() -> dict[str, Any]:
     """`saved-file.schema.json`: the `dfo.*` metadata of a saved Parquet file."""
     return _load("saved-file.schema.json")

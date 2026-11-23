@@ -58,6 +58,8 @@ _ORIGIN_GROUP = {"label": "G7", "group_id": "groups/G7"}
 _RANK = "scenarios/analysis-rank-partitioned.json"
 _SPARSE = "scenarios/analysis-aggregate-sparse-breakdowns.json"
 _SUMMED = "scenarios/analysis-summed-root.json"
+_HEADS_MIXED = "scenarios/stored-versions-mixed.json"
+_HEADS_REFUSED = "scenarios/stored-versions-refused-before-request.json"
 _STORED = "scenarios/analysis-stored-roots.json"
 _STORED_MANIFEST = "scenarios/analysis-stored-manifest.json"
 _PENDING_TRACE_ID = "6" * 32
@@ -2267,6 +2269,38 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             ),
             "step 0 expects",
         ),
+        (
+            _HEADS_MIXED,
+            _set_outcome(0, lambda o: o["stored_versions"].update(changed=[])),
+            "step 0 expects",
+        ),
+        (
+            _HEADS_MIXED,
+            lambda doc: doc["exchanges"][0]["request"].update(
+                path="/datasets/heads?"
+                + "&".join(
+                    reversed(
+                        doc["exchanges"][0]["request"]["path"].split("?")[1].split("&")
+                    )
+                )
+            ),
+            "where the steps make a GET /datasets/heads?",
+        ),
+        (
+            _HEADS_MIXED,
+            lambda doc: doc["call"][0]["built"]["heads"].reverse(),
+            "built lists its heads sorted by spec_id, each once",
+        ),
+        (
+            _HEADS_MIXED,
+            _set_body(0, lambda b: b["heads"].append(b["heads"][0])),
+            "step 0 expects",
+        ),
+        (
+            _HEADS_REFUSED,
+            lambda doc: doc["call"][1].update(targets=doc["call"][1]["targets"][:64]),
+            "the steps make a GET /datasets/heads?",
+        ),
     ],
     ids=[
         "strict-pointer-unresolved",
@@ -2575,6 +2609,11 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "analysis-post-without-the-steps-include",
         "stored-freshness-not-expected",
         "embedded-manifest-of-another-pair",
+        "stored-versions-changed-not-expected",
+        "stored-versions-ids-not-sorted",
+        "stored-versions-built-not-sorted",
+        "stored-versions-head-listed-twice",
+        "stored-versions-64-specs-refused",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -3193,6 +3232,92 @@ def test_the_newest_version_is_the_first_plain_one_listed(
 def test_an_unreadable_versions_page_raises(body: dict[str, Any]) -> None:
     with pytest.raises(validator.ClientError) as raised:
         validator.newest_plain(lambda _: body)
+    assert raised.value.code == "contract_violation"
+
+
+_SPEC_A = "spec_" + "a" * 32
+_SPEC_B = "spec_" + "b" * 32
+_CV_A = "cv_" + "a" * 32
+
+
+@pytest.mark.parametrize(
+    ("targets", "ids"),
+    [
+        (
+            [
+                {"spec": {"spec_id": _SPEC_B}},
+                {"tree": {"verb": "growth", "inputs": {"data": {"spec_id": _SPEC_A}}}},
+                {"spec": {"spec_id": _SPEC_A}},
+            ],
+            [_SPEC_A, _SPEC_B],
+        ),
+        ([{"spec": {"spec_id": f"spec_{i:032x}"}} for i in range(64)], None),
+        ([{"spec": {"spec_id": f"spec_{i:032x}"}} for i in range(65)], "refused"),
+        ([], "refused"),
+        (
+            [
+                {
+                    "tree": {
+                        "verb": "growth",
+                        "inputs": {"data": {"spec_id": "ops_" + "a" * 32}},
+                    }
+                }
+            ],
+            "refused",
+        ),
+    ],
+    ids=["distinct-and-sorted", "64-specs", "65-specs", "no-target", "computed-root"],
+)
+def test_a_stored_versions_check_names_each_spec_once_sorted(
+    targets: list[dict[str, Any]], ids: list[str] | str | None
+) -> None:
+    if ids == "refused":
+        with pytest.raises(validator.ClientError) as raised:
+            validator.stored_spec_ids(targets)
+        assert raised.value.code == "invalid_argument"
+        return
+    found = validator.stored_spec_ids(targets)
+    assert found == (ids or sorted(t["spec"]["spec_id"] for t in targets))
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"items": []},
+        {"heads": [{"spec_id": _SPEC_A, "content_version": _CV_A}]},
+        {"heads": [{"spec_id": _SPEC_A, "content_version": _CV_A}] * 2},
+        {
+            "heads": [
+                {"spec_id": _SPEC_A},
+                {"spec_id": _SPEC_B, "content_version": None},
+            ]
+        },
+        {
+            "heads": [
+                {"spec_id": _SPEC_A, "content_version": "ocv_" + "a" * 32},
+                {"spec_id": _SPEC_B, "content_version": None},
+            ]
+        },
+        {
+            "heads": [
+                {"spec_id": _SPEC_A, "content_version": _CV_A},
+                {"spec_id": _SPEC_B, "content_version": None},
+                {"spec_id": "spec_" + "c" * 32, "content_version": None},
+            ]
+        },
+    ],
+    ids=[
+        "no-heads",
+        "spec-missing",
+        "spec-twice",
+        "no-version",
+        "derived-version",
+        "spec-not-asked",
+    ],
+)
+def test_an_unreadable_stored_versions_answer_raises(body: dict[str, Any]) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.read_heads(body, [_SPEC_A, _SPEC_B])
     assert raised.value.code == "contract_violation"
 
 
