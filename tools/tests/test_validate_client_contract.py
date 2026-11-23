@@ -3337,6 +3337,19 @@ def test_a_required_member_that_admits_null_stays_required() -> None:
     assert any("'next_cursor' is a required property" in p for p in problems)
 
 
+def test_the_stored_head_check_reads_through_its_literal_route() -> None:
+    """`/datasets/heads` also fits `/datasets/{id}`; the literal segment wins,
+    so a heads body is read as `DatasetHeads` and not as a manifest."""
+    served = validator.PACKAGE_DIR / "served" / "openapi.json"
+    routes = validator._Routes(json.loads(served.read_text(encoding="utf-8")))
+    request = {"method": "GET", "path": validator.heads_path([_SPEC_A])}
+    template, _, _ = routes.operation("/api", request)
+    assert template == "/api/datasets/heads"
+    assert routes.response_schema("/api", request, 200) == {
+        "$ref": "#/components/schemas/DatasetHeads"
+    }
+
+
 _TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
 
 

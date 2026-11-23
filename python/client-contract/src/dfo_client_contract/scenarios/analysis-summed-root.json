@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
-    "recorded_at": "2026-11-21T23:06:01Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:50:25Z"
   },
   "call": [
     {
@@ -62,27 +62,32 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "391d9adbb48b47658d7e8f40c1964d6e"
+          "x-dfo-trace-id": "7370529385ac466aadb146eafb2cb2dd"
         },
         "json": {
           "status": "ready",
           "ref": {
+            "format_version": 2,
             "members": [
               {
-                "spec": {
-                  "recipe": {
-                    "replay_key": "rpk_685d0814d29a569a41a0c55daaff2396",
-                    "normal_form_hash": "rnf_73a6b2d40a8b7e13eeed196ec27306ed"
-                  },
-                  "spec_id": "ops_9b193468890f6879ed834d5d306c7ef4"
-                },
                 "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_72c6d49bd51c2b38ede531db023bbb6e",
+                  "recipe": {
+                    "normal_form_hash": "rnf_73a6b2d40a8b7e13eeed196ec27306ed",
+                    "replay_key": "rpk_89f56798aa9a38d56b8e1efed941f6ee"
+                  }
+                },
+                "content_version": "ocv_1d5a8b736936eccc15503fa0def99675",
+                "output_digest": "out_3d59a47942e79c8c3d860f2a7f78c008",
                 "roots": [
                   {
                     "spec_id": "spec_b8352fa4fbba2c1ebb82f389e2c22abe",
+                    "content_version": "cv_e182b4d2dbb0c867778367acefa41ff3",
                     "rendering": {
-                      "bundle": false,
                       "format": "parquet",
+                      "bundle": false,
                       "layout": "frame",
                       "groupby": {
                         "by": [
@@ -90,85 +95,113 @@
                         ],
                         "op": "sum"
                       }
-                    },
-                    "content_version": "cv_e182b4d2dbb0c867778367acefa41ff3"
+                    }
                   }
                 ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
                 "artifact": {
                   "digest": "sha256:5aca79c7cc26f4b020575b1357a85aae7688debf9964746469f27e078d46d5cb",
                   "rendering": {
-                    "bundle": false,
                     "format": "parquet",
+                    "bundle": false,
                     "layout": "frame"
                   }
-                },
-                "sentence": "Computed by DFO: aggregate.",
-                "output_digest": "out_3d59a47942e79c8c3d860f2a7f78c008",
-                "content_version": "ocv_5df02f40bcc70a533f61116b2560531d",
-                "resolved_periods": [],
-                "execution_identity": "0.9.1|1.2.0|0.2.0"
+                }
               }
-            ],
-            "format_version": 2
+            ]
           },
           "frame_content_version": "cv_f82fc6b1d1ecb0591739f70ce0c7f8ba",
           "output_digest": "out_3d59a47942e79c8c3d860f2a7f78c008",
           "summary": {
+            "verb": "aggregate",
+            "spec_id": "ops_72c6d49bd51c2b38ede531db023bbb6e",
+            "content_version": "ocv_1d5a8b736936eccc15503fa0def99675",
+            "frame_content_version": "cv_f82fc6b1d1ecb0591739f70ce0c7f8ba",
             "rows": 3,
+            "role_keys": [],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": null,
+            "exclusions": [],
             "time": {
               "kind": "observation"
             },
-            "verb": "aggregate",
+            "parameters": {
+              "aggregation": "sum",
+              "group_by": [
+                "time_period"
+              ],
+              "unit": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
             "result": {
-              "warnings": [],
-              "exclusions": {
-                "records": []
-              },
-              "entity_count": null,
-              "period_label": null,
               "resolved_unit": "CurrencyUSD",
-              "pooled_parties": [],
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/OECDCreditorReportingSystem"
+                }
+              ],
+              "warnings": [],
+              "realised_coverage_fraction": 1.0,
+              "skipped_cell_count": 0,
+              "expected_cell_count": 3,
+              "present_cell_count": 3,
               "group_summaries": [
                 {
-                  "value": 20979719.0,
                   "group_key": [
                     [
                       "time_period",
                       "2020"
                     ]
                   ],
+                  "value": 20979719.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2020",
                   "time_period_max": "2020",
-                  "time_period_min": "2020"
+                  "value_period": null
                 },
                 {
-                  "value": 18904629.0,
                   "group_key": [
                     [
                       "time_period",
                       "2021"
                     ]
                   ],
+                  "value": 18904629.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2021",
                   "time_period_max": "2021",
-                  "time_period_min": "2021"
+                  "value_period": null
                 },
                 {
-                  "value": 16691894.0,
                   "group_key": [
                     [
                       "time_period",
                       "2022"
                     ]
                   ],
+                  "value": 16691894.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 }
               ],
+              "collapsed_periods": [
+                "2020",
+                "2021",
+                "2022"
+              ],
+              "period_label": null,
+              "entity_count": null,
               "period_entities": [
                 [
                   "2020",
@@ -183,44 +216,11 @@
                   1
                 ]
               ],
-              "facet_selections": [
-                {
-                  "ref": "provenance/OECDCreditorReportingSystem",
-                  "axis": "provenance"
-                }
-              ],
-              "collapsed_periods": [
-                "2020",
-                "2021",
-                "2022"
-              ],
-              "present_cell_count": 3,
-              "skipped_cell_count": 0,
-              "expected_cell_count": 3,
-              "realised_coverage_fraction": 1.0
-            },
-            "derived": null,
-            "spec_id": "ops_9b193468890f6879ed834d5d306c7ef4",
-            "role_keys": [],
-            "exclusions": [],
-            "parameters": {
-              "unit": null,
-              "group_by": [
-                "time_period"
-              ],
-              "aggregation": "sum"
-            },
-            "stat_var_count": 1,
-            "content_version": "ocv_5df02f40bcc70a533f61116b2560531d",
-            "dropped_key_count": 0,
-            "execution_identity": {
-              "engine_version": "0.9.1",
-              "frame_grammar_version": "1.2.0",
-              "reduction_policy_version": "0.2.0"
-            },
-            "ranked_before_limit": null,
-            "frame_content_version": "cv_f82fc6b1d1ecb0591739f70ce0c7f8ba",
-            "right_dropped_key_count": 0
+              "exclusions": {
+                "records": []
+              },
+              "pooled_parties": []
+            }
           },
           "rows": 3,
           "role_keys": [],
@@ -256,8 +256,8 @@
   "expect": [
     {
       "analysis": {
-        "spec_id": "ops_9b193468890f6879ed834d5d306c7ef4",
-        "content_version": "ocv_5df02f40bcc70a533f61116b2560531d",
+        "spec_id": "ops_72c6d49bd51c2b38ede531db023bbb6e",
+        "content_version": "ocv_1d5a8b736936eccc15503fa0def99675",
         "rows": 3,
         "stat_vars_summed": [
           {

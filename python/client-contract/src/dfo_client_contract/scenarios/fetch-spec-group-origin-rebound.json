@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
-    "recorded_at": "2026-11-21T15:12:36Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:48:00Z"
   },
   "call": [
     {
@@ -309,7 +309,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "16e71398b18a434092848baff2f0259c"
+          "x-dfo-trace-id": "ed40e2aa71d948ab8d3601b925dcd2b3"
         },
         "json": {
           "schema_version": 1,
@@ -665,7 +665,7 @@
             "frame_grammar_version": "1.2.0",
             "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "materialise",
-            "confirmed_at": "2026-11-21T15:12:37.726820+00:00"
+            "confirmed_at": "2026-11-23T16:48:01.379773+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -681,7 +681,7 @@
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4,
+                "layout": 5,
                 "without_party_totals": true
               },
               "bytes": 21143,
@@ -689,7 +689,7 @@
               "created_at": "2026-11-15T21:46:07.963084+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_a1a4dd1696bf239aed0d96085f9bd5be/cv_826835ff0b086fed3fef5ae63099baf1/files/sha256:6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852",
-              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+              "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
             },
             {
               "artifact_digest": "sha256:9c5838210b7c2122b3d1de68e8d60991fc6c481097997b8ef3ea7c81635d69d7",
@@ -705,7 +705,7 @@
           ],
           "series_count": 44,
           "output_options": {
-            "capability_version": "dset_7cbe888388c20297",
+            "capability_version": "dset_85178e251b57906e",
             "columns": [
               {
                 "name": "stat_var",
@@ -1142,7 +1142,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a1d232f5242b49fc86bc2342c124c8c2"
+          "x-dfo-trace-id": "5b798237e065489eabecce4e4ea4afc4"
         },
         "json": {
           "schema_version": 1,
@@ -1151,11 +1151,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
-            "trace_id": "a1d232f5242b49fc86bc2342c124c8c2",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "5b798237e065489eabecce4e4ea4afc4",
             "warnings": [],
             "timing_ms": {
-              "total": 133,
+              "total": 154,
               "by_step": {
                 "coverage": 0
               }
@@ -1168,38 +1168,39 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 114,
+                "total": 133,
                 "by_step": {
-                  "validate": 1,
+                  "validate": 0,
                   "phase_validate": 0,
-                  "walk": 0,
+                  "walk": 1,
                   "reread_arcs": 0,
                   "phase_reread_arcs": 0,
                   "detect_edits": 0,
                   "phase_detect_edits": 0,
                   "resolve_survivors": 0,
                   "phase_resolve_survivors": 0,
-                  "shape": 1,
+                  "shape": 0,
                   "phase_build_shape": 0,
                   "bind": 0,
                   "phase_build_bindings": 0,
-                  "where_places": 0,
+                  "where_places": 1,
                   "phase_where_places": 0,
-                  "materialise": 21,
+                  "materialise": 19,
                   "phase_materialise": 0,
-                  "ground_related": 0,
+                  "ground_related": 1,
                   "ground_units": 0,
                   "ground_facets": 0,
                   "ground_convert": 0,
                   "answer": 10,
-                  "ground_gates": 4,
-                  "phase_ground_build": 74,
+                  "ground_gates": 3,
+                  "phase_ground_build": 80,
                   "finalize_preview": 0,
-                  "options": 3,
+                  "options": 13,
                   "finalize_related": 0,
                   "finalize_wholes": 0,
                   "finalize_relaunch": 0,
                   "phase_finalize": 0,
+                  "composite_continuation": 5,
                   "served_entry": 0,
                   "as_composite": 0
                 }
@@ -2292,7 +2293,13 @@
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -3109,7 +3116,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_347c5393b96434eb"
+                    "capability_version": "cap_b1f3369f84d185f6"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5270,7 +5277,17 @@
                       "origin": "EUR"
                     },
                     "deflation_basis": "donor"
-                  }
+                  },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
+                    }
+                  ]
                 }
               }
             }
@@ -5556,7 +5573,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "3d8cff796f0e4944b69b2da982faf7a2"
+          "x-dfo-trace-id": "14978cd0cc064a2b8cc553658b4661d0"
         }
       }
     },

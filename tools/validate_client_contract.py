@@ -3368,9 +3368,7 @@ class _Replay:
         when the step names it."""
         spec_ids = stored_spec_ids(step["targets"])
         exchange = self.call("GET", heads_path(spec_ids))
-        # `read_heads` checks the whole body, and the served document's
-        # `/datasets/{id}` template would otherwise read it as a manifest.
-        heads = read_heads(self.acted_on(exchange, {}), spec_ids)
+        heads = read_heads(self.acted_on(exchange), spec_ids)
         return stored_versions_outcome(spec_ids, heads, step.get("built"))
 
     def _result(self, step: dict[str, Any]) -> dict[str, Any]:
