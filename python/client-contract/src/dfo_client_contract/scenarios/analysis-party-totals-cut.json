@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
-    "recorded_at": "2026-11-21T23:06:03Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:50:33Z"
   },
   "call": [
     {
@@ -86,69 +86,101 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "41ffb9c78507485793d27efc2ce78176"
+          "x-dfo-trace-id": "777cd35f4d0c48fa94d89de318b2f440"
         },
         "json": {
           "status": "ready",
           "ref": {
+            "format_version": 2,
             "members": [
               {
-                "spec": {
-                  "recipe": {
-                    "replay_key": "rpk_602473be1210cd102753a6b8add22ef6",
-                    "normal_form_hash": "rnf_269c09ad7e75f8e0ca1f161c895551d4"
-                  },
-                  "spec_id": "ops_8041713ce9ea002355a2cfa4f0dc94fd"
-                },
                 "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_db9447b113d8bbf9d8ba7f42d30ae604",
+                  "recipe": {
+                    "normal_form_hash": "rnf_269c09ad7e75f8e0ca1f161c895551d4",
+                    "replay_key": "rpk_45a96e49242181a1a8b56bb589fa11a4"
+                  }
+                },
+                "content_version": "ocv_82719945f89f44ceefe786a8d5ebfe7c",
+                "output_digest": "out_1c7e9ed19f3c42e32d3fc8815e336cbc",
                 "roots": [
                   {
                     "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
                     "rendering": {
-                      "bundle": false,
                       "format": "parquet",
+                      "bundle": false,
                       "layout": "frame"
-                    },
-                    "content_version": "cv_6405444d04fda3b7ee8eb651528ab410"
+                    }
                   }
                 ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
                 "artifact": {
-                  "digest": "sha256:a8a3ac338f94b54048da35c296653034e81879b51ec10bec5be09d5cbc8f2da9",
+                  "digest": "sha256:971ea8bd415fd74bc81cd20067caa2a709326e4910d4d40816f518c2bca40d07",
                   "rendering": {
-                    "bundle": false,
                     "format": "parquet",
+                    "bundle": false,
                     "layout": "frame"
                   }
-                },
-                "sentence": "Computed by DFO: aggregate.",
-                "output_digest": "out_2bcc82aac8f8babc8d429621ded19332",
-                "content_version": "ocv_2a7a117c5d28d69b26ddc32540f4caeb",
-                "resolved_periods": [],
-                "execution_identity": "0.9.1|1.2.0|0.2.0"
+                }
               }
-            ],
-            "format_version": 2
+            ]
           },
-          "frame_content_version": "cv_3755817bb5a3b266b215762141c13b39",
-          "output_digest": "out_2bcc82aac8f8babc8d429621ded19332",
+          "frame_content_version": "cv_98a446197cb1edaf99d838304b2af07e",
+          "output_digest": "out_1c7e9ed19f3c42e32d3fc8815e336cbc",
           "summary": {
+            "verb": "aggregate",
+            "spec_id": "ops_db9447b113d8bbf9d8ba7f42d30ae604",
+            "content_version": "ocv_82719945f89f44ceefe786a8d5ebfe7c",
+            "frame_content_version": "cv_98a446197cb1edaf99d838304b2af07e",
             "rows": 111,
+            "role_keys": [
+              "financingProvider",
+              "financingProvider_party_class",
+              "financingProvider_party_kind",
+              "financingProvider_party_whole",
+              "financingProvider_type"
+            ],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": null,
+            "exclusions": [],
             "time": {
               "kind": "observation"
             },
-            "verb": "aggregate",
+            "parameters": {
+              "aggregation": "sum",
+              "group_by": [
+                "financingProvider",
+                "time_period"
+              ],
+              "unit": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
             "result": {
-              "warnings": [],
-              "exclusions": {
-                "records": []
-              },
-              "entity_count": 111,
-              "period_label": null,
               "resolved_unit": "CurrencyUSD",
-              "pooled_parties": [],
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/ONEDAC2aBilateral"
+                }
+              ],
+              "warnings": [],
+              "realised_coverage_fraction": 1.0,
+              "skipped_cell_count": 0,
+              "expected_cell_count": 111,
+              "present_cell_count": 111,
               "group_summaries": [
                 {
-                  "value": 1501862.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -159,13 +191,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1501862.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 105410.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -176,13 +208,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 105410.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3474680.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -193,13 +225,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3474680.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3369270.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -210,13 +242,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3369270.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6800000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -227,13 +259,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6800000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 981096.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -244,13 +276,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 981096.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 10000000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -261,13 +293,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 10000000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 15029121.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -278,13 +310,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 15029121.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2612158.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -295,13 +327,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2612158.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12705042.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -312,13 +344,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12705042.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1230760311.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -329,13 +361,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1230760311.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 291027996.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -346,13 +378,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 291027996.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 416603051.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -363,13 +395,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 416603051.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1401689084.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -380,13 +412,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1401689084.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6915789.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -397,13 +429,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6915789.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2639365184.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -414,13 +446,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2639365184.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 259810689.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -431,13 +463,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 259810689.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 320107717.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -448,13 +480,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 320107717.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3664577.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -465,13 +497,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3664577.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 73115623.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -482,13 +514,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 73115623.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 938795140.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -499,13 +531,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 938795140.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 110000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -516,13 +548,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 110000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 125575055.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -533,13 +565,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 125575055.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 108664.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -550,13 +582,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 108664.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 594192.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -567,13 +599,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 594192.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6086516.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -584,13 +616,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6086516.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 100812689.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -601,13 +633,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 100812689.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 17081382.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -618,13 +650,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 17081382.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3426878.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -635,13 +667,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3426878.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 230162811.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -652,13 +684,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 230162811.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2740633.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -669,13 +701,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2740633.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1009734477.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -686,13 +718,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1009734477.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 26425628.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -703,13 +735,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 26425628.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 911714.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -720,13 +752,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 911714.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 47145.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -737,13 +769,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 47145.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 938795140.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -754,13 +786,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 938795140.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 26954360.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -771,13 +803,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 26954360.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 720565.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -788,13 +820,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 720565.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 95832.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -805,13 +837,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 95832.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 189897.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -822,13 +854,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 189897.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1298211.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -839,13 +871,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1298211.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 615190.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -856,13 +888,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 615190.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 56987.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -873,13 +905,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 56987.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2281715.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -890,13 +922,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2281715.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 292501.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -907,13 +939,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 292501.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3650000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -924,13 +956,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3650000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 100268479.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -941,13 +973,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 100268479.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 97981.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -958,13 +990,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 97981.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4880472.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -975,13 +1007,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4880472.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 174599.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -992,13 +1024,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 174599.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1717000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1009,13 +1041,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1717000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 232496.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1026,13 +1058,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 232496.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 728000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1043,13 +1075,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 728000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1776675.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1060,13 +1092,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1776675.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 14611387.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1077,13 +1109,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 14611387.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 232496.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1094,13 +1126,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 232496.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2672506.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1111,13 +1143,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2672506.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 988683.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1128,13 +1160,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 988683.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12447000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1145,13 +1177,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12447000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1566871.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1162,13 +1194,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1566871.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2443938.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1179,13 +1211,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2443938.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 5924100.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1196,13 +1228,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 5924100.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 27603.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1213,13 +1245,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 27603.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1000000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1230,13 +1262,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1000000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4836050.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1247,13 +1279,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4836050.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 54153.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1264,13 +1296,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 54153.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12267492.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1281,13 +1313,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12267492.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6690267.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1298,13 +1330,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6690267.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 938795140.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1315,13 +1347,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 938795140.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 375000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1332,13 +1364,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 375000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1489279.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1349,13 +1381,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1489279.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2389106.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1366,13 +1398,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2389106.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 148375.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1383,13 +1415,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 148375.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 7050755.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1400,13 +1432,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 7050755.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1774803.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1417,13 +1449,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1774803.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 15242007.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1434,13 +1466,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 15242007.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 39419090.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1451,13 +1483,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 39419090.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 11280689.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1468,13 +1500,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 11280689.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 238269.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1485,13 +1517,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 238269.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 74954346.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1502,13 +1534,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 74954346.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 53542234.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1519,13 +1551,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 53542234.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": -2416740.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1536,13 +1568,13 @@
                       "2022"
                     ]
                   ],
+                  "value": -2416740.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 998002.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1553,13 +1585,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 998002.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6719488.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1570,13 +1602,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6719488.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 41989796.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1587,13 +1619,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 41989796.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 55388349.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1604,13 +1636,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 55388349.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 15825.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1621,13 +1653,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 15825.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4399576.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1638,13 +1670,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4399576.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12024878.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1655,13 +1687,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12024878.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 546934.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1672,13 +1704,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 546934.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 827530.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1689,13 +1721,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 827530.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 21501138.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1706,13 +1738,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 21501138.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 185715457.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1723,13 +1755,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 185715457.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 37053028.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1740,13 +1772,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 37053028.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": -279507.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1757,13 +1789,13 @@
                       "2022"
                     ]
                   ],
+                  "value": -279507.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4827.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1774,13 +1806,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4827.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 418344.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1791,13 +1823,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 418344.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4193.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1808,13 +1840,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4193.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 26655.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1825,13 +1857,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 26655.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 9285208.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1842,13 +1874,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 9285208.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 11741028.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1859,13 +1891,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 11741028.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 770684.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1876,13 +1908,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 770684.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1731044.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1893,13 +1925,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1731044.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 119164.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1910,13 +1942,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 119164.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2748960.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1927,13 +1959,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2748960.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 44133.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1944,13 +1976,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 44133.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1489676.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1961,13 +1993,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1489676.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 46947785.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1978,13 +2010,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 46947785.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 134698.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -1995,13 +2027,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 134698.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 452765.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2012,13 +2044,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 452765.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 590766301.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2029,61 +2061,29 @@
                       "2022"
                     ]
                   ],
+                  "value": 590766301.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 }
               ],
+              "collapsed_periods": [
+                "2022"
+              ],
+              "period_label": null,
+              "entity_count": 111,
               "period_entities": [
                 [
                   "2022",
                   1
                 ]
               ],
-              "facet_selections": [
-                {
-                  "ref": "provenance/ONEDAC2aBilateral",
-                  "axis": "provenance"
-                }
-              ],
-              "collapsed_periods": [
-                "2022"
-              ],
-              "present_cell_count": 111,
-              "skipped_cell_count": 0,
-              "expected_cell_count": 111,
-              "realised_coverage_fraction": 1.0
-            },
-            "derived": null,
-            "spec_id": "ops_8041713ce9ea002355a2cfa4f0dc94fd",
-            "role_keys": [
-              "financingProvider",
-              "financingProvider_party_class",
-              "financingProvider_party_kind",
-              "financingProvider_party_whole",
-              "financingProvider_type"
-            ],
-            "exclusions": [],
-            "parameters": {
-              "unit": null,
-              "group_by": [
-                "financingProvider",
-                "time_period"
-              ],
-              "aggregation": "sum"
-            },
-            "stat_var_count": 1,
-            "content_version": "ocv_2a7a117c5d28d69b26ddc32540f4caeb",
-            "dropped_key_count": 0,
-            "execution_identity": {
-              "engine_version": "0.9.1",
-              "frame_grammar_version": "1.2.0",
-              "reduction_policy_version": "0.2.0"
-            },
-            "ranked_before_limit": null,
-            "frame_content_version": "cv_3755817bb5a3b266b215762141c13b39",
-            "right_dropped_key_count": 0
+              "exclusions": {
+                "records": []
+              },
+              "pooled_parties": []
+            }
           },
           "rows": 111,
           "role_keys": [
@@ -2140,70 +2140,102 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "435c7f729ef749729d1432d487c2c814"
+          "x-dfo-trace-id": "9cd62ae89e484f08ae7e4249ac6c0080"
         },
         "json": {
           "status": "ready",
           "ref": {
+            "format_version": 2,
             "members": [
               {
-                "spec": {
-                  "recipe": {
-                    "replay_key": "rpk_77c2f450c93dbac8371bde38d1b76441",
-                    "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985"
-                  },
-                  "spec_id": "ops_b2db277d06f7e9a525c0a9087190d146"
-                },
                 "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+                  "recipe": {
+                    "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985",
+                    "replay_key": "rpk_c2aaba4f18599953fb9a8389f8bf7617"
+                  }
+                },
+                "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+                "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
                 "roots": [
                   {
                     "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
                     "rendering": {
-                      "bundle": false,
                       "format": "parquet",
+                      "bundle": false,
                       "layout": "frame",
                       "without_party_totals": true
-                    },
-                    "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103"
+                    }
                   }
                 ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
                 "artifact": {
                   "digest": "sha256:698c5c03a9104232137fb1c734258a8fffb77358fb26ed63e8f48ae13e5db424",
                   "rendering": {
-                    "bundle": false,
                     "format": "parquet",
+                    "bundle": false,
                     "layout": "frame"
                   }
-                },
-                "sentence": "Computed by DFO: aggregate.",
-                "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
-                "content_version": "ocv_d3124e5cab449c727f3bbdce9b81cc84",
-                "resolved_periods": [],
-                "execution_identity": "0.9.1|1.2.0|0.2.0"
+                }
               }
-            ],
-            "format_version": 2
+            ]
           },
           "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
           "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
           "summary": {
+            "verb": "aggregate",
+            "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+            "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+            "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
             "rows": 96,
+            "role_keys": [
+              "financingProvider",
+              "financingProvider_party_class",
+              "financingProvider_party_kind",
+              "financingProvider_party_whole",
+              "financingProvider_type"
+            ],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": null,
+            "exclusions": [],
             "time": {
               "kind": "observation"
             },
-            "verb": "aggregate",
+            "parameters": {
+              "aggregation": "sum",
+              "group_by": [
+                "financingProvider",
+                "time_period"
+              ],
+              "unit": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
             "result": {
-              "warnings": [],
-              "exclusions": {
-                "records": []
-              },
-              "entity_count": 96,
-              "period_label": null,
               "resolved_unit": "CurrencyUSD",
-              "pooled_parties": [],
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/ONEDAC2aBilateral"
+                }
+              ],
+              "warnings": [],
+              "realised_coverage_fraction": 1.0,
+              "skipped_cell_count": 0,
+              "expected_cell_count": 96,
+              "present_cell_count": 96,
               "group_summaries": [
                 {
-                  "value": 1501862.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2214,13 +2246,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1501862.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 105410.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2231,13 +2263,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 105410.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3369270.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2248,13 +2280,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3369270.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6800000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2265,13 +2297,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6800000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 981096.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2282,13 +2314,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 981096.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 10000000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2299,13 +2331,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 10000000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 15029121.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2316,13 +2348,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 15029121.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2612158.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2333,13 +2365,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2612158.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12705042.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2350,13 +2382,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12705042.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 110000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2367,13 +2399,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 110000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 125575055.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2384,13 +2416,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 125575055.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 108664.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2401,13 +2433,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 108664.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 594192.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2418,13 +2450,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 594192.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6086516.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2435,13 +2467,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6086516.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 100812689.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2452,13 +2484,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 100812689.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 17081382.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2469,13 +2501,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 17081382.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3426878.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2486,13 +2518,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3426878.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 230162811.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2503,13 +2535,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 230162811.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2740633.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2520,13 +2552,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2740633.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 26425628.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2537,13 +2569,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 26425628.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 911714.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2554,13 +2586,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 911714.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 47145.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2571,13 +2603,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 47145.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 938795140.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2588,13 +2620,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 938795140.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 26954360.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2605,13 +2637,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 26954360.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 720565.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2622,13 +2654,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 720565.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 95832.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2639,13 +2671,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 95832.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 189897.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2656,13 +2688,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 189897.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1298211.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2673,13 +2705,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1298211.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 615190.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2690,13 +2722,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 615190.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 56987.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2707,13 +2739,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 56987.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2281715.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2724,13 +2756,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2281715.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 292501.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2741,13 +2773,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 292501.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 3650000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2758,13 +2790,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 3650000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 100268479.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2775,13 +2807,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 100268479.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 97981.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2792,13 +2824,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 97981.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4880472.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2809,13 +2841,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4880472.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 174599.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2826,13 +2858,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 174599.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1717000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2843,13 +2875,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1717000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 728000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2860,13 +2892,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 728000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1776675.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2877,13 +2909,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1776675.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 14611387.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2894,13 +2926,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 14611387.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 232496.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2911,13 +2943,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 232496.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2672506.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2928,13 +2960,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2672506.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 988683.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2945,13 +2977,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 988683.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12447000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2962,13 +2994,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12447000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1566871.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2979,13 +3011,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1566871.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2443938.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -2996,13 +3028,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2443938.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 5924100.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3013,13 +3045,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 5924100.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 27603.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3030,13 +3062,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 27603.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1000000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3047,13 +3079,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1000000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4836050.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3064,13 +3096,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4836050.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 54153.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3081,13 +3113,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 54153.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12267492.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3098,13 +3130,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12267492.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6690267.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3115,13 +3147,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6690267.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 375000.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3132,13 +3164,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 375000.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1489279.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3149,13 +3181,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1489279.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2389106.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3166,13 +3198,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2389106.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 148375.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3183,13 +3215,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 148375.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 7050755.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3200,13 +3232,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 7050755.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1774803.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3217,13 +3249,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1774803.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 15242007.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3234,13 +3266,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 15242007.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 39419090.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3251,13 +3283,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 39419090.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 11280689.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3268,13 +3300,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 11280689.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 238269.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3285,13 +3317,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 238269.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 74954346.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3302,13 +3334,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 74954346.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 53542234.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3319,13 +3351,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 53542234.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": -2416740.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3336,13 +3368,13 @@
                       "2022"
                     ]
                   ],
+                  "value": -2416740.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 998002.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3353,13 +3385,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 998002.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 6719488.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3370,13 +3402,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 6719488.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 41989796.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3387,13 +3419,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 41989796.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 55388349.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3404,13 +3436,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 55388349.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 15825.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3421,13 +3453,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 15825.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4399576.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3438,13 +3470,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4399576.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 12024878.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3455,13 +3487,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 12024878.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 546934.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3472,13 +3504,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 546934.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 827530.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3489,13 +3521,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 827530.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 21501138.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3506,13 +3538,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 21501138.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 185715457.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3523,13 +3555,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 185715457.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 37053028.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3540,13 +3572,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 37053028.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": -279507.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3557,13 +3589,13 @@
                       "2022"
                     ]
                   ],
+                  "value": -279507.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4827.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3574,13 +3606,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4827.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 418344.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3591,13 +3623,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 418344.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 4193.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3608,13 +3640,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 4193.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 26655.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3625,13 +3657,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 26655.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 9285208.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3642,13 +3674,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 9285208.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 11741028.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3659,13 +3691,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 11741028.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 770684.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3676,13 +3708,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 770684.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1731044.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3693,13 +3725,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1731044.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 119164.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3710,13 +3742,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 119164.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 2748960.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3727,13 +3759,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 2748960.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 44133.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3744,13 +3776,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 44133.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 1489676.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3761,13 +3793,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 1489676.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 46947785.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3778,13 +3810,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 46947785.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 134698.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3795,13 +3827,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 134698.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 452765.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3812,13 +3844,13 @@
                       "2022"
                     ]
                   ],
+                  "value": 452765.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 },
                 {
-                  "value": 590766301.0,
                   "group_key": [
                     [
                       "financingProvider",
@@ -3829,61 +3861,29 @@
                       "2022"
                     ]
                   ],
+                  "value": 590766301.0,
                   "row_count": 1,
-                  "value_period": null,
+                  "time_period_min": "2022",
                   "time_period_max": "2022",
-                  "time_period_min": "2022"
+                  "value_period": null
                 }
               ],
+              "collapsed_periods": [
+                "2022"
+              ],
+              "period_label": null,
+              "entity_count": 96,
               "period_entities": [
                 [
                   "2022",
                   1
                 ]
               ],
-              "facet_selections": [
-                {
-                  "ref": "provenance/ONEDAC2aBilateral",
-                  "axis": "provenance"
-                }
-              ],
-              "collapsed_periods": [
-                "2022"
-              ],
-              "present_cell_count": 96,
-              "skipped_cell_count": 0,
-              "expected_cell_count": 96,
-              "realised_coverage_fraction": 1.0
-            },
-            "derived": null,
-            "spec_id": "ops_b2db277d06f7e9a525c0a9087190d146",
-            "role_keys": [
-              "financingProvider",
-              "financingProvider_party_class",
-              "financingProvider_party_kind",
-              "financingProvider_party_whole",
-              "financingProvider_type"
-            ],
-            "exclusions": [],
-            "parameters": {
-              "unit": null,
-              "group_by": [
-                "financingProvider",
-                "time_period"
-              ],
-              "aggregation": "sum"
-            },
-            "stat_var_count": 1,
-            "content_version": "ocv_d3124e5cab449c727f3bbdce9b81cc84",
-            "dropped_key_count": 0,
-            "execution_identity": {
-              "engine_version": "0.9.1",
-              "frame_grammar_version": "1.2.0",
-              "reduction_policy_version": "0.2.0"
-            },
-            "ranked_before_limit": null,
-            "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
-            "right_dropped_key_count": 0
+              "exclusions": {
+                "records": []
+              },
+              "pooled_parties": []
+            }
           },
           "rows": 96,
           "role_keys": [
@@ -3913,8 +3913,8 @@
   "expect": [
     {
       "analysis": {
-        "spec_id": "ops_8041713ce9ea002355a2cfa4f0dc94fd",
-        "content_version": "ocv_2a7a117c5d28d69b26ddc32540f4caeb",
+        "spec_id": "ops_db9447b113d8bbf9d8ba7f42d30ae604",
+        "content_version": "ocv_82719945f89f44ceefe786a8d5ebfe7c",
         "rows": 111,
         "stat_vars_summed": [],
         "derived_roots": []
@@ -3922,8 +3922,8 @@
     },
     {
       "analysis": {
-        "spec_id": "ops_b2db277d06f7e9a525c0a9087190d146",
-        "content_version": "ocv_d3124e5cab449c727f3bbdce9b81cc84",
+        "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+        "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
         "rows": 96,
         "stat_vars_summed": [],
         "derived_roots": []

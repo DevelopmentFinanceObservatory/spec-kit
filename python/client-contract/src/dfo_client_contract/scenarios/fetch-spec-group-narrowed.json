@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
-    "recorded_at": "2026-11-21T15:12:31Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:47:53Z"
   },
   "call": [
     {
@@ -262,7 +262,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "75fa5cec52eb498eb868a12205724018"
+          "x-dfo-trace-id": "e8a9588d9e524398b8e5458215673aa6"
         },
         "json": {
           "schema_version": 1,
@@ -618,7 +618,7 @@
             "frame_grammar_version": "1.2.0",
             "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "materialise",
-            "confirmed_at": "2026-11-21T15:12:35.358135+00:00"
+            "confirmed_at": "2026-11-23T16:47:58.822186+00:00"
           },
           "warnings": [
             {
@@ -646,7 +646,7 @@
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4,
+                "layout": 5,
                 "without_party_totals": true
               },
               "bytes": 8701,
@@ -654,7 +654,7 @@
               "created_at": "2026-11-15T21:46:05.154787+00:00",
               "tier": "working",
               "url": "/api/datasets/spec_0cbc2682d8858844f8b1b14a96415b09/cv_bb74b3683595b00ac708fc3a5250c406/files/sha256:3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c",
-              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+              "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
             },
             {
               "artifact_digest": "sha256:654644a9b2a9dfd1f2dd7f0ced991ff8e5d6581df744cc06e84c637e0af34bc0",
@@ -670,7 +670,7 @@
           ],
           "series_count": 43,
           "output_options": {
-            "capability_version": "dset_7cbe888388c20297",
+            "capability_version": "dset_85178e251b57906e",
             "columns": [
               {
                 "name": "stat_var",
@@ -1109,7 +1109,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "564ca452995040309ee8646871da25c1"
+          "x-dfo-trace-id": "32166d7448a248dca0da7bafc2c6dfc7"
         },
         "json": {
           "schema_version": 1,
@@ -1118,11 +1118,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
-            "trace_id": "564ca452995040309ee8646871da25c1",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "32166d7448a248dca0da7bafc2c6dfc7",
             "warnings": [],
             "timing_ms": {
-              "total": 167,
+              "total": 200,
               "by_step": {
                 "coverage": 0
               }
@@ -1135,39 +1135,40 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 128,
+                "total": 161,
                 "by_step": {
-                  "validate": 0,
+                  "validate": 1,
                   "phase_validate": 0,
-                  "walk": 1,
+                  "walk": 13,
                   "reread_arcs": 0,
                   "phase_reread_arcs": 0,
                   "detect_edits": 0,
                   "phase_detect_edits": 0,
                   "resolve_survivors": 0,
                   "phase_resolve_survivors": 0,
-                  "shape": 0,
+                  "shape": 1,
                   "phase_build_shape": 0,
                   "bind": 0,
                   "phase_build_bindings": 0,
-                  "where_places": 1,
+                  "where_places": 0,
                   "phase_where_places": 0,
-                  "materialise": 32,
+                  "materialise": 29,
                   "phase_materialise": 0,
-                  "ground_related": 1,
+                  "ground_related": 0,
                   "ground_units": 0,
-                  "ground_facets": 0,
+                  "ground_facets": 1,
                   "ground_convert": 0,
-                  "answer": 17,
-                  "ground_gates": 6,
+                  "answer": 33,
+                  "ground_gates": 5,
                   "phase_ground_build": 65,
                   "finalize_preview": 0,
-                  "options": 3,
+                  "options": 2,
                   "finalize_related": 0,
                   "finalize_wholes": 0,
                   "finalize_relaunch": 1,
                   "phase_finalize": 1,
-                  "served_entry": 0,
+                  "composite_continuation": 8,
+                  "served_entry": 1,
                   "as_composite": 0
                 }
               },
@@ -2270,7 +2271,13 @@
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -3064,7 +3071,7 @@
                       "start_year": 2020,
                       "end_year": 2023
                     },
-                    "capability_version": "cap_347c5393b96434eb"
+                    "capability_version": "cap_b1f3369f84d185f6"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -5221,7 +5228,17 @@
                       "origin": "EUR"
                     },
                     "deflation_basis": "donor"
-                  }
+                  },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
+                    }
+                  ]
                 }
               }
             }
@@ -5523,7 +5540,7 @@
         "headers": {
           "content-type": "text/html",
           "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A3565b8b17ab22c1a5074c3e4a22ff3523024c4d94b558643d3b5fa14b81bfa5c?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "8d6b64422fb54c95890d39f3c5e06a77"
+          "x-dfo-trace-id": "9c8a360ee5c241eea908b1d655e83a84"
         }
       }
     },

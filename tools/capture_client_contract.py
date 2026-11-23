@@ -1432,7 +1432,7 @@ CANDIDATES_BESIDE_ASSUMED = (
 # years. A variable broken down by sector would list thousands of variables in
 # the done manifest.
 LONG_BUILD = (
-    "ODA disbursements from the {donors} countries to the G77 countries"
+    "Gross ODA disbursements from the {donors} countries to the G77 countries"
     " from {year} to 2024"
 )
 LONG_BUILD_YEARS = range(1960, 2001)
@@ -2089,6 +2089,51 @@ def _analysis_party_totals_cut(s: Session, ctx: Context) -> None:
     )
 
 
+def _stored_versions_live(s: Session, ctx: Context) -> None:
+    """Checks the stored head of the PARTY_TOTALS_FLOW read through a ref of
+    the version that keeps the donor group totals and a ref of the version
+    that cuts them, beside a spec DFO has not registered, against a saved
+    check that records the kept version and the unregistered spec's null.
+    Both refs name one spec, whose head is the kept version, and the
+    unregistered spec has none, so nothing changed."""
+    narrowing = {"window": PARTY_TOTALS_WINDOW, "entities": PARTY_TOTALS_ENTITIES}
+    kept = _prebuilt(ctx, PARTY_TOTALS_FLOW, party_totals=True, **narrowing)
+    cut = _prebuilt(ctx, PARTY_TOTALS_FLOW, **narrowing)
+    unheld = _heads_spec_id(0)
+    targets = [
+        {"ref": {"format_version": 1, "members": [kept.ref()]}},
+        {"ref": {"format_version": 1, "members": [cut.ref()]}},
+        _heads_spec(unheld),
+    ]
+    built = {
+        "format_version": 1,
+        "heads": sorted(
+            [
+                {"spec_id": kept.spec_id, "content_version": kept.content_version},
+                {"spec_id": unheld, "content_version": None},
+            ],
+            key=lambda head: head["spec_id"],
+        ),
+    }
+    require(
+        cut.spec_id == kept.spec_id and cut.content_version != kept.content_version,
+        "the kept and cut versions are two versions of one spec",
+    )
+    s.stored_versions(targets, built=built)
+    (outcome,) = s.expect
+    require(
+        outcome
+        == {
+            "stored_versions": {
+                "heads": built["heads"],
+                "changed": [],
+            }
+        },
+        "the spec's head is the kept version, the unregistered spec has none, "
+        "and nothing changed",
+    )
+
+
 RECORDED = (
     Recorded(
         "answer-definite-fetch",
@@ -2375,6 +2420,15 @@ RECORDED = (
         "rows for the cut. A root read unsummed renders no version of its own, so neither "
         "answer lists derived_roots.",
         _analysis_party_totals_cut,
+    ),
+    Recorded(
+        "stored-versions",
+        "A stored-versions check of a ref of the DAC2a read at the version that keeps the "
+        "donor group totals, a ref of the version that cuts them and a spec DFO has not "
+        "registered sends one GET naming the two spec ids sorted. The answer gives the read's "
+        "head as the kept version and null for the unregistered spec, so against a saved "
+        "check that records both, nothing changed.",
+        _stored_versions_live,
     ),
 )
 
@@ -2947,25 +3001,27 @@ def _accepted_running(exchanges: list[dict[str, Any]], build: dict[str, Any]) ->
     exchanges[0]["response"]["json"]["operation"]["status"] = "running"
 
 
-# The retry_after_ms the polls that find the build running read in
+# The retry_after_ms the polls that find the build under way read in
 # fetch-spec-poll-pacing-changes, in turn. The values go up, up again, then down.
 _CHANGING_PACING_MS = (2500, 4000, 1000)
 
 
 def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
-    """Each poll that finds the build running reads its own retry_after_ms
-    from _CHANGING_PACING_MS, and the wait before the next poll is that
-    poll's value. The recording's running polls past that many are left
-    out, since how many a build takes depends on the server's load."""
+    """Each poll that finds the build under way, pending or running, reads
+    its own retry_after_ms from _CHANGING_PACING_MS, and the wait before the
+    next poll is that poll's value, whatever the status. The recording's
+    polls under way past that many are left out, since how many a build
+    takes, and how many of them find it queued, depends on the server's
+    load."""
     polls = [
         i
         for i, e in enumerate(exchanges)
         if e["request"].get("path", "").startswith("/datasets/operations/")
-        and e["response"]["json"]["operation"]["status"] == "running"
+        and e["response"]["json"]["operation"]["status"] in ("pending", "running")
     ]
     require(
         len(polls) >= len(_CHANGING_PACING_MS),
-        f"{len(_CHANGING_PACING_MS)} polls find the build running",
+        f"{len(_CHANGING_PACING_MS)} polls find the build under way",
     )
     for index in reversed(polls[len(_CHANGING_PACING_MS) :]):
         del exchanges[index]
@@ -4602,8 +4658,9 @@ SYNTHETIC = (
     Synthetic(
         "fetch-spec-poll-pacing-changes",
         "mint-async-build",
-        "As fetch-spec-async-build, with the polls that find the build running reading "
-        "retry_after_ms 2500, 4000 and 1000 where the recording reads 1500.",
+        "As fetch-spec-async-build, with the first three polls that find the build under "
+        "way reading retry_after_ms 2500, 4000 and 1000 where the recording reads its own "
+        "values, and the later ones left out.",
         "Before each poll the client waits the retry_after_ms of the last operation "
         "resource it read: 1.5 seconds from the 202, then 2.5, 4 and 1 from the polls. A "
         "client that keeps the 202's value, or reads the Retry-After header in its place, "

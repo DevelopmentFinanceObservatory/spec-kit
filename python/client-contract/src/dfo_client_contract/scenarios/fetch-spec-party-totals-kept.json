@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
-    "recorded_at": "2026-11-21T15:12:28Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:47:50Z"
   },
   "call": [
     {
@@ -522,7 +522,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "02a4e9fc4d1044a9af2d5422af50c3e4"
+          "x-dfo-trace-id": "23ab59b3558748028958685b73d84c95"
         },
         "json": {
           "schema_version": 1,
@@ -830,7 +830,7 @@
             "frame_grammar_version": "1.2.0",
             "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "head",
-            "confirmed_at": "2026-11-21T15:12:25.361722+00:00"
+            "confirmed_at": "2026-11-23T16:46:24.633387+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -842,18 +842,18 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:bff41f3d3d6707d06d4de9224994ad02cff5bb4cf219c3d8e7b8c96244ca81f9",
+              "artifact_digest": "sha256:5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 5
               },
-              "bytes": 10784,
+              "bytes": 10811,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-11-15T21:45:55.944587+00:00",
+              "created_at": "2026-11-23T16:46:24.541540+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:bff41f3d3d6707d06d4de9224994ad02cff5bb4cf219c3d8e7b8c96244ca81f9",
-              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+              "url": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455",
+              "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
             },
             {
               "artifact_digest": "sha256:b804bc326713f6f02aeaee39695cb27487ed37a3c0f18b281f22579eb2fa6556",
@@ -869,7 +869,7 @@
           ],
           "series_count": 111,
           "output_options": {
-            "capability_version": "dset_7cbe888388c20297",
+            "capability_version": "dset_85178e251b57906e",
             "columns": [
               {
                 "name": "stat_var",
@@ -1319,7 +1319,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "eed96579a8ad4ec19fe2547d4d5adfb0"
+          "x-dfo-trace-id": "a3e0fb2701c641eaa61f75d72dedf4b3"
         },
         "json": {
           "schema_version": 1,
@@ -1328,11 +1328,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
-            "trace_id": "eed96579a8ad4ec19fe2547d4d5adfb0",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "a3e0fb2701c641eaa61f75d72dedf4b3",
             "warnings": [],
             "timing_ms": {
-              "total": 5,
+              "total": 11,
               "by_step": {
                 "coverage": 0
               }
@@ -1365,11 +1365,12 @@
                 }
               ],
               "timing_ms": {
-                "total": 1,
+                "total": 7,
                 "by_step": {
                   "response_cache_part_memo": 0,
-                  "served_entry": 0,
-                  "as_composite": 1
+                  "composite_continuation": 6,
+                  "served_entry": 1,
+                  "as_composite": 0
                 }
               },
               "entity_refs": [],
@@ -1742,7 +1743,13 @@
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -2157,7 +2164,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_347c5393b96434eb"
+                    "capability_version": "cap_b1f3369f84d185f6"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -4261,7 +4268,17 @@
                       "destination": "KES"
                     },
                     "deflation_basis": "donor"
-                  }
+                  },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
+                    }
+                  ]
                 }
               }
             }
@@ -4503,21 +4520,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:bff41f3d3d6707d06d4de9224994ad02cff5bb4cf219c3d8e7b8c96244ca81f9"
+        "origin_path": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Abff41f3d3d6707d06d4de9224994ad02cff5bb4cf219c3d8e7b8c96244ca81f9?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "36d4fe9d39d5413492608a814b95444c"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "9bb26926307647b1b3b5a956bc589e7f"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Abff41f3d3d6707d06d4de9224994ad02cff5bb4cf219c3d8e7b8c96244ca81f9?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
