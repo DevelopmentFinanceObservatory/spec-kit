@@ -117,6 +117,49 @@ def test_fixture_payload_component_type_matches_its_directory(
     assert payload["component"]["type"] == expected_type
 
 
+@pytest.mark.parametrize(
+    "partial_periods",
+    [
+        [
+            {
+                "source": {
+                    "ref": "provenance/OECDCreditorReportingSystem",
+                    "label": "OECD Creditor Reporting System (CRS)",
+                },
+                "period": "2024",
+            }
+        ],
+        [],
+        None,
+    ],
+    ids=["listed", "empty", "null"],
+)
+def test_description_freshness_admits_partial_periods(
+    partial_periods: list[dict] | None,
+) -> None:
+    """The envelope admits the optional `description.freshness.partial_periods`."""
+    payload = _load(_DESCRIBED)
+    payload["description"]["freshness"]["partial_periods"] = partial_periods
+    _VALIDATOR.validate(payload)
+
+
+def test_description_freshness_refuses_a_member_it_does_not_define() -> None:
+    """A guard: the closed `description.freshness` stays closed."""
+    payload = _load(_DESCRIBED)
+    payload["description"]["freshness"]["unlisted"] = True
+    with pytest.raises(ValidationError):
+        _VALIDATOR.validate(payload)
+
+
+def test_provenance_freshness_refuses_partial_periods() -> None:
+    """`provenance.freshness` stays closed: only `description.freshness` admits
+    `partial_periods`."""
+    payload = _load("fixtures/line_chart/payload.json")
+    payload["provenance"]["freshness"]["partial_periods"] = []
+    with pytest.raises(ValidationError):
+        _VALIDATOR.validate(payload)
+
+
 _SPAN = "2018/2022"
 
 

@@ -22,6 +22,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   member. A deployment on `2026.11.0` refuses an intent that carries `order`,
   so a consumer comparing releases reads `2026.11.1` as the first that admits
   one. The payload fixtures carry the new `catalog_version`.
+- `catalog_version` moves from `2026.11.1` to `2026.11.2`, a minor change under `policies/component-spec.toml`. The envelope's `description` references `description.schema.json`, whose `freshness` object gained the optional `partial_periods`. Builds that name `2026.11.1` differ on whether they admit it, so `2026.11.2` is the first version that guarantees it. `provenance.freshness` stays closed. The payload fixtures carry the new `catalog_version` and `manifest.json` carries their refreshed digests. `tests/test_envelope_fixtures.py` validates the listed, empty and null forms.
 - An optional `description` on the envelope schema: the card revision's
   description, a `$ref` to
   `https://developmentfinance.org/descriptions/schema/v1/description.schema.json`
