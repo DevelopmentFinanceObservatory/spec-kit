@@ -6,17 +6,6 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- `catalog_version` moves from `2026.11.1` to `2026.11.2`. The envelope's
-  `description` references `description.schema.json`, whose `freshness`
-  object gained an optional `partial_periods` in `dfo-spec-kit-descriptions`
-  0.2.0 while the catalogue stayed at `2026.11.1`. A deployment on `2026.11.1`
-  before that change refuses a `freshness` with `partial_periods`, so
-  `2026.11.2` is the first version that admits one. The payload fixtures carry
-  the new `catalog_version`, and `manifest.json` carries their refreshed
-  digests.
-
 ### Added
 
 - `order` in the write-side intent grammar (`schemas/intent.v0.json`): on a
@@ -134,6 +123,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   orders its two periods `[from, to]`.
 
 ### Changed
+
+- `catalog_version` moves from `2026.11.1` to `2026.11.2`, a minor change under `policies/component-spec.toml`: the envelope's `description` references `description.schema.json`, whose `freshness` object gained the optional `partial_periods` (the `dfo-spec-kit-descriptions` change that states the partial periods a version's sources marked). A deployment on `2026.11.1` refuses a `description.freshness` that carries `partial_periods`, so `2026.11.2` is the first release that admits one; `provenance.freshness` stays closed. The payload fixtures carry the new `catalog_version`, and `manifest.json` carries their refreshed digests. `tests/test_envelope_fixtures.py` validates the listed, empty and null forms.
 
 - `freshness.partial_period` in `schemas/envelope.schema.json` carries a
   `$comment`: `true` means a source marked a period the card draws as
