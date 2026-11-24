@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import os
 import re
@@ -69,17 +70,20 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
 from validate_client_contract import (
+    ANALYSIS_PATH,
     FILE_EXPIRED,
     FILE_GONE,
     FILES_ROUTE_FILE,
     FILES_ROUTE_REDIRECT,
+    HEADS_MAX,
     NO_VERSIONS,
+    PARTY_TOTALS_LEFT_OUT,
     POLL_BACKOFF_CAP,
     POLL_BACKOFF_FIRST,
     POLL_PATH,
@@ -94,6 +98,9 @@ from validate_client_contract import (
     LongBuild,
     ServedTable,
     absolute_url_problems,
+    analysis_body,
+    analysis_outcome,
+    analysis_wait,
     answer_from_body,
     answer_gaps,
     answer_members,
@@ -112,6 +119,7 @@ from validate_client_contract import (
     fetch_rendering,
     gap_kinds,
     header_warnings,
+    heads_path,
     held_spec,
     load_reading_columns,
     load_selector_keys,
@@ -119,9 +127,11 @@ from validate_client_contract import (
     newest_plain,
     owns_body_file,
     part_label,
+    party_totals_left_out,
     pick_artifact,
     posted_scope,
     presented_columns,
+    read_heads,
     problem_body,
     read_from,
     refusal_error,
@@ -136,7 +146,9 @@ from validate_client_contract import (
     sentence_entry,
     served_table,
     shared_cacheable,
+    stored_spec_ids,
     stored_version,
+    stored_versions_outcome,
     surface_problems,
     trace_id,
     untraced,
@@ -153,7 +165,8 @@ BINARY_BUDGET = 5_000_000
 
 # The rendering a fetch asks for by default, bare long Parquet with the party
 # totals of open party roles left out, and so the rendering a ref it writes
-# records.
+# records, `without_party_totals: true`. Its build posts the cut as
+# `party_totals: false`, as `build_body` gives.
 RENDERING = fetch_rendering(None)
 # The response headers a client reads, and so the ones a record keeps, beside
 # a `cache-control` that marks the response shared-cacheable, which excuses it
@@ -628,6 +641,9 @@ class Member:
     rendering: dict[str, Any] = field(default_factory=lambda: dict(RENDERING))
     # The value of each column that holds one value in every row.
     same: Mapping[str, Any] = field(default_factory=dict)
+    # The group totals its manifest says the fetch left out of its rows, as
+    # `party_totals_left_out` gives them.
+    party_totals: Sequence[Mapping[str, Any]] = ()
 
     @property
     def table(self) -> ServedTable:
@@ -664,6 +680,7 @@ def dataset_outcome(
             "spec_id": member.spec_id,
             "content_version": member.content_version,
             "sentence": member.sentence,
+            PARTY_TOTALS_LEFT_OUT: member.party_totals,
         }
         for member in members
     ]
@@ -689,6 +706,10 @@ def _reached[T](results: list[T], step: str) -> T:
 
 class ShapeError(Exception):
     """The live answer lacks the shape the scenario is named for."""
+
+
+# The total seconds a recording waits on one pending analysis before it fails.
+ANALYSIS_WAIT_BUDGET_S = 600.0
 
 
 def require(condition: bool, message: str) -> None:
@@ -970,6 +991,27 @@ class Session:
         self._step({"op": "newest_version", "spec": spec.step()}, run)
         return found[0] if found else None
 
+    def stored_versions(
+        self,
+        targets: Sequence[dict[str, Any]],
+        *,
+        built: dict[str, Any] | None = None,
+    ) -> None:
+        """The stored head version of each spec `targets` read, from one GET
+        of the stored-head check, and the specs changed since `built` when
+        it is given."""
+
+        def run() -> dict[str, Any]:
+            spec_ids = stored_spec_ids(targets)
+            response = self._api("GET", heads_path(spec_ids))
+            heads = read_heads(self._acted(response), spec_ids)
+            return stored_versions_outcome(spec_ids, heads, built)
+
+        step: dict[str, Any] = {"op": "stored_versions", "targets": list(targets)}
+        if built is not None:
+            step["built"] = built
+        self._step(step, run)
+
     def mint(
         self, spec: Spec, *, layout: str | None = None, party_totals: bool = False
     ) -> str:
@@ -1024,6 +1066,51 @@ class Session:
             return dataset_outcome([member], self.rules.reading)
 
         self._step({"op": "result"}, run)
+
+    def analysis(
+        self,
+        tree: dict[str, Any],
+        *,
+        latest: bool | Literal["stored"] = False,
+        include: Sequence[str] = (),
+    ) -> dict[str, Any]:
+        """Posts a recipe tree to the analysis route as `analysis_body` gives,
+        posting it again after each 202 once `analysis_wait` has passed, and
+        returns the ready answer's body, or {} when the step refused."""
+        step: dict[str, Any] = {"op": "analysis", "tree": tree}
+        if latest:
+            step["latest"] = latest
+        if include:
+            step["include"] = list(include)
+        posts = analysis_body(step)
+        answers: list[dict[str, Any]] = []
+
+        def run() -> dict[str, Any]:
+            waits: list[float] = []
+            while True:
+                response = self._api("POST", ANALYSIS_PATH, posts)
+                body = self._acted(response)
+                if response.status == 200:
+                    break
+                if response.status != 202:
+                    raise ClientError("unexpected_response")
+                waits.append(analysis_wait(response.headers, body))
+                require(
+                    sum(waits) <= ANALYSIS_WAIT_BUDGET_S,
+                    f"the analysis was still pending after {sum(waits):g} s of "
+                    f"waits, over the {ANALYSIS_WAIT_BUDGET_S:g} s budget",
+                )
+                self.sleep(waits[-1])
+            outcome = analysis_outcome(
+                body, stored=latest == "stored", manifest="manifest" in include
+            )
+            if waits:
+                outcome["analysis"]["pending_waits"] = waits
+            answers.append(body)
+            return outcome
+
+        self._step(step, run)
+        return answers[0] if answers else {}
 
     # -- building --
 
@@ -1080,6 +1167,7 @@ class Session:
             list(table.columns),
             dict(rendering),
             table.same,
+            party_totals_left_out(manifest, definition["spec_id"]),
         )
 
     def _identity_sentence(
@@ -1190,6 +1278,7 @@ class Session:
                 list(table.columns),
                 dict(rendering),
                 table.same,
+                party_totals_left_out(manifest, spec_id),
             )
             return stored, None
 
@@ -1307,7 +1396,7 @@ CANDIDATES = "mortality in Kenya from 2013 to 2022"
 MIXED = "debt service of Kenya and the price of tea in Kenya"
 FOLDED = "ODA disbursements for health and for education from Germany to Kenya, and GDP of Kenya"
 PLACE = "ODA disbursements from Germany to Congo in 2018"
-TWO_PLACES = "Kenya's GDP, and ODA disbursements from Germany to Congo"
+TWO_PLACES = "Congo's GDP, and ODA disbursements from Germany to Congo"
 PLACE_TWICE = "aid from Congo to Congo"
 DECLINED = "should donors give more aid to Kenya?"
 CATALOGUE = "what data do you have?"
@@ -1343,7 +1432,7 @@ CANDIDATES_BESIDE_ASSUMED = (
 # years. A variable broken down by sector would list thousands of variables in
 # the done manifest.
 LONG_BUILD = (
-    "ODA disbursements from the {donors} countries to the G77 countries"
+    "Gross ODA disbursements from the {donors} countries to the G77 countries"
     " from {year} to 2024"
 )
 LONG_BUILD_YEARS = range(1960, 2001)
@@ -1360,6 +1449,18 @@ PARTY_TOTALS_FLOW = (
 PARTY_TOTALS_WINDOW = (2022, 2022)
 PARTY_TOTALS_ENTITIES = {"origin": None, "destination": ["country/KEN"]}
 SYNC_ROWS = 100_000
+# The reads the analysis scenarios run on. Each answer is JSON alone, some
+# 7 KB for the rank and up to 100 KB for the sparse breakdown, whose summary
+# lists every group.
+RANK_FLOW = (
+    "ODA disbursements from the G7 countries to Kenya and Nigeria from 2020 to 2022"
+)
+RANK_LIMIT = 3
+SPARSE_FLOW = "ODA disbursements to Kenya for health and for education in 2022"
+SUMMED_FLOW = (
+    "ODA disbursements from Germany to Kenya for health and for education "
+    "from 2020 to 2022"
+)
 
 
 @dataclass
@@ -1485,6 +1586,53 @@ class Context:
                 self.async_spec("OECD"), party_totals=True
             )
         return self._cache["operation"]
+
+
+def _spec_root(spec: Spec) -> dict[str, Any]:
+    """A Spec root as a client sends it: read at its newest version without
+    party totals."""
+    return {"spec_id": spec.spec_id, "rendering": {"without_party_totals": True}}
+
+
+def _version_root(member: Member) -> dict[str, Any]:
+    """A dataset version root as a client sends a fetched member: read at its
+    version in the member's party-totals cut."""
+    cut = member.rendering.get("without_party_totals") is True
+    return {
+        "spec_id": member.spec_id,
+        "content_version": member.content_version,
+        "rendering": {"without_party_totals": cut},
+    }
+
+
+def _tree_step(
+    verb: str, arguments: dict[str, Any], data: dict[str, Any]
+) -> dict[str, Any]:
+    return {"verb": verb, "arguments": arguments, "inputs": {"data": data}}
+
+
+def _read_spec(ctx: Context, question: str) -> Spec:
+    """The one spec `question`'s definite answer reads, which Search may name
+    in several folded parts."""
+    specs = {spec.spec_id: spec for _, spec in _members(ctx.definite_answer(question))}
+    require(len(specs) == 1, f"{question!r} reads one spec, not {sorted(specs)}")
+    (spec,) = specs.values()
+    return spec
+
+
+def _prebuilt(ctx: Context, question: str, **narrowing: Any) -> Member:
+    """The member a fetch of `question`'s spec builds, outside the record, so
+    the server holds the spec and the version a root names."""
+    (member,) = ctx.session("prerequisite").fetch_spec(
+        _read_spec(ctx, question), **narrowing
+    )
+    return member
+
+
+def _analysed(s: Session, step: int) -> dict[str, Any]:
+    outcome = s.expect[step]
+    require("analysis" in outcome, f"step {step} answers a frame, not {outcome}")
+    return outcome["analysis"]
 
 
 @dataclass(frozen=True)
@@ -1856,6 +2004,136 @@ def _resubmit_placeholder(s: Session, ctx: Context) -> None:
     )
 
 
+def _analysis_rank_partitioned(s: Session, ctx: Context) -> None:
+    """Ranks the RANK_FLOW donors by their total over the window, once over
+    every recipient and once per recipient, and checks the partitioned rank
+    keeps RANK_LIMIT donors in each recipient's group."""
+    member = _prebuilt(ctx, RANK_FLOW)
+    root = _spec_root(_read_spec(ctx, RANK_FLOW))
+    ranked = {"rank_by": ["origin"], "aggregation": "sum", "limit": RANK_LIMIT}
+    s.analysis(_tree_step("rank", ranked, root))
+    s.analysis(_tree_step("rank", {**ranked, "partition_by": ["destination"]}, root))
+    recipients = len(member.definition["identity"]["entities"]["destination"])
+    require(recipients > 1, "the read names several recipients")
+    require(_analysed(s, 0)["rows"] == RANK_LIMIT, "one ranking keeps the limit")
+    require(
+        _analysed(s, 1)["rows"] == RANK_LIMIT * recipients,
+        "each recipient's ranking keeps the limit",
+    )
+
+
+def _analysis_aggregate_sparse(s: Session, ctx: Context) -> None:
+    """Totals SPARSE_FLOW by donor and sector, which most donors fund only in
+    part: without the flag the empty breakdown cells count as missing and
+    the step refuses coverage_insufficient, and with it the step answers."""
+    spec = _prebuilt(ctx, SPARSE_FLOW)
+    root = _spec_root(_read_spec(ctx, SPARSE_FLOW))
+    require(root["spec_id"] == spec.spec_id, "the build keeps the spec_id")
+    totals = {"group_by": ["time_period", "origin", "crsPurpose"], "aggregation": "sum"}
+    s.analysis(_tree_step("aggregate", totals, root))
+    s.analysis(
+        _tree_step("aggregate", {**totals, "allow_sparse_breakdowns": True}, root)
+    )
+    refused = s.expect[0].get("error", {})
+    require(
+        refused.get("code") == "coverage_insufficient",
+        f"without the flag the step refuses coverage_insufficient, not {refused}",
+    )
+    require(_analysed(s, 1)["stat_vars_summed"], "the root is read summed")
+
+
+def _analysis_summed_root(s: Session, ctx: Context) -> None:
+    """Totals each year of SUMMED_FLOW, a read of many StatVars fetched with
+    party totals, so the service sums the root over its StatVars into a
+    version of its own that names the fetched version as its base."""
+    member = _prebuilt(ctx, SUMMED_FLOW, party_totals=True)
+    root = _version_root(member)
+    s.analysis(
+        _tree_step(
+            "aggregate", {"group_by": ["time_period"], "aggregation": "sum"}, root
+        )
+    )
+    answer = _analysed(s, 0)
+    (summed,) = answer["stat_vars_summed"]
+    require(summed["spec_id"] == member.spec_id, "the fetched spec is summed")
+    require(summed["count"] >= 2, "several StatVars are summed")
+    require(
+        answer["derived_roots"]
+        == [
+            {
+                "spec_id": member.spec_id,
+                "content_version": summed["content_version"],
+                "base_content_version": member.content_version,
+            }
+        ],
+        "the summed version names the fetched version as its base",
+    )
+
+
+def _analysis_party_totals_cut(s: Session, ctx: Context) -> None:
+    """Totals the PARTY_TOTALS_FLOW read by donor, at the version that keeps
+    the donor group totals and at the version that cuts them: the cut drops
+    the totals' rows, and neither root is listed in derived_roots, since each
+    root reads a stored dataset version itself, one kept and one cut."""
+    narrowing = {"window": PARTY_TOTALS_WINDOW, "entities": PARTY_TOTALS_ENTITIES}
+    kept = _prebuilt(ctx, PARTY_TOTALS_FLOW, party_totals=True, **narrowing)
+    cut = _prebuilt(ctx, PARTY_TOTALS_FLOW, **narrowing)
+    totals = {"group_by": ["time_period", "origin"], "aggregation": "sum"}
+    s.analysis(_tree_step("aggregate", totals, _version_root(kept)))
+    s.analysis(_tree_step("aggregate", totals, _version_root(cut)))
+    with_totals, without = _analysed(s, 0), _analysed(s, 1)
+    require(without["rows"] < with_totals["rows"], "the cut drops the totals' rows")
+    require(
+        not with_totals["derived_roots"] and not without["derived_roots"],
+        "a root read unsummed renders no version of its own",
+    )
+
+
+def _stored_versions_live(s: Session, ctx: Context) -> None:
+    """Checks the stored head of the PARTY_TOTALS_FLOW read through a ref of
+    the version that keeps the donor group totals and a ref of the version
+    that cuts them, beside a spec DFO has not registered, against a saved
+    check that records the kept version and the unregistered spec's null.
+    Both refs name one spec, whose head is the kept version, and the
+    unregistered spec has none, so nothing changed."""
+    narrowing = {"window": PARTY_TOTALS_WINDOW, "entities": PARTY_TOTALS_ENTITIES}
+    kept = _prebuilt(ctx, PARTY_TOTALS_FLOW, party_totals=True, **narrowing)
+    cut = _prebuilt(ctx, PARTY_TOTALS_FLOW, **narrowing)
+    unheld = _heads_spec_id(0)
+    targets = [
+        {"ref": {"format_version": 1, "members": [kept.ref()]}},
+        {"ref": {"format_version": 1, "members": [cut.ref()]}},
+        _heads_spec(unheld),
+    ]
+    built = {
+        "format_version": 1,
+        "heads": sorted(
+            [
+                {"spec_id": kept.spec_id, "content_version": kept.content_version},
+                {"spec_id": unheld, "content_version": None},
+            ],
+            key=lambda head: head["spec_id"],
+        ),
+    }
+    require(
+        cut.spec_id == kept.spec_id and cut.content_version != kept.content_version,
+        "the kept and cut versions are two versions of one spec",
+    )
+    s.stored_versions(targets, built=built)
+    (outcome,) = s.expect
+    require(
+        outcome
+        == {
+            "stored_versions": {
+                "heads": built["heads"],
+                "changed": [],
+            }
+        },
+        "the spec's head is the kept version, the unregistered spec has none, "
+        "and nothing changed",
+    )
+
+
 RECORDED = (
     Recorded(
         "answer-definite-fetch",
@@ -1923,7 +2201,7 @@ RECORDED = (
     Recorded(
         "fetch-spec-party-totals-left-out",
         "Fetching a spec of DAC2a ODA to Kenya in 2022 with its origin open posts "
-        "without_party_totals: true in the build's options, as every fetch does by default, so "
+        "party_totals: false in the build's options, as every fetch does by default, so "
         "the build leaves out the donor group totals beside their members and answers a "
         "version of its own, with fewer rows than fetch-spec-party-totals-kept.",
         _fetch_spec_party_totals(keep=False),
@@ -1931,7 +2209,7 @@ RECORDED = (
     Recorded(
         "fetch-spec-party-totals-kept",
         "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no "
-        "without_party_totals, so the build keeps the donor group totals and answers the plain "
+        "cut in its options, so the build keeps the donor group totals and answers the plain "
         "version, with more rows.",
         _fetch_spec_party_totals(keep=True),
     ),
@@ -2109,6 +2387,48 @@ RECORDED = (
         "Choosing candidate 0 on part 0 posts part 1, a no_data part with no restatement, as a "
         "placeholder entry with its variable_text, status and reason.",
         _resubmit_placeholder,
+    ),
+    Recorded(
+        "analysis-rank-partitioned",
+        "A rank posts its recipe tree to the analysis route as {tree, latest}. Ranking the G7 "
+        "donors to two recipients by their 2020 to 2022 total with limit 3 keeps 3 rows; "
+        "with partition_by [destination] each recipient's donors rank on their own, so the "
+        "frame keeps 3 rows for each recipient, 6 in all.",
+        _analysis_rank_partitioned,
+    ),
+    Recorded(
+        "analysis-aggregate-sparse-breakdowns",
+        "Totalling all donors' 2022 health and education ODA to Kenya by donor and sector "
+        "refuses coverage_insufficient, since most donors fund only some sectors and the "
+        "grid counts each empty breakdown cell as missing. The same tree with "
+        "allow_sparse_breakdowns true answers the frame.",
+        _analysis_aggregate_sparse,
+    ),
+    Recorded(
+        "analysis-summed-root",
+        "A root that holds many StatVars, read at a version fetched with party totals and "
+        "named by no step's stat_var, is summed by the service: the answer's "
+        "stat_vars_summed gives the summed version and how many StatVars it summed, and "
+        "derived_roots gives that version with the fetched version as its "
+        "base_content_version.",
+        _analysis_summed_root,
+    ),
+    Recorded(
+        "analysis-party-totals-cut",
+        "Totalling a DAC2a read with its donors left open by donor, first at the version that "
+        "keeps the donor group totals and then at the version that cuts them, answers fewer "
+        "rows for the cut. A root read unsummed renders no version of its own, so neither "
+        "answer lists derived_roots.",
+        _analysis_party_totals_cut,
+    ),
+    Recorded(
+        "stored-versions",
+        "A stored-versions check of a ref of the DAC2a read at the version that keeps the "
+        "donor group totals, a ref of the version that cuts them and a spec DFO has not "
+        "registered sends one GET naming the two spec ids sorted. The answer gives the read's "
+        "head as the kept version and null for the unregistered spec, so against a saved "
+        "check that records both, nothing changed.",
+        _stored_versions_live,
     ),
 )
 
@@ -2681,25 +3001,27 @@ def _accepted_running(exchanges: list[dict[str, Any]], build: dict[str, Any]) ->
     exchanges[0]["response"]["json"]["operation"]["status"] = "running"
 
 
-# The retry_after_ms the polls that find the build running read in
+# The retry_after_ms the polls that find the build under way read in
 # fetch-spec-poll-pacing-changes, in turn. The values go up, up again, then down.
 _CHANGING_PACING_MS = (2500, 4000, 1000)
 
 
 def _pacing_changes(exchanges: list[dict[str, Any]], build: dict[str, Any]) -> None:
-    """Each poll that finds the build running reads its own retry_after_ms
-    from _CHANGING_PACING_MS, and the wait before the next poll is that
-    poll's value. The recording's running polls past that many are left
-    out, since how many a build takes depends on the server's load."""
+    """Each poll that finds the build under way, pending or running, reads
+    its own retry_after_ms from _CHANGING_PACING_MS, and the wait before the
+    next poll is that poll's value, whatever the status. The recording's
+    polls under way past that many are left out, since how many a build
+    takes, and how many of them find it queued, depends on the server's
+    load."""
     polls = [
         i
         for i, e in enumerate(exchanges)
         if e["request"].get("path", "").startswith("/datasets/operations/")
-        and e["response"]["json"]["operation"]["status"] == "running"
+        and e["response"]["json"]["operation"]["status"] in ("pending", "running")
     ]
     require(
         len(polls) >= len(_CHANGING_PACING_MS),
-        f"{len(_CHANGING_PACING_MS)} polls find the build running",
+        f"{len(_CHANGING_PACING_MS)} polls find the build under way",
     )
     for index in reversed(polls[len(_CHANGING_PACING_MS) :]):
         del exchanges[index]
@@ -3788,6 +4110,344 @@ def _empty_narrowing(parent: dict[str, Any], ctx: Context) -> Derived:
     return derived
 
 
+# --- stored roots and the embedded manifest ----------------------------------
+
+# The operation a `latest: "stored"` post waits on when a root's dataset has no
+# stored head, and the wait its 202 names.
+_STORED_REBUILD = "op_" + "5" * 64
+_STORED_PENDING_S = 2
+
+# How long DFO holds a working-tier frame after it stores it.
+_WORKING_RETENTION = timedelta(days=30)
+
+
+def _as_spec_root(tree: dict[str, Any]) -> dict[str, Any]:
+    """`tree` with its `data` root as the Spec root of the same spec and
+    rendering, which names no version."""
+    tree = copy.deepcopy(tree)
+    root = tree["inputs"]["data"]
+    tree["inputs"]["data"] = {
+        "spec_id": root["spec_id"],
+        "rendering": root["rendering"],
+    }
+    return tree
+
+
+def _stored_head(parent: dict[str, Any]) -> dict[str, Any]:
+    """The head the parent's spec stores: the version its first step reads,
+    the plain build its party-totals cut renders."""
+    root = parent["call"][0]["tree"]["inputs"]["data"]
+    require(
+        root["rendering"].get("without_party_totals") is False,
+        "the parent's first step reads the plain build",
+    )
+    return {"spec_id": root["spec_id"], "content_version": root["content_version"]}
+
+
+def _derived_manifest(
+    parent: dict[str, Any], body: Mapping[str, Any], tree: Mapping[str, Any]
+) -> dict[str, Any]:
+    """The derived manifest of the frame `body` names, as
+    `GET /datasets/derived/{spec_id}/{content_version}` answers it: held for
+    _WORKING_RETENTION from the record's time, with the recipe the answer's
+    ref names over the tree `tree` holds, and no series left out."""
+    (member,) = body["ref"]["members"]
+    stored = datetime.strptime(parent["origin"]["recorded_at"], "%Y-%m-%dT%H:%M:%SZ")
+    held = (stored + _WORKING_RETENTION).strftime("%Y-%m-%dT%H:%M:%SZ")
+    recipe = member["spec"]["recipe"]
+    return {
+        "spec_id": member["spec"]["spec_id"],
+        "content_version": member["content_version"],
+        "retention": {"pinned": False, "held_until": held},
+        "citation": {"text": "Computed by DFO.", "sources": []},
+        "recipe": {
+            "normal_form_hash": recipe["normal_form_hash"],
+            "replay_key": recipe["replay_key"],
+            "execution_identity": member["execution_identity"],
+            "tree": {
+                "verb": tree["verb"],
+                "arguments": copy.deepcopy(tree["arguments"]),
+                "inputs": {"data": {"root": 0}},
+            },
+            "roots": copy.deepcopy(member["roots"]),
+        },
+        "roots": copy.deepcopy(member["roots"]),
+        "resolved_periods": [],
+        "anchor": None,
+        "left_out": [],
+        "left_out_complete": True,
+    }
+
+
+def _ready_with(
+    exchange: Mapping[str, Any],
+    step: Mapping[str, Any],
+    **members: Any,
+) -> dict[str, Any]:
+    """`exchange`'s 200 answering the post `step` makes, its body with
+    `members` added, and without `summary` when the step states an `include`
+    that does not name it."""
+    response = copy.deepcopy(exchange["response"])
+    require(response["status"] == 200, "the parent's post answers 200")
+    response["json"].update(members)
+    if "summary" not in step.get("include", ("summary",)):
+        del response["json"]["summary"]
+    return {
+        "request": {
+            "method": "POST",
+            "path": ANALYSIS_PATH,
+            "json": analysis_body(step),
+        },
+        "response": response,
+    }
+
+
+def _stored_pending(step: Mapping[str, Any]) -> dict[str, Any]:
+    """The 202 a `latest: "stored"` post answers while a root's dataset has
+    no stored head and its rebuild runs as _STORED_REBUILD."""
+    return {
+        "request": {
+            "method": "POST",
+            "path": ANALYSIS_PATH,
+            "json": analysis_body(step),
+        },
+        "response": {
+            "status": 202,
+            "headers": {
+                "cache-control": "no-store",
+                "content-type": "application/json",
+                "retry-after": str(_STORED_PENDING_S),
+                "x-dfo-trace-id": "5" * 32,
+            },
+            "json": {
+                "status": "pending",
+                "retry_after_s": float(_STORED_PENDING_S),
+                "operations": [_STORED_REBUILD],
+            },
+        },
+    }
+
+
+def _run_analysis_steps(
+    ctx: Context, steps: Sequence[dict[str, Any]], canned: list[dict[str, Any]]
+) -> Derived:
+    """`steps` run over `canned`, each of which they must post."""
+    session = ctx.session("synthetic", canned=canned)
+    for step in steps:
+        session.analysis(
+            step["tree"],
+            latest=step.get("latest", False),
+            include=step.get("include", ()),
+        )
+    require(not session.recorder.canned, "the steps post every canned exchange")
+    return Derived(session.call, session.recorder.exchanges, session.expect)
+
+
+def _same_frames(derived: Derived, parent: dict[str, Any], *at: int) -> None:
+    """Require each outcome of `derived` to name the frame and rows the
+    parent's step `at[i]` names."""
+    for outcome, index in zip(derived.expect, at, strict=True):
+        named = {
+            k: outcome["analysis"][k] for k in ("spec_id", "content_version", "rows")
+        }
+        held = parent["expect"][index]["analysis"]
+        require(
+            named == {k: held[k] for k in named},
+            f"the stored read answers the frame the parent's step {index} answers",
+        )
+
+
+def _stored_roots(parent: dict[str, Any], ctx: Context) -> Derived:
+    """Both parent steps posted with Spec roots under `latest: "stored"`.
+    Each root resolves to the spec's stored head, the plain build, and the
+    cut root reads that build's cut, so each post shares the stored answer
+    of the parent's pinned post and adds `resolved_roots`: `current` for the
+    first, `pending` for the second, whose head's check runs."""
+    head = _stored_head(parent)
+    steps: list[dict[str, Any]] = []
+    canned: list[dict[str, Any]] = []
+    for index, freshness in enumerate(("current", "pending")):
+        step = {
+            "op": "analysis",
+            "tree": _as_spec_root(parent["call"][index]["tree"]),
+            "latest": "stored",
+        }
+        steps.append(step)
+        canned.append(
+            _ready_with(
+                parent["exchanges"][index],
+                step,
+                resolved_roots=[{**head, "freshness": freshness}],
+            )
+        )
+    derived = _run_analysis_steps(ctx, steps, canned)
+    _same_frames(derived, parent, 0, 1)
+    return derived
+
+
+def _stored_manifest(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The parent's cut post with `include: ["manifest"]`, then the same tree
+    with a Spec root under `latest: "stored"` and `include: ["manifest"]`,
+    which answers 202 pending while the dataset has no stored head and then
+    the parent's answer with `resolved_roots` and the embedded manifest."""
+    pinned_tree = parent["call"][1]["tree"]
+    pinned = {"op": "analysis", "tree": pinned_tree, "include": ["manifest"]}
+    stored = {
+        "op": "analysis",
+        "tree": _as_spec_root(pinned_tree),
+        "latest": "stored",
+        "include": ["manifest"],
+    }
+    answered = parent["exchanges"][1]
+    manifest = _derived_manifest(parent, answered["response"]["json"], pinned_tree)
+    canned = [
+        _ready_with(answered, pinned, manifest=manifest),
+        _stored_pending(stored),
+        _ready_with(
+            answered,
+            stored,
+            resolved_roots=[{**_stored_head(parent), "freshness": "current"}],
+            manifest=manifest,
+        ),
+    ]
+    derived = _run_analysis_steps(ctx, [pinned, stored], canned)
+    _same_frames(derived, parent, 1, 1)
+    return derived
+
+
+# The stored-head check's synthetic heads: specs named by id alone, each with
+# the least definition a Spec holds, and the versions the check answers.
+def _heads_spec_id(index: int) -> str:
+    return "spec_" + hashlib.md5(f"heads-{index}".encode()).hexdigest()
+
+
+def _heads_version(spec_id: str) -> str:
+    return "cv_" + hashlib.md5(spec_id.encode()).hexdigest()
+
+
+def _heads_spec(spec_id: str) -> dict[str, Any]:
+    return {
+        "spec": {
+            "spec_id": spec_id,
+            "definition": {"schema_version": 1, "spec_id": spec_id},
+        }
+    }
+
+
+def _heads_exchange(
+    spec_ids: Sequence[str], heads: list[dict[str, Any]], trace: str
+) -> dict[str, Any]:
+    """The stored-head check of `spec_ids` answered 200 with `heads`, which
+    an edge cache may keep five minutes."""
+    return {
+        "request": {"method": "GET", "path": heads_path(spec_ids)},
+        "response": {
+            "status": 200,
+            "headers": {
+                "content-type": "application/json",
+                "cache-control": "public, max-age=300",
+                TRACE_HEADER: trace,
+            },
+            "json": {"heads": heads},
+        },
+    }
+
+
+def _run_stored_versions(
+    ctx: Context, steps: Sequence[dict[str, Any]], canned: list[dict[str, Any]]
+) -> Derived:
+    """`steps` run over `canned`, each exchange of which they must make."""
+    session = ctx.session("synthetic", canned=canned)
+    for step in steps:
+        session.stored_versions(step["targets"], built=step.get("built"))
+    require(not session.recorder.canned, "the checks make every canned exchange")
+    return Derived(session.call, session.recorder.exchanges, session.expect)
+
+
+def _stored_versions_mixed(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A check of the parent's derived ref, whose root is the parent's
+    dataset, of its cut tree, which reads that dataset again, of a Spec, and
+    of a recipe reading the dataset and a second spec. The dataset's head
+    has moved past the version `built` records, the Spec's has none, and the
+    second spec's is the one `built` records, so the dataset alone changed."""
+    ref = parent["exchanges"][0]["response"]["json"]["ref"]
+    dataset = ref["members"][0]["roots"][0]["spec_id"]
+    unheld, kept = _heads_spec_id(0), _heads_spec_id(1)
+    quotient = {
+        "verb": "quotient_of",
+        "arguments": {},
+        "inputs": {"data": {"spec_id": dataset}, "other": {"spec_id": kept}},
+    }
+    targets = [
+        {"ref": ref},
+        {"tree": parent["call"][1]["tree"]},
+        _heads_spec(unheld),
+        {"tree": quotient},
+    ]
+    spec_ids = sorted({dataset, unheld, kept})
+    now = {dataset: _heads_version(dataset), unheld: None, kept: _heads_version(kept)}
+    built = {
+        "format_version": 1,
+        "heads": [
+            {
+                "spec_id": spec_id,
+                "content_version": (
+                    ref["members"][0]["roots"][0]["content_version"]
+                    if spec_id == dataset
+                    else now[spec_id]
+                ),
+            }
+            for spec_id in spec_ids
+        ],
+    }
+    heads = [{"spec_id": i, "content_version": now[i]} for i in spec_ids]
+    canned = [_heads_exchange(spec_ids, heads, "3b6f0e2c9a4d47e1b8c5d2f7a0e9c614")]
+    return _run_stored_versions(ctx, [{"targets": targets, "built": built}], canned)
+
+
+def _stored_versions_refused(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A check of HEADS_MAX specs, answered with every other head null, then
+    one of a spec more, one of no target, and one of a recipe reading the
+    parent's derived frame, each refused before any request."""
+    spec_ids = sorted(_heads_spec_id(i) for i in range(HEADS_MAX + 1))
+    cap = spec_ids[:HEADS_MAX]
+    heads = [
+        {"spec_id": i, "content_version": None if n % 2 else _heads_version(i)}
+        for n, i in enumerate(cap)
+    ]
+    member = parent["exchanges"][0]["response"]["json"]["ref"]["members"][0]
+    computed = {
+        "verb": "growth",
+        "arguments": {},
+        "inputs": {
+            "data": {
+                "spec_id": member["spec"]["spec_id"],
+                "content_version": member["content_version"],
+            }
+        },
+    }
+    steps = [
+        {"targets": [_heads_spec(i) for i in cap]},
+        {"targets": [_heads_spec(i) for i in spec_ids]},
+        {"targets": []},
+        {"targets": [{"tree": computed}]},
+    ]
+    canned = [_heads_exchange(cap, heads, "9d0c4b7e2f1a43c6a5e8b3d6f2c7a901")]
+    return _run_stored_versions(ctx, steps, canned)
+
+
+def _stored_versions_missing(parent: dict[str, Any], ctx: Context) -> Derived:
+    """A check of the parent's dataset and a Spec, answered with the
+    dataset's head alone."""
+    dataset = parent["call"][0]["tree"]["inputs"]["data"]["spec_id"]
+    unheld = _heads_spec_id(0)
+    spec_ids = sorted({dataset, unheld})
+    heads = [{"spec_id": dataset, "content_version": _heads_version(dataset)}]
+    canned = [_heads_exchange(spec_ids, heads, "e7a2c9f04b1d46839c0e5b7a2d8f3c15")]
+    targets = [{"tree": parent["call"][0]["tree"]}, _heads_spec(unheld)]
+    return _run_stored_versions(ctx, [{"targets": targets}], canned)
+
+
 SYNTHETIC = (
     Synthetic(
         "search-retry-after-503",
@@ -3998,8 +4658,9 @@ SYNTHETIC = (
     Synthetic(
         "fetch-spec-poll-pacing-changes",
         "mint-async-build",
-        "As fetch-spec-async-build, with the polls that find the build running reading "
-        "retry_after_ms 2500, 4000 and 1000 where the recording reads 1500.",
+        "As fetch-spec-async-build, with the first three polls that find the build under "
+        "way reading retry_after_ms 2500, 4000 and 1000 where the recording reads its own "
+        "values, and the later ones left out.",
         "Before each poll the client waits the retry_after_ms of the last operation "
         "resource it read: 1.5 seconds from the 202, then 2.5, 4 and 1 from the polls. A "
         "client that keeps the 202's value, or reads the Retry-After header in its place, "
@@ -4619,6 +5280,56 @@ SYNTHETIC = (
         "InvalidRequestError with no request.",
         _choice_refused("Congo [DRC]", "Congo"),
     ),
+    Synthetic(
+        "analysis-stored-roots",
+        "analysis-party-totals-cut",
+        'Both posts name a Spec root in the root\'s rendering with latest "stored", and each '
+        "200 adds resolved_roots naming the stored head, current then pending.",
+        'Under latest "stored" each root reads the version its dataset\'s stored head names, '
+        "and a cut root that head's cut, so the posts answer the frames the pinned posts "
+        "stored, and the outcome gives the worst freshness resolved_roots states.",
+        _stored_roots,
+    ),
+    Synthetic(
+        "analysis-stored-manifest",
+        "analysis-party-totals-cut",
+        'The cut post asks include ["manifest"], then posts again with a Spec root and '
+        'latest "stored", answered 202 pending before its 200; both 200s embed the '
+        "derived manifest.",
+        'include ["manifest"] embeds the derived manifest of the answer\'s pair in the 200, '
+        'pinned or stored, and a latest "stored" root whose dataset has no stored head '
+        "answers 202 pending naming the rebuild, after which the post answers.",
+        _stored_manifest,
+    ),
+    Synthetic(
+        "stored-versions-mixed",
+        "analysis-party-totals-cut",
+        "The steps and exchanges are one stored-versions check of the answer's derived ref, "
+        "the cut tree, a Spec and a recipe of the dataset and a second spec, answered 200.",
+        "A check names each spec its targets read once, sorted, in one GET; the answer gives "
+        "a version, a null and a version newer than the built check records, so only that "
+        "spec changed, and a head null in both did not.",
+        _stored_versions_mixed,
+    ),
+    Synthetic(
+        "stored-versions-refused-before-request",
+        "analysis-party-totals-cut",
+        "The steps and exchanges are a check of 64 specs, answered 200, then checks of 65 "
+        "specs, of no target and of a recipe reading the answer's derived frame.",
+        "A check of 64 specs, the most one request names, is answered; one of 65 specs, one "
+        "of no target and one whose recipe reads a frame DFO computed raise "
+        "InvalidRequestError invalid_argument and send no request.",
+        _stored_versions_refused,
+    ),
+    Synthetic(
+        "stored-versions-answer-missing-spec",
+        "analysis-party-totals-cut",
+        "The steps and exchanges are one check of the dataset and a Spec, answered 200 with "
+        "the dataset's head alone.",
+        "An answer that leaves out a spec the request named raises ContractError "
+        "contract_violation with the response's trace id.",
+        _stored_versions_missing,
+    ),
 )
 
 
@@ -4821,6 +5532,8 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 session.fetch_ref(ref)
             case {"op": "newest_version", "spec": spec}:
                 session.newest_version(_step_spec(spec))
+            case {"op": "stored_versions", "targets": targets}:
+                session.stored_versions(targets, built=step.get("built"))
             case {"op": "fetch"}:
                 if answer is None:
                     raise ValueError("a fetch of an answer follows no answer")
@@ -4841,6 +5554,12 @@ def drive(session: Session, call: Sequence[dict[str, Any]]) -> None:
                 session.resume(operation_id, layout=step.get("layout"))
             case {"op": "result"}:
                 session.result()
+            case {"op": "analysis", "tree": tree}:
+                session.analysis(
+                    tree,
+                    latest=step.get("latest", False),
+                    include=step.get("include", ()),
+                )
 
 
 def rederive_recorded(name: str, ctx: Context, directory: Path) -> None:

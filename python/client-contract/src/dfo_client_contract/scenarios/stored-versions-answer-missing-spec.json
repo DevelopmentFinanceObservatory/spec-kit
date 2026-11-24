@@ -1,0 +1,80 @@
+{
+  "format_version": 1,
+  "name": "stored-versions-answer-missing-spec",
+  "description": "An answer that leaves out a spec the request named raises ContractError contract_violation with the response's trace id.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "analysis-party-totals-cut",
+    "edit": "The steps and exchanges are one check of the dataset and a Spec, answered 200 with the dataset's head alone."
+  },
+  "call": [
+    {
+      "op": "stored_versions",
+      "targets": [
+        {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+                "rendering": {
+                  "without_party_totals": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "spec": {
+            "spec_id": "spec_4ee93359df630c2c67388714e7630aae",
+            "definition": {
+              "schema_version": 1,
+              "spec_id": "spec_4ee93359df630c2c67388714e7630aae"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/heads?spec_id=spec_4ee93359df630c2c67388714e7630aae&spec_id=spec_c9f9d816838bf8da08a3de2849783273"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "public, max-age=300",
+          "x-dfo-trace-id": "e7a2c9f04b1d46839c0e5b7a2d8f3c15"
+        },
+        "json": {
+          "heads": [
+            {
+              "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+              "content_version": "cv_0df0e8bb079c6f4ce282a300f99f3b19"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "ContractError",
+        "code": "contract_violation",
+        "trace_id": "e7a2c9f04b1d46839c0e5b7a2d8f3c15"
+      }
+    }
+  ]
+}

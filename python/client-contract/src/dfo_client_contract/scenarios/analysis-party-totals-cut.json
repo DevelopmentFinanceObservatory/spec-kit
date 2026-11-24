@@ -1,0 +1,3933 @@
+{
+  "format_version": 1,
+  "name": "analysis-party-totals-cut",
+  "description": "Totalling a DAC2a read with its donors left open by donor, first at the version that keeps the donor group totals and then at the version that cuts them, answers fewer rows for the cut. A root read unsummed renders no version of its own, so neither answer lists derived_roots.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:50:33Z"
+  },
+  "call": [
+    {
+      "op": "analysis",
+      "tree": {
+        "verb": "aggregate",
+        "arguments": {
+          "group_by": [
+            "time_period",
+            "origin"
+          ],
+          "aggregation": "sum"
+        },
+        "inputs": {
+          "data": {
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+            "rendering": {
+              "without_party_totals": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "analysis",
+      "tree": {
+        "verb": "aggregate",
+        "arguments": {
+          "group_by": [
+            "time_period",
+            "origin"
+          ],
+          "aggregation": "sum"
+        },
+        "inputs": {
+          "data": {
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+            "rendering": {
+              "without_party_totals": true
+            }
+          }
+        }
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+                "rendering": {
+                  "without_party_totals": false
+                }
+              }
+            }
+          },
+          "latest": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "777cd35f4d0c48fa94d89de318b2f440"
+        },
+        "json": {
+          "status": "ready",
+          "ref": {
+            "format_version": 2,
+            "members": [
+              {
+                "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_db9447b113d8bbf9d8ba7f42d30ae604",
+                  "recipe": {
+                    "normal_form_hash": "rnf_269c09ad7e75f8e0ca1f161c895551d4",
+                    "replay_key": "rpk_45a96e49242181a1a8b56bb589fa11a4"
+                  }
+                },
+                "content_version": "ocv_82719945f89f44ceefe786a8d5ebfe7c",
+                "output_digest": "out_1c7e9ed19f3c42e32d3fc8815e336cbc",
+                "roots": [
+                  {
+                    "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+                    "rendering": {
+                      "format": "parquet",
+                      "bundle": false,
+                      "layout": "frame"
+                    }
+                  }
+                ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
+                "artifact": {
+                  "digest": "sha256:971ea8bd415fd74bc81cd20067caa2a709326e4910d4d40816f518c2bca40d07",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame"
+                  }
+                }
+              }
+            ]
+          },
+          "frame_content_version": "cv_98a446197cb1edaf99d838304b2af07e",
+          "output_digest": "out_1c7e9ed19f3c42e32d3fc8815e336cbc",
+          "summary": {
+            "verb": "aggregate",
+            "spec_id": "ops_db9447b113d8bbf9d8ba7f42d30ae604",
+            "content_version": "ocv_82719945f89f44ceefe786a8d5ebfe7c",
+            "frame_content_version": "cv_98a446197cb1edaf99d838304b2af07e",
+            "rows": 111,
+            "role_keys": [
+              "financingProvider",
+              "financingProvider_party_class",
+              "financingProvider_party_kind",
+              "financingProvider_party_whole",
+              "financingProvider_type"
+            ],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": null,
+            "exclusions": [],
+            "time": {
+              "kind": "observation"
+            },
+            "parameters": {
+              "aggregation": "sum",
+              "group_by": [
+                "financingProvider",
+                "time_period"
+              ],
+              "unit": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
+            "result": {
+              "resolved_unit": "CurrencyUSD",
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/ONEDAC2aBilateral"
+                }
+              ],
+              "warnings": [],
+              "realised_coverage_fraction": 1.0,
+              "skipped_cell_count": 0,
+              "expected_cell_count": 111,
+              "present_cell_count": 111,
+              "group_summaries": [
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AdaptationFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1501862.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AfricanDevelopmentBank"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 105410.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AfricanDevelopmentBankGroup"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3474680.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AfricanDevelopmentFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3369270.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "BezosEarthFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6800000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "BloombergPhilanthropies"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 981096.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "CentralEmergencyResponseFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 10000000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "ChildrensInvestmentFundFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 15029121.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "ClimateInvestmentFunds"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2612158.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "ConradNHiltonFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12705042.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACCountriesTotal"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1230760311.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACEUMembers"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 291027996.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACEUMembersAndEUInstitutions"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 416603051.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACMultilaterals"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1401689084.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACNonDACCountries"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6915789.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACOfficialDonors"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2639365184.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACOtherMultilateralOrganisations"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 259810689.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACPrivateDonors"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 320107717.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACRegionalDevelopmentBanks"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3664577.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACUnitedNations"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 73115623.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DACWorldBank"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 938795140.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DavidAndLucilePackardFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 110000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "EuropeanUnionInstitutions"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 125575055.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "FondationBotnar"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 108664.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "FoodAndAgricultureOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 594192.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "FordFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6086516.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GatesFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 100812689.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "Gavi"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 17081382.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GlobalEnvironmentFacility"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3426878.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GlobalFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 230162811.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GoodVenturesFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2740633.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GroupOfSeven"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1009734477.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "IKEAFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 26425628.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalAtomicEnergyAgency"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 911714.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalCentreForGeneticEngineeringAndBiotechnology"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 47145.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalDevelopmentAssociation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 938795140.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalFundForAgriculturalDevelopment"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 26954360.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalLabourOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 720565.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalTradeCentre"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 95832.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "IslamicDevelopmentBank"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 189897.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "JohnDAndCatherineTMacArthurFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1298211.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "JointSDGFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 615190.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "JointUnitedNationsProgrammeOnHIVAIDS"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 56987.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "LEGOFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2281715.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "LaCaixaFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 292501.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "MargaretACargillFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3650000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "MastercardFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 100268479.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "NordicDevelopmentFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 97981.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "OPECFundForInternationalDevelopment"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4880472.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "OakFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 174599.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "OpenSocietyFoundations"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1717000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "PostcodeLotteryGroup"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 232496.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "PrivateInfrastructureDevelopmentGroup"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 728000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "RockefellerFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1776675.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "SusanThompsonBuffettFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 14611387.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "SwedishPostcodeLottery"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 232496.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UBSOptimusFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2672506.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UNWomen"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 988683.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsChildrensFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12447000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsDevelopmentCoordinationOffice"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1566871.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsDevelopmentProgramme"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2443938.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsHighCommissionerForRefugees"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 5924100.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsIndustrialDevelopmentOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 27603.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsPeacebuildingFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1000000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsPopulationFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4836050.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WHOStrategicPreparednessAndResponsePlan"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 54153.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WellcomeTrust"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12267492.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WilliamAndFloraHewlettFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6690267.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldBankGroup"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 938795140.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldDiabetesFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 375000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldFoodProgramme"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1489279.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldHealthOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2389106.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ARE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 148375.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/AUS"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 7050755.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/AUT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1774803.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/BEL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 15242007.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/CAN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 39419090.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/CHE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 11280689.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/CZE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 238269.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/DEU"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 74954346.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/DNK"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 53542234.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ESP"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": -2416740.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/EST"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 998002.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/FIN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6719488.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/FRA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 41989796.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/GBR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 55388349.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/GRC"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 15825.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/HUN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4399576.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/IRL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12024878.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ISL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 546934.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ISR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 827530.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ITA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 21501138.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/JPN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 185715457.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/KOR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 37053028.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/KWT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": -279507.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/LTU"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4827.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/LUX"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 418344.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/LVA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4193.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/MLT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 26655.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/NLD"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 9285208.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/NOR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 11741028.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/NZL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 770684.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/POL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1731044.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/PRT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 119164.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/QAT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2748960.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ROU"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 44133.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/SVK"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1489676.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/SWE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 46947785.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/THA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 134698.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/TUR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 452765.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/USA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 590766301.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                }
+              ],
+              "collapsed_periods": [
+                "2022"
+              ],
+              "period_label": null,
+              "entity_count": 111,
+              "period_entities": [
+                [
+                  "2022",
+                  1
+                ]
+              ],
+              "exclusions": {
+                "records": []
+              },
+              "pooled_parties": []
+            }
+          },
+          "rows": 111,
+          "role_keys": [
+            "financingProvider",
+            "financingProvider_party_class",
+            "financingProvider_party_kind",
+            "financingProvider_party_whole",
+            "financingProvider_type"
+          ],
+          "stat_var_count": 1,
+          "exclusions": [],
+          "time": {
+            "kind": "observation"
+          },
+          "execution_identity": {
+            "engine_version": "0.9.1",
+            "frame_grammar_version": "1.2.0",
+            "reduction_policy_version": "0.2.0"
+          },
+          "resolved_periods": [],
+          "derived_roots": [],
+          "stat_vars_summed": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          },
+          "latest": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "9cd62ae89e484f08ae7e4249ac6c0080"
+        },
+        "json": {
+          "status": "ready",
+          "ref": {
+            "format_version": 2,
+            "members": [
+              {
+                "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+                  "recipe": {
+                    "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985",
+                    "replay_key": "rpk_c2aaba4f18599953fb9a8389f8bf7617"
+                  }
+                },
+                "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+                "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
+                "roots": [
+                  {
+                    "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                    "rendering": {
+                      "format": "parquet",
+                      "bundle": false,
+                      "layout": "frame",
+                      "without_party_totals": true
+                    }
+                  }
+                ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
+                "artifact": {
+                  "digest": "sha256:698c5c03a9104232137fb1c734258a8fffb77358fb26ed63e8f48ae13e5db424",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame"
+                  }
+                }
+              }
+            ]
+          },
+          "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
+          "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
+          "summary": {
+            "verb": "aggregate",
+            "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+            "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+            "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
+            "rows": 96,
+            "role_keys": [
+              "financingProvider",
+              "financingProvider_party_class",
+              "financingProvider_party_kind",
+              "financingProvider_party_whole",
+              "financingProvider_type"
+            ],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": null,
+            "exclusions": [],
+            "time": {
+              "kind": "observation"
+            },
+            "parameters": {
+              "aggregation": "sum",
+              "group_by": [
+                "financingProvider",
+                "time_period"
+              ],
+              "unit": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
+            "result": {
+              "resolved_unit": "CurrencyUSD",
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/ONEDAC2aBilateral"
+                }
+              ],
+              "warnings": [],
+              "realised_coverage_fraction": 1.0,
+              "skipped_cell_count": 0,
+              "expected_cell_count": 96,
+              "present_cell_count": 96,
+              "group_summaries": [
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AdaptationFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1501862.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AfricanDevelopmentBank"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 105410.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "AfricanDevelopmentFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3369270.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "BezosEarthFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6800000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "BloombergPhilanthropies"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 981096.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "CentralEmergencyResponseFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 10000000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "ChildrensInvestmentFundFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 15029121.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "ClimateInvestmentFunds"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2612158.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "ConradNHiltonFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12705042.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "DavidAndLucilePackardFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 110000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "EuropeanUnionInstitutions"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 125575055.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "FondationBotnar"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 108664.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "FoodAndAgricultureOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 594192.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "FordFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6086516.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GatesFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 100812689.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "Gavi"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 17081382.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GlobalEnvironmentFacility"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3426878.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GlobalFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 230162811.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "GoodVenturesFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2740633.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "IKEAFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 26425628.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalAtomicEnergyAgency"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 911714.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalCentreForGeneticEngineeringAndBiotechnology"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 47145.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalDevelopmentAssociation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 938795140.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalFundForAgriculturalDevelopment"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 26954360.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalLabourOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 720565.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "InternationalTradeCentre"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 95832.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "IslamicDevelopmentBank"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 189897.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "JohnDAndCatherineTMacArthurFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1298211.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "JointSDGFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 615190.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "JointUnitedNationsProgrammeOnHIVAIDS"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 56987.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "LEGOFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2281715.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "LaCaixaFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 292501.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "MargaretACargillFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 3650000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "MastercardFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 100268479.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "NordicDevelopmentFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 97981.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "OPECFundForInternationalDevelopment"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4880472.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "OakFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 174599.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "OpenSocietyFoundations"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1717000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "PrivateInfrastructureDevelopmentGroup"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 728000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "RockefellerFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1776675.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "SusanThompsonBuffettFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 14611387.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "SwedishPostcodeLottery"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 232496.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UBSOptimusFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2672506.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UNWomen"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 988683.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsChildrensFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12447000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsDevelopmentCoordinationOffice"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1566871.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsDevelopmentProgramme"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2443938.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsHighCommissionerForRefugees"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 5924100.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsIndustrialDevelopmentOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 27603.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsPeacebuildingFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1000000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "UnitedNationsPopulationFund"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4836050.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WHOStrategicPreparednessAndResponsePlan"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 54153.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WellcomeTrust"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12267492.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WilliamAndFloraHewlettFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6690267.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldDiabetesFoundation"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 375000.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldFoodProgramme"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1489279.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "WorldHealthOrganization"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2389106.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ARE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 148375.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/AUS"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 7050755.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/AUT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1774803.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/BEL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 15242007.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/CAN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 39419090.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/CHE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 11280689.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/CZE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 238269.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/DEU"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 74954346.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/DNK"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 53542234.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ESP"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": -2416740.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/EST"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 998002.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/FIN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 6719488.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/FRA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 41989796.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/GBR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 55388349.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/GRC"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 15825.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/HUN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4399576.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/IRL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 12024878.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ISL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 546934.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ISR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 827530.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ITA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 21501138.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/JPN"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 185715457.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/KOR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 37053028.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/KWT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": -279507.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/LTU"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4827.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/LUX"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 418344.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/LVA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 4193.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/MLT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 26655.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/NLD"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 9285208.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/NOR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 11741028.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/NZL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 770684.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/POL"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1731044.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/PRT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 119164.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/QAT"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 2748960.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/ROU"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 44133.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/SVK"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 1489676.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/SWE"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 46947785.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/THA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 134698.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/TUR"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 452765.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                },
+                {
+                  "group_key": [
+                    [
+                      "financingProvider",
+                      "country/USA"
+                    ],
+                    [
+                      "time_period",
+                      "2022"
+                    ]
+                  ],
+                  "value": 590766301.0,
+                  "row_count": 1,
+                  "time_period_min": "2022",
+                  "time_period_max": "2022",
+                  "value_period": null
+                }
+              ],
+              "collapsed_periods": [
+                "2022"
+              ],
+              "period_label": null,
+              "entity_count": 96,
+              "period_entities": [
+                [
+                  "2022",
+                  1
+                ]
+              ],
+              "exclusions": {
+                "records": []
+              },
+              "pooled_parties": []
+            }
+          },
+          "rows": 96,
+          "role_keys": [
+            "financingProvider",
+            "financingProvider_party_class",
+            "financingProvider_party_kind",
+            "financingProvider_party_whole",
+            "financingProvider_type"
+          ],
+          "stat_var_count": 1,
+          "exclusions": [],
+          "time": {
+            "kind": "observation"
+          },
+          "execution_identity": {
+            "engine_version": "0.9.1",
+            "frame_grammar_version": "1.2.0",
+            "reduction_policy_version": "0.2.0"
+          },
+          "resolved_periods": [],
+          "derived_roots": [],
+          "stat_vars_summed": []
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "analysis": {
+        "spec_id": "ops_db9447b113d8bbf9d8ba7f42d30ae604",
+        "content_version": "ocv_82719945f89f44ceefe786a8d5ebfe7c",
+        "rows": 111,
+        "stat_vars_summed": [],
+        "derived_roots": []
+      }
+    },
+    {
+      "analysis": {
+        "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+        "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+        "rows": 96,
+        "stat_vars_summed": [],
+        "derived_roots": []
+      }
+    }
+  ]
+}

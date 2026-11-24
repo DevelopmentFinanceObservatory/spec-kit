@@ -256,6 +256,12 @@
             "$ref": "#/$defs/operation_step"
           },
           {
+            "$ref": "#/$defs/analysis_step"
+          },
+          {
+            "$ref": "#/$defs/stored_versions_step"
+          },
+          {
             "$ref": "#/$defs/result_step"
           }
         ]
@@ -337,7 +343,7 @@
           "type": "boolean"
         },
         "party_totals": {
-          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "description": "True keeps the group totals of the identity's open party roles, so the build's options carry no cut. Absent or false leaves them out, and the build posts `party_totals: false`, the request spelling. A build that posts the older `without_party_totals: true` asks for the same cut.",
           "type": "boolean"
         }
       }
@@ -364,7 +370,7 @@
           "type": "boolean"
         },
         "party_totals": {
-          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "description": "True keeps the group totals of the identity's open party roles, so the build's options carry no cut. Absent or false leaves them out, and the build posts `party_totals: false`, the request spelling. A build that posts the older `without_party_totals: true` asks for the same cut.",
           "type": "boolean"
         },
         "window": true,
@@ -392,7 +398,7 @@
             {
               "properties": {
                 "format_version": {
-                  "description": "Format 1, a ref of dataset members. No scenario serves a derived member yet, so a format 2 ref fails here.",
+                  "description": "Format 1, a ref of dataset members. No fetch scenario serves a derived member's frame, so a format 2 ref fails here.",
                   "const": 1
                 }
               }
@@ -437,7 +443,7 @@
           "$ref": "#/$defs/layout"
         },
         "party_totals": {
-          "description": "True keeps the group totals of the identity's open party roles, so the build posts no `without_party_totals`. Absent or false leaves them out.",
+          "description": "True keeps the group totals of the identity's open party roles, so the build's options carry no cut. Absent or false leaves them out, and the build posts `party_totals: false`, the request spelling. A build that posts the older `without_party_totals: true` asks for the same cut.",
           "type": "boolean"
         }
       }
@@ -474,6 +480,110 @@
           "const": "result"
         }
       }
+    },
+    "analysis_step": {
+      "description": "A recipe tree posted to `POST /datasets/analysis`, with `latest` false when left out, and `include` when the step names it, as `{tree, latest, include?}`. `latest` `\"stored\"` reads each root at the version its dataset's stored head names, and `include: [\"manifest\"]` asks for the derived manifest in the 200. A 202 is pending, and the client posts the same body again after the 202's `Retry-After`, else its `retry_after_s`, held between 1 and 60 seconds; a 200 answers the stored frame. The served document types verb arguments as an open object, so the validator holds `allow_sparse_breakdowns` to `aggregate` and `rank` and to true, and `partition_by` to `rank`, as a non-empty list of distinct column words none of which `rank_by` names.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "tree"
+      ],
+      "properties": {
+        "op": {
+          "const": "analysis"
+        },
+        "tree": {
+          "description": "The recipe tree, as the request's `tree` holds it: a step `{verb, arguments, inputs: {data, other?}}` or a derived root.",
+          "type": "object"
+        },
+        "latest": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "stored"
+            }
+          ]
+        },
+        "include": {
+          "description": "The optional 200 members the step asks for, `manifest` and `summary`. A post that states `include` receives `summary` only when the list names it, so `[]` asks for the lean body.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "manifest",
+              "summary"
+            ]
+          }
+        }
+      }
+    },
+    "stored_versions_step": {
+      "description": "A stored-versions check of `targets`, sent as one `GET /datasets/heads` naming every spec id the targets read, each once, sorted by code point. Targets that read no spec or more than 64, or a tree root naming a frame DFO computed, raise `InvalidRequestError` `invalid_argument` before any request. `built` is an earlier check's saved form, and the outcome then gives the specs changed since it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "targets"
+      ],
+      "properties": {
+        "op": {
+          "const": "stored_versions"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stored_versions_target"
+          }
+        },
+        "built": {
+          "$ref": "stored-versions.schema.json"
+        }
+      }
+    },
+    "stored_versions_target": {
+      "description": "One target of a stored-versions check: a `spec`, which reads its own spec id; a `ref`, whose dataset members read their spec ids and whose derived members read their roots' spec ids; or a recipe `tree`, as an analysis step holds it, whose roots read their spec ids.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "spec"
+          ],
+          "properties": {
+            "spec": {
+              "$ref": "#/$defs/spec"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "dataset-ref.schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tree"
+          ],
+          "properties": {
+            "tree": {
+              "description": "A recipe tree, as an analysis step's `tree` holds it.",
+              "type": "object"
+            }
+          }
+        }
+      ]
     },
     "exchange": {
       "type": "object",
@@ -662,6 +772,30 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
+            "analysis"
+          ],
+          "properties": {
+            "analysis": {
+              "$ref": "#/$defs/analysis"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stored_versions"
+          ],
+          "properties": {
+            "stored_versions": {
+              "$ref": "#/$defs/stored_versions"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
             "error"
           ],
           "properties": {
@@ -842,6 +976,77 @@
             }
           }
         },
+        "party_totals_left_out": {
+          "description": "The group totals the fetch left out of its members' rows, as each member's manifest names them in trace.party_totals_left_out: one entry per member, party role, provenance that lost rows and set of kept series, in member order and then in the manifest's order, each naming its member's spec_id. A derived member's entries come from its derived manifest's roots, each root's party_totals_left_out named by the root's spec_id, in root order. No scenario serves one. An entry gives provenance as served, null included, and leaves it out where the manifest's entry does, which means the rows of every dataset. It gives kept_in where the manifest's entry does, which means the totals stayed in the rows of those series in their time_periods. Absent when no member's manifest names any.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec_id",
+              "role",
+              "entities"
+            ],
+            "properties": {
+              "spec_id": {
+                "$ref": "#/$defs/spec_id"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "provenance": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "kept_in": {
+                "description": "The series, each with its time_periods, in which the entry's totals stayed in its provenance's rows, as the manifest's entry serves them. A series maps each column of the frame's grain other than the entry's role, time_period and provenance to the cell the series holds there: a string, null, or a unit as a JSON object. Items are sorted by their series cells in column-name order, each null first, then a string by code point, then an object by the code points of its JCS text, and no two items hold the same series. An item's time_periods are sorted by code point, each once. Absent when the totals left every series in every period. Entries that share a role and a provenance differ by kept_in.",
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "series",
+                    "time_periods"
+                  ],
+                  "properties": {
+                    "series": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "null",
+                          "object"
+                        ]
+                      }
+                    },
+                    "time_periods": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "search_warning": {
           "description": "For a fetch of an answer only: whether the fetch issued a SearchWarning.",
           "type": "boolean"
@@ -884,6 +1089,117 @@
         }
       }
     },
+    "analysis": {
+      "description": "A ready analysis answer: the derived member its format 2 ref names, the frame's `rows`, and the answer's `stat_vars_summed` and `derived_roots` as served, each empty when the answer leaves it out, with `freshness` for a step that posts `latest: \"stored\"` and `left_out_series` for one that posts `include: [\"manifest\"]`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "content_version",
+        "rows",
+        "stat_vars_summed",
+        "derived_roots"
+      ],
+      "properties": {
+        "spec_id": {
+          "type": "string",
+          "pattern": "^ops_[0-9a-f]{32}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "content_version": {
+          "type": "string",
+          "pattern": "^ocv_[0-9a-f]{32}$",
+          "$ref": "#/$defs/one_line"
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stat_vars_summed": {
+          "description": "Each root read as the sum of its StatVars: the version summed into and how many StatVars it summed.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec_id",
+              "content_version",
+              "count"
+            ],
+            "properties": {
+              "spec_id": {
+                "type": "string"
+              },
+              "content_version": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 2
+              }
+            }
+          }
+        },
+        "derived_roots": {
+          "description": "Each root whose rendering is a version of its own, with `base_content_version`, the dataset version it renders, where the answer names one. A root read as a stored dataset version names none, since it is that version; `analysis-party-totals-cut` lists none because each root reads its own stored version, one kept and one cut.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec_id",
+              "content_version"
+            ],
+            "properties": {
+              "spec_id": {
+                "type": "string"
+              },
+              "content_version": {
+                "type": "string"
+              },
+              "base_content_version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "freshness": {
+          "description": "Given only for a step that posts `latest: \"stored\"`: the worst freshness the answer's `resolved_roots` state, `current` before `pending` before `stale`, or null when the member is absent or not a list, or any entry is not an object stating one of the three.",
+          "enum": [
+            "current",
+            "pending",
+            "stale",
+            null
+          ]
+        },
+        "left_out_series": {
+          "description": "Given only for a step that posts `include: [\"manifest\"]`: the number of series the embedded manifest's `left_out` lists, or null when it is null.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "pending_waits": {
+          "description": "The seconds the client waited before each post again after a 202, in order. Given only when it waited.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
     "newest_version": {
       "description": "The newest stored version a newest_version step finds, or null when the spec has none.",
       "type": "object",
@@ -910,6 +1226,37 @@
         }
       }
     },
+    "stored_versions": {
+      "description": "The outcome of a stored-versions step: one head per spec the check named, sorted by spec_id, and with `built`, the spec ids, sorted, whose head differs from the one `built` records or that `built` does not list.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heads"
+      ],
+      "properties": {
+        "heads": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "stored-versions.schema.json#/$defs/head"
+          }
+        },
+        "changed": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/spec_id"
+          }
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
     "error": {
       "type": "object",
       "additionalProperties": false,
@@ -926,6 +1273,7 @@
             "IncompleteAnswerError",
             "DeclinedError",
             "VersionUnavailableError",
+            "VersionNotPinnedError",
             "AuthenticationError",
             "PermissionDeniedError",
             "RateLimitError",
@@ -935,7 +1283,9 @@
             "SearchWarning",
             "DataWarning",
             "NetworkError",
-            "DfoTimeoutError"
+            "DfoTimeoutError",
+            "FormatError",
+            "BundleError"
           ]
         },
         "code": {

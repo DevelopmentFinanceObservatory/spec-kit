@@ -5,17 +5,17 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:38:22Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:48:00Z"
   },
   "call": [
     {
       "op": "fetch",
       "spec": {
-        "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+        "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
         "definition": {
           "schema_version": 1,
-          "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+          "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
           "identity": {
             "identity_version": "spec1",
             "shape": {
@@ -107,10 +107,16 @@
             },
             "requested_window": {
               "kind": "all"
+            },
+            "facets": {
+              "provenance": {
+                "state": "value",
+                "ref": "provenance/ONEDAC2aBilateral"
+              }
             }
           }
         },
-        "sentence": "Germany's net disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Germany's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
         "entity_groups": {
           "destination": {
             "label": "Least Developed Countries",
@@ -134,10 +140,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+            "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_fc5ce33e120fc3dcba5e02f0655a4258",
+              "spec_id": "spec_e08f40c36e984153d484b17eff67f258",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -229,6 +235,12 @@
                 },
                 "requested_window": {
                   "kind": "all"
+                },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/ONEDAC2aBilateral"
+                  }
                 }
               }
             },
@@ -289,7 +301,7 @@
           "options": {
             "format": "parquet",
             "bundle": false,
-            "without_party_totals": true
+            "party_totals": false
           }
         }
       },
@@ -297,15 +309,60 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "cf3527fa181f4bd294cc8bdcb8d8b510"
+          "x-dfo-trace-id": "ed40e2aa71d948ab8d3601b925dcd2b3"
         },
         "json": {
           "schema_version": 1,
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_d0fa2dd4c5ba67436b13a12bb98547d4",
+            "spec_id": "spec_a1a4dd1696bf239aed0d96085f9bd5be",
             "identity": {
+              "shape": {
+                "kind": "statvar_schema",
+                "stat_type": "measuredValue",
+                "population_type": "FinancialFlow",
+                "measured_property": "amount",
+                "measurement_qualifier": "Nominal"
+              },
+              "slots": [
+                {
+                  "binding": {
+                    "ref": "DAC2aAidType206",
+                    "state": "value"
+                  },
+                  "property": "dac2aAidType"
+                },
+                {
+                  "binding": {
+                    "state": "unbound"
+                  },
+                  "property": "dacTypeOfFinance"
+                },
+                {
+                  "binding": {
+                    "ref": "Disbursement",
+                    "state": "value"
+                  },
+                  "property": "financialFlowType"
+                },
+                {
+                  "binding": {
+                    "ref": "Net",
+                    "state": "value"
+                  },
+                  "property": "nettingBasis"
+                }
+              ],
+              "facets": {
+                "provenance": {
+                  "ref": "provenance/ONEDAC2aBilateral",
+                  "state": "value"
+                }
+              },
               "entities": {
+                "origin": [
+                  "country/FRA"
+                ],
                 "destination": [
                   "country/AFG",
                   "country/AGO",
@@ -351,55 +408,16 @@
                   "country/UGA",
                   "country/YEM",
                   "country/ZMB"
-                ],
-                "origin": [
-                  "country/FRA"
                 ]
               },
               "identity_version": "spec1",
               "requested_window": {
                 "kind": "all"
-              },
-              "shape": {
-                "kind": "statvar_schema",
-                "measured_property": "amount",
-                "measurement_qualifier": "Nominal",
-                "population_type": "FinancialFlow",
-                "stat_type": "measuredValue"
-              },
-              "slots": [
-                {
-                  "binding": {
-                    "ref": "DAC2aAidType206",
-                    "state": "value"
-                  },
-                  "property": "dac2aAidType"
-                },
-                {
-                  "binding": {
-                    "state": "unbound"
-                  },
-                  "property": "dacTypeOfFinance"
-                },
-                {
-                  "binding": {
-                    "ref": "Disbursement",
-                    "state": "value"
-                  },
-                  "property": "financialFlowType"
-                },
-                {
-                  "binding": {
-                    "ref": "Net",
-                    "state": "value"
-                  },
-                  "property": "nettingBasis"
-                }
-              ]
+              }
             }
           },
-          "content_version": "cv_070d2755d6bf2ffa39860ca05c717279",
-          "prepared_at": "2026-11-01T07:38:23Z",
+          "content_version": "cv_826835ff0b086fed3fef5ae63099baf1",
+          "prepared_at": "2026-11-15T21:46:07Z",
           "coverage": {
             "rows": 2128,
             "dimensions": [
@@ -428,9 +446,9 @@
             ],
             "window": {
               "kind": "all",
-              "start_year": 1960,
+              "origin": "default",
               "end_year": 2024,
-              "origin": "default"
+              "start_year": 1960
             }
           },
           "citation": {
@@ -521,30 +539,117 @@
                       ]
                     }
                   ]
-                }
+                },
+                "licence": "OECD Terms and Conditions",
+                "licence_type": "OECDTermsAndConditions",
+                "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
               }
             ]
           },
           "trace": {
+            "facets": [
+              {
+                "ref": "provenance/ONEDAC2aBilateral",
+                "axis": "provenance",
+                "basis": "bound",
+                "default_policy": null,
+                "selection_reason": "the composite OECD DAC2a",
+                "dispatch_facet_id": "provenance/ONEDAC2aBilateral",
+                "default_policy_version": null
+              },
+              {
+                "ref": null,
+                "axis": "measurementMethod",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "absent_on_selected_facet",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              },
+              {
+                "ref": "CurrencyUSD",
+                "axis": "unit",
+                "basis": "deployment_fallback",
+                "default_policy": "dfo/facet-policy/most-observations",
+                "selection_reason": "sole_candidate",
+                "dispatch_facet_id": "1962969911839422253",
+                "default_policy_version": "1"
+              }
+            ],
+            "components": [
+              {
+                "role": "bilateral",
+                "rows": 2128,
+                "facets": [
+                  {
+                    "ref": "provenance/OECDDAC2A",
+                    "axis": "provenance",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": null,
+                    "axis": "measurementMethod",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "absent_on_selected_facet",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": "CurrencyUSD",
+                    "axis": "unit",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  }
+                ],
+                "periods": [
+                  [
+                    1960,
+                    1960
+                  ],
+                  [
+                    1963,
+                    2024
+                  ]
+                ],
+                "warnings": [],
+                "stat_vars": [
+                  "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal"
+                ],
+                "zero_rows": 0,
+                "provenance": "provenance/OECDDAC2A",
+                "dropped_years": [],
+                "content_version": "cv_070d2755d6bf2ffa39860ca05c717279"
+              }
+            ],
             "applied_window": {
               "kind": "all",
-              "start_year": 1960,
+              "origin": "default",
               "end_year": 2024,
-              "origin": "default"
+              "start_year": 1960
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00284-j2f",
+            "graph_revision": "dfo-dev-dc-datacommons-service-00292-njf",
+            "normalisations": [],
             "code_index_stamp": {
-              "content_hash": "a1bde3be8710f5ba073e52aaaba73cf9156079c273c874372f54bb07a81b0f94",
-              "exported_at": "2026-11-01T03:08:18Z",
+              "exported_at": "2026-11-12T22:30:30Z",
+              "content_hash": "68c74212b6a5f923d3543f7bb04f7b791c28b62bfccd3d073ab03bfcb50216da",
               "graph_endpoint": "graph_release"
             },
-            "origin_catalogue_build_id": "20261029T171521Z-7d0a5854",
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
                 "revision": "2026-10-29"
               }
             ],
+            "capability_version": "dset_af2827aa39ed8c0d",
+            "materialiser_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
@@ -555,43 +660,12 @@
                 "observation_count": 2128
               }
             ],
-            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
-            "family_member_count": 1,
-            "facets": [
-              {
-                "axis": "provenance",
-                "ref": "provenance/OECDDAC2A",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "measurementMethod",
-                "ref": null,
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "absent_on_selected_facet",
-                "dispatch_facet_id": "1962969911839422253"
-              },
-              {
-                "axis": "unit",
-                "ref": "CurrencyUSD",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "default_policy_version": "1",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253"
-              }
-            ],
-            "normalisations": [],
-            "frame_grammar_version": "1.1.0",
-            "materialiser_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "capability_version": "dset_5282a0674178a233",
+            "family_member_count": null,
+            "family_member_digest": null,
+            "frame_grammar_version": "1.2.0",
+            "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "materialise",
-            "confirmed_at": "2026-11-01T07:38:23.690796+00:00"
+            "confirmed_at": "2026-11-23T16:48:01.379773+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -603,35 +677,35 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:e394e0de88d7c5b0e9488b0169a229b2261005a5ab2d7b9a4d8e2dd925da5fa1",
+              "artifact_digest": "sha256:6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4,
+                "layout": 5,
                 "without_party_totals": true
               },
-              "bytes": 21244,
+              "bytes": 21143,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-11-01T07:38:23.639888+00:00",
+              "created_at": "2026-11-15T21:46:07.963084+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_d0fa2dd4c5ba67436b13a12bb98547d4/cv_070d2755d6bf2ffa39860ca05c717279/files/sha256:e394e0de88d7c5b0e9488b0169a229b2261005a5ab2d7b9a4d8e2dd925da5fa1",
-              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+              "url": "/api/datasets/spec_a1a4dd1696bf239aed0d96085f9bd5be/cv_826835ff0b086fed3fef5ae63099baf1/files/sha256:6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852",
+              "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
             },
             {
-              "artifact_digest": "sha256:2b399bedb12605f62e1688725984e5969e06abf9265bfa19e7bb7febdc50d989",
+              "artifact_digest": "sha256:9c5838210b7c2122b3d1de68e8d60991fc6c481097997b8ef3ea7c81635d69d7",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 8128,
+              "bytes": 8170,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-11-01T07:38:23.639888+00:00",
+              "created_at": "2026-11-15T21:46:07.963084+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_d0fa2dd4c5ba67436b13a12bb98547d4/cv_070d2755d6bf2ffa39860ca05c717279/files/sha256:2b399bedb12605f62e1688725984e5969e06abf9265bfa19e7bb7febdc50d989"
+              "url": "/api/datasets/spec_a1a4dd1696bf239aed0d96085f9bd5be/cv_826835ff0b086fed3fef5ae63099baf1/files/sha256:9c5838210b7c2122b3d1de68e8d60991fc6c481097997b8ef3ea7c81635d69d7"
             }
           ],
           "series_count": 44,
           "output_options": {
-            "capability_version": "dset_5282a0674178a233",
+            "capability_version": "dset_85178e251b57906e",
             "columns": [
               {
                 "name": "stat_var",
@@ -934,10 +1008,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+          "series_coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
           "retention": {
             "pinned": false,
-            "held_until": "2026-12-01T07:38:23.640348Z"
+            "held_until": "2026-12-15T21:46:07.963810Z"
           }
         }
       }
@@ -955,7 +1029,52 @@
                 "entry_kind": "identity",
                 "variable_text": "dataset",
                 "identity": {
+                  "shape": {
+                    "kind": "statvar_schema",
+                    "stat_type": "measuredValue",
+                    "population_type": "FinancialFlow",
+                    "measured_property": "amount",
+                    "measurement_qualifier": "Nominal"
+                  },
+                  "slots": [
+                    {
+                      "binding": {
+                        "ref": "DAC2aAidType206",
+                        "state": "value"
+                      },
+                      "property": "dac2aAidType"
+                    },
+                    {
+                      "binding": {
+                        "state": "unbound"
+                      },
+                      "property": "dacTypeOfFinance"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Disbursement",
+                        "state": "value"
+                      },
+                      "property": "financialFlowType"
+                    },
+                    {
+                      "binding": {
+                        "ref": "Net",
+                        "state": "value"
+                      },
+                      "property": "nettingBasis"
+                    }
+                  ],
+                  "facets": {
+                    "provenance": {
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "state": "value"
+                    }
+                  },
                   "entities": {
+                    "origin": [
+                      "country/FRA"
+                    ],
                     "destination": [
                       "country/AFG",
                       "country/AGO",
@@ -1001,51 +1120,12 @@
                       "country/UGA",
                       "country/YEM",
                       "country/ZMB"
-                    ],
-                    "origin": [
-                      "country/FRA"
                     ]
                   },
                   "identity_version": "spec1",
                   "requested_window": {
                     "kind": "all"
-                  },
-                  "shape": {
-                    "kind": "statvar_schema",
-                    "measured_property": "amount",
-                    "measurement_qualifier": "Nominal",
-                    "population_type": "FinancialFlow",
-                    "stat_type": "measuredValue"
-                  },
-                  "slots": [
-                    {
-                      "binding": {
-                        "ref": "DAC2aAidType206",
-                        "state": "value"
-                      },
-                      "property": "dac2aAidType"
-                    },
-                    {
-                      "binding": {
-                        "state": "unbound"
-                      },
-                      "property": "dacTypeOfFinance"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Disbursement",
-                        "state": "value"
-                      },
-                      "property": "financialFlowType"
-                    },
-                    {
-                      "binding": {
-                        "ref": "Net",
-                        "state": "value"
-                      },
-                      "property": "nettingBasis"
-                    }
-                  ]
+                  }
                 },
                 "entity_groups": {
                   "destination": {
@@ -1062,7 +1142,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "4134f9d61c9a407e9261b5d371a48ee4"
+          "x-dfo-trace-id": "5b798237e065489eabecce4e4ea4afc4"
         },
         "json": {
           "schema_version": 1,
@@ -1071,11 +1151,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "4134f9d61c9a407e9261b5d371a48ee4",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "5b798237e065489eabecce4e4ea4afc4",
             "warnings": [],
             "timing_ms": {
-              "total": 97,
+              "total": 154,
               "by_step": {
                 "coverage": 0
               }
@@ -1088,44 +1168,51 @@
               "variable_text": "dataset",
               "warnings": [],
               "timing_ms": {
-                "total": 84,
+                "total": 133,
                 "by_step": {
-                  "validate": 1,
+                  "validate": 0,
                   "phase_validate": 0,
-                  "walk": 0,
+                  "walk": 1,
                   "reread_arcs": 0,
                   "phase_reread_arcs": 0,
                   "detect_edits": 0,
                   "phase_detect_edits": 0,
                   "resolve_survivors": 0,
                   "phase_resolve_survivors": 0,
-                  "shape": 1,
+                  "shape": 0,
                   "phase_build_shape": 0,
                   "bind": 0,
                   "phase_build_bindings": 0,
-                  "where_places": 0,
+                  "where_places": 1,
                   "phase_where_places": 0,
-                  "materialise": 21,
+                  "materialise": 19,
                   "phase_materialise": 0,
-                  "ground_related": 0,
+                  "ground_related": 1,
                   "ground_units": 0,
                   "ground_facets": 0,
                   "ground_convert": 0,
                   "answer": 10,
-                  "ground_gates": 2,
-                  "phase_ground_build": 46,
+                  "ground_gates": 3,
+                  "phase_ground_build": 80,
                   "finalize_preview": 0,
-                  "options": 3,
+                  "options": 13,
                   "finalize_related": 0,
                   "finalize_wholes": 0,
                   "finalize_relaunch": 0,
                   "phase_finalize": 0,
-                  "served_entry": 0
+                  "composite_continuation": 5,
+                  "served_entry": 0,
+                  "as_composite": 0
                 }
               },
               "entity_refs": [],
               "operations": [],
               "departures": [
+                {
+                  "code": "closest_match",
+                  "shown": "net disbursements (bilateral flows)",
+                  "text": "This shows net disbursements (bilateral flows), the closest measure the data holds."
+                },
                 {
                   "code": "group_read_as_members",
                   "binding_ref": "where:",
@@ -1135,10 +1222,10 @@
               "assumptions": [],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_d0fa2dd4c5ba67436b13a12bb98547d4",
+                "spec_id": "spec_a1a4dd1696bf239aed0d96085f9bd5be",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_d0fa2dd4c5ba67436b13a12bb98547d4",
+                  "spec_id": "spec_a1a4dd1696bf239aed0d96085f9bd5be",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -1178,6 +1265,9 @@
                       }
                     ],
                     "entities": {
+                      "origin": [
+                        "country/FRA"
+                      ],
                       "destination": [
                         "country/AFG",
                         "country/AGO",
@@ -1223,13 +1313,16 @@
                         "country/UGA",
                         "country/YEM",
                         "country/ZMB"
-                      ],
-                      "origin": [
-                        "country/FRA"
                       ]
                     },
                     "requested_window": {
                       "kind": "all"
+                    },
+                    "facets": {
+                      "provenance": {
+                        "state": "value",
+                        "ref": "provenance/ONEDAC2aBilateral"
+                      }
                     }
                   }
                 },
@@ -1714,7 +1807,14 @@
                         "label": "time window"
                       },
                       "binding": {
-                        "kind": "unbound"
+                        "kind": "value",
+                        "value": {
+                          "value_kind": "time_window",
+                          "time_window": {
+                            "start_year": 1960,
+                            "end_year": 2024
+                          }
+                        }
                       },
                       "summable": false
                     },
@@ -1737,6 +1837,7 @@
                     "member_count": 1,
                     "member_count_exact": true,
                     "served_count": 1,
+                    "sums_components": true,
                     "data_date_range": {
                       "start": "1960",
                       "end": "2024"
@@ -1747,271 +1848,362 @@
                       "ref": "country/AFG",
                       "label": "Afghanistan",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/AGO",
                       "label": "Angola",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BDI",
                       "label": "Burundi",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BEN",
                       "label": "Benin",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BFA",
                       "label": "Burkina Faso",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/BGD",
                       "label": "Bangladesh",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/CAF",
                       "label": "Central African Republic",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/COD",
                       "label": "Democratic Republic of the Congo",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/COM",
                       "label": "Comoros",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/DJI",
                       "label": "Djibouti",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/ERI",
                       "label": "Eritrea",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/ETH",
                       "label": "Ethiopia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/GIN",
                       "label": "Guinea",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/GMB",
                       "label": "The Gambia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/GNB",
                       "label": "Guinea-Bissau",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/HTI",
                       "label": "Haiti",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/KHM",
                       "label": "Cambodia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/KIR",
                       "label": "Kiribati",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/LAO",
                       "label": "Laos",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/LBR",
                       "label": "Liberia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/LSO",
                       "label": "Lesotho",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MDG",
                       "label": "Madagascar",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MLI",
                       "label": "Mali",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MMR",
                       "label": "Myanmar [Burma]",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MOZ",
                       "label": "Mozambique",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MRT",
                       "label": "Mauritania",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/MWI",
                       "label": "Malawi",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/NER",
                       "label": "Niger",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/NPL",
                       "label": "Nepal",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/RWA",
                       "label": "Rwanda",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SDN",
                       "label": "Sudan",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SEN",
                       "label": "Senegal",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SLB",
                       "label": "Solomon Islands",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SLE",
                       "label": "Sierra Leone",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SOM",
                       "label": "Somalia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/SSD",
                       "label": "South Sudan",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TCD",
                       "label": "Chad",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TGO",
                       "label": "Togo",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TLS",
                       "label": "Timor-Leste",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TUV",
                       "label": "Tuvalu",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/TZA",
                       "label": "Tanzania",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/UGA",
                       "label": "Uganda",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/YEM",
                       "label": "Yemen",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/ZMB",
                       "label": "Zambia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     },
                     {
                       "ref": "country/FRA",
                       "label": "France",
                       "entity_type": "Country",
-                      "role": "origin"
+                      "role": "origin",
+                      "party_kind": "party",
+                      "party_class": "official",
+                      "multilateral": false
                     }
                   ],
                   "entity_groups": {
@@ -2025,20 +2217,10 @@
                     "has_data": true,
                     "observation_count": 2128,
                     "evidence": "facet_metadata",
-                    "dimensions": [
-                      {
-                        "label": "sources",
-                        "count": 1
-                      },
-                      {
-                        "label": "observations",
-                        "count": 61
-                      },
-                      {
-                        "label": "variables",
-                        "count": 1
-                      }
-                    ]
+                    "window": {
+                      "start_year": 1960,
+                      "end_year": 2024
+                    }
                   },
                   "headline": {
                     "year": 2024,
@@ -2081,7 +2263,7 @@
                   },
                   "download": {
                     "rows": 2128,
-                    "rows_exact": true,
+                    "rows_exact": false,
                     "series": 44,
                     "window": {
                       "start_year": 1960,
@@ -2091,12 +2273,12 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+                  "coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
                   "facets": {
                     "provenance": {
-                      "basis": "fallback",
-                      "ref": "provenance/OECDDAC2A",
-                      "label": "OECD DAC2A",
+                      "basis": "bound",
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "label": "OECD DAC2a (bilateral flows)",
                       "source": {
                         "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
                         "label": "Organisation for Economic Co-operation and Development (OECD)"
@@ -2105,14 +2287,19 @@
                         "id": "dfo",
                         "label": "Development Finance Observatory"
                       },
-                      "documentation": "/api/graph/documentation/provenance/OECDDAC2A",
                       "account": "provider"
                     },
                     "unit": {
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -2233,7 +2420,7 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "France's net disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "France's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
@@ -2264,7 +2451,7 @@
                     },
                     {
                       "kind": "slot",
-                      "text": "net disbursements",
+                      "text": "net disbursements (bilateral flows)",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -2929,7 +3116,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_4913302d7a6b6435"
+                    "capability_version": "cap_b1f3369f84d185f6"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -3075,7 +3262,7 @@
                       "served_rows_exact": true
                     }
                   ],
-                  "measure_label": "net disbursements",
+                  "measure_label": "net disbursements (bilateral flows)",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -5088,13 +5275,24 @@
                     "default_base_year": 2024,
                     "role_currencies": {
                       "origin": "EUR"
+                    },
+                    "deflation_basis": "donor"
+                  },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
                     }
-                  }
+                  ]
                 }
               }
             }
           ],
-          "rendered_sentence": "France's net disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a. This shows the 44 Least Developed Countries, each on its own.",
+          "rendered_sentence": "France's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a. This shows net disbursements (bilateral flows), the closest measure the data holds. This shows the 44 Least Developed Countries, each on its own.",
           "sentence_plan": [
             {
               "kind": "slot",
@@ -5128,7 +5326,7 @@
             },
             {
               "kind": "slot",
-              "text": "net disbursements",
+              "text": "net disbursements (bilateral flows)",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -5338,6 +5536,22 @@
             },
             {
               "kind": "text",
+              "text": "This shows net disbursements (bilateral flows), the closest measure the data holds.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
               "text": "This shows the 44 Least Developed Countries, each on its own.",
               "segment": "departure",
               "entity_refs": [],
@@ -5352,21 +5566,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_d0fa2dd4c5ba67436b13a12bb98547d4/cv_070d2755d6bf2ffa39860ca05c717279/files/sha256:e394e0de88d7c5b0e9488b0169a229b2261005a5ab2d7b9a4d8e2dd925da5fa1"
+        "origin_path": "/api/datasets/spec_a1a4dd1696bf239aed0d96085f9bd5be/cv_826835ff0b086fed3fef5ae63099baf1/files/sha256:6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae394e0de88d7c5b0e9488b0169a229b2261005a5ab2d7b9a4d8e2dd925da5fa1?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "bb5a9505e2a64357a4be484a60822e8e"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "14978cd0cc064a2b8cc553658b4661d0"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3Ae394e0de88d7c5b0e9488b0169a229b2261005a5ab2d7b9a4d8e2dd925da5fa1?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A6a80576ffe7ac1009b8536c324a42fc8ab4a1be448036841821107fedae3c852?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -5387,13 +5601,12 @@
           "financingRecipient_label",
           "value",
           "unit_label",
-          "dac2aAidType_label",
           "provenance_label",
           "financingRecipient",
+          "stat_var_label",
           "financingProvider",
           "financingProvider_kind",
           "financingRecipient_kind",
-          "dac2aAidType",
           "unit",
           "currency",
           "price_basis",
@@ -5407,9 +5620,9 @@
         "members": [
           {
             "parts": [],
-            "spec_id": "spec_d0fa2dd4c5ba67436b13a12bb98547d4",
-            "content_version": "cv_070d2755d6bf2ffa39860ca05c717279",
-            "sentence": "France's net disbursements to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_a1a4dd1696bf239aed0d96085f9bd5be",
+            "content_version": "cv_826835ff0b086fed3fef5ae63099baf1",
+            "sentence": "France's net disbursements (bilateral flows) to the 44 Least Developed Countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": []

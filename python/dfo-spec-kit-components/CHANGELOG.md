@@ -8,6 +8,21 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `order` in the write-side intent grammar (`schemas/intent.v0.json`): on a
+  `line_chart`, a `bar_chart` and a `table`, an optional
+  `{by: "value", direction: "descending" | "ascending"}` that draws the series
+  in value order instead of member-id order. Each series moves whole, so a
+  `table`'s rows keep their period order within a series. A `line_chart` and a `table` also
+  admit an optional `period`, the period label the values are ranked at; a
+  `bar_chart` admits none, since its bars stand at one period the platform
+  chooses. A `stat_card`, `note_narration` and `source_card` refuse the member.
+  Every intent the grammar admitted before still validates.
+- `catalog_version` moves from `2026.11.0` to `2026.11.1`, a minor change
+  under `policies/component-spec.toml`: the intent grammar gains an optional
+  member. A deployment on `2026.11.0` refuses an intent that carries `order`,
+  so a consumer comparing releases reads `2026.11.1` as the first that admits
+  one. The payload fixtures carry the new `catalog_version`.
+- `catalog_version` moves from `2026.11.1` to `2026.11.2`, a minor change under `policies/component-spec.toml`. The envelope's `description` references `description.schema.json`, whose `freshness` object gained the optional `partial_periods`. Builds that name `2026.11.1` differ on whether they admit it, so `2026.11.2` is the first version that guarantees it. `provenance.freshness` stays closed. The payload fixtures carry the new `catalog_version` and `manifest.json` carries their refreshed digests. `tests/test_envelope_fixtures.py` validates the listed, empty and null forms.
 - An optional `description` on the envelope schema: the card revision's
   description, a `$ref` to
   `https://developmentfinance.org/descriptions/schema/v1/description.schema.json`
@@ -109,6 +124,12 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   orders its two periods `[from, to]`.
 
 ### Changed
+
+- `freshness.partial_period` in `schemas/envelope.schema.json` carries a
+  `$comment`: `true` means a source marked a period the card draws as
+  partial, `false` means no source marked one. `manifest.json` carries the
+  refreshed digests of the envelope schema and of `description.schema.json`,
+  which gains the optional `freshness.partial_periods`.
 
 - `manifest.json` publishes `resource_exhausted` with retry mode
   `correct_and_retry`, where it said `do_not_retry`. Every Presentation body

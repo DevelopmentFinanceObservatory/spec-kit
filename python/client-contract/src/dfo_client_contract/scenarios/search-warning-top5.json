@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:39:13Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:49:25Z"
   },
   "call": [
     {
@@ -38,7 +38,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "fe5a5b819e9e43ce9cd95964ad1bfa28"
+          "x-dfo-trace-id": "8a9797dcb96e4b79a1212aad0d0346bc"
         },
         "json": {
           "schema_version": 1,
@@ -49,21 +49,21 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "fe5a5b819e9e43ce9cd95964ad1bfa28",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "8a9797dcb96e4b79a1212aad0d0346bc",
             "warnings": [],
             "timing_ms": {
-              "total": 1735,
+              "total": 1819,
               "by_step": {
                 "coverage": 0,
-                "extract": 1071,
-                "exclusion_read": 664,
+                "extract": 1119,
+                "exclusion_read": 950,
                 "cache_lookup": 0
               }
             },
             "llm_usage": {
-              "input_tokens": 2788,
-              "output_tokens": 193,
+              "input_tokens": 2761,
+              "output_tokens": 215,
               "cached_tokens": 0,
               "jev_input_tokens": 4485,
               "jev_output_tokens": 849
@@ -83,13 +83,16 @@
                 {
                   "code": "role_scope_defaulted",
                   "severity": "warn",
-                  "message": "No provider was named, so the answer covers every provider with data."
+                  "message": "No provider was named, so the answer covers all 96 providers with data to Ethiopia.",
+                  "params": {
+                    "axis": "origin"
+                  }
                 },
                 {
                   "code": "whole_total_available",
                   "severity": "info",
                   "message": "The source publishes the total of every official donor as official donors (DAC); a sum of the listed donors includes private donors and differs from it.",
-                  "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+                  "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
                   "params": {
                     "total": "DACOfficialDonors",
                     "total_label": "official donors (DAC)",
@@ -98,30 +101,34 @@
                 }
               ],
               "timing_ms": {
-                "total": 657,
+                "total": 691,
                 "by_step": {
-                  "recall": 126,
+                  "recall": 157,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 1,
-                  "shape_probe_coverage": 12,
-                  "shape_probe": 109,
-                  "shape_groups": 6,
+                  "shape_arcs": 4,
+                  "shape_probe_coverage": 10,
+                  "shape_probe": 123,
+                  "shape_groups": 7,
                   "shape_labels": 0,
-                  "shape_admission": 1,
+                  "shape_admission": 2,
                   "phase_derive_shapes": 0,
-                  "shape": 216,
+                  "shape_denominators": 0,
+                  "shape_quantity": 61,
+                  "shape_rank": 4,
+                  "shape": 209,
                   "phase_prune_and_rank": 0,
                   "bind": 95,
-                  "phase_bind": 19,
+                  "phase_bind": 18,
                   "phase_settle": 12,
                   "phase_place_bindings": 1,
                   "phase_facet_requests": 0,
-                  "materialise": 42,
+                  "materialise": 49,
                   "phase_materialise": 4,
-                  "answer": 36,
-                  "options": 13,
-                  "phase_outcome": 93
+                  "answer": 23,
+                  "options": 22,
+                  "phase_outcome": 100,
+                  "composite_continuation": 1
                 }
               },
               "restatement": {
@@ -176,10 +183,10 @@
               ],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+                "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+                  "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -227,6 +234,12 @@
                       "kind": "range",
                       "start_year": 2022,
                       "end_year": 2022
+                    },
+                    "facets": {
+                      "provenance": {
+                        "state": "value",
+                        "ref": "provenance/ONEDAC2aBilateral"
+                      }
                     },
                     "open_roles": [
                       "origin"
@@ -442,6 +455,7 @@
                     "member_count": 1,
                     "member_count_exact": true,
                     "served_count": 1,
+                    "sums_components": true,
                     "data_date_range": {
                       "start": "2022",
                       "end": "2022"
@@ -452,7 +466,9 @@
                       "ref": "country/ETH",
                       "label": "Ethiopia",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     }
                   ],
                   "coverage": {
@@ -460,20 +476,6 @@
                     "has_data": true,
                     "observation_count": 111,
                     "evidence": "facet_metadata",
-                    "dimensions": [
-                      {
-                        "label": "sources",
-                        "count": 1
-                      },
-                      {
-                        "label": "observations",
-                        "count": 1
-                      },
-                      {
-                        "label": "variables",
-                        "count": 1
-                      }
-                    ],
                     "window": {
                       "start_year": 2022,
                       "end_year": 2022
@@ -501,30 +503,12 @@
                           "financingProvider": 111,
                           "financingRecipient": 1
                         }
-                      },
-                      {
-                        "year": 2021,
-                        "observations": 103,
-                        "series": 103,
-                        "role_counts": {
-                          "financingProvider": 103,
-                          "financingRecipient": 1
-                        }
-                      },
-                      {
-                        "year": 2020,
-                        "observations": 92,
-                        "series": 92,
-                        "role_counts": {
-                          "financingProvider": 92,
-                          "financingRecipient": 1
-                        }
                       }
                     ]
                   },
                   "download": {
                     "rows": 111,
-                    "rows_exact": true,
+                    "rows_exact": false,
                     "series": 111,
                     "window": {
                       "start_year": 2022,
@@ -534,12 +518,12 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+                  "coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
                   "facets": {
                     "provenance": {
-                      "basis": "fallback",
-                      "ref": "provenance/OECDDAC2A",
-                      "label": "OECD DAC2A",
+                      "basis": "bound",
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "label": "OECD DAC2a (bilateral flows)",
                       "source": {
                         "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
                         "label": "Organisation for Economic Co-operation and Development (OECD)"
@@ -548,14 +532,19 @@
                         "id": "dfo",
                         "label": "Development Finance Observatory"
                       },
-                      "documentation": "/api/graph/documentation/provenance/OECDDAC2A",
                       "account": "provider"
                     },
                     "unit": {
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -683,11 +672,11 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Net disbursements to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Net disbursements (bilateral flows) to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
-                      "text": "Net disbursements",
+                      "text": "Net disbursements (bilateral flows)",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -983,7 +972,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_4913302d7a6b6435",
+                    "capability_version": "cap_b1f3369f84d185f6",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -992,7 +981,7 @@
                   "confidence": "high",
                   "available_at_place": true,
                   "alternative_measures": [],
-                  "measure_label": "net disbursements",
+                  "measure_label": "net disbursements (bilateral flows)",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -2992,13 +2981,24 @@
                     "default_base_year": 2024,
                     "role_currencies": {
                       "destination": "ETB"
-                    }
+                    },
+                    "deflation_basis": "donor"
                   },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
+                    }
+                  ],
                   "scope_choices": {
-                    "id": "spec_67170941f9982e1b0525932d4b816168",
+                    "id": "spec_7073b80d69e5be87d1266cc2884d2620",
                     "base": {
                       "schema_version": 1,
-                      "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+                      "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
                       "identity": {
                         "identity_version": "spec1",
                         "shape": {
@@ -3047,17 +3047,23 @@
                           "start_year": 2022,
                           "end_year": 2022
                         },
+                        "facets": {
+                          "provenance": {
+                            "state": "value",
+                            "ref": "provenance/ONEDAC2aBilateral"
+                          }
+                        },
                         "open_roles": [
                           "origin"
                         ]
                       }
                     },
-                    "rule_version": "scope1:3eef00a928eedd463ee48d02b79730da",
+                    "rule_version": "scope1:8fa547c2d7d0eaa55e822a30541be40b",
                     "entries": [],
                     "dropped_entries": [],
                     "choices": [
                       {
-                        "id": "spec_67170941f9982e1b0525932d4b816168:measure_basis",
+                        "id": "spec_7073b80d69e5be87d1266cc2884d2620:measure_basis",
                         "axis": "measure_basis",
                         "rule": "measure_basis_convention",
                         "provenance": "default",
@@ -3125,7 +3131,7 @@
                       }
                     ],
                     "compiled": {
-                      "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+                      "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
                       "identity": {
                         "identity_version": "spec1",
                         "shape": {
@@ -3174,13 +3180,27 @@
                           "start_year": 2022,
                           "end_year": 2022
                         },
+                        "facets": {
+                          "provenance": {
+                            "state": "value",
+                            "ref": "provenance/ONEDAC2aBilateral"
+                          }
+                        },
                         "open_roles": [
                           "origin"
                         ]
                       },
                       "components": [
                         {
-                          "role": "whole",
+                          "role": "bilateral",
+                          "periods": [
+                            [
+                              2022,
+                              2022
+                            ]
+                          ],
+                          "provenance": "provenance/OECDDAC2A",
+                          "stat_vars": 1,
                           "identity": {
                             "identity_version": "spec1",
                             "shape": {
@@ -3242,11 +3262,11 @@
               }
             }
           ],
-          "rendered_sentence": "Net disbursements to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
+          "rendered_sentence": "Net disbursements (bilateral flows) to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
           "sentence_plan": [
             {
               "kind": "slot",
-              "text": "Net disbursements",
+              "text": "Net disbursements (bilateral flows)",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -3484,10 +3504,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+            "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+              "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -3536,6 +3556,12 @@
                   "start_year": 2022,
                   "end_year": 2022
                 },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/ONEDAC2aBilateral"
+                  }
+                },
                 "open_roles": [
                   "origin"
                 ]
@@ -3545,7 +3571,7 @@
           "options": {
             "format": "parquet",
             "bundle": false,
-            "without_party_totals": true
+            "party_totals": false
           }
         }
       },
@@ -3553,13 +3579,13 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a89965c1f5e744409ef6370942f1fc70"
+          "x-dfo-trace-id": "dd7ae3b18ea740c59322a2c6d4d07397"
         },
         "json": {
           "schema_version": 1,
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_67170941f9982e1b0525932d4b816168",
+            "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
             "identity": {
               "shape": {
                 "kind": "statvar_schema",
@@ -3597,6 +3623,12 @@
                   "property": "nettingBasis"
                 }
               ],
+              "facets": {
+                "provenance": {
+                  "ref": "provenance/ONEDAC2aBilateral",
+                  "state": "value"
+                }
+              },
               "entities": {
                 "destination": [
                   "country/ETH"
@@ -3613,8 +3645,8 @@
               }
             }
           },
-          "content_version": "cv_219fc5386675dcca1fc91197c39ac885",
-          "prepared_at": "2026-10-28T22:26:00Z",
+          "content_version": "cv_83d6022d7844f86a25aeb1bae4001686",
+          "prepared_at": "2026-11-15T21:48:06Z",
           "coverage": {
             "rows": 96,
             "dimensions": [
@@ -3672,8 +3704,8 @@
                   "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip",
                   "attribution": "OECD (2026), OECD DAC2A, OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip (accessed on 2026-10-12)",
                   "update_cadence": "Quarterly",
-                  "last_update": "2026-10-15",
-                  "years_covered": "1960-2024",
+                  "last_update": "2026-10-29",
+                  "years_covered": "1960-2025",
                   "granularity": "Annual, by provider and recipient",
                   "currencies": [
                     "USD"
@@ -3684,8 +3716,8 @@
                       "description": "The OECD publishes DAC2A in April, June, September and December. The complete table is downloaded from the OECD each time it is republished, and replaces the previous copy, so the data reflects the OECD's latest release."
                     },
                     {
-                      "transformation": "Exclude the partial preliminary year",
-                      "description": "Before each full release, the OECD publishes preliminary data for the year that release covers, as reporters submit it. Until then, that year is partial, so the pipeline excludes it. Support for partial years is in development. Partial years will be marked incomplete, so they don't lead to incorrect or confusing analyses."
+                      "transformation": "Mark the partial year",
+                      "description": "The OECD publishes data for a year as donors report it, and its final release in December of the following year covers every donor. Until then, the year is partial. The pipeline publishes it, and the import's provenance names it in `partialObservationDate`."
                     },
                     {
                       "transformation": "Standardise providers and recipients",
@@ -3706,12 +3738,22 @@
                   ],
                   "version_history": [
                     {
-                      "date": "2026-10-15",
-                      "title": "Partial preliminary year excluded",
+                      "date": "2026-10-29",
+                      "title": "Partial year published, marked as partial",
                       "changes": [
                         {
                           "kind": "changed",
-                          "note": "The partial preliminary year published ahead of the next full release is excluded."
+                          "note": "The partial year, which only some donors have reported ahead of the OECD's final release in December, is included, and the import's provenance marks it with `partialObservationDate`."
+                        }
+                      ]
+                    },
+                    {
+                      "date": "2026-10-15",
+                      "title": "Partial year excluded",
+                      "changes": [
+                        {
+                          "kind": "changed",
+                          "note": "The partial year, which only some donors have reported ahead of the OECD's final release in December, is excluded."
                         }
                       ]
                     },
@@ -3726,7 +3768,10 @@
                       ]
                     }
                   ]
-                }
+                },
+                "licence": "OECD Terms and Conditions",
+                "licence_type": "OECDTermsAndConditions",
+                "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
               }
             ]
           },
@@ -3734,7 +3779,7 @@
             "party_totals_left_out": [
               {
                 "role": "financingProvider",
-                "provenance": "provenance/OECDDAC2A",
+                "provenance": "provenance/ONEDAC2aBilateral",
                 "entities": [
                   "AfricanDevelopmentBankGroup",
                   "DACCountriesTotal",
@@ -3756,13 +3801,13 @@
             ],
             "facets": [
               {
-                "ref": "provenance/OECDDAC2A",
+                "ref": "provenance/ONEDAC2aBilateral",
                 "axis": "provenance",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253",
-                "default_policy_version": "1"
+                "basis": "bound",
+                "default_policy": null,
+                "selection_reason": "the composite OECD DAC2a",
+                "dispatch_facet_id": "provenance/ONEDAC2aBilateral",
+                "default_policy_version": null
               },
               {
                 "ref": null,
@@ -3783,27 +3828,76 @@
                 "default_policy_version": "1"
               }
             ],
+            "components": [
+              {
+                "role": "bilateral",
+                "rows": 111,
+                "facets": [
+                  {
+                    "ref": "provenance/OECDDAC2A",
+                    "axis": "provenance",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": null,
+                    "axis": "measurementMethod",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "absent_on_selected_facet",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": "CurrencyUSD",
+                    "axis": "unit",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  }
+                ],
+                "periods": [
+                  [
+                    2022,
+                    2022
+                  ]
+                ],
+                "warnings": [],
+                "stat_vars": [
+                  "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal"
+                ],
+                "zero_rows": 0,
+                "provenance": "provenance/OECDDAC2A",
+                "dropped_years": [],
+                "content_version": "cv_fa2ff57f84808be46db4f606c25194eb"
+              }
+            ],
             "applied_window": {
               "kind": "range",
               "origin": "query",
               "end_year": 2022,
               "start_year": 2022
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00275-9t9",
+            "graph_revision": "dfo-dev-dc-datacommons-service-00292-njf",
             "normalisations": [],
             "code_index_stamp": {
-              "exported_at": "2026-10-28T17:28:18Z",
-              "content_hash": "3d946d8f4986dbbe0fa3e5c4c917200381f529d89ce417c11daeb22df56eed99",
+              "exported_at": "2026-11-12T22:30:30Z",
+              "content_hash": "68c74212b6a5f923d3543f7bb04f7b791c28b62bfccd3d073ab03bfcb50216da",
               "graph_endpoint": "graph_release"
             },
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
-                "revision": "2026-10-15"
+                "revision": "2026-10-29"
               }
             ],
-            "capability_version": "dset_4c514fc1069d2b93",
-            "materialiser_build": "972c58bef62fbfc8baad54f8473fe465779025b0",
+            "capability_version": "dset_af2827aa39ed8c0d",
+            "materialiser_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
@@ -3814,12 +3908,12 @@
                 "observation_count": 111
               }
             ],
-            "family_member_count": 1,
-            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
-            "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261027T131516Z-80bb1497",
+            "family_member_count": null,
+            "family_member_digest": null,
+            "frame_grammar_version": "1.2.0",
+            "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "materialise",
-            "confirmed_at": "2026-11-01T07:39:16.229411+00:00"
+            "confirmed_at": "2026-11-23T16:49:28.452617+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -3831,35 +3925,35 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:89fdd6dc3600cd739f88cdf8d948aab75c11754ef3c244cddcc1daed31bab64b",
+              "artifact_digest": "sha256:39b871975ebdd688fce8245c91a07fe9db98ea98c5d8bba7fa735a1f47d609ff",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4,
+                "layout": 5,
                 "without_party_totals": true
               },
-              "bytes": 10345,
+              "bytes": 10245,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-28T22:26:00.878026+00:00",
+              "created_at": "2026-11-15T21:48:07.174687+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_67170941f9982e1b0525932d4b816168/cv_219fc5386675dcca1fc91197c39ac885/files/sha256:89fdd6dc3600cd739f88cdf8d948aab75c11754ef3c244cddcc1daed31bab64b",
-              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+              "url": "/api/datasets/spec_7073b80d69e5be87d1266cc2884d2620/cv_83d6022d7844f86a25aeb1bae4001686/files/sha256:39b871975ebdd688fce8245c91a07fe9db98ea98c5d8bba7fa735a1f47d609ff",
+              "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
             },
             {
-              "artifact_digest": "sha256:f34567332e3a45cb8357bd587f254a3126f03f085e2fdc32afb1ec54e068fe01",
+              "artifact_digest": "sha256:fc5563d59a975162a304c38507f56fff7f949497721621d4b563a7fa7d0b058e",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 9569,
+              "bytes": 9611,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-28T22:26:00.878026+00:00",
+              "created_at": "2026-11-15T21:48:07.174687+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_67170941f9982e1b0525932d4b816168/cv_219fc5386675dcca1fc91197c39ac885/files/sha256:f34567332e3a45cb8357bd587f254a3126f03f085e2fdc32afb1ec54e068fe01"
+              "url": "/api/datasets/spec_7073b80d69e5be87d1266cc2884d2620/cv_83d6022d7844f86a25aeb1bae4001686/files/sha256:fc5563d59a975162a304c38507f56fff7f949497721621d4b563a7fa7d0b058e"
             }
           ],
           "series_count": 96,
           "output_options": {
-            "capability_version": "dset_5282a0674178a233",
+            "capability_version": "dset_85178e251b57906e",
             "columns": [
               {
                 "name": "stat_var",
@@ -4227,10 +4321,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+          "series_coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
           "retention": {
             "pinned": false,
-            "held_until": "2026-11-27T22:26:00.878555Z"
+            "held_until": "2026-12-15T21:48:07.175252Z"
           }
         }
       }
@@ -4238,21 +4332,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_67170941f9982e1b0525932d4b816168/cv_219fc5386675dcca1fc91197c39ac885/files/sha256:89fdd6dc3600cd739f88cdf8d948aab75c11754ef3c244cddcc1daed31bab64b"
+        "origin_path": "/api/datasets/spec_7073b80d69e5be87d1266cc2884d2620/cv_83d6022d7844f86a25aeb1bae4001686/files/sha256:39b871975ebdd688fce8245c91a07fe9db98ea98c5d8bba7fa735a1f47d609ff"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A89fdd6dc3600cd739f88cdf8d948aab75c11754ef3c244cddcc1daed31bab64b?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "29811201aab2444fb90d67f48ec12ae7"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A39b871975ebdd688fce8245c91a07fe9db98ea98c5d8bba7fa735a1f47d609ff?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "92fcbd9c638c4215b9044d7b84e570e1"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A89fdd6dc3600cd739f88cdf8d948aab75c11754ef3c244cddcc1daed31bab64b?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A39b871975ebdd688fce8245c91a07fe9db98ea98c5d8bba7fa735a1f47d609ff?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -4268,10 +4362,10 @@
       "answer": {
         "kind": "resolution",
         "status": "definite",
-        "sentence": "Net disbursements to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
+        "sentence": "Net disbursements (bilateral flows) to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. You asked for a ranking. This shows the amounts behind it, because Search does not compute rankings. Assumed: official development assistance.",
         "complete": true,
         "specs": [
-          "spec_67170941f9982e1b0525932d4b816168"
+          "spec_7073b80d69e5be87d1266cc2884d2620"
         ],
         "gaps": []
       }
@@ -4280,7 +4374,7 @@
       "error": {
         "class": "SearchWarning",
         "code": null,
-        "trace_id": "fe5a5b819e9e43ce9cd95964ad1bfa28"
+        "trace_id": "8a9797dcb96e4b79a1212aad0d0346bc"
       }
     },
     {
@@ -4292,13 +4386,12 @@
           "financingRecipient_label",
           "value",
           "unit_label",
-          "dac2aAidType_label",
           "provenance_label",
           "financingProvider",
           "financingProvider_kind",
+          "stat_var_label",
           "financingRecipient",
           "financingRecipient_kind",
-          "dac2aAidType",
           "unit",
           "currency",
           "price_basis",
@@ -4314,12 +4407,36 @@
             "parts": [
               "aid"
             ],
-            "spec_id": "spec_67170941f9982e1b0525932d4b816168",
-            "content_version": "cv_219fc5386675dcca1fc91197c39ac885",
-            "sentence": "Net disbursements to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
+            "content_version": "cv_83d6022d7844f86a25aeb1bae4001686",
+            "sentence": "Net disbursements (bilateral flows) to Ethiopia from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": [],
+        "party_totals_left_out": [
+          {
+            "spec_id": "spec_7073b80d69e5be87d1266cc2884d2620",
+            "role": "financingProvider",
+            "entities": [
+              "AfricanDevelopmentBankGroup",
+              "DACCountriesTotal",
+              "DACEUMembers",
+              "DACEUMembersAndEUInstitutions",
+              "DACMultilaterals",
+              "DACNonDACCountries",
+              "DACOfficialDonors",
+              "DACOtherMultilateralOrganisations",
+              "DACPrivateDonors",
+              "DACRegionalDevelopmentBanks",
+              "DACUnitedNations",
+              "DACWorldBank",
+              "GroupOfSeven",
+              "PostcodeLotteryGroup",
+              "WorldBankGroup"
+            ],
+            "provenance": "provenance/ONEDAC2aBilateral"
+          }
+        ],
         "search_warning": true
       }
     }

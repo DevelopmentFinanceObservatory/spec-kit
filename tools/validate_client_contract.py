@@ -37,13 +37,15 @@ document validates against its schema, then what the schemas cannot express:
   none of them a code another table or `registries/codes.json` holds, except
   that a proxy code may share a registry code whose every mapping is
   `mcp_refusal`. The warning codes are those the client rules issue:
-  `ref_digest_changed`,
+  `ref_digest_changed`, `name_deprecated`,
   `route_deprecated`, `server_warning`, one `key_<reason>` per key-format
   reason, and each warning the series-left-out rule's vectors name.
 - Each scenario's file name matches its `name`, names are unique, `expect`
   holds one outcome per step, a step that acts on an earlier result follows
-  one, a synthetic scenario derives from a recorded one, and every body file
-  exists and is the scenario's own or, for a synthetic scenario, one its
+  one, an analysis step's tree passes `tree_argument_problems`, a
+  stored-versions step's `built` lists its heads sorted by spec_id, each
+  once, a synthetic
+  scenario derives from a recorded one, and every body file exists and is the scenario's own or, for a synthetic scenario, one its
   parent names. In a recorded scenario each API request matches a route and
   method in `served/openapi.json`, its JSON body validates against the
   route's request schema, each JSON response body validates against the
@@ -74,7 +76,8 @@ document validates against its schema, then what the schemas cannot express:
   entity groups of the roles its build left bound as they were, and each
   build posts the body `build_body` gives for the spec the step builds, its
   narrowing, its layout and, for a fetch or a mint, its party totals, and each Search request the whole body
-  `search_body` gives. A POST carries its body, a refused request repeated is
+  `search_body` gives, and each analysis request the whole body
+  `analysis_body` gives. A POST carries its body, a refused request repeated is
   a retry only as `may_retry` allows, a record that ends a run of retries
   while `may_retry` holds does not fit, each poll names the operation the
   client holds, each files route is where `artifact_route` places the
@@ -96,7 +99,18 @@ document validates against its schema, then what the schemas cannot express:
   Each root of a derived member is a dataset member's `spec_id` and
   `content_version` of that scenario. Each member of an example the schema
   accepts records the rendering the scenario's build of its spec posted, and
-  each root of a derived one that rendering in the frame layout.
+  each root of a derived one that rendering in the frame layout, the party
+  totals cut read from `party_totals: false` or `without_party_totals: true`
+  alike.
+- Each provenance example's file name matches its `name` and gets the
+  verdict it states: from `provenance.schema.json`, then from the rules that
+  `fetched_at` and every `held_until` name a time and a date that exist, that
+  `ref` follows the ref rules, that `members` holds one entry per member
+  of `ref`, none when it is null, each naming its ref member's `spec_id`,
+  `content_version`, artifact digest, `parts` and `sentence`, that the
+  record's `pinned` and `held_until` are what its members' give, members or
+  none (`_retention_agrees`), and that its `complete` is true exactly when
+  `missing` is empty.
 - The derived members of the ref examples the schema accepts and of the
   output-comparison vectors agree wherever DERIVED_IDENTITY_RULES says one
   identity fixes another, so one `ocv_` names one op-spec and one output.
@@ -124,8 +138,12 @@ import math
 import re
 import sys
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
+from copy import deepcopy
 from dataclasses import dataclass, field, replace
+from datetime import date, datetime
+from decimal import Decimal
 from functools import lru_cache, partial
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
@@ -187,7 +205,8 @@ def _schema_problems(
 
 def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
     """One validator per packaged schema, sharing a registry so the scenario
-    schema's `$ref` to `dataset-ref.schema.json` resolves by `$id`."""
+    schema's `$ref`s to `dataset-ref.schema.json` and
+    `stored-versions.schema.json` resolve by `$id`."""
     names = (
         "strict-fields.schema.json",
         "actions.schema.json",
@@ -196,6 +215,9 @@ def _contract_validators() -> dict[str, jsonschema.Draft202012Validator]:
         "warning-codes.schema.json",
         "scenario.schema.json",
         "dataset-ref.schema.json",
+        "stored-versions.schema.json",
+        "saved-file.schema.json",
+        "provenance.schema.json",
         "rules/rules.schema.json",
     )
     schemas = {name: _load(PACKAGE_DIR / name) for name in names}
@@ -517,13 +539,14 @@ def _check_warning_codes(
     rules_schema: Mapping[str, Any],
 ) -> list[str]:
     """As `_check_other_codes`, and the codes are those a client's rules
-    issue: `ref_digest_changed`, each header warning, one `key_<reason>`
+    issue: `ref_digest_changed`, `name_deprecated`, each header warning, one `key_<reason>`
     warning per key-format reason, and each warning the series-left-out
     rule issues."""
     codes = [row["code"] for row in document["codes"]]
     problems = _check_other_codes("warning-codes.json", codes, taken)
     wanted = {
         REF_DIGEST_CHANGED,
+        NAME_DEPRECATED,
         ROUTE_DEPRECATED,
         SERVER_WARNING,
         *(f"key_{r}" for r in key_format_reasons(rules_schema)),
@@ -937,6 +960,9 @@ def retry_wait(headers: Mapping[str, str], attempt: int) -> float:
 
 # The warning a client issues when a ref's file digest has changed.
 REF_DIGEST_CHANGED = "ref_digest_changed"
+
+# The warning a client issues when a caller uses one of its deprecated names.
+NAME_DEPRECATED = "name_deprecated"
 
 # The headers a client warns on, and the warning-codes.json code of each.
 DEPRECATION_HEADERS = ("deprecation", "sunset")
@@ -1657,11 +1683,171 @@ def answer_outcome(answer: Answer, kinds: Mapping[str, str]) -> dict[str, Any]:
     return {"answer": outcome}
 
 
+# The dataset outcome's key, and the manifest trace's, for the group totals a
+# fetch left out of its members' rows.
+PARTY_TOTALS_LEFT_OUT = "party_totals_left_out"
+
+
 def part_label(member: Mapping[str, Any]) -> str:
     """The `part` column's value on a member's rows in a dataset of several
     members. It is the member's parts joined by `; `, or its sentence when it
     answers no part."""
     return "; ".join(member["parts"]) or member["sentence"]
+
+
+def _jcs_text(value: Any) -> str:
+    """The RFC 8785 (JCS) text of a JSON value: object members sorted by the
+    UTF-16 code units of their names, no whitespace, and each number as
+    ECMAScript writes it."""
+    match value:
+        case None:
+            return "null"
+        case bool():
+            return "true" if value else "false"
+        case int():
+            return str(value)
+        case float():
+            return _jcs_number(value)
+        case str():
+            return json.dumps(value, ensure_ascii=False)
+        case list():
+            return "[" + ",".join(map(_jcs_text, value)) + "]"
+        case dict():
+            names = sorted(value, key=lambda name: name.encode("utf-16-be"))
+            return (
+                "{"
+                + ",".join(
+                    f"{_jcs_text(name)}:{_jcs_text(value[name])}" for name in names
+                )
+                + "}"
+            )
+    raise TypeError(f"not a JSON value: {value!r}")
+
+
+def _jcs_number(number: float) -> str:
+    """A finite float as ECMAScript's Number::toString writes it, from the
+    shortest digits that round-trip, which Python's repr also gives."""
+    if not math.isfinite(number):
+        raise ValueError(f"JCS has no form for {number!r}")
+    if number == 0:
+        return "0"
+    sign = "-" if number < 0 else ""
+    _, digit_tuple, exponent = Decimal(repr(abs(number))).normalize().as_tuple()
+    digits = "".join(map(str, digit_tuple))
+    point = len(digits) + int(exponent)
+    if len(digits) <= point <= 21:
+        return sign + digits + "0" * (point - len(digits))
+    if 0 < point <= 21:
+        return sign + digits[:point] + "." + digits[point:]
+    if -6 < point <= 0:
+        return sign + "0." + "0" * -point + digits
+    mantissa = digits[0] + ("." + digits[1:] if len(digits) > 1 else "")
+    shown = point - 1
+    return f"{sign}{mantissa}e{'+' if shown > 0 else '-'}{abs(shown)}"
+
+
+def _kept_series_order(item: Any) -> tuple[tuple[str, int, str], ...] | None:
+    """The order of a `kept_in` item, or None when the item is malformed: an
+    object of exactly a `series` object whose values are each a string, null
+    or an object, and `time_periods`, a non-empty list of non-empty strings
+    sorted by code point, each once. Items order by their series cells in
+    column-name order, each null first, then a string by code point, then an
+    object by the code points of its JCS text."""
+    if not isinstance(item, dict) or set(item) != {"series", "time_periods"}:
+        return None
+    series, periods = item["series"], item["time_periods"]
+    if (
+        not isinstance(series, dict)
+        or not isinstance(periods, list)
+        or not periods
+        or not all(isinstance(period, str) and period for period in periods)
+        or any(a >= b for a, b in pairwise(periods))
+    ):
+        return None
+    order: list[tuple[str, int, str]] = []
+    for name in sorted(series):
+        match series[name]:
+            case None:
+                order.append((name, 0, ""))
+            case str() as text:
+                order.append((name, 1, text))
+            case dict() as unit:
+                order.append((name, 2, _jcs_text(unit)))
+            case _:
+                return None
+    return tuple(order)
+
+
+def _kept_in(value: Any) -> bool:
+    """Whether a party-totals entry's `kept_in` reads: a non-empty list of
+    well-formed items (`_kept_series_order`), in that order, no two with the
+    same series."""
+    if not isinstance(value, list) or not value:
+        return False
+    previous = None
+    for item in value:
+        order = _kept_series_order(item)
+        if order is None or (previous is not None and order <= previous):
+            return False
+        previous = order
+    return True
+
+
+def _party_totals_entry_reads(item: Any) -> bool:
+    """Whether a served party-totals entry reads: an object with a non-empty
+    string `role`, a list of non-empty string `entities`, a `provenance`
+    absent, a string or null, and a `kept_in` absent or as `_kept_in` reads
+    it."""
+    if not isinstance(item, dict):
+        return False
+    role, entities = item.get("role"), item.get("entities")
+    return (
+        isinstance(role, str)
+        and bool(role)
+        and isinstance(entities, list)
+        and all(isinstance(entity, str) and entity for entity in entities)
+        and isinstance(item.get("provenance"), str | None)
+        and ("kept_in" not in item or _kept_in(item["kept_in"]))
+    )
+
+
+def party_totals_left_out(
+    manifest: Mapping[str, Any], spec_id: str
+) -> list[dict[str, Any]]:
+    """The group totals a manifest's `trace.party_totals_left_out` names, each
+    entry as served with the member's `spec_id` first: its `role`, its
+    `entities`, its `provenance` when the entry holds one, null included, and
+    its `kept_in` when the entry holds it. An entry without `provenance` left
+    the rows of every dataset, and one with `kept_in` left its totals in the
+    rows of those series in their `time_periods`. A key an entry holds beyond
+    these is dropped. Several entries can share a role and a provenance, one
+    per set of kept series and periods, so entries are read in order and
+    never merged.
+
+    The trace is no strict member, so it reads leniently: a trace that is not
+    an object, or a `party_totals_left_out` that is not a list, names none,
+    and an entry reads only as `_party_totals_entry_reads` reads it. Any other
+    entry reads as absent, and the entries beside it still read.
+    """
+    trace = manifest.get("trace")
+    served = trace.get(PARTY_TOTALS_LEFT_OUT) if isinstance(trace, dict) else None
+    if not isinstance(served, list):
+        return []
+    entries = []
+    for item in served:
+        if not _party_totals_entry_reads(item):
+            continue
+        entry = {
+            "spec_id": spec_id,
+            "role": item["role"],
+            "entities": list(item["entities"]),
+        }
+        if "provenance" in item:
+            entry["provenance"] = item["provenance"]
+        if "kept_in" in item:
+            entry["kept_in"] = deepcopy(item["kept_in"])
+        entries.append(entry)
+    return entries
 
 
 def dataset_summary(
@@ -1670,9 +1856,10 @@ def dataset_summary(
     *,
     search_warning: bool | None = None,
 ) -> dict[str, Any]:
-    """A dataset outcome's members and gaps, and for a fetch of an answer
-    whether it issued a SearchWarning, without the rows, columns and per-part
-    row counts the Parquet bodies hold."""
+    """A dataset outcome's members and gaps, the party totals its members'
+    manifests say were left out when there are any, and for a fetch of an
+    answer whether it issued a SearchWarning, without the rows, columns and
+    per-part row counts the Parquet bodies hold."""
     summary: dict[str, Any] = {
         "complete": not missing,
         "members": [
@@ -1686,6 +1873,11 @@ def dataset_summary(
         ],
         "missing": [{"part": gap["part"], "kind": gap["kind"]} for gap in missing],
     }
+    left_out = [
+        entry for member in members for entry in member.get(PARTY_TOTALS_LEFT_OUT, ())
+    ]
+    if left_out:
+        summary[PARTY_TOTALS_LEFT_OUT] = left_out
     if search_warning is not None:
         summary["search_warning"] = search_warning
     return summary
@@ -1824,14 +2016,22 @@ _BUILD = ("POST", "/datasets")
 POLL_PATH = "/datasets/operations/{operation_id}"
 _MANIFEST = {"$ref": "#/components/schemas/Manifest"}
 _OPERATION = {"$ref": "#/components/schemas/OperationResource"}
+ANALYSIS_PATH = "/datasets/analysis"
+_ANALYSIS = ("POST", ANALYSIS_PATH)
+# The bounds a client holds the wait before posting a pending analysis again.
+ANALYSIS_WAIT_MIN_S = 1.0
+ANALYSIS_WAIT_MAX_S = 60.0
 # The bare Parquet rendering a fetch asks for, by layout.
 LAYOUT_RENDERINGS = {
     "long": {"format": "parquet", "bundle": False},
     "frame": {"format": "parquet", "bundle": False, "layout": "frame"},
 }
-# The rendering member a fetch posts as true unless the caller keeps party
-# totals, which leaves out the group totals of the identity's open party roles.
+# The rendering member a served rendering and a ref carry as true for the cut
+# that leaves out the group totals of the identity's open party roles, and the
+# request member a fetch posts as false for that cut unless the caller keeps
+# party totals. A ref may carry either, and a plain rendering carries neither.
 WITHOUT_PARTY_TOTALS = "without_party_totals"
+PARTY_TOTALS = "party_totals"
 # The column a client presents last, the column a stacked dataset puts
 # first, the measure no row sorts by, and the sort key that comes last.
 STAT_VAR = "stat_var"
@@ -1861,11 +2061,65 @@ def rendering_for(layout: str | None) -> dict[str, Any]:
 def fetch_rendering(
     layout: str | None, *, party_totals: bool = False
 ) -> dict[str, Any]:
-    """The build request's `options` for a fetch of an answer or a spec, or
-    a mint: the layout's rendering, with `without_party_totals` unless the
-    caller keeps party totals."""
+    """The rendering a fetch of an answer or a spec, or a mint, asks for and
+    a ref it writes records: the layout's rendering, with
+    `without_party_totals` unless the caller keeps party totals.
+    `posted_options` gives the `options` its build posts."""
     rendering = rendering_for(layout)
     if not party_totals:
+        rendering[WITHOUT_PARTY_TOTALS] = True
+    return rendering
+
+
+def party_totals_cut(rendering: Mapping[str, Any]) -> bool | None:
+    """Whether `rendering`, posted options or a ref's or a served rendering,
+    leaves out party totals. `party_totals: false` or `without_party_totals:
+    true` says so, alone or together, and neither key says it keeps them.
+    None when a present key holds any other value, `party_totals: true` and
+    `without_party_totals: false` included, alone or beside the other key.
+    A build that keeps party totals posts no cut key, and the server refuses
+    two keys that disagree with 400 `request_invalid`."""
+    cut = {PARTY_TOTALS: False, WITHOUT_PARTY_TOTALS: True}
+    present = [key for key in cut if key in rendering]
+    if any(rendering[key] is not cut[key] for key in present):
+        return None
+    return bool(present)
+
+
+def posted_options(rendering: Mapping[str, Any]) -> dict[str, Any]:
+    """The `options` a build posts for `rendering`: its members, with the
+    cut, from either key, posted as `party_totals: false`. A rendering
+    `party_totals_cut` finds invalid is posted as it stands."""
+    cut = party_totals_cut(rendering)
+    if cut is None:
+        return dict(rendering)
+    options = {
+        k: v
+        for k, v in rendering.items()
+        if k not in (PARTY_TOTALS, WITHOUT_PARTY_TOTALS)
+    }
+    if cut:
+        options[PARTY_TOTALS] = False
+    return options
+
+
+def served_rendering(options: Any) -> Any:
+    """The rendering a served manifest records for posted `options` or a
+    ref's rendering, in the spelling a ref compares on: its members, with
+    the cut, from either key, as `without_party_totals: true`. Anything that is
+    not an object, and options `party_totals_cut` finds invalid, stay as they
+    stand, so a build that posted them matches no expected build."""
+    if not isinstance(options, dict):
+        return options
+    cut = party_totals_cut(options)
+    if cut is None:
+        return options
+    rendering = {
+        k: v
+        for k, v in options.items()
+        if k not in (PARTY_TOTALS, WITHOUT_PARTY_TOTALS)
+    }
+    if cut:
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -1875,11 +2129,12 @@ def resumed_rendering(
 ) -> dict[str, Any]:
     """The rendering a resumed operation's build posted, as its done
     manifest records it: the layout's rendering, with `without_party_totals`
-    when the artifact for that rendering carries the cut."""
+    when the artifact for that rendering carries the cut in either
+    spelling."""
     rendering = rendering_for(layout)
     artifact = pick_artifact(manifest, rendering)
     found = artifact.get("rendering") if artifact is not None else None
-    if isinstance(found, dict) and found.get(WITHOUT_PARTY_TOTALS) is True:
+    if isinstance(found, dict) and party_totals_cut(found):
         rendering[WITHOUT_PARTY_TOTALS] = True
     return rendering
 
@@ -2258,7 +2513,7 @@ def build_body(
 ) -> dict[str, Any]:
     """The body a client posts to build `spec`, a step's `spec` or a ref's.
     It holds the spec_id and unmodified definition, `scope` when it narrows
-    anything, and `rendering` as the options."""
+    anything, and `rendering` as `posted_options` gives its options."""
     input_: dict[str, Any] = {
         "kind": "spec_id",
         "spec_id": spec["spec_id"],
@@ -2266,7 +2521,14 @@ def build_body(
     }
     if scope:
         input_["scope"] = dict(scope)
-    return {"schema_version": 1, "input": input_, "options": dict(rendering)}
+    return {"schema_version": 1, "input": input_, "options": posted_options(rendering)}
+
+
+def _same_build(body: Any) -> Any:
+    """A build body with its options read through `served_rendering`."""
+    if not isinstance(body, dict) or not isinstance(body.get("options"), dict):
+        return body
+    return {**body, "options": served_rendering(body["options"])}
 
 
 def pick_artifact(
@@ -2766,8 +3028,18 @@ class _Replay:
         scope: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """A build request whose recorded body is the one `build_body` gives
-        for `spec`, `scope` and `rendering`."""
-        return self.posted(_BUILD, build_body(spec, scope, rendering))
+        for `spec`, `scope` and `rendering`, its options read through
+        `served_rendering`, so a cut posted as `party_totals: false` or as
+        `without_party_totals: true` posts the same build."""
+        posts = build_body(spec, scope, rendering)
+        exchange = self.call(*_BUILD)
+        sent = exchange["request"].get("json")
+        if _same_build(sent) != _same_build(posts):
+            raise _UnfitError(
+                f"exchange {self.cursor - 1} posts {json.dumps(sent)[:300]}, "
+                f"where the rules post {json.dumps(posts)[:300]}"
+            )
+        return exchange
 
     def build(
         self,
@@ -2852,6 +3124,7 @@ class _Replay:
             "spec_id": built,
             "content_version": manifest["content_version"],
             "sentence": sentence,
+            PARTY_TOTALS_LEFT_OUT: party_totals_left_out(manifest, built),
             "served": served_table(data),
         }
 
@@ -2890,7 +3163,12 @@ class _Replay:
             data, refusal = self.stored_file(member, manifest)
             if data is None:
                 return None, refusal
-            return {**stored, "served": served_table(data)}, None
+            left_out = party_totals_left_out(manifest, spec_id)
+            return {
+                **stored,
+                PARTY_TOTALS_LEFT_OUT: left_out,
+                "served": served_table(data),
+            }, None
 
         def rebuilt(manifest: dict[str, Any]) -> dict[str, Any]:
             held = {**spec, "sentence": member["sentence"]}
@@ -3084,6 +3362,15 @@ class _Replay:
             "newest_version": {"content_version": self.newest(step["spec"]["spec_id"])}
         }
 
+    def _stored_versions(self, step: dict[str, Any]) -> dict[str, Any]:
+        """The stored head version of each spec the targets read, from one
+        GET of the stored-head check, and the specs changed since `built`
+        when the step names it."""
+        spec_ids = stored_spec_ids(step["targets"])
+        exchange = self.call("GET", heads_path(spec_ids))
+        heads = read_heads(self.acted_on(exchange), spec_ids)
+        return stored_versions_outcome(spec_ids, heads, step.get("built"))
+
     def _result(self, step: dict[str, Any]) -> dict[str, Any]:
         if self.minted is None:
             raise _UnfitError("result follows no mint or operation")
@@ -3092,6 +3379,32 @@ class _Replay:
         rendering = minted.rendering or resumed_rendering(minted.layout, manifest)
         member = self.member([], minted.spec, manifest, rendering, False)
         return self.dataset([member], [])
+
+    def _analysis(self, step: dict[str, Any]) -> dict[str, Any]:
+        """A recipe tree posted to the analysis route, whose recorded body is
+        `analysis_body`'s. A 202 is pending: the client waits `analysis_wait`
+        and posts the same body again, noting each wait in `pending_waits`. A
+        200 answers `analysis_outcome`, a refusal raises, and any other
+        status raises ContractError `unexpected_response`."""
+        posts = analysis_body(step)
+        waits: list[float] = []
+        while True:
+            exchange = self.posted(_ANALYSIS, posts)
+            response = exchange["response"]
+            body = self.acted_on(exchange)
+            if response["status"] == 200:
+                outcome = analysis_outcome(
+                    body,
+                    stored=posts["latest"] == "stored",
+                    manifest="manifest" in posts.get("include", ()),
+                )
+                break
+            if response["status"] != 202:
+                raise ClientError("unexpected_response")
+            waits.append(analysis_wait(response.get("headers", {}), body))
+        if waits:
+            outcome["analysis"]["pending_waits"] = waits
+        return outcome
 
     def dataset(
         self,
@@ -3115,6 +3428,378 @@ class _Replay:
 def _operation_outcome(resource: dict[str, Any]) -> dict[str, Any]:
     operation = resource["operation"]
     return {"operation": {k: operation[k] for k in ("operation_id", "status")}}
+
+
+def analysis_body(step: Mapping[str, Any]) -> dict[str, Any]:
+    """The whole body a client posts to the analysis route for an `analysis`
+    step: its `tree` as given, `latest`, false when the step leaves it out,
+    and `include` when the step names it."""
+    body = {"tree": step["tree"], "latest": step.get("latest", False)}
+    if "include" in step:
+        body["include"] = list(step["include"])
+    return body
+
+
+def analysis_wait(headers: Mapping[str, str], body: Any) -> float:
+    """The wait before a pending analysis is posted again: the 202's
+    `Retry-After`, else its body's `retry_after_s`, else none, held between
+    ANALYSIS_WAIT_MIN_S and ANALYSIS_WAIT_MAX_S."""
+    wait = retry_after(headers)
+    if wait is None:
+        seconds = body.get("retry_after_s") if isinstance(body, dict) else None
+        number = isinstance(seconds, int | float) and not isinstance(seconds, bool)
+        wait = float(seconds) if number else 0.0
+    return min(max(wait, ANALYSIS_WAIT_MIN_S), ANALYSIS_WAIT_MAX_S)
+
+
+# The stored-head check: the path under the base URL, and the most spec ids
+# one request names.
+HEADS_PATH = "/datasets/heads"
+HEADS_MAX = 64
+_SPEC_ID = re.compile(r"^spec_[0-9a-f]{32}$")
+_CV = re.compile(r"^cv_[0-9a-f]{32}$")
+
+
+def _tree_roots(tree: Any) -> Iterator[Any]:
+    """Each root a recipe tree reads, in the order the tree holds them: a
+    node with a `verb` is a step, whose `inputs` name `data` and `other`, and
+    any other node is a root."""
+    if isinstance(tree, dict) and "verb" in tree:
+        inputs = tree.get("inputs")
+        for side in ("data", "other"):
+            if isinstance(inputs, dict) and side in inputs:
+                yield from _tree_roots(inputs[side])
+    else:
+        yield tree
+
+
+def _target_spec_ids(target: Mapping[str, Any]) -> list[str]:
+    """The spec ids one target of a stored-versions step reads: a spec's
+    own; each dataset member's, and each derived member's roots', of a
+    ref; and each root's of a recipe tree.
+
+    Raises:
+        ClientError: `invalid_argument`, for a tree root that names a frame
+            DFO computed, since a tree holds no roots for it.
+    """
+    if "spec" in target:
+        return [target["spec"]["spec_id"]]
+    if "ref" in target:
+        found = []
+        for member in target["ref"]["members"]:
+            if _derived(member):
+                found.extend(root["spec_id"] for root in member["roots"])
+            else:
+                found.append(member["spec"]["spec_id"])
+        return found
+    found = []
+    for root in _tree_roots(target["tree"]):
+        spec_id = root.get("spec_id") if isinstance(root, dict) else None
+        if not isinstance(spec_id, str) or not _SPEC_ID.match(spec_id):
+            raise ClientError("invalid_argument")
+        found.append(spec_id)
+    return found
+
+
+def stored_spec_ids(targets: Sequence[Mapping[str, Any]]) -> list[str]:
+    """The spec ids a stored-versions check names: every id its targets read,
+    each once, sorted by code point, so two checks of the same specs send the
+    same URL.
+
+    Raises:
+        ClientError: `invalid_argument`, before any request, when the targets
+            read no spec or more than HEADS_MAX, or a tree root names a
+            computed frame.
+    """
+    ids = sorted({i for target in targets for i in _target_spec_ids(target)})
+    if not ids or len(ids) > HEADS_MAX:
+        raise ClientError("invalid_argument")
+    return ids
+
+
+def heads_path(spec_ids: Sequence[str]) -> str:
+    """The stored-head check's path for `spec_ids`, one `spec_id` query
+    member each, in the order given."""
+    return f"{HEADS_PATH}?" + "&".join(
+        f"spec_id={quote(spec_id, safe='')}" for spec_id in spec_ids
+    )
+
+
+def read_heads(body: Any, spec_ids: Sequence[str]) -> dict[str, str | None]:
+    """Each asked spec id's stored head version, or None, from a 200 of the
+    stored-head check. The body is an object whose `heads` lists one
+    `{spec_id, content_version}` object per asked id, `content_version` a
+    `cv_` version or null, in any order.
+
+    Raises:
+        ClientError: `contract_violation`, when the body is another shape,
+            an entry names a spec the request did not, or an asked spec is
+            missing or listed twice.
+    """
+    heads = body.get("heads") if isinstance(body, dict) else None
+    if not isinstance(heads, list):
+        raise ClientError("contract_violation")
+    found: dict[str, str | None] = {}
+    for entry in heads:
+        spec_id = entry.get("spec_id") if isinstance(entry, dict) else None
+        if (
+            spec_id not in spec_ids
+            or spec_id in found
+            or "content_version" not in entry
+        ):
+            raise ClientError("contract_violation")
+        version = entry["content_version"]
+        if version is not None and not (
+            isinstance(version, str) and _CV.match(version)
+        ):
+            raise ClientError("contract_violation")
+        found[spec_id] = version
+    if len(found) != len(spec_ids):
+        raise ClientError("contract_violation")
+    return found
+
+
+def stored_versions_outcome(
+    spec_ids: Sequence[str],
+    heads: Mapping[str, str | None],
+    built: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """A stored-versions step's outcome: one head per asked spec in the
+    order asked, and with `built` the specs `changed_since` gives."""
+    outcome: dict[str, Any] = {
+        "heads": [
+            {"spec_id": spec_id, "content_version": heads[spec_id]}
+            for spec_id in spec_ids
+        ]
+    }
+    if built is not None:
+        outcome["changed"] = changed_since(heads, built)
+    return {"stored_versions": outcome}
+
+
+def changed_since(
+    heads: Mapping[str, str | None], built: Mapping[str, Any]
+) -> list[str]:
+    """The spec ids, sorted, whose stored head differs from the one `built`,
+    an earlier check's saved form, records: another version, a version where
+    `built` held null or the reverse, or a spec `built` does not list."""
+    before = {h["spec_id"]: h["content_version"] for h in built["heads"]}
+    return sorted(
+        spec_id
+        for spec_id, version in heads.items()
+        if spec_id not in before or before[spec_id] != version
+    )
+
+
+_OPS_ID = re.compile(r"^ops_[0-9a-f]{32}$")
+_OCV = re.compile(r"^ocv_[0-9a-f]{32}$")
+
+
+def _id_entry(item: Any, *, extra: str | None = None) -> dict[str, Any] | None:
+    """`{spec_id, content_version}` of a listed root, each a string, with the
+    member `extra` when `item` carries it as a string or null, or None when
+    any does not read."""
+    if not isinstance(item, dict):
+        return None
+    entry = {k: item.get(k) for k in ("spec_id", "content_version")}
+    if not all(isinstance(v, str) for v in entry.values()):
+        return None
+    if extra is not None and extra in item:
+        if not isinstance(item[extra], str | None):
+            return None
+        entry[extra] = item[extra]
+    return entry
+
+
+def _listed(body: dict[str, Any], name: str) -> list[Any]:
+    """The items of `body`'s list member `name`, none when it is absent or
+    null.
+
+    Raises:
+        ClientError: `contract_violation`, when it is another type.
+    """
+    value = body.get(name)
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ClientError("contract_violation")
+    return value
+
+
+# The freshness a stored root states, best first.
+FRESHNESS = ("current", "pending", "stale")
+
+
+def stored_freshness(body: Mapping[str, Any]) -> str | None:
+    """The worst freshness the answer's `resolved_roots` state, or None when
+    the member is absent or not a list, or any entry is not an object stating
+    one of FRESHNESS."""
+    entries = body.get("resolved_roots")
+    if not isinstance(entries, list) or not entries:
+        return None
+    stated = [
+        entry.get("freshness") if isinstance(entry, dict) else None for entry in entries
+    ]
+    if any(value not in FRESHNESS for value in stated):
+        return None
+    return max(stated, key=FRESHNESS.index)
+
+
+def embedded_left_out(
+    body: Mapping[str, Any], spec_id: str, version: str
+) -> int | None:
+    """The number of series the embedded derived manifest's `left_out` lists,
+    or None when it is null.
+
+    Raises:
+        ClientError: `contract_violation`, when `manifest` is not an object,
+            names another pair than the ref's member, or its `left_out` is
+            neither a list nor null.
+    """
+    manifest = body.get("manifest")
+    if not isinstance(manifest, dict):
+        raise ClientError("contract_violation")
+    if manifest.get("spec_id") != spec_id or manifest.get("content_version") != version:
+        raise ClientError("contract_violation")
+    left_out = manifest.get("left_out")
+    if left_out is None:
+        return None
+    if not isinstance(left_out, list):
+        raise ClientError("contract_violation")
+    return len(left_out)
+
+
+def analysis_outcome(
+    body: Any, *, stored: bool = False, manifest: bool = False
+) -> dict[str, Any]:
+    """The outcome of a ready analysis answer: the derived member its format
+    2 ref names, by `spec_id` and `content_version`; its `rows`; each root
+    read summed over its StatVars, from `stat_vars_summed`; and each root
+    whose rendering is a version of its own, from `derived_roots`. Either
+    list left out reads as empty. An answer to a `latest: "stored"` post
+    gives `freshness` (`stored_freshness`), and one to an
+    `include: ["manifest"]` post gives `left_out_series`
+    (`embedded_left_out`).
+
+    Raises:
+        ClientError: `contract_violation`, when the ref is not one derived
+            member, `rows` is not a count, a `stat_vars_summed` entry is not
+            `{spec_id, content_version, count}` with `count` at least 2, a
+            `derived_roots` entry is not `{spec_id, content_version}` with an
+            optional `base_content_version`, or an asked-for manifest does
+            not read.
+    """
+    violation = ClientError("contract_violation")
+    ref = read_object(body, "ref")
+    members = read_list(ref, "members")
+    if ref is None or ref.get("format_version") != 2 or members is None:
+        raise violation
+    match members:
+        case [{"roots": list(), "spec": {"spec_id": str(spec_id)}, **member}]:
+            version = member.get("content_version")
+        case _:
+            raise violation
+    if not _OPS_ID.match(spec_id) or not isinstance(version, str):
+        raise violation
+    if not _OCV.match(version):
+        raise violation
+    rows = body.get("rows")
+    if isinstance(rows, bool) or not isinstance(rows, int) or rows < 0:
+        raise violation
+    summed = []
+    for item in _listed(body, "stat_vars_summed"):
+        entry = _id_entry(item)
+        if entry is None:
+            raise violation
+        count = item.get("count")
+        if isinstance(count, bool) or not isinstance(count, int) or count < 2:
+            raise violation
+        summed.append({**entry, "count": count})
+    derived = []
+    for item in _listed(body, "derived_roots"):
+        entry = _id_entry(item, extra="base_content_version")
+        if entry is None:
+            raise violation
+        derived.append(entry)
+    outcome: dict[str, Any] = {
+        "spec_id": spec_id,
+        "content_version": version,
+        "rows": rows,
+        "stat_vars_summed": summed,
+        "derived_roots": derived,
+    }
+    if stored:
+        outcome["freshness"] = stored_freshness(body)
+    if manifest:
+        outcome["left_out_series"] = embedded_left_out(body, spec_id, version)
+    return {"analysis": outcome}
+
+
+# The verbs that take `allow_sparse_breakdowns`, an argument the served
+# document leaves open.
+_SPARSE_VERBS = frozenset({"aggregate", "rank"})
+
+
+def tree_argument_problems(tree: Any, at: str = "/tree") -> list[str]:
+    """Where a recipe tree's step arguments break the rules the served
+    document cannot state, since it types verb arguments as an open object.
+    `allow_sparse_breakdowns` is given only on `aggregate` and `rank`, and
+    only as true, since a client sends the flag only when it is set.
+    `partition_by` is given only on `rank`, as a non-empty list of distinct
+    non-empty strings, none of which `rank_by` names. A `verb` that is not a
+    string and a `rank_by` that is not a list of strings are problems too."""
+    if not isinstance(tree, dict) or "verb" not in tree:
+        return []
+    problems = []
+    verb = tree["verb"]
+    arguments = tree.get("arguments")
+    arguments = arguments if isinstance(arguments, dict) else {}
+    if not isinstance(verb, str):
+        problems.append(f"{at}: verb is a string, not {json.dumps(verb)}")
+        arguments = {}
+    rank_by = arguments.get("rank_by")
+    if (
+        verb == "rank"
+        and "rank_by" in arguments
+        and not (isinstance(rank_by, list) and all(isinstance(w, str) for w in rank_by))
+    ):
+        problems.append(
+            f"{at}: rank_by is a list of strings, not {json.dumps(rank_by)}"
+        )
+    if "allow_sparse_breakdowns" in arguments:
+        if verb not in _SPARSE_VERBS:
+            problems.append(f"{at}: {verb} takes no allow_sparse_breakdowns")
+        elif arguments["allow_sparse_breakdowns"] is not True:
+            problems.append(
+                f"{at}: allow_sparse_breakdowns is given only as true, not "
+                f"{json.dumps(arguments['allow_sparse_breakdowns'])}"
+            )
+    if "partition_by" in arguments:
+        partition = arguments["partition_by"]
+        ranked = (
+            {w for w in rank_by if isinstance(w, str)}
+            if isinstance(rank_by, list)
+            else set()
+        )
+        if verb != "rank":
+            problems.append(f"{at}: {verb} takes no partition_by")
+        elif (
+            not isinstance(partition, list)
+            or not partition
+            or not all(isinstance(word, str) and word for word in partition)
+            or len(set(partition)) != len(partition)
+        ):
+            problems.append(
+                f"{at}: partition_by is a non-empty list of distinct column "
+                f"words, not {json.dumps(partition)}"
+            )
+        elif both := sorted(ranked & set(partition)):
+            problems.append(f"{at}: partition_by and rank_by both name {both}")
+    inputs = tree.get("inputs")
+    for side in ("data", "other"):
+        if isinstance(inputs, dict) and side in inputs:
+            problems.extend(tree_argument_problems(inputs[side], f"{at}/inputs/{side}"))
+    return problems
 
 
 def with_step_notes(
@@ -3635,6 +4320,18 @@ def _check_steps(file_name: str, record: dict[str, Any]) -> list[str]:
                 f"scenarios/{file_name}: step {index} ({op}) does not follow "
                 f"a step in {sorted(needs)}"
             )
+        if op == "analysis":
+            problems.extend(
+                f"scenarios/{file_name}: step {index}: {problem}"
+                for problem in tree_argument_problems(step["tree"])
+            )
+        if op == "stored_versions" and "built" in step:
+            built = [head["spec_id"] for head in step["built"]["heads"]]
+            if built != sorted(set(built)):
+                problems.append(
+                    f"scenarios/{file_name}: step {index}: built lists its heads "
+                    "sorted by spec_id, each once"
+                )
         previous = op
     return problems
 
@@ -3743,25 +4440,27 @@ def _answered_builds(scenario: Mapping[str, Any]) -> Iterator[tuple[Any, Any]]:
 
 
 def posted_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the digest of the artifact each build's manifest lists for them. Builds
-    that answered the same file list each rendering in build order."""
+    """The renderings the builds in `scenario` posted as their `options`,
+    each as `served_rendering` reads it, by the digest of the artifact each
+    build's manifest lists for them. Builds that answered the same file list
+    each rendering in build order."""
     renderings: dict[str, list[Any]] = {}
     for manifest, options in _answered_builds(scenario):
         digest = _artifact_digest(manifest, options)
         if digest is not None:
-            renderings.setdefault(digest, []).append(options)
+            renderings.setdefault(digest, []).append(served_rendering(options))
     return renderings
 
 
 def _spec_renderings(scenario: Mapping[str, Any]) -> dict[str, list[Any]]:
-    """The renderings the builds in `scenario` posted as their `options`, by
-    the spec_id each build's manifest answered, in build order."""
+    """The renderings the builds in `scenario` posted as their `options`,
+    each as `served_rendering` reads it, by the spec_id each build's manifest
+    answered, in build order."""
     renderings: dict[str, list[Any]] = {}
     for manifest, options in _answered_builds(scenario):
         spec_id = read_string(read_object(manifest, "definition"), "spec_id")
         if spec_id is not None:
-            renderings.setdefault(spec_id, []).append(options)
+            renderings.setdefault(spec_id, []).append(served_rendering(options))
     return renderings
 
 
@@ -3793,7 +4492,9 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
     the build that answered its file in its `scenario` posted, since a ref
     records the rendering its fetch posted, or a derived member's root
     records one no build of its spec there posted, read as `_root_rendering`
-    gives. A root's `groupby` is the schema's alone to check."""
+    gives. Both sides are read through `served_rendering`, so either
+    spelling of the cut is the cut. A root's `groupby` is the schema's alone
+    to check."""
     ref = record.get("ref")
     members = ref.get("members") if isinstance(ref, dict) else None
     name = record.get("scenario")
@@ -3809,7 +4510,7 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             for position, root in enumerate(read_objects(member, "roots")):
                 where = f"member {index} root {position}"
                 spec_id = read_string(root, "spec_id")
-                rendering = read_object(root, "rendering")
+                rendering = served_rendering(read_object(root, "rendering"))
                 if spec_id not in by_spec:
                     problems.append(
                         f"{label}: {where}'s spec is built by no {name} build"
@@ -3825,7 +4526,7 @@ def _posted_by(label: str, record: dict[str, Any]) -> list[str]:
             continue
         artifact = read_object(member, "artifact")
         digest = read_string(artifact, "digest")
-        rendering = read_object(artifact, "rendering")
+        rendering = served_rendering(read_object(artifact, "rendering"))
         if digest not in posted:
             problems.append(
                 f"{label}: member {index}'s file is answered by no {name} build"
@@ -3877,6 +4578,311 @@ def _check_refs(validator: jsonschema.Draft202012Validator) -> list[str]:
     return problems
 
 
+# --- saved files ------------------------------------------------------------
+
+JSON_MEDIA = "application/json"
+
+
+def _no_constant(name: str) -> Any:
+    raise ValueError(f"{name} is not JSON")
+
+
+def _decoded_metadata(
+    validator: jsonschema.Draft202012Validator, metadata: Mapping[str, Any]
+) -> tuple[dict[str, Any], list[str]]:
+    """Each key of a saved file's metadata the schema gives as JSON text,
+    decoded, and where a value breaks its key's `contentSchema`. JSON
+    Schema treats `contentSchema` as an annotation, so the check applies it.
+    JSON text that does not decode, NaN and Infinity included, breaks it."""
+    schema = validator.schema
+    decoded: dict[str, Any] = {}
+    problems = []
+    for key, entry in schema["properties"].items():
+        text = metadata.get(key)
+        if entry.get("contentMediaType") != JSON_MEDIA or not isinstance(text, str):
+            continue
+        try:
+            value = json.loads(text, parse_constant=_no_constant)
+        except ValueError:
+            problems.append(f"{key}: not JSON")
+            continue
+        content = validator.evolve(
+            schema={"$ref": f"{schema['$id']}#/properties/{key}/contentSchema"}
+        )
+        problems.extend(
+            f"{key}: {_where(error)}: {error.message}"
+            for error in content.iter_errors(value)
+        )
+        decoded[key] = value
+    return decoded, problems
+
+
+def _calendar_dates_exist(decoded: Mapping[str, Any]) -> bool:
+    """Whether a saved file's `dfo.fetched_at` and every `held_until`, in
+    `dfo.dataset` and in `dfo.retention`, which the schema checks by pattern,
+    name a time and a date that exist."""
+    held = [decoded["dfo.dataset"].get("held_until")] + [
+        entry["held_until"] for entry in decoded.get("dfo.retention", [])
+    ]
+    try:
+        if (fetched := decoded.get("dfo.fetched_at")) is not None:
+            datetime.fromisoformat(fetched)
+        for day in held:
+            if day is not None:
+                date.fromisoformat(day)
+    except ValueError:
+        return False
+    return True
+
+
+def _retention_agrees(
+    pinned: bool, held_until: str | None, members: Sequence[Mapping[str, Any]]
+) -> bool:
+    """Whether a dataset's `pinned` and `held_until` are what its members'
+    retention, each `{pinned, held_until}`, gives: `pinned` true exactly when
+    there are members and every member's is, and `held_until` null when every
+    member is pinned and otherwise the earliest `held_until` of the members not
+    pinned, or null when none has one. A member whose `pinned` is null counts
+    as not pinned, and a dataset with no member is not pinned and has no
+    `held_until`, so a reader takes what the record states."""
+    if members and all(member["pinned"] is True for member in members):
+        return pinned is True and held_until is None
+    days = [
+        member["held_until"]
+        for member in members
+        if member["pinned"] is not True and member["held_until"] is not None
+    ]
+    return pinned is False and held_until == (min(days) if days else None)
+
+
+def _saved_file_rule(version: str, decoded: Mapping[str, Any]) -> str | None:
+    """The first rule a saved file that meets its schema breaks, or None:
+    a `dfo.fetched_at` or `held_until` that is no real time or date, as both
+    loaders read them; `dfo.ref`'s ref rules; `dfo.format_version` "3"
+    when a `dfo.steps` item holds `per`, which only a derived member's recipe
+    has and which names no role the item's `by` names, "2" or "3" when
+    `dfo.ref` holds a derived member and none does, and "1" when it is absent;
+    one member citation and
+    one row count per member of `dfo.ref`, none when it is absent; one
+    `dfo.retention` entry per member when the key is present; the members'
+    retention, as `dfo.retention` gives it or as a file without it reads
+    (`_retention_before_key`), agreeing with `dfo.dataset`'s `pinned` and
+    `held_until` (`_retention_agrees`); `dfo.dataset`'s `complete` true
+    exactly when its `missing` is empty; and each
+    `dfo.party_totals_left_out` entry reading as a served entry reads
+    (`_party_totals_entry_reads`) and naming a dataset member of `dfo.ref` or
+    a root of a derived member, in member order and then in the member's root
+    order."""
+    if not _calendar_dates_exist(decoded):
+        return "format_invalid"
+    ref = decoded.get("dfo.ref")
+    if ref is not None and (broken := _ref_rule(ref)) is not None:
+        return broken
+    members = ref["members"] if ref is not None else []
+    derived = any(map(_derived, members))
+    steps = decoded.get("dfo.steps", [])
+    partitioned = [step for step in steps if "per" in step]
+    if partitioned and not derived:
+        return "format_invalid"
+    if any(set(step["per"]) & set(step["by"]) for step in partitioned):
+        return "format_invalid"
+    allowed = ("3",) if partitioned else ("2", "3") if derived else ("1",)
+    if version not in allowed:
+        return "format_invalid"
+    dataset = decoded["dfo.dataset"]
+    if (len(dataset["member_citations"]), len(dataset["member_rows"])) != (
+        len(members),
+        len(members),
+    ):
+        return "format_invalid"
+    retention = decoded.get("dfo.retention", _retention_before_key(dataset, members))
+    if len(retention) != len(members) or not _retention_agrees(
+        dataset["pinned"], dataset["held_until"], retention
+    ):
+        return "format_invalid"
+    if dataset["complete"] == bool(dataset["missing"]):
+        return "format_invalid"
+    entries = decoded.get("dfo.party_totals_left_out", [])
+    if not all(map(_party_totals_entry_reads, entries)):
+        return "format_invalid"
+    return None if _party_totals_in_order(members, entries) else "format_invalid"
+
+
+def _retention_before_key(
+    dataset: Mapping[str, Any], members: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """The members' retention a file without `dfo.retention` reads: each
+    member pinned when `dfo.dataset`'s `pinned` is true, and otherwise with
+    `pinned` null and `dfo.dataset`'s `held_until`."""
+    entry = (
+        {"pinned": True, "held_until": None}
+        if dataset["pinned"]
+        else {"pinned": None, "held_until": dataset["held_until"]}
+    )
+    return [entry] * len(members)
+
+
+def _party_totals_in_order(
+    members: Sequence[Mapping[str, Any]], entries: Sequence[Mapping[str, Any]]
+) -> bool:
+    """Whether each party-totals entry names a dataset member or a root of a
+    derived member, in member order and then in the member's root order. A
+    derived member's entries name its roots only, since its totals are what
+    each root's read left out. A spec_id can name more than one of these, so
+    each entry takes the first one at or after the one the entry before it
+    took, which finds an order whenever one exists."""
+    named = [
+        spec_id
+        for member in members
+        for spec_id in (
+            [root["spec_id"] for root in member["roots"]]
+            if _derived(member)
+            else [member["spec"]["spec_id"]]
+        )
+    ]
+    position = 0
+    for entry in entries:
+        try:
+            position = named.index(entry["spec_id"], position)
+        except ValueError:
+            return False
+    return True
+
+
+def _check_saved_files(validator: jsonschema.Draft202012Validator) -> list[str]:
+    paths = sorted((PACKAGE_DIR / "saved-files").glob("*.json"))
+    problems = [] if paths else ["saved-files: no saved-file examples found"]
+    verdicts: set[str] = set()
+    for path in paths:
+        label = f"saved-files/{path.name}"
+        record = _load(path)
+        if not isinstance(record, dict) or record.get("name") != path.stem:
+            problems.append(f"{label}: name does not match the file name")
+            continue
+        error = record.get("error")
+        if ("expect" in record) == isinstance(error, dict):
+            problems.append(f"{label}: carries neither or both of expect and error")
+            continue
+        metadata = record.get("metadata")
+        found = _schema_problems(label, validator, metadata)
+        decoded: dict[str, Any] = {}
+        if isinstance(metadata, dict):
+            decoded, content = _decoded_metadata(validator, metadata)
+            found.extend(f"{label}: schema: {problem}" for problem in content)
+        by = error.get("by") if isinstance(error, dict) else None
+        verdicts.add(by or "accept")
+        if by == "schema":
+            if not found:
+                problems.append(
+                    f"{label}: the schema accepts a saved file it should reject"
+                )
+            continue
+        if found:
+            problems.extend(found)
+            continue
+        broken = _saved_file_rule(metadata["dfo.format_version"], decoded)
+        wanted = error.get("reason") if by == "rule" else None
+        if broken != wanted:
+            problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
+    problems.extend(
+        f"saved-files: no {verdict} example"
+        for verdict in ("accept", "schema", "rule")
+        if paths and verdict not in verdicts
+    )
+    return problems
+
+
+# --- provenance -------------------------------------------------------------
+
+# The keys of a provenance member that name its ref member.
+_PROVENANCE_NAMED_KEYS = ("spec_id", "content_version", "digest", "parts", "sentence")
+
+
+def _provenance_rule(provenance: Mapping[str, Any]) -> str | None:
+    """The first rule a provenance record that meets its schema breaks, or
+    None: a `fetched_at` or any `held_until` that is no real time or date;
+    `ref`'s ref rules; one `members` entry per member of `ref`, none when it
+    is null, each naming its ref member's `spec_id`, `content_version`,
+    artifact digest, `parts` and `sentence`; the record's `pinned` and
+    `held_until` agreeing with its members' (`_retention_agrees`); and
+    `complete` true exactly when `missing` is empty. A key the format does not
+    name is ignored, at the top level and in a member."""
+    held = [provenance["held_until"]] + [
+        entry["held_until"] for entry in provenance["members"]
+    ]
+    try:
+        if (fetched := provenance["fetched_at"]) is not None:
+            datetime.fromisoformat(fetched)
+        for day in held:
+            if day is not None:
+                date.fromisoformat(day)
+    except ValueError:
+        return "format_invalid"
+    ref = provenance["ref"]
+    if ref is not None and (broken := _ref_rule(ref)) is not None:
+        return broken
+    named = [
+        {
+            "spec_id": member["spec"]["spec_id"],
+            "content_version": member["content_version"],
+            "digest": member["artifact"]["digest"],
+            "parts": member["parts"],
+            "sentence": member["sentence"],
+        }
+        for member in (ref["members"] if ref is not None else [])
+    ]
+    given = [
+        {key: entry[key] for key in _PROVENANCE_NAMED_KEYS}
+        for entry in provenance["members"]
+    ]
+    if given != named:
+        return "format_invalid"
+    agrees = _retention_agrees(
+        provenance["pinned"], provenance["held_until"], provenance["members"]
+    )
+    if not agrees or provenance["complete"] == bool(provenance["missing"]):
+        return "format_invalid"
+    return None
+
+
+def _check_provenance(validator: jsonschema.Draft202012Validator) -> list[str]:
+    paths = sorted((PACKAGE_DIR / "provenance").glob("*.json"))
+    problems = [] if paths else ["provenance: no provenance examples found"]
+    verdicts: set[str] = set()
+    for path in paths:
+        label = f"provenance/{path.name}"
+        record = _load(path)
+        if not isinstance(record, dict) or record.get("name") != path.stem:
+            problems.append(f"{label}: name does not match the file name")
+            continue
+        error = record.get("error")
+        if ("expect" in record) == isinstance(error, dict):
+            problems.append(f"{label}: carries neither or both of expect and error")
+            continue
+        found = _schema_problems(label, validator, record.get("provenance"))
+        by = error.get("by") if isinstance(error, dict) else None
+        verdicts.add(by or "accept")
+        if by == "schema":
+            if not found:
+                problems.append(
+                    f"{label}: the schema accepts a provenance it should reject"
+                )
+            continue
+        if found:
+            problems.extend(found)
+            continue
+        broken = _provenance_rule(record["provenance"])
+        wanted = error.get("reason") if by == "rule" else None
+        if broken != wanted:
+            problems.append(f"{label}: breaks rule {broken!r}, expected {wanted!r}")
+    problems.extend(
+        f"provenance: no {verdict} example"
+        for verdict in ("accept", "schema", "rule")
+        if paths and verdict not in verdicts
+    )
+    return problems
+
+
 # --- derived identities -----------------------------------------------------
 
 # What fixes what among a derived member's identities. Two members that agree
@@ -3920,7 +4926,7 @@ def derived_identities(member: Mapping[str, Any]) -> dict[str, str | None]:
         [
             read_string(root, "spec_id"),
             read_string(root, "content_version"),
-            read_object(root, "rendering"),
+            served_rendering(read_object(root, "rendering")),
         ]
         for root in read_objects(member, "roots")
     ]
@@ -4323,6 +5329,8 @@ def validate() -> list[str]:
             f"scenarios: {size:,} bytes pass the {SCENARIOS_BUDGET:,}-byte budget"
         )
     problems.extend(_check_refs(validators["dataset-ref.schema.json"]))
+    problems.extend(_check_saved_files(validators["saved-file.schema.json"]))
+    problems.extend(_check_provenance(validators["provenance.schema.json"]))
     problems.extend(_check_rules(validators["rules/rules.schema.json"]))
     problems.extend(_check_derived_identities())
     return problems

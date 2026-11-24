@@ -1,0 +1,470 @@
+{
+  "format_version": 1,
+  "name": "analysis-stored-manifest",
+  "description": "include [\"manifest\"] embeds the derived manifest of the answer's pair in the 200, pinned or stored, and a latest \"stored\" root whose dataset has no stored head answers 202 pending naming the rebuild, after which the post answers.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "analysis-party-totals-cut",
+    "edit": "The cut post asks include [\"manifest\"], then posts again with a Spec root and latest \"stored\", answered 202 pending before its 200; both 200s embed the derived manifest."
+  },
+  "call": [
+    {
+      "op": "analysis",
+      "tree": {
+        "verb": "aggregate",
+        "arguments": {
+          "group_by": [
+            "time_period",
+            "origin"
+          ],
+          "aggregation": "sum"
+        },
+        "inputs": {
+          "data": {
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+            "rendering": {
+              "without_party_totals": true
+            }
+          }
+        }
+      },
+      "include": [
+        "manifest"
+      ]
+    },
+    {
+      "op": "analysis",
+      "tree": {
+        "verb": "aggregate",
+        "arguments": {
+          "group_by": [
+            "time_period",
+            "origin"
+          ],
+          "aggregation": "sum"
+        },
+        "inputs": {
+          "data": {
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "rendering": {
+              "without_party_totals": true
+            }
+          }
+        }
+      },
+      "latest": "stored",
+      "include": [
+        "manifest"
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          },
+          "latest": false,
+          "include": [
+            "manifest"
+          ]
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "9cd62ae89e484f08ae7e4249ac6c0080"
+        },
+        "json": {
+          "status": "ready",
+          "ref": {
+            "format_version": 2,
+            "members": [
+              {
+                "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+                  "recipe": {
+                    "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985",
+                    "replay_key": "rpk_c2aaba4f18599953fb9a8389f8bf7617"
+                  }
+                },
+                "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+                "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
+                "roots": [
+                  {
+                    "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                    "rendering": {
+                      "format": "parquet",
+                      "bundle": false,
+                      "layout": "frame",
+                      "without_party_totals": true
+                    }
+                  }
+                ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
+                "artifact": {
+                  "digest": "sha256:698c5c03a9104232137fb1c734258a8fffb77358fb26ed63e8f48ae13e5db424",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame"
+                  }
+                }
+              }
+            ]
+          },
+          "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
+          "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
+          "rows": 96,
+          "role_keys": [
+            "financingProvider",
+            "financingProvider_party_class",
+            "financingProvider_party_kind",
+            "financingProvider_party_whole",
+            "financingProvider_type"
+          ],
+          "stat_var_count": 1,
+          "exclusions": [],
+          "time": {
+            "kind": "observation"
+          },
+          "execution_identity": {
+            "engine_version": "0.9.1",
+            "frame_grammar_version": "1.2.0",
+            "reduction_policy_version": "0.2.0"
+          },
+          "resolved_periods": [],
+          "derived_roots": [],
+          "stat_vars_summed": [],
+          "manifest": {
+            "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+            "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+            "retention": {
+              "pinned": false,
+              "held_until": "2026-12-23T16:50:33Z"
+            },
+            "citation": {
+              "text": "Computed by DFO.",
+              "sources": []
+            },
+            "recipe": {
+              "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985",
+              "replay_key": "rpk_c2aaba4f18599953fb9a8389f8bf7617",
+              "execution_identity": "0.9.1|1.2.0|0.2.0",
+              "tree": {
+                "verb": "aggregate",
+                "arguments": {
+                  "group_by": [
+                    "time_period",
+                    "origin"
+                  ],
+                  "aggregation": "sum"
+                },
+                "inputs": {
+                  "data": {
+                    "root": 0
+                  }
+                }
+              },
+              "roots": [
+                {
+                  "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                  "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame",
+                    "without_party_totals": true
+                  }
+                }
+              ]
+            },
+            "roots": [
+              {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                "rendering": {
+                  "format": "parquet",
+                  "bundle": false,
+                  "layout": "frame",
+                  "without_party_totals": true
+                }
+              }
+            ],
+            "resolved_periods": [],
+            "anchor": null,
+            "left_out": [],
+            "left_out_complete": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          },
+          "latest": "stored",
+          "include": [
+            "manifest"
+          ]
+        }
+      },
+      "response": {
+        "status": 202,
+        "headers": {
+          "cache-control": "no-store",
+          "content-type": "application/json",
+          "retry-after": "2",
+          "x-dfo-trace-id": "55555555555555555555555555555555"
+        },
+        "json": {
+          "status": "pending",
+          "retry_after_s": 2.0,
+          "operations": [
+            "op_5555555555555555555555555555555555555555555555555555555555555555"
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "aggregate",
+            "arguments": {
+              "group_by": [
+                "time_period",
+                "origin"
+              ],
+              "aggregation": "sum"
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          },
+          "latest": "stored",
+          "include": [
+            "manifest"
+          ]
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "9cd62ae89e484f08ae7e4249ac6c0080"
+        },
+        "json": {
+          "status": "ready",
+          "ref": {
+            "format_version": 2,
+            "members": [
+              {
+                "parts": [],
+                "sentence": "Computed by DFO: aggregate.",
+                "spec": {
+                  "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+                  "recipe": {
+                    "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985",
+                    "replay_key": "rpk_c2aaba4f18599953fb9a8389f8bf7617"
+                  }
+                },
+                "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+                "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
+                "roots": [
+                  {
+                    "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                    "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                    "rendering": {
+                      "format": "parquet",
+                      "bundle": false,
+                      "layout": "frame",
+                      "without_party_totals": true
+                    }
+                  }
+                ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
+                "artifact": {
+                  "digest": "sha256:698c5c03a9104232137fb1c734258a8fffb77358fb26ed63e8f48ae13e5db424",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame"
+                  }
+                }
+              }
+            ]
+          },
+          "frame_content_version": "cv_d7f8701a554715077fb83f892bdabe41",
+          "output_digest": "out_ca2a070269f2bb26dc436473d3d2c27d",
+          "rows": 96,
+          "role_keys": [
+            "financingProvider",
+            "financingProvider_party_class",
+            "financingProvider_party_kind",
+            "financingProvider_party_whole",
+            "financingProvider_type"
+          ],
+          "stat_var_count": 1,
+          "exclusions": [],
+          "time": {
+            "kind": "observation"
+          },
+          "execution_identity": {
+            "engine_version": "0.9.1",
+            "frame_grammar_version": "1.2.0",
+            "reduction_policy_version": "0.2.0"
+          },
+          "resolved_periods": [],
+          "derived_roots": [],
+          "stat_vars_summed": [],
+          "resolved_roots": [
+            {
+              "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+              "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+              "freshness": "current"
+            }
+          ],
+          "manifest": {
+            "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+            "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+            "retention": {
+              "pinned": false,
+              "held_until": "2026-12-23T16:50:33Z"
+            },
+            "citation": {
+              "text": "Computed by DFO.",
+              "sources": []
+            },
+            "recipe": {
+              "normal_form_hash": "rnf_34a58809f55439eaa291c742358e4985",
+              "replay_key": "rpk_c2aaba4f18599953fb9a8389f8bf7617",
+              "execution_identity": "0.9.1|1.2.0|0.2.0",
+              "tree": {
+                "verb": "aggregate",
+                "arguments": {
+                  "group_by": [
+                    "time_period",
+                    "origin"
+                  ],
+                  "aggregation": "sum"
+                },
+                "inputs": {
+                  "data": {
+                    "root": 0
+                  }
+                }
+              },
+              "roots": [
+                {
+                  "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                  "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame",
+                    "without_party_totals": true
+                  }
+                }
+              ]
+            },
+            "roots": [
+              {
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+                "content_version": "cv_5da0981e9a904c5c372b19a4cb5aa103",
+                "rendering": {
+                  "format": "parquet",
+                  "bundle": false,
+                  "layout": "frame",
+                  "without_party_totals": true
+                }
+              }
+            ],
+            "resolved_periods": [],
+            "anchor": null,
+            "left_out": [],
+            "left_out_complete": true
+          }
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "analysis": {
+        "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+        "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+        "rows": 96,
+        "stat_vars_summed": [],
+        "derived_roots": [],
+        "left_out_series": 0
+      }
+    },
+    {
+      "analysis": {
+        "spec_id": "ops_b4f0d2fb150c3e0f41f39aac2af36689",
+        "content_version": "ocv_efdaad41980bb239af439223cabdd06e",
+        "rows": 96,
+        "stat_vars_summed": [],
+        "derived_roots": [],
+        "freshness": "current",
+        "left_out_series": 0,
+        "pending_waits": [
+          2.0
+        ]
+      }
+    }
+  ]
+}

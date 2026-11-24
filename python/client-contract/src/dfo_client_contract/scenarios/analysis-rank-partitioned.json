@@ -1,0 +1,907 @@
+{
+  "format_version": 1,
+  "name": "analysis-rank-partitioned",
+  "description": "A rank posts its recipe tree to the analysis route as {tree, latest}. Ranking the G7 donors to two recipients by their 2020 to 2022 total with limit 3 keeps 3 rows; with partition_by [destination] each recipient's donors rank on their own, so the frame keeps 3 rows for each recipient, 6 in all.",
+  "origin": {
+    "kind": "recorded",
+    "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:50:09Z"
+  },
+  "call": [
+    {
+      "op": "analysis",
+      "tree": {
+        "verb": "rank",
+        "arguments": {
+          "rank_by": [
+            "origin"
+          ],
+          "aggregation": "sum",
+          "limit": 3
+        },
+        "inputs": {
+          "data": {
+            "spec_id": "spec_4b222923de5c02411f3836083fe4fa11",
+            "rendering": {
+              "without_party_totals": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "analysis",
+      "tree": {
+        "verb": "rank",
+        "arguments": {
+          "rank_by": [
+            "origin"
+          ],
+          "aggregation": "sum",
+          "limit": 3,
+          "partition_by": [
+            "destination"
+          ]
+        },
+        "inputs": {
+          "data": {
+            "spec_id": "spec_4b222923de5c02411f3836083fe4fa11",
+            "rendering": {
+              "without_party_totals": true
+            }
+          }
+        }
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "rank",
+            "arguments": {
+              "rank_by": [
+                "origin"
+              ],
+              "aggregation": "sum",
+              "limit": 3
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_4b222923de5c02411f3836083fe4fa11",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          },
+          "latest": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "c09ecb5d84554704a44bda604c6321b0"
+        },
+        "json": {
+          "status": "ready",
+          "ref": {
+            "format_version": 2,
+            "members": [
+              {
+                "parts": [],
+                "sentence": "Computed by DFO: rank.",
+                "spec": {
+                  "spec_id": "ops_e58cd936814a134655bf969dee7b6bf4",
+                  "recipe": {
+                    "normal_form_hash": "rnf_1c557da4e0089ab5b34570b406dc2107",
+                    "replay_key": "rpk_d443cdcea833ee56e51399063dc96546"
+                  }
+                },
+                "content_version": "ocv_64409caac8c5eee3db0e8223b026827e",
+                "output_digest": "out_24a6f8c43e28aebdda1640075ac8b536",
+                "roots": [
+                  {
+                    "spec_id": "spec_4b222923de5c02411f3836083fe4fa11",
+                    "content_version": "cv_a2fb4de22d273149a5ed5836244d3d87",
+                    "rendering": {
+                      "format": "parquet",
+                      "bundle": false,
+                      "layout": "frame",
+                      "without_party_totals": true
+                    }
+                  }
+                ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
+                "artifact": {
+                  "digest": "sha256:3f1e2ab81ffd60442a252cd280ca9c2b4a47a9e72c902c654ca45627c4c7e6de",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame"
+                  }
+                }
+              }
+            ]
+          },
+          "frame_content_version": "cv_37129520de1bf74fce082beb1d143a93",
+          "output_digest": "out_24a6f8c43e28aebdda1640075ac8b536",
+          "summary": {
+            "verb": "rank",
+            "spec_id": "ops_e58cd936814a134655bf969dee7b6bf4",
+            "content_version": "ocv_64409caac8c5eee3db0e8223b026827e",
+            "frame_content_version": "cv_37129520de1bf74fce082beb1d143a93",
+            "rows": 3,
+            "role_keys": [
+              "financingProvider",
+              "financingProvider_party_class",
+              "financingProvider_party_kind",
+              "financingProvider_party_whole",
+              "financingProvider_type"
+            ],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": 7,
+            "exclusions": [
+              {
+                "reason": "beyond_limit",
+                "rows": 24,
+                "entities": {
+                  "financingProvider": [
+                    "country/CAN",
+                    "country/DEU",
+                    "country/ITA",
+                    "country/JPN"
+                  ]
+                },
+                "entities_truncated": false,
+                "side": null
+              }
+            ],
+            "time": {
+              "kind": "interval",
+              "start": "2020",
+              "end": "2022",
+              "contiguous": true,
+              "absent": [],
+              "absent_count": 0
+            },
+            "parameters": {
+              "aggregation": "sum",
+              "ascending": false,
+              "limit": 3,
+              "per_period": false,
+              "rank_by": [
+                "financingProvider"
+              ],
+              "unit": null,
+              "window_end": null,
+              "window_start": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
+            "result": {
+              "resolved_unit": "CurrencyUSD",
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/ONEDAC2aBilateral"
+                }
+              ],
+              "warnings": [],
+              "aggregation": "sum",
+              "window_start": null,
+              "window_end": null,
+              "periods_in_window": [
+                "2020",
+                "2021",
+                "2022"
+              ],
+              "expected_cell_count": 21,
+              "present_cell_count": 21,
+              "overall_coverage_fraction": 1.0,
+              "entity_ranks": [
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/USA"
+                    ]
+                  ],
+                  "value": 4583286739.0,
+                  "rank": 1,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/GBR"
+                    ]
+                  ],
+                  "value": 909420259.0,
+                  "rank": 2,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/FRA"
+                    ]
+                  ],
+                  "value": 710881592.0,
+                  "rank": 3,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/JPN"
+                    ]
+                  ],
+                  "value": 611173773.0,
+                  "rank": 4,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/DEU"
+                    ]
+                  ],
+                  "value": 595367853.0,
+                  "rank": 5,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/CAN"
+                    ]
+                  ],
+                  "value": 287863286.0,
+                  "rank": 6,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingProvider",
+                      "country/ITA"
+                    ]
+                  ],
+                  "value": 54810644.0,
+                  "rank": 7,
+                  "row_count": 6,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                }
+              ],
+              "per_period": false,
+              "limit": 3,
+              "exclusions": {
+                "records": [
+                  {
+                    "reason": "beyond_limit",
+                    "row_count": 24,
+                    "entities": {
+                      "financingProvider": [
+                        "country/CAN",
+                        "country/DEU",
+                        "country/ITA",
+                        "country/JPN"
+                      ]
+                    },
+                    "entities_truncated": false,
+                    "side": null,
+                    "parties": null
+                  }
+                ]
+              },
+              "window_period_count": 3,
+              "private_parties": []
+            }
+          },
+          "rows": 3,
+          "role_keys": [
+            "financingProvider",
+            "financingProvider_party_class",
+            "financingProvider_party_kind",
+            "financingProvider_party_whole",
+            "financingProvider_type"
+          ],
+          "stat_var_count": 1,
+          "exclusions": [
+            {
+              "reason": "beyond_limit",
+              "rows": 24,
+              "entities": {
+                "financingProvider": [
+                  "country/CAN",
+                  "country/DEU",
+                  "country/ITA",
+                  "country/JPN"
+                ]
+              },
+              "entities_truncated": false,
+              "side": null
+            }
+          ],
+          "time": {
+            "kind": "interval",
+            "start": "2020",
+            "end": "2022",
+            "contiguous": true,
+            "absent": [],
+            "absent_count": 0
+          },
+          "execution_identity": {
+            "engine_version": "0.9.1",
+            "frame_grammar_version": "1.2.0",
+            "reduction_policy_version": "0.2.0"
+          },
+          "resolved_periods": [],
+          "derived_roots": [],
+          "stat_vars_summed": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/datasets/analysis",
+        "json": {
+          "tree": {
+            "verb": "rank",
+            "arguments": {
+              "rank_by": [
+                "origin"
+              ],
+              "aggregation": "sum",
+              "limit": 3,
+              "partition_by": [
+                "destination"
+              ]
+            },
+            "inputs": {
+              "data": {
+                "spec_id": "spec_4b222923de5c02411f3836083fe4fa11",
+                "rendering": {
+                  "without_party_totals": true
+                }
+              }
+            }
+          },
+          "latest": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "d56fcfc6b2b44b53b4a78574137f3ba2"
+        },
+        "json": {
+          "status": "ready",
+          "ref": {
+            "format_version": 2,
+            "members": [
+              {
+                "parts": [],
+                "sentence": "Computed by DFO: rank.",
+                "spec": {
+                  "spec_id": "ops_5aaff24c97c86b8245e2f50611855741",
+                  "recipe": {
+                    "normal_form_hash": "rnf_c895bf431a3c2e084a053815cc365e64",
+                    "replay_key": "rpk_a0a4e0e8f1959b211800a295a5a676c9"
+                  }
+                },
+                "content_version": "ocv_7f23e08b957e43c06438e2a66c2cdc5e",
+                "output_digest": "out_095b48a54243883359714867a48d35f8",
+                "roots": [
+                  {
+                    "spec_id": "spec_4b222923de5c02411f3836083fe4fa11",
+                    "content_version": "cv_a2fb4de22d273149a5ed5836244d3d87",
+                    "rendering": {
+                      "format": "parquet",
+                      "bundle": false,
+                      "layout": "frame",
+                      "without_party_totals": true
+                    }
+                  }
+                ],
+                "execution_identity": "0.9.1|1.2.0|0.2.0",
+                "resolved_periods": [],
+                "artifact": {
+                  "digest": "sha256:4ae65be9ea622fc2a11fab895c530ee2330918fc439c29eb4cc84be4e5ae9849",
+                  "rendering": {
+                    "format": "parquet",
+                    "bundle": false,
+                    "layout": "frame"
+                  }
+                }
+              }
+            ]
+          },
+          "frame_content_version": "cv_48a1b08a9a4e76c3b8843a887324a97f",
+          "output_digest": "out_095b48a54243883359714867a48d35f8",
+          "summary": {
+            "verb": "rank",
+            "spec_id": "ops_5aaff24c97c86b8245e2f50611855741",
+            "content_version": "ocv_7f23e08b957e43c06438e2a66c2cdc5e",
+            "frame_content_version": "cv_48a1b08a9a4e76c3b8843a887324a97f",
+            "rows": 6,
+            "role_keys": [
+              "financingProvider",
+              "financingProvider_party_class",
+              "financingProvider_party_kind",
+              "financingProvider_party_whole",
+              "financingProvider_type",
+              "financingRecipient",
+              "financingRecipient_party_class",
+              "financingRecipient_party_kind",
+              "financingRecipient_party_whole",
+              "financingRecipient_type"
+            ],
+            "stat_var_count": 1,
+            "dropped_key_count": 0,
+            "right_dropped_key_count": 0,
+            "ranked_before_limit": 14,
+            "exclusions": [
+              {
+                "reason": "beyond_limit",
+                "rows": 24,
+                "entities": {
+                  "financingRecipient": [
+                    "country/KEN",
+                    "country/NGA"
+                  ],
+                  "financingProvider": [
+                    "country/CAN",
+                    "country/DEU",
+                    "country/ITA"
+                  ]
+                },
+                "entities_truncated": false,
+                "side": null
+              }
+            ],
+            "time": {
+              "kind": "interval",
+              "start": "2020",
+              "end": "2022",
+              "contiguous": true,
+              "absent": [],
+              "absent_count": 0
+            },
+            "parameters": {
+              "aggregation": "sum",
+              "ascending": false,
+              "limit": 3,
+              "partition_by": [
+                "financingRecipient"
+              ],
+              "per_period": false,
+              "rank_by": [
+                "financingProvider"
+              ],
+              "unit": null,
+              "window_end": null,
+              "window_start": null
+            },
+            "execution_identity": {
+              "engine_version": "0.9.1",
+              "frame_grammar_version": "1.2.0",
+              "reduction_policy_version": "0.2.0"
+            },
+            "derived": null,
+            "result": {
+              "resolved_unit": "CurrencyUSD",
+              "facet_selections": [
+                {
+                  "axis": "provenance",
+                  "ref": "provenance/ONEDAC2aBilateral"
+                }
+              ],
+              "warnings": [],
+              "aggregation": "sum",
+              "window_start": null,
+              "window_end": null,
+              "periods_in_window": [
+                "2020",
+                "2021",
+                "2022"
+              ],
+              "expected_cell_count": 42,
+              "present_cell_count": 42,
+              "overall_coverage_fraction": 1.0,
+              "entity_ranks": [
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/USA"
+                    ]
+                  ],
+                  "value": 1971622685.0,
+                  "rank": 1,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/JPN"
+                    ]
+                  ],
+                  "value": 551556341.0,
+                  "rank": 2,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/FRA"
+                    ]
+                  ],
+                  "value": 277135913.0,
+                  "rank": 3,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/GBR"
+                    ]
+                  ],
+                  "value": 272356545.0,
+                  "rank": 4,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/DEU"
+                    ]
+                  ],
+                  "value": 237219242.0,
+                  "rank": 5,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/CAN"
+                    ]
+                  ],
+                  "value": 105394157.0,
+                  "rank": 6,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/KEN"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/ITA"
+                    ]
+                  ],
+                  "value": 42941212.0,
+                  "rank": 7,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/USA"
+                    ]
+                  ],
+                  "value": 2611664054.0,
+                  "rank": 1,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/GBR"
+                    ]
+                  ],
+                  "value": 637063714.0,
+                  "rank": 2,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/FRA"
+                    ]
+                  ],
+                  "value": 433745679.0,
+                  "rank": 3,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/DEU"
+                    ]
+                  ],
+                  "value": 358148611.0,
+                  "rank": 4,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/CAN"
+                    ]
+                  ],
+                  "value": 182469129.0,
+                  "rank": 5,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/JPN"
+                    ]
+                  ],
+                  "value": 59617432.0,
+                  "rank": 6,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                },
+                {
+                  "entity_key": [
+                    [
+                      "financingRecipient",
+                      "country/NGA"
+                    ],
+                    [
+                      "financingProvider",
+                      "country/ITA"
+                    ]
+                  ],
+                  "value": 11869432.0,
+                  "rank": 7,
+                  "row_count": 3,
+                  "coverage_fraction": 1.0,
+                  "time_period": "2020/2022",
+                  "period_count": 3
+                }
+              ],
+              "per_period": false,
+              "limit": 3,
+              "exclusions": {
+                "records": [
+                  {
+                    "reason": "beyond_limit",
+                    "row_count": 24,
+                    "entities": {
+                      "financingRecipient": [
+                        "country/KEN",
+                        "country/NGA"
+                      ],
+                      "financingProvider": [
+                        "country/CAN",
+                        "country/DEU",
+                        "country/ITA"
+                      ]
+                    },
+                    "entities_truncated": false,
+                    "side": null,
+                    "parties": null
+                  }
+                ]
+              },
+              "window_period_count": 3,
+              "private_parties": []
+            }
+          },
+          "rows": 6,
+          "role_keys": [
+            "financingProvider",
+            "financingProvider_party_class",
+            "financingProvider_party_kind",
+            "financingProvider_party_whole",
+            "financingProvider_type",
+            "financingRecipient",
+            "financingRecipient_party_class",
+            "financingRecipient_party_kind",
+            "financingRecipient_party_whole",
+            "financingRecipient_type"
+          ],
+          "stat_var_count": 1,
+          "exclusions": [
+            {
+              "reason": "beyond_limit",
+              "rows": 24,
+              "entities": {
+                "financingRecipient": [
+                  "country/KEN",
+                  "country/NGA"
+                ],
+                "financingProvider": [
+                  "country/CAN",
+                  "country/DEU",
+                  "country/ITA"
+                ]
+              },
+              "entities_truncated": false,
+              "side": null
+            }
+          ],
+          "time": {
+            "kind": "interval",
+            "start": "2020",
+            "end": "2022",
+            "contiguous": true,
+            "absent": [],
+            "absent_count": 0
+          },
+          "execution_identity": {
+            "engine_version": "0.9.1",
+            "frame_grammar_version": "1.2.0",
+            "reduction_policy_version": "0.2.0"
+          },
+          "resolved_periods": [],
+          "derived_roots": [],
+          "stat_vars_summed": []
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "analysis": {
+        "spec_id": "ops_e58cd936814a134655bf969dee7b6bf4",
+        "content_version": "ocv_64409caac8c5eee3db0e8223b026827e",
+        "rows": 3,
+        "stat_vars_summed": [],
+        "derived_roots": []
+      }
+    },
+    {
+      "analysis": {
+        "spec_id": "ops_5aaff24c97c86b8245e2f50611855741",
+        "content_version": "ocv_7f23e08b957e43c06438e2a66c2cdc5e",
+        "rows": 6,
+        "stat_vars_summed": [],
+        "derived_roots": []
+      }
+    }
+  ]
+}

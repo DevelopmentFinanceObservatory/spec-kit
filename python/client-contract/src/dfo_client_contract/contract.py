@@ -15,6 +15,7 @@ RULES = (
     "credentials-file",
     "key-lookup",
     "base-url",
+    "timeout-and-retries",
     "cache-dir",
     "cache-layout",
     "reading-order",
@@ -121,6 +122,22 @@ def dataset_ref_schema() -> dict[str, Any]:
     return _load("dataset-ref.schema.json")
 
 
+def stored_versions_schema() -> dict[str, Any]:
+    """`stored-versions.schema.json`: the saved form of a stored-versions
+    check."""
+    return _load("stored-versions.schema.json")
+
+
+def saved_file_schema() -> dict[str, Any]:
+    """`saved-file.schema.json`: the `dfo.*` metadata of a saved Parquet file."""
+    return _load("saved-file.schema.json")
+
+
+def provenance_schema() -> dict[str, Any]:
+    """`provenance.schema.json`: the record `data.provenance.to_json()` writes."""
+    return _load("provenance.schema.json")
+
+
 def rules_schema() -> dict[str, Any]:
     """`rules/rules.schema.json`: the shape of every rule file."""
     return _load("rules/rules.schema.json")
@@ -142,6 +159,24 @@ def ref_examples() -> list[dict[str, Any]]:
         RuntimeError: No example is installed.
     """
     return _records("refs")
+
+
+def saved_file_examples() -> list[dict[str, Any]]:
+    """Every saved-file metadata example, sorted by file name.
+
+    Raises:
+        RuntimeError: No example is installed.
+    """
+    return _records("saved-files")
+
+
+def provenance_examples() -> list[dict[str, Any]]:
+    """Every provenance example, sorted by file name.
+
+    Raises:
+        RuntimeError: No example is installed.
+    """
+    return _records("provenance")
 
 
 def rule(name: str) -> dict[str, Any]:

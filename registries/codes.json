@@ -195,6 +195,26 @@
       "lifecycle": "retired"
     },
     {
+      "code": "bilateral_reading_unavailable",
+      "classification": "warning",
+      "definition": "An answer or reading of a published total ODA table, on a part with no provider axis and no provider entry asking for total ODA, reads total ODA, which includes donors' core contributions to multilateral agencies, because its bilateral reading is unavailable or undecided for it. The warning carries the spec_id of the reading it concerns, and params.why names the reason, one of the reasons spec-kit's warning-reason registry lists for this code, which may add params of its own.",
+      "owning_contract": "search",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "search.resolve",
+          "doors": [
+            "raw_text",
+            "parsed",
+            "dataset_resubmit"
+          ],
+          "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "binding_folded",
       "classification": "warning",
       "definition": "Several parts of a query resolved to the same shape, so the engine merged them onto one spec and folded every binding but the first into that spec's slot options; the part carrying this warning is answered by the merged spec.",
@@ -266,6 +286,42 @@
             "dataset_resubmit"
           ],
           "channel": "no_data_reason"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "breakdown_label_ambiguous",
+      "classification": "refusal",
+      "definition": "A filter value on a breakdown column is a label that names several codes of its axis.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 422
+        },
+        {
+          "endpoint": "mcp.tools",
+          "channel": "mcp_refusal"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "caller_over_share",
+      "classification": "refusal",
+      "definition": "The caller already has its share of analysis requests in flight on the instance that answered, so this one is refused while other callers are still admitted. A retry after the response's Retry-After is expected to succeed once one of the caller's own requests ends.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 429
         }
       ],
       "lifecycle": "active"
@@ -2338,6 +2394,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "datasets.heads",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -4479,6 +4540,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "datasets.heads",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -5155,6 +5221,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "datasets.heads",
+          "channel": "problem_details",
+          "http_status": 503
         }
       ],
       "lifecycle": "active"
@@ -6783,6 +6854,27 @@
             "parsed"
           ],
           "channel": "diagnostics_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "verify_not_permitted",
+      "classification": "refusal",
+      "definition": "The caller of a verification, a `POST /api/datasets/analysis` request with `verify: true` or a `GET /api/presentation/share-sample` request, did not send the deployment's verify principal in its `x-dfo-principal` header, or the deployment sets no verify principal.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 403
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 403
         }
       ],
       "lifecycle": "active"

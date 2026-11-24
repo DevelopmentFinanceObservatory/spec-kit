@@ -19,6 +19,16 @@ The limit-name registry (`registries/limit-names.json`, mirrored the same way
 and checked by `tools/validate_limit_registry.py`) lists the values a
 `resource_exhausted` problem body carries in `limit_name`. `LIMIT_NAMES` is
 that registry, keyed by name.
+
+The warning-reason registry (`registries/warning-reasons.json`, mirrored the
+same way and checked by `tools/validate_warning_reasons.py`) lists the values
+a warning carries in `params.why`. `WARNING_REASONS` is that registry, keyed
+by code and then by reason.
+
+The flow role-axis registry (`registries/flow-role-axes.json`, mirrored the
+same way and checked by `tools/validate_flow_role_axes.py`) places each party
+role name of a flow on the `origin` or `destination` axis. `FLOW_ROLE_AXES` is
+that registry, keyed by role name.
 """
 
 from __future__ import annotations
@@ -32,6 +42,7 @@ from typing import Any, Literal
 
 Classification = Literal["refusal", "warning"]
 Lifecycle = Literal["active", "retired"]
+FlowAxis = Literal["origin", "destination"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,15 +180,100 @@ def load_limit_names() -> Mapping[str, LimitName]:
 
 LIMIT_NAMES: Mapping[str, LimitName] = load_limit_names()
 
+
+@dataclass(frozen=True, slots=True)
+class WarningReason:
+    """One reason a warning of `code` can name in `params.why`.
+
+    `params` lists each param the warning carries beside `why` for this
+    reason as a (name, definition) pair, sorted by name, and is empty when
+    the reason adds none.
+    """
+
+    code: str
+    reason: str
+    definition: str
+    params: tuple[tuple[str, str], ...] = ()
+
+
+_WARNING_REASONS_FORMAT_VERSION = 1
+
+
+def load_warning_reasons() -> Mapping[str, Mapping[str, WarningReason]]:
+    """Load and parse the packaged warning-reason mirror
+    (`registry/warning-reasons.json`), keyed by code and then by reason.
+
+    Raises:
+        ValueError: The file's `format_version` is not the one this loader
+            reads, or it lists one reason twice for a code.
+    """
+    raw_text = (
+        resources.files("dfo_spec_kit.registry")
+        .joinpath("warning-reasons.json")
+        .read_text(encoding="utf-8")
+    )
+    return _warning_reasons_from_json(json.loads(raw_text))
+
+
+def _warning_reasons_from_json(
+    data: dict[str, Any],
+) -> Mapping[str, Mapping[str, WarningReason]]:
+    if data["format_version"] != _WARNING_REASONS_FORMAT_VERSION:
+        raise ValueError(
+            f"warning-reasons.json has format_version {data['format_version']!r}; "
+            f"this loader reads {_WARNING_REASONS_FORMAT_VERSION}"
+        )
+    by_code: dict[str, dict[str, WarningReason]] = {}
+    for raw in data["entries"]:
+        entry = WarningReason(
+            code=raw["code"],
+            reason=raw["reason"],
+            definition=raw["definition"],
+            params=tuple(sorted(raw.get("params", {}).items())),
+        )
+        reasons = by_code.setdefault(entry.code, {})
+        if entry.reason in reasons:
+            raise ValueError(
+                f"warning-reasons.json lists {entry.code}/{entry.reason} twice"
+            )
+        reasons[entry.reason] = entry
+    return MappingProxyType(
+        {code: MappingProxyType(reasons) for code, reasons in by_code.items()}
+    )
+
+
+WARNING_REASONS: Mapping[str, Mapping[str, WarningReason]] = load_warning_reasons()
+
+
+def load_flow_role_axes() -> Mapping[str, FlowAxis]:
+    """Load and parse the packaged flow role-axis mirror
+    (`registry/flow-role-axes.json`), keyed by role name."""
+    raw_text = (
+        resources.files("dfo_spec_kit.registry")
+        .joinpath("flow-role-axes.json")
+        .read_text(encoding="utf-8")
+    )
+    entries = json.loads(raw_text)["entries"]
+    return MappingProxyType({raw["role"]: raw["axis"] for raw in entries})
+
+
+FLOW_ROLE_AXES: Mapping[str, FlowAxis] = load_flow_role_axes()
+
 __all__ = [
+    "FLOW_ROLE_AXES",
     "LIMIT_NAMES",
     "REGISTRY",
+    "WARNING_REASONS",
     "Classification",
     "CodeEntry",
     "CodeMapping",
     "CodeRegistry",
+    "FlowAxis",
     "Lifecycle",
     "LimitName",
+    "WarningReason",
+    "load_flow_role_axes",
     "load_limit_names",
     "load_registry",
+    "load_warning_reasons",
 ]

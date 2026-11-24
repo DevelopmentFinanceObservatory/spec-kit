@@ -225,3 +225,60 @@ def test_relative_fixtures_carry_relative_periods() -> None:
     assert window["end"] == basis[1] == {"anchor": "latest", "offset": 0}
     assert window["start"]["offset"] < 0
     assert basis[0]["offset"] < 0
+
+
+def _minimal_intent(component: str) -> dict[str, object]:
+    return json.loads(
+        (_BUNDLE / f"intents/{component}.minimal.json").read_text(encoding="utf-8")
+    )
+
+
+_ORDER = {"by": "value", "direction": "descending"}
+_PERIOD_ORDER = {**_ORDER, "period": "2023"}
+
+
+@pytest.mark.parametrize(
+    ("component", "order", "admitted"),
+    [
+        ("bar_chart", _ORDER, True),
+        ("bar_chart", {"by": "value", "direction": "ascending"}, True),
+        ("line_chart", _ORDER, True),
+        ("line_chart", _PERIOD_ORDER, True),
+        ("table", _ORDER, True),
+        ("table", _PERIOD_ORDER, True),
+        ("table", {**_ORDER, "period": "2024-01-01/2024-01-31"}, True),
+        ("bar_chart", _PERIOD_ORDER, False),
+        ("table", {**_ORDER, "period": ""}, False),
+        ("table", {**_ORDER, "period": "2024-01-01/2024-01-310"}, False),
+        ("table", {**_ORDER, "period": {"anchor": "latest", "offset": 0}}, False),
+        ("line_chart", {"by": "value"}, False),
+        ("line_chart", {"direction": "descending"}, False),
+        ("line_chart", {"by": "name", "direction": "descending"}, False),
+        ("line_chart", {"by": "value", "direction": "up"}, False),
+        ("table", {**_ORDER, "limit": 5}, False),
+        ("stat_card", _ORDER, False),
+        ("note_narration", _ORDER, False),
+        ("source_card", _ORDER, False),
+    ],
+)
+def test_order_is_admitted_on_charts_and_tables_only(
+    component: str, order: dict[str, object], admitted: bool
+) -> None:
+    """`order` ranks series by value on a line chart, bar chart or table. A bar
+    chart names no `period`, since its bars stand at one period the platform
+    chooses. A stat card, narration note or source card refuses the member."""
+    intent = _minimal_intent(component)
+    intent["order"] = order
+    assert _VALIDATOR.is_valid(intent) is admitted
+
+
+def test_line_chart_and_table_share_one_order_shape() -> None:
+    shapes = {
+        name: _GRAMMAR["$defs"][name]["properties"]["order"]
+        for name in ("line_chart", "table")
+    }
+    assert shapes["line_chart"] == shapes["table"]
+    assert (
+        "period"
+        not in _GRAMMAR["$defs"]["bar_chart"]["properties"]["order"]["properties"]
+    )

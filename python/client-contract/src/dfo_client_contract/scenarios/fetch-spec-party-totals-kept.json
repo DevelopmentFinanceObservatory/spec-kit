@@ -1,21 +1,21 @@
 {
   "format_version": 1,
   "name": "fetch-spec-party-totals-kept",
-  "description": "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no without_party_totals, so the build keeps the donor group totals and answers the plain version, with more rows.",
+  "description": "Fetching the spec of fetch-spec-party-totals-left-out with party_totals=True posts no cut in its options, so the build keeps the donor group totals and answers the plain version, with more rows.",
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:38:14Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:47:50Z"
   },
   "call": [
     {
       "op": "fetch",
       "spec": {
-        "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
+        "spec_id": "spec_27826e5c4c3cf0358ca57e6db48b05e1",
         "definition": {
           "schema_version": 1,
-          "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
+          "spec_id": "spec_27826e5c4c3cf0358ca57e6db48b05e1",
           "identity": {
             "identity_version": "spec1",
             "shape": {
@@ -229,10 +229,16 @@
               "kind": "range",
               "start_year": 1967,
               "end_year": 2024
+            },
+            "facets": {
+              "provenance": {
+                "state": "value",
+                "ref": "provenance/ONEDAC2aBilateral"
+              }
             }
           }
         },
-        "sentence": "Net disbursements to the 133 G77 countries from the 32 DAC countries for official development assistance, 1967 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Net disbursements (bilateral flows) to the 133 G77 countries from the 32 DAC countries for official development assistance, 1967 to 2024. Current US dollars · OECD DAC2a.",
         "entity_groups": {
           "destination": {
             "label": "G77 countries",
@@ -267,10 +273,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
+            "spec_id": "spec_27826e5c4c3cf0358ca57e6db48b05e1",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_b05b2b3ee21debf9e2ac3fbe03e05f94",
+              "spec_id": "spec_27826e5c4c3cf0358ca57e6db48b05e1",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -484,6 +490,12 @@
                   "kind": "range",
                   "start_year": 1967,
                   "end_year": 2024
+                },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/ONEDAC2aBilateral"
+                  }
                 }
               }
             },
@@ -510,13 +522,13 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "f802bd2833054fbebe1769dc8f96089f"
+          "x-dfo-trace-id": "23ab59b3558748028958685b73d84c95"
         },
         "json": {
           "schema_version": 1,
           "definition": {
             "schema_version": 1,
-            "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
             "identity": {
               "shape": {
                 "kind": "statvar_schema",
@@ -554,6 +566,12 @@
                   "property": "nettingBasis"
                 }
               ],
+              "facets": {
+                "provenance": {
+                  "ref": "provenance/ONEDAC2aBilateral",
+                  "state": "value"
+                }
+              },
               "entities": {
                 "destination": [
                   "country/KEN"
@@ -567,8 +585,8 @@
               }
             }
           },
-          "content_version": "cv_574e68a18917407b0f5534cfc9ff001b",
-          "prepared_at": "2026-10-15T09:59:06Z",
+          "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+          "prepared_at": "2026-11-15T21:45:53Z",
           "coverage": {
             "rows": 111,
             "dimensions": [
@@ -626,7 +644,7 @@
                   "source_data_url": "https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip",
                   "attribution": "OECD (2026), OECD DAC2A, OECD Data Explorer, https://webfs-dcd.oecd.org/files/dotStat/DSD_DAC2/Table2a_Data.zip (accessed on 2026-10-12)",
                   "update_cadence": "Quarterly",
-                  "last_update": "2026-10-12",
+                  "last_update": "2026-10-29",
                   "years_covered": "1960-2025",
                   "granularity": "Annual, by provider and recipient",
                   "currencies": [
@@ -636,6 +654,10 @@
                     {
                       "transformation": "Download the source data",
                       "description": "The OECD publishes DAC2A in April, June, September and December. The complete table is downloaded from the OECD each time it is republished, and replaces the previous copy, so the data reflects the OECD's latest release."
+                    },
+                    {
+                      "transformation": "Mark the partial year",
+                      "description": "The OECD publishes data for a year as donors report it, and its final release in December of the following year covers every donor. Until then, the year is partial. The pipeline publishes it, and the import's provenance names it in `partialObservationDate`."
                     },
                     {
                       "transformation": "Standardise providers and recipients",
@@ -656,6 +678,26 @@
                   ],
                   "version_history": [
                     {
+                      "date": "2026-10-29",
+                      "title": "Partial year published, marked as partial",
+                      "changes": [
+                        {
+                          "kind": "changed",
+                          "note": "The partial year, which only some donors have reported ahead of the OECD's final release in December, is included, and the import's provenance marks it with `partialObservationDate`."
+                        }
+                      ]
+                    },
+                    {
+                      "date": "2026-10-15",
+                      "title": "Partial year excluded",
+                      "changes": [
+                        {
+                          "kind": "changed",
+                          "note": "The partial year, which only some donors have reported ahead of the OECD's final release in December, is excluded."
+                        }
+                      ]
+                    },
+                    {
                       "date": "2026-10-14",
                       "title": "First release",
                       "changes": [
@@ -666,20 +708,23 @@
                       ]
                     }
                   ]
-                }
+                },
+                "licence": "OECD Terms and Conditions",
+                "licence_type": "OECDTermsAndConditions",
+                "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
               }
             ]
           },
           "trace": {
             "facets": [
               {
-                "ref": "provenance/OECDDAC2A",
+                "ref": "provenance/ONEDAC2aBilateral",
                 "axis": "provenance",
-                "basis": "deployment_fallback",
-                "default_policy": "dfo/facet-policy/most-observations",
-                "selection_reason": "sole_candidate",
-                "dispatch_facet_id": "1962969911839422253",
-                "default_policy_version": "1"
+                "basis": "bound",
+                "default_policy": null,
+                "selection_reason": "the composite OECD DAC2a",
+                "dispatch_facet_id": "provenance/ONEDAC2aBilateral",
+                "default_policy_version": null
               },
               {
                 "ref": null,
@@ -700,27 +745,76 @@
                 "default_policy_version": "1"
               }
             ],
+            "components": [
+              {
+                "role": "bilateral",
+                "rows": 111,
+                "facets": [
+                  {
+                    "ref": "provenance/OECDDAC2A",
+                    "axis": "provenance",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": null,
+                    "axis": "measurementMethod",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "absent_on_selected_facet",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  },
+                  {
+                    "ref": "CurrencyUSD",
+                    "axis": "unit",
+                    "basis": "deployment_fallback",
+                    "default_policy": "dfo/facet-policy/most-observations",
+                    "selection_reason": "sole_candidate",
+                    "dispatch_facet_id": "1962969911839422253",
+                    "default_policy_version": "1"
+                  }
+                ],
+                "periods": [
+                  [
+                    2022,
+                    2022
+                  ]
+                ],
+                "warnings": [],
+                "stat_vars": [
+                  "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal"
+                ],
+                "zero_rows": 0,
+                "provenance": "provenance/OECDDAC2A",
+                "dropped_years": [],
+                "content_version": "cv_574e68a18917407b0f5534cfc9ff001b"
+              }
+            ],
             "applied_window": {
               "kind": "range",
               "origin": "query",
               "end_year": 2022,
               "start_year": 2022
             },
-            "graph_revision": "dfo-dev-dc-datacommons-service-00249-9gv",
+            "graph_revision": "dfo-dev-dc-datacommons-service-00292-njf",
             "normalisations": [],
             "code_index_stamp": {
-              "exported_at": "2026-10-13T21:51:17Z",
-              "content_hash": "602c7022fc21c17540a6873d93196ad6b967eaae3e71f9dce6dec178a735daf4",
-              "graph_endpoint": "https://dfo-dev-dc-datacommons-service-zms5lj4zhq-nn.a.run.app"
+              "exported_at": "2026-11-12T22:30:30Z",
+              "content_hash": "68c74212b6a5f923d3543f7bb04f7b791c28b62bfccd3d073ab03bfcb50216da",
+              "graph_endpoint": "graph_release"
             },
             "source_revisions": [
               {
                 "source": "provenance/OECDDAC2A",
-                "revision": "2026-10-12"
+                "revision": "2026-10-29"
               }
             ],
-            "capability_version": "dset_1e6cd9546fac19e9",
-            "materialiser_build": "1d29a70e59f70570c5ed8d610ec83291c8eb6f54",
+            "capability_version": "dset_af2827aa39ed8c0d",
+            "materialiser_build": "7af2d8dd04797724b716496aea8182590a1a26d0",
             "resolved_stat_vars": [
               {
                 "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
@@ -731,12 +825,12 @@
                 "observation_count": 111
               }
             ],
-            "family_member_count": 1,
-            "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
-            "frame_grammar_version": "1.1.0",
-            "origin_catalogue_build_id": "20261013T114555Z-613cf5c2",
+            "family_member_count": null,
+            "family_member_digest": null,
+            "frame_grammar_version": "1.2.0",
+            "origin_catalogue_build_id": "20261112T214518Z-14095471",
             "served_from": "head",
-            "confirmed_at": "2026-11-01T07:38:10.731097+00:00"
+            "confirmed_at": "2026-11-23T16:46:24.633387+00:00"
           },
           "warnings": [],
           "diagnostics": [
@@ -748,34 +842,34 @@
           ],
           "artifacts": [
             {
-              "artifact_digest": "sha256:7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4",
+              "artifact_digest": "sha256:5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455",
               "rendering": {
                 "bundle": false,
                 "format": "parquet",
-                "layout": 4
+                "layout": 5
               },
-              "bytes": 10911,
+              "bytes": 10811,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-11-01T07:38:12.547249+00:00",
+              "created_at": "2026-11-23T16:46:24.541540+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_574e68a18917407b0f5534cfc9ff001b/files/sha256:7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4",
-              "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+              "url": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455",
+              "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
             },
             {
-              "artifact_digest": "sha256:3bb5d3b2b26768e57c233ccc76a2b1c79fdb7c916d105a2dbfd6a25646efd3c9",
+              "artifact_digest": "sha256:b804bc326713f6f02aeaee39695cb27487ed37a3c0f18b281f22579eb2fa6556",
               "rendering": {
                 "statistics": "series"
               },
-              "bytes": 10059,
+              "bytes": 10101,
               "media_type": "application/vnd.apache.parquet",
-              "created_at": "2026-10-15T09:59:06.850277+00:00",
+              "created_at": "2026-11-15T21:45:54.092554+00:00",
               "tier": "working",
-              "url": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_574e68a18917407b0f5534cfc9ff001b/files/sha256:3bb5d3b2b26768e57c233ccc76a2b1c79fdb7c916d105a2dbfd6a25646efd3c9"
+              "url": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:b804bc326713f6f02aeaee39695cb27487ed37a3c0f18b281f22579eb2fa6556"
             }
           ],
           "series_count": 111,
           "output_options": {
-            "capability_version": "dset_5282a0674178a233",
+            "capability_version": "dset_85178e251b57906e",
             "columns": [
               {
                 "name": "stat_var",
@@ -1141,9 +1235,10 @@
               ]
             }
           },
-          "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+          "series_coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
           "retention": {
-            "pinned": true
+            "pinned": false,
+            "held_until": "2026-12-15T21:45:54.093291Z"
           }
         }
       }
@@ -1197,6 +1292,12 @@
                       "property": "nettingBasis"
                     }
                   ],
+                  "facets": {
+                    "provenance": {
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "state": "value"
+                    }
+                  },
                   "entities": {
                     "destination": [
                       "country/KEN"
@@ -1218,7 +1319,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "a5753a06386f4de3874484b22fda6f84"
+          "x-dfo-trace-id": "a3e0fb2701c641eaa61f75d72dedf4b3"
         },
         "json": {
           "schema_version": 1,
@@ -1227,11 +1328,11 @@
             "extract_skipped": true
           },
           "diagnostics": {
-            "engine_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-            "trace_id": "a5753a06386f4de3874484b22fda6f84",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "a3e0fb2701c641eaa61f75d72dedf4b3",
             "warnings": [],
             "timing_ms": {
-              "total": 4,
+              "total": 11,
               "by_step": {
                 "coverage": 0
               }
@@ -1246,13 +1347,16 @@
                 {
                   "code": "role_scope_defaulted",
                   "severity": "warn",
-                  "message": "No provider was named, so the answer covers every provider with data."
+                  "message": "No provider was named, so the answer covers all 96 providers with data to Kenya.",
+                  "params": {
+                    "axis": "origin"
+                  }
                 },
                 {
                   "code": "whole_total_available",
                   "severity": "info",
                   "message": "The source publishes the total of every official donor as official donors (DAC); a sum of the listed donors includes private donors and differs from it.",
-                  "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+                  "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
                   "params": {
                     "total": "DACOfficialDonors",
                     "total_label": "official donors (DAC)",
@@ -1261,15 +1365,23 @@
                 }
               ],
               "timing_ms": {
-                "total": 1,
+                "total": 7,
                 "by_step": {
                   "response_cache_part_memo": 0,
-                  "served_entry": 1
+                  "composite_continuation": 6,
+                  "served_entry": 1,
+                  "as_composite": 0
                 }
               },
               "entity_refs": [],
               "operations": [],
-              "departures": [],
+              "departures": [
+                {
+                  "code": "closest_match",
+                  "shown": "net disbursements (bilateral flows)",
+                  "text": "This shows net disbursements (bilateral flows), the closest measure the data holds."
+                }
+              ],
               "assumptions": [
                 {
                   "kind": "open_role",
@@ -1280,10 +1392,10 @@
               ],
               "status": "definite",
               "spec": {
-                "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+                "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
                 "definition": {
                   "schema_version": 1,
-                  "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+                  "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
                   "identity": {
                     "identity_version": "spec1",
                     "shape": {
@@ -1331,6 +1443,12 @@
                       "kind": "range",
                       "start_year": 2022,
                       "end_year": 2022
+                    },
+                    "facets": {
+                      "provenance": {
+                        "state": "value",
+                        "ref": "provenance/ONEDAC2aBilateral"
+                      }
                     }
                   }
                 },
@@ -1542,6 +1660,7 @@
                     "member_count": 1,
                     "member_count_exact": true,
                     "served_count": 1,
+                    "sums_components": true,
                     "data_date_range": {
                       "start": "2022",
                       "end": "2022"
@@ -1552,7 +1671,9 @@
                       "ref": "country/KEN",
                       "label": "Kenya",
                       "entity_type": "Country",
-                      "role": "destination"
+                      "role": "destination",
+                      "party_kind": "party",
+                      "party_class": "official"
                     }
                   ],
                   "coverage": {
@@ -1560,20 +1681,6 @@
                     "has_data": true,
                     "observation_count": 111,
                     "evidence": "facet_metadata",
-                    "dimensions": [
-                      {
-                        "label": "sources",
-                        "count": 1
-                      },
-                      {
-                        "label": "observations",
-                        "count": 1
-                      },
-                      {
-                        "label": "variables",
-                        "count": 1
-                      }
-                    ],
                     "window": {
                       "start_year": 2022,
                       "end_year": 2022
@@ -1601,30 +1708,12 @@
                           "financingProvider": 111,
                           "financingRecipient": 1
                         }
-                      },
-                      {
-                        "year": 2021,
-                        "observations": 103,
-                        "series": 103,
-                        "role_counts": {
-                          "financingProvider": 103,
-                          "financingRecipient": 1
-                        }
-                      },
-                      {
-                        "year": 2020,
-                        "observations": 97,
-                        "series": 97,
-                        "role_counts": {
-                          "financingProvider": 97,
-                          "financingRecipient": 1
-                        }
                       }
                     ]
                   },
                   "download": {
                     "rows": 111,
-                    "rows_exact": true,
+                    "rows_exact": false,
                     "series": 111,
                     "window": {
                       "start_year": 2022,
@@ -1634,12 +1723,12 @@
                       "label": "OECD Terms and Conditions"
                     }
                   },
-                  "coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+                  "coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
                   "facets": {
                     "provenance": {
-                      "basis": "fallback",
-                      "ref": "provenance/OECDDAC2A",
-                      "label": "OECD DAC2A",
+                      "basis": "bound",
+                      "ref": "provenance/ONEDAC2aBilateral",
+                      "label": "OECD DAC2a (bilateral flows)",
                       "source": {
                         "ref": "dc/s/OrganisationForEconomicCo-operationAndDevelopmentOecd",
                         "label": "Organisation for Economic Co-operation and Development (OECD)"
@@ -1648,14 +1737,19 @@
                         "id": "dfo",
                         "label": "Development Finance Observatory"
                       },
-                      "documentation": "/api/graph/documentation/provenance/OECDDAC2A",
                       "account": "provider"
                     },
                     "unit": {
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -1770,11 +1864,11 @@
                       "source": "observed"
                     }
                   ],
-                  "rendered_sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
+                  "rendered_sentence": "Net disbursements (bilateral flows) to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a.",
                   "sentence_plan": [
                     {
                       "kind": "slot",
-                      "text": "Net disbursements",
+                      "text": "Net disbursements (bilateral flows)",
                       "axis": "what",
                       "segment": "heading",
                       "entity_refs": [],
@@ -2070,7 +2164,7 @@
                       "start_year": 2022,
                       "end_year": 2022
                     },
-                    "capability_version": "cap_4913302d7a6b6435"
+                    "capability_version": "cap_b1f3369f84d185f6"
                   },
                   "confidence": "high",
                   "available_at_place": true,
@@ -2172,7 +2266,7 @@
                       "served_rows_exact": true
                     }
                   ],
-                  "measure_label": "net disbursements",
+                  "measure_label": "net disbursements (bilateral flows)",
                   "measure_label_axes": [
                     "populationType",
                     "measuredProperty",
@@ -4172,17 +4266,28 @@
                     "default_base_year": 2024,
                     "role_currencies": {
                       "destination": "KES"
+                    },
+                    "deflation_basis": "donor"
+                  },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
                     }
-                  }
+                  ]
                 }
               }
             }
           ],
-          "rendered_sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. Assumed: every provider.",
+          "rendered_sentence": "Net disbursements (bilateral flows) to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a. This shows net disbursements (bilateral flows), the closest measure the data holds. Assumed: every provider.",
           "sentence_plan": [
             {
               "kind": "slot",
-              "text": "Net disbursements",
+              "text": "Net disbursements (bilateral flows)",
               "axis": "what",
               "segment": "heading",
               "entity_refs": [],
@@ -4362,6 +4467,22 @@
             {
               "kind": "text",
               "text": " ",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": "This shows net disbursements (bilateral flows), the closest measure the data holds.",
+              "segment": "departure",
+              "entity_refs": [],
+              "states": [],
+              "part_index": 0
+            },
+            {
+              "kind": "text",
+              "text": " ",
               "segment": "assumption",
               "entity_refs": [],
               "states": [],
@@ -4399,21 +4520,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_e14699f9dcd167f0211081a726ae1031/cv_574e68a18917407b0f5534cfc9ff001b/files/sha256:7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4"
+        "origin_path": "/api/datasets/spec_c9f9d816838bf8da08a3de2849783273/cv_6405444d04fda3b7ee8eb651528ab410/files/sha256:5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "3161b93c0e844e15934681b0752bdaa3"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "9bb26926307647b1b3b5a956bc589e7f"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A7ef1038eb25d978077bb4f5b9c54e940052ccd2aedd3284e6fb9739f1deca1f4?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A5986b2c330f0eb790480bfb98aa165e5eee837dc77622fd129c95d90fd894455?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -4434,13 +4555,12 @@
           "financingRecipient_label",
           "value",
           "unit_label",
-          "dac2aAidType_label",
           "provenance_label",
           "financingProvider",
           "financingProvider_kind",
+          "stat_var_label",
           "financingRecipient",
           "financingRecipient_kind",
-          "dac2aAidType",
           "unit",
           "currency",
           "price_basis",
@@ -4454,9 +4574,9 @@
         "members": [
           {
             "parts": [],
-            "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
-            "content_version": "cv_574e68a18917407b0f5534cfc9ff001b",
-            "sentence": "Net disbursements to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_c9f9d816838bf8da08a3de2849783273",
+            "content_version": "cv_6405444d04fda3b7ee8eb651528ab410",
+            "sentence": "Net disbursements (bilateral flows) to Kenya from 96 providers for official development assistance in 2022. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": []

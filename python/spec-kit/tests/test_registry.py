@@ -9,14 +9,26 @@ check `tools/validate_registry.py` runs in CI).
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 from dfo_spec_kit.registry import (
+    FLOW_ROLE_AXES,
     LIMIT_NAMES,
     REGISTRY,
+    WARNING_REASONS,
     CodeEntry,
     CodeMapping,
+    _warning_reasons_from_json,
     load_registry,
 )
+
+_REASON = {
+    "code": "bilateral_reading_unavailable",
+    "reason": "scope_undecided",
+    "definition": "A reason.",
+}
 
 # Repo root is four levels up from this file (tests/ -> spec-kit -> python ->
 # repo root); the canonical registry is always present in-repo.
@@ -124,8 +136,10 @@ def test_entries_are_sorted_by_code() -> None:
     assert codes == sorted(codes)
 
 
-def test_limit_names_mirror_is_byte_identical_to_canonical_registry() -> None:
-    name = "limit-names.json"
+@pytest.mark.parametrize(
+    "name", ["flow-role-axes.json", "limit-names.json", "warning-reasons.json"]
+)
+def test_mirror_is_byte_identical_to_canonical_registry_file(name: str) -> None:
     assert (_MIRROR_PATH.parent / name).read_bytes() == (
         _REPO_ROOT / "registries" / name
     ).read_bytes()
@@ -136,3 +150,49 @@ def test_limit_names_are_keyed_by_name() -> None:
     assert entry.name == "MAX_TABLE_ROWS"
     assert entry.owning_contract == "presentation"
     assert all(key == value.name for key, value in LIMIT_NAMES.items())
+
+
+def test_flow_role_axes_place_every_role_on_one_axis() -> None:
+    assert FLOW_ROLE_AXES == {
+        "provider": "origin",
+        "creditor": "origin",
+        "source": "origin",
+        "financingProvider": "origin",
+        "recipient": "destination",
+        "debtor": "destination",
+        "target": "destination",
+        "financingRecipient": "destination",
+    }
+
+
+def test_warning_reasons_are_keyed_by_code_then_reason() -> None:
+    entry = WARNING_REASONS["bilateral_reading_unavailable"]["slot_not_served"]
+    assert (entry.code, entry.reason) == (
+        "bilateral_reading_unavailable",
+        "slot_not_served",
+    )
+    assert [name for name, _ in entry.params] == ["slot"]
+    assert all(
+        code == value.code and reason == value.reason
+        for code, reasons in WARNING_REASONS.items()
+        for reason, value in reasons.items()
+    )
+
+
+def test_warning_reasons_are_hashable() -> None:
+    entry = WARNING_REASONS["bilateral_reading_unavailable"]["slot_not_served"]
+    assert hash(entry) == hash(entry)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param({"format_version": 2, "entries": []}, id="format-version"),
+        pytest.param(
+            {"format_version": 1, "entries": [_REASON, _REASON]}, id="duplicate"
+        ),
+    ],
+)
+def test_warning_reasons_loader_refuses(data: dict[str, Any]) -> None:
+    with pytest.raises(ValueError):
+        _warning_reasons_from_json(data)

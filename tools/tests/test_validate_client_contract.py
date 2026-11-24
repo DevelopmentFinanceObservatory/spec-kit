@@ -55,6 +55,14 @@ _DROPPED = "scenarios/fetch-spec-entity-dropped.json"
 _GROUP_NARROWED = "scenarios/fetch-spec-group-narrowed.json"
 _GROUP_REBOUND = "scenarios/fetch-spec-group-origin-rebound.json"
 _ORIGIN_GROUP = {"label": "G7", "group_id": "groups/G7"}
+_RANK = "scenarios/analysis-rank-partitioned.json"
+_SPARSE = "scenarios/analysis-aggregate-sparse-breakdowns.json"
+_SUMMED = "scenarios/analysis-summed-root.json"
+_HEADS_MIXED = "scenarios/stored-versions-mixed.json"
+_HEADS_REFUSED = "scenarios/stored-versions-refused-before-request.json"
+_STORED = "scenarios/analysis-stored-roots.json"
+_STORED_MANIFEST = "scenarios/analysis-stored-manifest.json"
+_PENDING_TRACE_ID = "6" * 32
 
 
 def _posted(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
@@ -162,6 +170,68 @@ def _set_outcome(index: int, change: Callable[[Any], None]) -> Callable[[Any], N
     return lambda doc: change(doc["expect"][index])
 
 
+def _party_totals(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the `party_totals_left_out` of the record's outcome `index`."""
+    return _set_outcome(index, lambda o: change(o["dataset"]))
+
+
+_LEFT_OUT_ENTRY = {
+    "spec_id": "spec_e14699f9dcd167f0211081a726ae1031",
+    "role": "financingProvider",
+    "entities": ["DACCountriesTotal"],
+}
+_SAVED = "saved-files/saved-answer-party-totals-left-out.json"
+
+
+def _saved_key(key: str, change: Callable[[Any], Any]) -> Callable[[Any], None]:
+    """Replaces a saved-file example's JSON text at `key` with the JSON of
+    what `change` makes of its decoded value."""
+
+    def edit(doc: Any) -> None:
+        value = json.loads(doc["metadata"][key])
+        doc["metadata"][key] = json.dumps(change(value))
+
+    return edit
+
+
+def _tree_arguments(index: int, change: Callable[[Any], None]) -> Callable[[Any], None]:
+    """Changes the top step's arguments of analysis step `index` and of the
+    request it posts alike, so the posted body still matches the step."""
+
+    def edit(doc: Any) -> None:
+        change(doc["call"][index]["tree"]["arguments"])
+        change(doc["exchanges"][index]["request"]["json"]["tree"]["arguments"])
+
+    return edit
+
+
+def _pending_first(headers: dict[str, str] | None = None) -> Callable[[Any], None]:
+    """Answers the record's one analysis post 202 pending first, with
+    `retry_after_s` 0.25 and `headers`, before the 200 it recorded."""
+
+    def edit(doc: Any) -> None:
+        exchange = doc["exchanges"][0]
+        pending = {
+            "request": copy.deepcopy(exchange["request"]),
+            "response": {
+                "status": 202,
+                "headers": {
+                    "content-type": "application/json",
+                    "x-dfo-trace-id": _PENDING_TRACE_ID,
+                    **(headers or {}),
+                },
+                "json": {
+                    "status": "pending",
+                    "retry_after_s": 0.25,
+                    "operations": ["op_" + "a" * 64],
+                },
+            },
+        }
+        doc["exchanges"].insert(0, pending)
+
+    return edit
+
+
 def _first_gap(**fields: Any) -> Callable[[Any], None]:
     return _set_outcome(0, lambda o: o["answer"]["gaps"][0].update(fields))
 
@@ -177,6 +247,15 @@ def _swap_columns(first: str, second: str) -> Callable[[Any], None]:
         columns[i], columns[j] = columns[j], columns[i]
 
     return change
+
+
+def _set_cut(doc: Any, cut: dict[str, Any]) -> None:
+    """Replaces the party totals cut the record's first build posts, in either
+    spelling, with `cut`."""
+    options = doc["exchanges"][0]["request"]["json"]["options"]
+    for key in ("party_totals", "without_party_totals"):
+        options.pop(key, None)
+    options.update(cut)
 
 
 def _selector_query_with_cut(doc: Any) -> None:
@@ -1867,8 +1946,13 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         ),
         (
             _FETCH,
-            lambda doc: doc["exchanges"][0]["request"]["json"]["options"].pop(
-                "without_party_totals"
+            lambda doc: _set_cut(doc, {}),
+            f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
+        ),
+        (
+            _FETCH,
+            lambda doc: _set_cut(
+                doc, {"party_totals": True, "without_party_totals": True}
             ),
             f"{_FETCH}: the exchanges do not fit the steps: _UnfitError('exchange 0 posts",
         ),
@@ -2064,6 +2148,158 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             "rules/file-selector.json",
             lambda doc: doc.pop("query_keys"),
             "rules/file-selector.json: missing or unreadable, or holds no query_keys",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-left-out.json",
+            _party_totals(0, lambda d: d.pop("party_totals_left_out")),
+            "fetch-spec-party-totals-left-out.json: step 0 expects",
+        ),
+        (
+            "scenarios/fetch-spec-party-totals-kept.json",
+            _party_totals(
+                0, lambda d: d.update(party_totals_left_out=[_LEFT_OUT_ENTRY])
+            ),
+            "fetch-spec-party-totals-kept.json: step 0 expects",
+        ),
+        (
+            "scenarios/search-warning-top5.json",
+            _party_totals(2, lambda d: d["party_totals_left_out"][0].pop("provenance")),
+            "search-warning-top5.json: step 2 expects",
+        ),
+        (
+            "scenario.schema.json",
+            lambda doc: doc["$defs"]["error"]["properties"]["class"]["enum"].remove(
+                "BundleError"
+            ),
+            "'hash_mismatch' raises 'BundleError', a class no scenario names",
+        ),
+        (
+            _SAVED,
+            _saved_key("dfo.dataset", lambda d: {**d, "later": True}),
+            "dfo.dataset: <root>: Additional properties are not allowed",
+        ),
+        (
+            _SAVED,
+            lambda doc: doc["metadata"].update({"dfo.question": "NaN"}),
+            "dfo.question: not JSON",
+        ),
+        (
+            "saved-files/saved-fetched-at-not-json-rejected.json",
+            lambda doc: doc["metadata"].update(
+                {"dfo.fetched_at": '"2026-10-28T22:26:01Z"'}
+            ),
+            "the schema accepts a saved file it should reject",
+        ),
+        (
+            "saved-files/saved-member-rows-count-rejected.json",
+            _saved_key("dfo.dataset", lambda d: {**d, "member_rows": [96]}),
+            "breaks rule None, expected 'format_invalid'",
+        ),
+        (
+            "provenance/provenance-answer.json",
+            lambda doc: doc["provenance"]["members"][0].update({"pinned": "no"}),
+            "provenance-answer.json: schema: members/0/pinned",
+        ),
+        (
+            "provenance/provenance-member-disagrees-rejected.json",
+            lambda doc: doc["provenance"]["members"][0].update(
+                {"content_version": "cv_219fc5386675dcca1fc91197c39ac885"}
+            ),
+            "breaks rule None, expected 'format_invalid'",
+        ),
+        (
+            _RANK,
+            _tree_arguments(1, lambda a: a.update(partition_by=["origin"])),
+            "partition_by and rank_by both name ['origin']",
+        ),
+        (
+            _RANK,
+            _tree_arguments(1, lambda a: a.update(partition_by=[])),
+            "partition_by is a non-empty list of distinct column words",
+        ),
+        (
+            _SUMMED,
+            _tree_arguments(0, lambda a: a.update(partition_by=["destination"])),
+            "aggregate takes no partition_by",
+        ),
+        (
+            _SPARSE,
+            _tree_arguments(1, lambda a: a.update(allow_sparse_breakdowns=False)),
+            "allow_sparse_breakdowns is given only as true, not false",
+        ),
+        (
+            _RANK,
+            lambda doc: doc["call"][1]["tree"]["arguments"].pop("partition_by"),
+            "where the rules post",
+        ),
+        (
+            _RANK,
+            lambda doc: doc["call"][0].update(latest=True),
+            "where the rules post",
+        ),
+        (
+            _SUMMED,
+            _set_outcome(
+                0, lambda o: o["analysis"]["stat_vars_summed"][0].update(count=47)
+            ),
+            "step 0 expects",
+        ),
+        (
+            _SUMMED,
+            _set_outcome(0, lambda o: o["analysis"].update(derived_roots=[])),
+            "step 0 expects",
+        ),
+        (_SUMMED, _pending_first(), "step 0 expects"),
+        (
+            _STORED_MANIFEST,
+            lambda doc: doc["call"][0].pop("include"),
+            "where the rules post",
+        ),
+        (
+            _STORED,
+            lambda doc: doc["exchanges"][1]["response"]["json"]["resolved_roots"][
+                0
+            ].update(freshness="stale"),
+            "step 1 expects",
+        ),
+        (
+            _STORED_MANIFEST,
+            lambda doc: doc["exchanges"][0]["response"]["json"]["manifest"].update(
+                content_version="ocv_" + "0" * 32
+            ),
+            "step 0 expects",
+        ),
+        (
+            _HEADS_MIXED,
+            _set_outcome(0, lambda o: o["stored_versions"].update(changed=[])),
+            "step 0 expects",
+        ),
+        (
+            _HEADS_MIXED,
+            lambda doc: doc["exchanges"][0]["request"].update(
+                path="/datasets/heads?"
+                + "&".join(
+                    reversed(
+                        doc["exchanges"][0]["request"]["path"].split("?")[1].split("&")
+                    )
+                )
+            ),
+            "where the steps make a GET /datasets/heads?",
+        ),
+        (
+            _HEADS_MIXED,
+            lambda doc: doc["call"][0]["built"]["heads"].reverse(),
+            "built lists its heads sorted by spec_id, each once",
+        ),
+        (
+            _HEADS_MIXED,
+            _set_body(0, lambda b: b["heads"].append(b["heads"][0])),
+            "step 0 expects",
+        ),
+        (
+            _HEADS_REFUSED,
+            lambda doc: doc["call"][1].update(targets=doc["call"][1]["targets"][:64]),
+            "the steps make a GET /datasets/heads?",
         ),
     ],
     ids=[
@@ -2322,6 +2558,7 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "mentions-as-a-string-matched",
         "candidate-spec-not-an-object-read",
         "party-totals-left-in-by-default",
+        "party-totals-cut-disagreeing",
         "party-totals-kept-without-the-option",
         "mint-party-totals-left-in-by-default",
         "columns-out-of-reading-order",
@@ -2350,6 +2587,33 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "file-selector-vector-carries-the-cut",
         "file-selector-vector-out-of-key-order",
         "file-selector-without-query-keys",
+        "party-totals-left-out-not-expected",
+        "party-totals-expected-where-none-were-left-out",
+        "party-totals-provenance-dropped",
+        "client-code-class-outside-the-scenario-schema",
+        "saved-dataset-with-a-key-it-does-not-name",
+        "saved-key-holding-nan",
+        "saved-reject-example-the-schema-accepts",
+        "saved-rule-example-that-breaks-no-rule",
+        "provenance-with-a-key-it-does-not-name",
+        "provenance-rule-example-that-breaks-no-rule",
+        "partition-by-names-a-ranked-column",
+        "partition-by-empty",
+        "partition-by-outside-rank",
+        "sparse-breakdowns-false",
+        "analysis-post-other-than-its-step",
+        "analysis-post-without-the-steps-latest",
+        "stat-vars-summed-count-not-served",
+        "derived-roots-not-served",
+        "pending-wait-not-expected",
+        "analysis-post-without-the-steps-include",
+        "stored-freshness-not-expected",
+        "embedded-manifest-of-another-pair",
+        "stored-versions-changed-not-expected",
+        "stored-versions-ids-not-sorted",
+        "stored-versions-built-not-sorted",
+        "stored-versions-head-listed-twice",
+        "stored-versions-64-specs-refused",
     ],
 )
 def test_a_broken_contract_is_reported(
@@ -2463,6 +2727,80 @@ def test_a_spec_built_in_two_renderings_keys_each_by_its_file() -> None:
     scenario = {"exchanges": [build(cut, "sha256:a"), build(plain, "sha256:b")]}
     posted = validator.posted_renderings(scenario)
     assert posted == {"sha256:a": [cut], "sha256:b": [plain]}
+    requested = {"format": "parquet", "bundle": False, "party_totals": False}
+    scenario = {"exchanges": [build(requested, "sha256:a")]}
+    assert validator.posted_renderings(scenario) == {"sha256:a": [cut]}
+
+
+@pytest.mark.parametrize(
+    "cut",
+    [
+        {"party_totals": False},
+        {"without_party_totals": True},
+        {"party_totals": False, "without_party_totals": True},
+    ],
+    ids=["request-spelling", "served-spelling", "both"],
+)
+def test_a_build_may_post_the_cut_in_either_spelling(
+    package_dir: Path, cut: dict[str, Any]
+) -> None:
+    _edit(package_dir / _FETCH, lambda doc: _set_cut(doc, cut))
+    assert validator.validate() == []
+
+
+_KEEP_KEYS = [
+    {"party_totals": True},
+    {"without_party_totals": False},
+    {"party_totals": True, "without_party_totals": False},
+]
+_KEEP_IDS = ["request-spelling", "served-spelling", "both"]
+
+
+@pytest.mark.parametrize("kept", _KEEP_KEYS, ids=_KEEP_IDS)
+def test_a_build_that_keeps_party_totals_posts_no_cut_key(
+    package_dir: Path, kept: dict[str, Any]
+) -> None:
+    path = "scenarios/fetch-spec-party-totals-kept.json"
+    _edit(package_dir / path, lambda doc: _set_cut(doc, kept))
+    problems = validator.validate()
+    assert any("_UnfitError('exchange 0 posts" in problem for problem in problems)
+
+
+@pytest.mark.parametrize(
+    ("rendering", "cut"),
+    [
+        ({}, False),
+        ({"party_totals": False}, True),
+        ({"without_party_totals": True}, True),
+        ({"party_totals": False, "without_party_totals": True}, True),
+        *((kept, None) for kept in _KEEP_KEYS),
+        ({"party_totals": False, "without_party_totals": False}, None),
+        ({"party_totals": True, "without_party_totals": True}, None),
+        ({"party_totals": "false"}, None),
+    ],
+)
+def test_the_cut_reads_only_cut_values(
+    rendering: dict[str, Any], cut: bool | None
+) -> None:
+    assert validator.party_totals_cut(rendering) is cut
+
+
+def test_a_fetch_posts_the_cut_as_party_totals_false() -> None:
+    rendering = validator.fetch_rendering(None)
+    assert rendering == {
+        "format": "parquet",
+        "bundle": False,
+        "without_party_totals": True,
+    }
+    body = validator.build_body({"spec_id": "s", "definition": {}}, None, rendering)
+    assert body["options"] == {
+        "format": "parquet",
+        "bundle": False,
+        "party_totals": False,
+    }
+    kept = validator.fetch_rendering(None, party_totals=True)
+    body = validator.build_body({"spec_id": "s", "definition": {}}, None, kept)
+    assert body["options"] == {"format": "parquet", "bundle": False}
 
 
 def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
@@ -2475,6 +2813,12 @@ def test_a_selector_query_writes_only_booleans_in_lower_case() -> None:
 def test_a_resumed_result_takes_the_rendering_its_build_posted() -> None:
     cut = {"format": "parquet", "bundle": False, "without_party_totals": True}
     manifest = {"artifacts": [{"artifact_digest": "sha256:a", "rendering": cut}]}
+    assert validator.resumed_rendering(None, manifest) == cut
+    manifest["artifacts"][0]["rendering"] = {
+        "format": "parquet",
+        "bundle": False,
+        "party_totals": False,
+    }
     assert validator.resumed_rendering(None, manifest) == cut
     manifest["artifacts"][0]["rendering"] = {"format": "parquet", "bundle": False}
     assert validator.resumed_rendering(None, manifest) == validator.rendering_for(None)
@@ -2891,6 +3235,92 @@ def test_an_unreadable_versions_page_raises(body: dict[str, Any]) -> None:
     assert raised.value.code == "contract_violation"
 
 
+_SPEC_A = "spec_" + "a" * 32
+_SPEC_B = "spec_" + "b" * 32
+_CV_A = "cv_" + "a" * 32
+
+
+@pytest.mark.parametrize(
+    ("targets", "ids"),
+    [
+        (
+            [
+                {"spec": {"spec_id": _SPEC_B}},
+                {"tree": {"verb": "growth", "inputs": {"data": {"spec_id": _SPEC_A}}}},
+                {"spec": {"spec_id": _SPEC_A}},
+            ],
+            [_SPEC_A, _SPEC_B],
+        ),
+        ([{"spec": {"spec_id": f"spec_{i:032x}"}} for i in range(64)], None),
+        ([{"spec": {"spec_id": f"spec_{i:032x}"}} for i in range(65)], "refused"),
+        ([], "refused"),
+        (
+            [
+                {
+                    "tree": {
+                        "verb": "growth",
+                        "inputs": {"data": {"spec_id": "ops_" + "a" * 32}},
+                    }
+                }
+            ],
+            "refused",
+        ),
+    ],
+    ids=["distinct-and-sorted", "64-specs", "65-specs", "no-target", "computed-root"],
+)
+def test_a_stored_versions_check_names_each_spec_once_sorted(
+    targets: list[dict[str, Any]], ids: list[str] | str | None
+) -> None:
+    if ids == "refused":
+        with pytest.raises(validator.ClientError) as raised:
+            validator.stored_spec_ids(targets)
+        assert raised.value.code == "invalid_argument"
+        return
+    found = validator.stored_spec_ids(targets)
+    assert found == (ids or sorted(t["spec"]["spec_id"] for t in targets))
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"items": []},
+        {"heads": [{"spec_id": _SPEC_A, "content_version": _CV_A}]},
+        {"heads": [{"spec_id": _SPEC_A, "content_version": _CV_A}] * 2},
+        {
+            "heads": [
+                {"spec_id": _SPEC_A},
+                {"spec_id": _SPEC_B, "content_version": None},
+            ]
+        },
+        {
+            "heads": [
+                {"spec_id": _SPEC_A, "content_version": "ocv_" + "a" * 32},
+                {"spec_id": _SPEC_B, "content_version": None},
+            ]
+        },
+        {
+            "heads": [
+                {"spec_id": _SPEC_A, "content_version": _CV_A},
+                {"spec_id": _SPEC_B, "content_version": None},
+                {"spec_id": "spec_" + "c" * 32, "content_version": None},
+            ]
+        },
+    ],
+    ids=[
+        "no-heads",
+        "spec-missing",
+        "spec-twice",
+        "no-version",
+        "derived-version",
+        "spec-not-asked",
+    ],
+)
+def test_an_unreadable_stored_versions_answer_raises(body: dict[str, Any]) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.read_heads(body, [_SPEC_A, _SPEC_B])
+    assert raised.value.code == "contract_violation"
+
+
 def test_a_required_member_that_admits_null_stays_required() -> None:
     """A recorded body must carry a required member, null or not."""
     served = validator.PACKAGE_DIR / "served" / "openapi.json"
@@ -2905,6 +3335,164 @@ def test_a_required_member_that_admits_null_stays_required() -> None:
     assert routes.validate(page, {**body, "next_cursor": None}) == []
     problems = routes.validate(page, body)
     assert any("'next_cursor' is a required property" in p for p in problems)
+
+
+def test_the_stored_head_check_reads_through_its_literal_route() -> None:
+    """`/datasets/heads` also fits `/datasets/{id}`; the literal segment wins,
+    so a heads body is read as `DatasetHeads` and not as a manifest."""
+    served = validator.PACKAGE_DIR / "served" / "openapi.json"
+    routes = validator._Routes(json.loads(served.read_text(encoding="utf-8")))
+    request = {"method": "GET", "path": validator.heads_path([_SPEC_A])}
+    template, _, _ = routes.operation("/api", request)
+    assert template == "/api/datasets/heads"
+    assert routes.response_schema("/api", request, 200) == {
+        "$ref": "#/components/schemas/DatasetHeads"
+    }
+
+
+_TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
+
+
+def _kept(*periods: str, **series: Any) -> dict[str, Any]:
+    """A `kept_in` item of the series `series` kept in `periods`."""
+    return {"series": series, "time_periods": list(periods)}
+
+
+_UNIT = {"base_year": 2021, "currency": "USD", "prices": "constant"}
+# In order: by the series cells in column-name order, null before a string
+# before an object, and objects by their JCS text.
+_KEPT_IN = [
+    _kept("1968", "1970", stat_var="sv", unit=None),
+    _kept("1968", stat_var="sv", unit="CurrencyUSD"),
+    _kept("1968", stat_var="sv", unit=_UNIT),
+    _kept("1968", stat_var="sv", unit={**_UNIT, "base_year": 2022}),
+    _kept("1970", stat_var="sw", unit=None),
+]
+
+# Each breaks `kept_in`'s shape or order.
+_BAD_KEPT_IN = {
+    "kept-in-not-a-list": _kept("1968"),
+    "kept-in-empty": [],
+    "kept-in-item-not-an-object": ["1968"],
+    "kept-in-item-extra-key": [{**_kept("1968"), "x": 1}],
+    "kept-in-item-without-series": [{"time_periods": ["1968"]}],
+    "kept-in-item-without-periods": [{"series": {}}],
+    "kept-in-periods-not-a-list": [{"series": {}, "time_periods": "1968"}],
+    "kept-in-periods-empty": [_kept()],
+    "kept-in-period-not-text": [{"series": {}, "time_periods": [1968]}],
+    "kept-in-period-empty": [_kept("")],
+    "kept-in-periods-out-of-order": [_kept("1970", "1968")],
+    "kept-in-period-repeated": [_kept("1968", "1968")],
+    "kept-in-series-not-an-object": [{"series": [], "time_periods": ["1968"]}],
+    "kept-in-series-cell-a-number": [_kept("1968", unit=1)],
+    "kept-in-string-before-null": [_kept("1968", u="a"), _kept("1968", u=None)],
+    "kept-in-object-before-string": [_kept("1968", u={}), _kept("1968", u="a")],
+    "kept-in-objects-out-of-jcs-order": [
+        _kept("1968", u={"b": 1}),
+        _kept("1968", u={"a": 2}),
+    ],
+    "kept-in-columns-out-of-order": [_kept("1968", v="a"), _kept("1968", u="a")],
+    "kept-in-series-repeated": [_kept("1968", u="a"), _kept("1970", u="a")],
+}
+
+
+@pytest.mark.parametrize(
+    ("trace", "entries"),
+    [
+        (None, []),
+        ({}, []),
+        ({"party_totals_left_out": None}, []),
+        ({"party_totals_left_out": [_TOTALS]}, [{"spec_id": "spec_a", **_TOTALS}]),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "provenance": None, "x": 1}]},
+            [{"spec_id": "spec_a", **_TOTALS, "provenance": None}],
+        ),
+        (
+            {
+                "party_totals_left_out": [
+                    {**_TOTALS, "provenance": "p"},
+                    {**_TOTALS, "provenance": "p", "kept_in": _KEPT_IN},
+                ]
+            },
+            [
+                {"spec_id": "spec_a", **_TOTALS, "provenance": "p"},
+                {
+                    "spec_id": "spec_a",
+                    **_TOTALS,
+                    "provenance": "p",
+                    "kept_in": _KEPT_IN,
+                },
+            ],
+        ),
+    ],
+    ids=[
+        "no-trace",
+        "no-key",
+        "null",
+        "every-provenance",
+        "null-provenance",
+        "kept-in-beside-same-role-and-provenance",
+    ],
+)
+def test_party_totals_read_as_served_with_their_member(
+    trace: Any, entries: list[dict[str, Any]]
+) -> None:
+    assert validator.party_totals_left_out({"trace": trace}, "spec_a") == entries
+
+
+@pytest.mark.parametrize(
+    ("trace", "entries"),
+    [
+        ([_TOTALS], []),
+        ({"party_totals_left_out": {}}, []),
+        ({"party_totals_left_out": "x"}, []),
+        ({"party_totals_left_out": [7, _TOTALS]}, [_TOTALS]),
+        ({"party_totals_left_out": [{"role": "r"}, _TOTALS]}, [_TOTALS]),
+        ({"party_totals_left_out": [{**_TOTALS, "role": 1}, _TOTALS]}, [_TOTALS]),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "entities": [1]}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "provenance": 2}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "role": ""}, _TOTALS]},
+            [_TOTALS],
+        ),
+        (
+            {"party_totals_left_out": [{**_TOTALS, "entities": [""]}, _TOTALS]},
+            [_TOTALS],
+        ),
+        *(
+            (
+                {"party_totals_left_out": [{**_TOTALS, "kept_in": kept}, _TOTALS]},
+                [_TOTALS],
+            )
+            for kept in _BAD_KEPT_IN.values()
+        ),
+    ],
+    ids=[
+        "trace-not-an-object",
+        "key-an-object",
+        "key-a-string",
+        "entry-not-an-object",
+        "no-entities",
+        "role-not-text",
+        "entity-not-text",
+        "provenance-not-text",
+        "role-empty",
+        "entity-empty",
+        *_BAD_KEPT_IN,
+    ],
+)
+def test_party_totals_of_another_shape_read_as_absent(
+    trace: Any, entries: list[dict[str, Any]]
+) -> None:
+    """Only the malformed entry drops, and the well-formed one beside it reads."""
+    read = validator.party_totals_left_out({"trace": trace}, "spec_a")
+    assert read == [{"spec_id": "spec_a", **entry} for entry in entries]
 
 
 def test_scenarios_past_their_budget_are_reported(
@@ -3086,3 +3674,421 @@ def test_a_broken_long_build_is_reported(
     _edit(_write_long_build(package_dir, kind), change)
     problems = validator.validate()
     assert any(expected in problem for problem in problems), problems
+
+
+def _derived_member_with_root_rendering(rendering: dict[str, Any]) -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "refs" / "ref-derived-member.json"
+    member = copy.deepcopy(
+        json.loads(path.read_text(encoding="utf-8"))["ref"]["members"][0]
+    )
+    member["roots"][0]["rendering"] = rendering
+    return member
+
+
+_CUT_ROOT = {"format": "parquet", "bundle": False, "layout": "frame"}
+
+
+@pytest.mark.parametrize(
+    ("other", "conflicts"),
+    [
+        ({**_CUT_ROOT, "party_totals": False}, False),
+        ({**_CUT_ROOT, "party_totals": False, "without_party_totals": True}, False),
+        (_CUT_ROOT, True),
+        ({**_CUT_ROOT, "party_totals": True}, True),
+    ],
+    ids=["request-spelling", "both-spellings", "plain", "kept"],
+)
+def test_derived_roots_compare_by_the_cut_not_its_spelling(
+    other: dict[str, Any], conflicts: bool
+) -> None:
+    cut = _derived_member_with_root_rendering(
+        {**_CUT_ROOT, "without_party_totals": True}
+    )
+    twin = _derived_member_with_root_rendering(other)
+    problems = validator.derived_identity_problems([("a", cut), ("b", twin)])
+    assert bool(problems) is conflicts
+
+
+def _saved_derived_member() -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "saved-files" / "saved-derived-member.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    return {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+
+
+_ROOT_TOTALS = {"role": "financingProvider", "entities": ["DACCountriesTotal"]}
+
+
+@pytest.mark.parametrize(
+    ("named", "change", "broken"),
+    [
+        (["root", "root"], {"kept_in": _KEPT_IN}, None),
+        (["member"], {}, "format_invalid"),
+        (["member", "root"], {}, "format_invalid"),
+        (["other"], {}, "format_invalid"),
+        (["root"], {"kept_in": _KEPT_IN[::-1]}, "format_invalid"),
+        (["root"], {"kept_in": [_kept("")]}, "format_invalid"),
+        (["root"], {"role": ""}, "format_invalid"),
+        (["root"], {"entities": [""]}, "format_invalid"),
+    ],
+    ids=[
+        "root-twice-by-kept-in",
+        "derived-member-own-id",
+        "derived-member-own-id-then-root",
+        "neither-member-nor-root",
+        "kept-in-out-of-order",
+        "kept-in-period-empty",
+        "role-empty",
+        "entity-empty",
+    ],
+)
+def test_saved_party_totals_of_a_derived_member_name_its_roots(
+    named: list[str], change: dict[str, Any], broken: str | None
+) -> None:
+    """The second of two entries takes `change`, so the first stays well formed."""
+    decoded = _saved_derived_member()
+    member = decoded["dfo.ref"]["members"][0]
+    spec_ids = {
+        "member": member["spec"]["spec_id"],
+        "root": member["roots"][0]["spec_id"],
+        "other": "spec_00000000000000000000000000000000",
+    }
+    entries = [{"spec_id": spec_ids[name], **_ROOT_TOTALS} for name in named]
+    entries[-1] |= change
+    decoded["dfo.party_totals_left_out"] = entries
+    assert validator._saved_file_rule("2", decoded) == broken
+
+
+@pytest.mark.parametrize(
+    ("value", "text"),
+    [
+        ({"\ufb01": 1, "\U0001f600": 2}, '{"\U0001f600":2,"\ufb01":1}'),
+        ({"b": [True, None], "a": "x\ny"}, '{"a":"x\\ny","b":[true,null]}'),
+        (123.0, "123"),
+        (-0.0, "0"),
+        (1.5, "1.5"),
+        (1e20, "100000000000000000000"),
+        (1e21, "1e+21"),
+        (0.000001, "0.000001"),
+        (1e-7, "1e-7"),
+        (-2.5e-8, "-2.5e-8"),
+    ],
+    ids=[
+        "names-by-utf-16",
+        "nested",
+        "integral-float",
+        "negative-zero",
+        "fraction",
+        "below-1e21",
+        "1e21",
+        "1e-6",
+        "below-1e-6",
+        "negative-exponent",
+    ],
+)
+def test_kept_in_objects_order_by_their_jcs_text(value: Any, text: str) -> None:
+    """RFC 8785 orders names by UTF-16 code units, so U+1F600 precedes U+FB01,
+    and writes numbers as ECMAScript does."""
+    assert validator._jcs_text(value) == text
+
+
+def test_saved_party_totals_follow_member_order() -> None:
+    """The example's entries break the rule out of member order and break
+    none in it."""
+    path = validator.PACKAGE_DIR / "saved-files"
+    metadata = json.loads(
+        (path / "saved-party-totals-member-order-rejected.json").read_text()
+    )["metadata"]
+    decoded = {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+    assert validator._saved_file_rule("1", decoded) == "format_invalid"
+    decoded["dfo.party_totals_left_out"].reverse()
+    assert validator._saved_file_rule("1", decoded) is None
+
+
+def _saved_decoded(name: str) -> dict[str, Any]:
+    path = validator.PACKAGE_DIR / "saved-files" / f"{name}.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    return {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key not in ("dfo.format_version", "dfo.sentence", "dfo.licence")
+    }
+
+
+@pytest.mark.parametrize(
+    ("name", "version", "broken"),
+    [
+        ("saved-derived-member-partitioned-rank", "3", None),
+        ("saved-derived-member-partitioned-rank", "2", "format_invalid"),
+        ("saved-per-in-format-2-rejected", "2", "format_invalid"),
+        ("saved-per-in-format-2-rejected", "3", None),
+        ("saved-derived-member-format-3-without-per", "3", None),
+        ("saved-derived-member-format-3-without-per", "2", None),
+        ("saved-derived-member-format-3-without-per", "1", "format_invalid"),
+        ("saved-per-names-by-role-rejected", "3", "format_invalid"),
+    ],
+)
+def test_saved_format_rule_by_version_and_per(
+    name: str, version: str, broken: str | None
+) -> None:
+    decoded = _saved_decoded(name)
+    assert validator._saved_file_rule(version, decoded) == broken
+
+
+@pytest.mark.parametrize(
+    ("tree", "expected"),
+    [
+        ({"verb": 7}, "/tree: verb is a string, not 7"),
+        ({"verb": ["rank"], "arguments": {"partition_by": ["a"]}}, "verb is a string"),
+        (
+            {"verb": "rank", "arguments": {"rank_by": [["a"]], "partition_by": ["a"]}},
+            "rank_by is a list of strings",
+        ),
+        (
+            {"verb": "rank", "arguments": {"rank_by": "a"}},
+            "rank_by is a list of strings",
+        ),
+        (
+            {"verb": "rank", "arguments": {"partition_by": [["a"]], "rank_by": [{}]}},
+            "partition_by is a non-empty list of distinct column words",
+        ),
+        (
+            {"verb": "aggregate", "inputs": {"data": {"verb": None}}},
+            "/tree/inputs/data: verb is a string, not null",
+        ),
+    ],
+)
+def test_a_malformed_tree_is_a_problem_and_no_crash(
+    tree: dict[str, Any], expected: str
+) -> None:
+    problems = validator.tree_argument_problems(tree)
+    assert any(expected in problem for problem in problems)
+
+
+def test_per_names_no_role_of_the_steps_by() -> None:
+    decoded = _saved_decoded("saved-derived-member-partitioned-rank")
+    assert validator._saved_file_rule("3", decoded) is None
+    decoded["dfo.steps"][1]["per"] = ["financingProvider", "financingRecipient"]
+    assert validator._saved_file_rule("3", decoded) == "format_invalid"
+
+
+def test_per_in_a_file_without_a_derived_member_breaks_format_invalid() -> None:
+    decoded = _saved_decoded("saved-minimal")
+    decoded["dfo.steps"] = [{"verb": "rank", "by": [], "per": ["a"], "limit": None}]
+    assert validator._saved_file_rule("3", decoded) == "format_invalid"
+    del decoded["dfo.steps"]
+    assert validator._saved_file_rule("1", decoded) is None
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "saved-fetched-at-impossible-date-rejected",
+        "saved-held-until-impossible-date-rejected",
+    ],
+)
+def test_a_saved_file_with_an_impossible_date_breaks_format_invalid(name: str) -> None:
+    path = validator.PACKAGE_DIR / "saved-files" / f"{name}.json"
+    metadata = json.loads(path.read_text(encoding="utf-8"))["metadata"]
+    decoded = {
+        key: json.loads(text)
+        for key, text in metadata.items()
+        if key.startswith("dfo.")
+        and key != "dfo.format_version"
+        and key not in ("dfo.sentence", "dfo.licence")
+    }
+    assert validator._saved_file_rule("1", decoded) == "format_invalid"
+    # the same file with a real date breaks no rule
+    fixed = json.loads(json.dumps(decoded).replace("2026-02-30", "2026-02-28"))
+    assert validator._saved_file_rule("1", fixed) is None
+
+
+@pytest.mark.parametrize(
+    ("headers", "waits"),
+    [({}, [1.0]), ({"retry-after": "3"}, [3.0]), ({"retry-after": "90"}, [60.0])],
+    ids=["retry-after-s-held-at-one", "retry-after-header", "header-held-at-sixty"],
+)
+def test_a_pending_analysis_is_posted_again_after_its_wait(
+    package_dir: Path, headers: dict[str, str], waits: list[float]
+) -> None:
+    def change(doc: Any) -> None:
+        _pending_first(headers)(doc)
+        doc["expect"][0]["analysis"]["pending_waits"] = waits
+
+    _edit(package_dir / _SUMMED, change)
+    assert validator.validate() == []
+
+
+_READY = {
+    "ref": {
+        "format_version": 2,
+        "members": [
+            {
+                "roots": [],
+                "spec": {"spec_id": "ops_" + "1" * 32},
+                "content_version": "ocv_" + "2" * 32,
+            }
+        ],
+    },
+    "rows": 4,
+}
+
+
+def _ready(**members: Any) -> dict[str, Any]:
+    body = copy.deepcopy(_READY)
+    body.update(members)
+    return body
+
+
+def test_an_answer_without_its_lists_reads_them_as_empty() -> None:
+    assert validator.analysis_outcome(_ready(stat_vars_summed=None)) == {
+        "analysis": {
+            "spec_id": "ops_" + "1" * 32,
+            "content_version": "ocv_" + "2" * 32,
+            "rows": 4,
+            "stat_vars_summed": [],
+            "derived_roots": [],
+        }
+    }
+
+
+def _resolved(*freshness: Any) -> list[Any]:
+    return [
+        {
+            "spec_id": "spec_" + "1" * 32,
+            "content_version": "cv_" + "1" * 32,
+            "freshness": f,
+        }
+        for f in freshness
+    ]
+
+
+@pytest.mark.parametrize(
+    ("resolved", "freshness"),
+    [
+        (_resolved("current", "stale", "pending"), "stale"),
+        (_resolved("current", "pending"), "pending"),
+        (_resolved("current", "fresh"), None),
+        ([*_resolved("current"), "spec"], None),
+        ({}, None),
+        ([], None),
+        (None, None),
+    ],
+    ids=["worst", "pending", "unknown", "item-not-object", "object", "empty", "absent"],
+)
+def test_a_stored_answer_gives_the_worst_freshness_its_roots_state(
+    resolved: Any, freshness: str | None
+) -> None:
+    body = _ready() if resolved is None else _ready(resolved_roots=resolved)
+    outcome = validator.analysis_outcome(body, stored=True)["analysis"]
+    assert outcome["freshness"] == freshness
+    assert "freshness" not in validator.analysis_outcome(body)["analysis"]
+
+
+def _manifest(**members: Any) -> dict[str, Any]:
+    return {
+        "spec_id": "ops_" + "1" * 32,
+        "content_version": "ocv_" + "2" * 32,
+        "left_out": [],
+        **members,
+    }
+
+
+@pytest.mark.parametrize(
+    ("manifest", "series"),
+    [
+        (_manifest(), 0),
+        (_manifest(left_out=[{}, {}]), 2),
+        (_manifest(left_out=None), None),
+    ],
+    ids=["none-left-out", "two-left-out", "left-out-null"],
+)
+def test_an_embedded_manifest_gives_the_series_it_left_out(
+    manifest: Any, series: int | None
+) -> None:
+    outcome = validator.analysis_outcome(_ready(manifest=manifest), manifest=True)
+    assert outcome["analysis"]["left_out_series"] == series
+
+
+@pytest.mark.parametrize(
+    "manifest",
+    [
+        None,
+        [],
+        _manifest(spec_id="ops_" + "3" * 32),
+        _manifest(content_version="ocv_" + "3" * 32),
+        _manifest(left_out={}),
+    ],
+    ids=["absent", "a-list", "other-spec", "other-version", "left-out-an-object"],
+)
+def test_an_asked_for_manifest_that_does_not_read_is_a_contract_violation(
+    manifest: Any,
+) -> None:
+    body = _ready() if manifest is None else _ready(manifest=manifest)
+    with pytest.raises(validator.ClientError) as raised:
+        validator.analysis_outcome(body, manifest=True)
+    assert raised.value.code == "contract_violation"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        _ready(ref={**_READY["ref"], "format_version": 1}),
+        _ready(ref={**_READY["ref"], "members": _READY["ref"]["members"] * 2}),
+        _ready(
+            ref={
+                **_READY["ref"],
+                "members": [
+                    {
+                        **_READY["ref"]["members"][0],
+                        "spec": {"spec_id": "spec_" + "1" * 32},
+                    }
+                ],
+            }
+        ),
+        _ready(rows=True),
+        _ready(stat_vars_summed={}),
+        _ready(
+            stat_vars_summed=[
+                {"spec_id": "spec_a", "content_version": "cv_a", "count": 1}
+            ]
+        ),
+        _ready(
+            stat_vars_summed=[
+                {"spec_id": "spec_a", "content_version": "cv_a", "count": True}
+            ]
+        ),
+        _ready(derived_roots=[{"spec_id": "spec_a"}]),
+        _ready(
+            derived_roots=[
+                {
+                    "spec_id": "spec_a",
+                    "content_version": "cv_a",
+                    "base_content_version": 7,
+                }
+            ]
+        ),
+    ],
+    ids=[
+        "format-1-ref",
+        "two-members",
+        "dataset-member",
+        "rows-a-boolean",
+        "summed-not-a-list",
+        "summed-count-one",
+        "summed-count-a-boolean",
+        "derived-root-without-version",
+        "derived-root-base-a-number",
+    ],
+)
+def test_an_unreadable_analysis_answer_is_a_contract_violation(body: Any) -> None:
+    with pytest.raises(validator.ClientError) as raised:
+        validator.analysis_outcome(body)
+    assert raised.value.code == "contract_violation"

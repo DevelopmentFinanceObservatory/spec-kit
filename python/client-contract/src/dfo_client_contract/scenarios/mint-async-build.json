@@ -5,17 +5,17 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
-    "recorded_at": "2026-11-01T07:38:30Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T17:25:47Z"
   },
   "call": [
     {
       "op": "mint",
       "spec": {
-        "spec_id": "spec_8d395f753219876fa459778f38499a80",
+        "spec_id": "spec_5346ca09e15f16667c79e4801957814a",
         "definition": {
           "schema_version": 1,
-          "spec_id": "spec_8d395f753219876fa459778f38499a80",
+          "spec_id": "spec_5346ca09e15f16667c79e4801957814a",
           "identity": {
             "identity_version": "spec1",
             "shape": {
@@ -50,7 +50,7 @@
                 "property": "nettingBasis",
                 "binding": {
                   "state": "value",
-                  "ref": "Net"
+                  "ref": "Gross"
                 }
               }
             ],
@@ -227,12 +227,18 @@
             },
             "requested_window": {
               "kind": "range",
-              "start_year": 1968,
+              "start_year": 1960,
               "end_year": 2024
+            },
+            "facets": {
+              "provenance": {
+                "state": "value",
+                "ref": "provenance/ONEDAC2aBilateral"
+              }
             }
           }
         },
-        "sentence": "Net disbursements to the 133 G77 countries from the 32 DAC countries for official development assistance, 1968 to 2024. Current US dollars · OECD DAC2a.",
+        "sentence": "Gross disbursements (bilateral flows) to the 133 G77 countries from the 32 DAC countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a.",
         "entity_groups": {
           "destination": {
             "label": "G77 countries",
@@ -260,10 +266,10 @@
           "schema_version": 1,
           "input": {
             "kind": "spec_id",
-            "spec_id": "spec_8d395f753219876fa459778f38499a80",
+            "spec_id": "spec_5346ca09e15f16667c79e4801957814a",
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_8d395f753219876fa459778f38499a80",
+              "spec_id": "spec_5346ca09e15f16667c79e4801957814a",
               "identity": {
                 "identity_version": "spec1",
                 "shape": {
@@ -298,7 +304,7 @@
                     "property": "nettingBasis",
                     "binding": {
                       "state": "value",
-                      "ref": "Net"
+                      "ref": "Gross"
                     }
                   }
                 ],
@@ -475,8 +481,14 @@
                 },
                 "requested_window": {
                   "kind": "range",
-                  "start_year": 1968,
+                  "start_year": 1960,
                   "end_year": 2024
+                },
+                "facets": {
+                  "provenance": {
+                    "state": "value",
+                    "ref": "provenance/ONEDAC2aBilateral"
+                  }
                 }
               }
             }
@@ -491,15 +503,15 @@
         "status": 202,
         "headers": {
           "content-type": "application/json",
-          "location": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+          "location": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
           "retry-after": "2",
-          "x-dfo-trace-id": "7fd3deb153d34f4b9afce2b95ffdd664"
+          "x-dfo-trace-id": "14032311c3e24d1c9f816e46c916952f"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "status": "pending",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "retry_after_ms": 1500
           }
         }
@@ -508,24 +520,24 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
           "retry-after": "2",
-          "x-dfo-trace-id": "55b37040b90c4b51bb1432fb7f565e8d"
+          "x-dfo-trace-id": "985e0f9428c14c7eb24da135729759b3"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "status": "running",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "retry_after_ms": 1500,
             "progress": {
               "rows_written": 0,
-              "estimate_rows": 107148
+              "estimate_rows": 110084
             }
           }
         }
@@ -534,24 +546,24 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
           "retry-after": "2",
-          "x-dfo-trace-id": "76621ada279a42da9405c03760d3fa30"
+          "x-dfo-trace-id": "50d710421bd7418480e65782c24e47b9"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "status": "running",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "retry_after_ms": 1500,
             "progress": {
-              "rows_written": 50967,
-              "estimate_rows": 107148
+              "rows_written": 0,
+              "estimate_rows": 110084
             }
           }
         }
@@ -560,24 +572,24 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
           "retry-after": "2",
-          "x-dfo-trace-id": "f489220d020f40cabbd29c2e1d57a188"
+          "x-dfo-trace-id": "a53e526e94304f8da1e457e529ab1043"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "status": "running",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "retry_after_ms": 1500,
             "progress": {
-              "rows_written": 107148,
-              "estimate_rows": 107148
+              "rows_written": 0,
+              "estimate_rows": 110084
             }
           }
         }
@@ -586,24 +598,24 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
           "retry-after": "2",
-          "x-dfo-trace-id": "9855026593bc4f158bc5bcdea3bd1809"
+          "x-dfo-trace-id": "7813cfbf71d34d1f864bb364048f0f31"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "status": "running",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "retry_after_ms": 1797,
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 1816,
             "progress": {
-              "rows_written": 107148,
-              "estimate_rows": 107148
+              "rows_written": 0,
+              "estimate_rows": 110084
             }
           }
         }
@@ -612,24 +624,24 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
           "retry-after": "3",
-          "x-dfo-trace-id": "119eba2f4a1b446aa13d7abc8d39a2a9"
+          "x-dfo-trace-id": "4a623208f1db4a0c9e3f33c426ca8ed3"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "status": "running",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "retry_after_ms": 2302,
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 2332,
             "progress": {
-              "rows_written": 107148,
-              "estimate_rows": 107148
+              "rows_written": 0,
+              "estimate_rows": 110084
             }
           }
         }
@@ -638,24 +650,24 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
           "retry-after": "3",
-          "x-dfo-trace-id": "1019c2a1661647d193bda3dd1a96847a"
+          "x-dfo-trace-id": "617c1361c9304492a318867e74ac7ad2"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "status": "running",
-            "poll": "/api/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
-            "retry_after_ms": 2919,
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 2966,
             "progress": {
-              "rows_written": 107148,
-              "estimate_rows": 107148
+              "rows_written": 0,
+              "estimate_rows": 110084
             }
           }
         }
@@ -664,24 +676,206 @@
     {
       "request": {
         "method": "GET",
-        "path": "/datasets/operations/op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf"
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
       },
       "response": {
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "2a08d19167d845478a587fcdca1b295b"
+          "retry-after": "4",
+          "x-dfo-trace-id": "d789a9bae3a94927956ecbc81fbf8541"
         },
         "json": {
           "operation": {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 3752,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "5",
+          "x-dfo-trace-id": "8dd4b899fa534e97ad28c24894ee1836"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 4748,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "6",
+          "x-dfo-trace-id": "18d974e523c24a37b97a745fb12cca84"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 5981,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "8",
+          "x-dfo-trace-id": "02edaed6eb8e44b2acb431cfac6e70a5"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 7548,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "8",
+          "x-dfo-trace-id": "991ee8c7f5ec454685d7215cf26c0132"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "pending",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 8000,
+            "progress": {
+              "rows_written": 0,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "8",
+          "x-dfo-trace-id": "008a1cbb0a3848d49c123b25da9ef653"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 8000,
+            "progress": {
+              "rows_written": 110084,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "retry-after": "8",
+          "x-dfo-trace-id": "0a76f926c65b4f09859c91e3cd942c74"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "status": "running",
+            "poll": "/api/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
+            "retry_after_ms": 8000,
+            "progress": {
+              "rows_written": 110084,
+              "estimate_rows": 110084
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/datasets/operations/op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-dfo-trace-id": "48024def0b414f238607c7c5d13f5d89"
+        },
+        "json": {
+          "operation": {
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "status": "done"
           },
           "manifest": {
             "schema_version": 1,
             "definition": {
               "schema_version": 1,
-              "spec_id": "spec_8d395f753219876fa459778f38499a80",
+              "spec_id": "spec_5346ca09e15f16667c79e4801957814a",
               "identity": {
                 "shape": {
                   "kind": "statvar_schema",
@@ -713,12 +907,18 @@
                   },
                   {
                     "binding": {
-                      "ref": "Net",
+                      "ref": "Gross",
                       "state": "value"
                     },
                     "property": "nettingBasis"
                   }
                 ],
+                "facets": {
+                  "provenance": {
+                    "ref": "provenance/ONEDAC2aBilateral",
+                    "state": "value"
+                  }
+                },
                 "entities": {
                   "origin": [
                     "country/AUS",
@@ -894,14 +1094,14 @@
                 "requested_window": {
                   "kind": "range",
                   "end_year": 2024,
-                  "start_year": 1968
+                  "start_year": 1960
                 }
               }
             },
-            "content_version": "cv_e9cd9cba677e6dd0e2a81d5700d5edfb",
-            "prepared_at": "2026-11-01T07:38:40Z",
+            "content_version": "cv_16373fb83a8985bb9a767975714b57ca",
+            "prepared_at": "2026-11-23T17:26:40Z",
             "coverage": {
-              "rows": 107148,
+              "rows": 110084,
               "dimensions": [
                 {
                   "label": "financingProvider",
@@ -923,14 +1123,14 @@
                 },
                 {
                   "label": "years",
-                  "count": 57
+                  "count": 65
                 }
               ],
               "window": {
                 "kind": "range",
                 "origin": "query",
                 "end_year": 2024,
-                "start_year": 1968
+                "start_year": 1960
               }
             },
             "citation": {
@@ -1021,20 +1221,23 @@
                         ]
                       }
                     ]
-                  }
+                  },
+                  "licence": "OECD Terms and Conditions",
+                  "licence_type": "OECDTermsAndConditions",
+                  "licence_url": "https://www.oecd.org/en/about/terms-conditions.html"
                 }
               ]
             },
             "trace": {
               "facets": [
                 {
-                  "ref": "provenance/OECDDAC2A",
+                  "ref": "provenance/ONEDAC2aBilateral",
                   "axis": "provenance",
-                  "basis": "deployment_fallback",
-                  "default_policy": "dfo/facet-policy/most-observations",
-                  "selection_reason": "sole_candidate",
-                  "dispatch_facet_id": "1962969911839422253",
-                  "default_policy_version": "1"
+                  "basis": "bound",
+                  "default_policy": null,
+                  "selection_reason": "the composite OECD DAC2a",
+                  "dispatch_facet_id": "provenance/ONEDAC2aBilateral",
+                  "default_policy_version": null
                 },
                 {
                   "ref": null,
@@ -1055,17 +1258,66 @@
                   "default_policy_version": "1"
                 }
               ],
+              "components": [
+                {
+                  "role": "bilateral",
+                  "rows": 110084,
+                  "facets": [
+                    {
+                      "ref": "provenance/OECDDAC2A",
+                      "axis": "provenance",
+                      "basis": "deployment_fallback",
+                      "default_policy": "dfo/facet-policy/most-observations",
+                      "selection_reason": "sole_candidate",
+                      "dispatch_facet_id": "1962969911839422253",
+                      "default_policy_version": "1"
+                    },
+                    {
+                      "ref": null,
+                      "axis": "measurementMethod",
+                      "basis": "deployment_fallback",
+                      "default_policy": "dfo/facet-policy/most-observations",
+                      "selection_reason": "absent_on_selected_facet",
+                      "dispatch_facet_id": "1962969911839422253",
+                      "default_policy_version": "1"
+                    },
+                    {
+                      "ref": "CurrencyUSD",
+                      "axis": "unit",
+                      "basis": "deployment_fallback",
+                      "default_policy": "dfo/facet-policy/most-observations",
+                      "selection_reason": "sole_candidate",
+                      "dispatch_facet_id": "1962969911839422253",
+                      "default_policy_version": "1"
+                    }
+                  ],
+                  "periods": [
+                    [
+                      1960,
+                      2024
+                    ]
+                  ],
+                  "warnings": [],
+                  "stat_vars": [
+                    "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal"
+                  ],
+                  "zero_rows": 0,
+                  "provenance": "provenance/OECDDAC2A",
+                  "dropped_years": [],
+                  "content_version": "cv_1e0e0a7fed08f8c2f8595ff782db538d"
+                }
+              ],
               "applied_window": {
                 "kind": "range",
                 "origin": "query",
                 "end_year": 2024,
-                "start_year": 1968
+                "start_year": 1960
               },
-              "graph_revision": null,
+              "graph_revision": "dfo-dev-dc-datacommons-service-00298-pf7",
               "normalisations": [],
               "code_index_stamp": {
-                "exported_at": "2026-11-01T03:08:18Z",
-                "content_hash": "a1bde3be8710f5ba073e52aaaba73cf9156079c273c874372f54bb07a81b0f94",
+                "exported_at": "2026-11-18T18:18:29Z",
+                "content_hash": "67ac7cd46934db547fd7f333667503a7cec1dd0423a6085eb532c7ef57deb4c9",
                 "graph_endpoint": "graph_release"
               },
               "source_revisions": [
@@ -1074,24 +1326,24 @@
                   "revision": "2026-10-29"
                 }
               ],
-              "capability_version": "dset_5282a0674178a233",
-              "materialiser_build": "ccb6617922c839ce3cd5615a3bbb65c70bfe1bde",
+              "capability_version": "dset_85178e251b57906e",
+              "materialiser_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
               "resolved_stat_vars": [
                 {
-                  "ref": "dcid:Amount_FinancialFlow_Net_Disbursement_DAC2aAidType206_Nominal",
+                  "ref": "dcid:Amount_FinancialFlow_Gross_Disbursement_DAC2aAidType206_Nominal",
                   "roles": [
                     "financingProvider",
                     "financingRecipient"
                   ],
-                  "observation_count": 107148
+                  "observation_count": 110084
                 }
               ],
-              "family_member_count": 1,
-              "family_member_digest": "c2d373442ac21a31377df76cd343f156c72a530649757c399c6661cbf56c9a71",
-              "frame_grammar_version": "1.1.0",
-              "origin_catalogue_build_id": "20261029T171521Z-7d0a5854",
+              "family_member_count": null,
+              "family_member_digest": null,
+              "frame_grammar_version": "1.2.0",
+              "origin_catalogue_build_id": "20261123T000023Z-9d31556d",
               "served_from": "materialise",
-              "confirmed_at": "2026-11-01T07:38:43.335353+00:00"
+              "confirmed_at": "2026-11-23T17:26:42.917159+00:00"
             },
             "warnings": [],
             "diagnostics": [
@@ -1103,34 +1355,34 @@
             ],
             "artifacts": [
               {
-                "artifact_digest": "sha256:1effd75b0d46b45109033faa8adfba1dbdc83d285810fe8c878c953595456b57",
+                "artifact_digest": "sha256:734a96e549aa2eb1a07148a1d1aece7028e2622eb8bf8ff514543e5a089f0f91",
                 "rendering": {
                   "bundle": false,
                   "format": "parquet",
-                  "layout": 4
+                  "layout": 5
                 },
-                "bytes": 469908,
+                "bytes": 479928,
                 "media_type": "application/vnd.apache.parquet",
-                "created_at": "2026-11-01T07:38:43.262295+00:00",
+                "created_at": "2026-11-23T17:26:42.838143+00:00",
                 "tier": "working",
-                "url": "/api/datasets/spec_8d395f753219876fa459778f38499a80/cv_e9cd9cba677e6dd0e2a81d5700d5edfb/files/sha256:1effd75b0d46b45109033faa8adfba1dbdc83d285810fe8c878c953595456b57",
-                "enrichment_stamp": "55887b871f7aa1c5d120cb2bee97086605351d5acfbec645ab027f562d0f65c5"
+                "url": "/api/datasets/spec_5346ca09e15f16667c79e4801957814a/cv_16373fb83a8985bb9a767975714b57ca/files/sha256:734a96e549aa2eb1a07148a1d1aece7028e2622eb8bf8ff514543e5a089f0f91",
+                "enrichment_stamp": "796c3b009ec1548def1946756b9fb8b5b08f2750a2003ec4e0f0ce18fa294d3b"
               },
               {
-                "artifact_digest": "sha256:73e13b2b41415cb991b4416af6ddd4c6ccf9e2ebc9bbaa4818b197a9e6e9b1a2",
+                "artifact_digest": "sha256:281bde2a6b440b28bb63964961e0a7f1ce8a35eab8128e2498205a7f23bff5de",
                 "rendering": {
                   "statistics": "series"
                 },
-                "bytes": 147458,
+                "bytes": 145553,
                 "media_type": "application/vnd.apache.parquet",
-                "created_at": "2026-11-01T07:38:43.262295+00:00",
+                "created_at": "2026-11-23T17:26:42.838143+00:00",
                 "tier": "working",
-                "url": "/api/datasets/spec_8d395f753219876fa459778f38499a80/cv_e9cd9cba677e6dd0e2a81d5700d5edfb/files/sha256:73e13b2b41415cb991b4416af6ddd4c6ccf9e2ebc9bbaa4818b197a9e6e9b1a2"
+                "url": "/api/datasets/spec_5346ca09e15f16667c79e4801957814a/cv_16373fb83a8985bb9a767975714b57ca/files/sha256:281bde2a6b440b28bb63964961e0a7f1ce8a35eab8128e2498205a7f23bff5de"
               }
             ],
-            "series_count": 3657,
+            "series_count": 3656,
             "output_options": {
-              "capability_version": "dset_5282a0674178a233",
+              "capability_version": "dset_85178e251b57906e",
               "columns": [
                 {
                   "name": "stat_var",
@@ -1154,7 +1406,7 @@
                   "name": "time_period",
                   "kind": "grain",
                   "droppable": false,
-                  "distinct": 57
+                  "distinct": 65
                 },
                 {
                   "name": "value",
@@ -1408,7 +1660,7 @@
                   "varying": [
                     {
                       "column": "time_period",
-                      "distinct": 57
+                      "distinct": 65
                     }
                   ]
                 },
@@ -1432,7 +1684,7 @@
                   "varying": [
                     {
                       "column": "time_period",
-                      "distinct": 57
+                      "distinct": 65
                     }
                   ]
                 },
@@ -1491,10 +1743,10 @@
                 ]
               }
             },
-            "series_coverage_stamp": "ad27fd11738abb03d2d84dc214e223f04781609636cf678d0d08c385fb863d99",
+            "series_coverage_stamp": "860f403d263f3638d66bddbac61c88a64e4547fde8d831505d582ff18781ffad",
             "retention": {
               "pinned": false,
-              "held_until": "2026-12-01T07:38:43.261993Z"
+              "held_until": "2026-12-23T17:26:42.837884Z"
             }
           }
         }
@@ -1503,21 +1755,21 @@
     {
       "request": {
         "method": "GET",
-        "origin_path": "/api/datasets/spec_8d395f753219876fa459778f38499a80/cv_e9cd9cba677e6dd0e2a81d5700d5edfb/files/sha256:1effd75b0d46b45109033faa8adfba1dbdc83d285810fe8c878c953595456b57"
+        "origin_path": "/api/datasets/spec_5346ca09e15f16667c79e4801957814a/cv_16373fb83a8985bb9a767975714b57ca/files/sha256:734a96e549aa2eb1a07148a1d1aece7028e2622eb8bf8ff514543e5a089f0f91"
       },
       "response": {
         "status": 302,
         "headers": {
           "content-type": "text/html",
-          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A1effd75b0d46b45109033faa8adfba1dbdc83d285810fe8c878c953595456b57?X-Goog-Signature=redacted",
-          "x-dfo-trace-id": "0758c8ebc1d44bb896d7880cc101fd6a"
+          "location": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A734a96e549aa2eb1a07148a1d1aece7028e2622eb8bf8ff514543e5a089f0f91?X-Goog-Signature=redacted",
+          "x-dfo-trace-id": "5d8f7f5ceb354566ba7d19fd60a1409d"
         }
       }
     },
     {
       "request": {
         "method": "GET",
-        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A1effd75b0d46b45109033faa8adfba1dbdc83d285810fe8c878c953595456b57?X-Goog-Signature=redacted"
+        "url": "https://storage.googleapis.com/dev-fin-observatory-datasets-working/sha256%3A734a96e549aa2eb1a07148a1d1aece7028e2622eb8bf8ff514543e5a089f0f91?X-Goog-Signature=redacted"
       },
       "response": {
         "status": 200,
@@ -1531,26 +1783,25 @@
   "expect": [
     {
       "operation": {
-        "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+        "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
         "status": "pending"
       }
     },
     {
       "dataset": {
-        "rows": 107148,
+        "rows": 110084,
         "columns": [
           "time_period",
           "financingProvider_label",
           "financingRecipient_label",
           "value",
           "unit_label",
-          "dac2aAidType_label",
           "provenance_label",
           "financingProvider",
           "financingRecipient",
+          "stat_var_label",
           "financingProvider_kind",
           "financingRecipient_kind",
-          "dac2aAidType",
           "unit",
           "currency",
           "price_basis",
@@ -1564,23 +1815,30 @@
         "members": [
           {
             "parts": [],
-            "spec_id": "spec_8d395f753219876fa459778f38499a80",
-            "content_version": "cv_e9cd9cba677e6dd0e2a81d5700d5edfb",
-            "sentence": "Net disbursements to the 133 G77 countries from the 32 DAC countries for official development assistance, 1968 to 2024. Current US dollars · OECD DAC2a."
+            "spec_id": "spec_5346ca09e15f16667c79e4801957814a",
+            "content_version": "cv_16373fb83a8985bb9a767975714b57ca",
+            "sentence": "Gross disbursements (bilateral flows) to the 133 G77 countries from the 32 DAC countries for official development assistance, 1960 to 2024. Current US dollars · OECD DAC2a."
           }
         ],
         "missing": [],
         "long_builds": [
           {
-            "operation_id": "op_d53662fbaac38ee0bd0801eab9630ebca0c8b467d33b0a1b2c6792d0cd83b7cf",
+            "operation_id": "op_38998c06a03f0c8b9522e0c2d95df42e80f0b7de431b4ec3d347687428cc237d",
             "poll_waits": [
               1.5,
               1.5,
               1.5,
               1.5,
-              1.797,
-              2.302,
-              2.919
+              1.816,
+              2.332,
+              2.966,
+              3.752,
+              4.748,
+              5.981,
+              7.548,
+              8.0,
+              8.0,
+              8.0
             ],
             "resubmissions": 0
           }
