@@ -2417,6 +2417,17 @@ _PROXY_RATE_LIMITED = _proxy_problem(
 _PROXY_UNAVAILABLE = _proxy_problem(
     "transient_unavailable", 502, "Bad Gateway", "The Search API is unreachable."
 )
+# The proxy's 401 for an API key it refuses, the one proxy refusal that is
+# not retryable, since the same key gets the same answer.
+_PROXY_INVALID_API_KEY = {
+    **_proxy_problem(
+        "invalid_api_key",
+        401,
+        "Unauthorized",
+        "The API key is not valid. Check the key, or leave it off to call without one.",
+    ),
+    "retryable": False,
+}
 
 
 @dataclass(frozen=True)
@@ -2517,6 +2528,19 @@ def _proxy_502(parent: dict[str, Any], ctx: Context) -> Derived:
     return Derived(
         copy.deepcopy(parent["call"]), refused, [_waited(error, *refused[:2])]
     )
+
+
+def _proxy_401(parent: dict[str, Any], ctx: Context) -> Derived:
+    """The proxy's 401 invalid_api_key answers the search, which raises it
+    unretried."""
+    first = parent["exchanges"][0]
+    refused = _refusal(
+        first["request"], 401, dict(_PROXY_INVALID_API_KEY), _PROXY_HEADERS
+    )
+    error = refusal_error(
+        401, _PROXY_INVALID_API_KEY, ctx.actions, _PROXY_HEADERS
+    ).outcome(ctx.client_codes)
+    return Derived(copy.deepcopy(parent["call"]), [refused], [error])
 
 
 def _build_index(parent: dict[str, Any]) -> int:
@@ -4268,6 +4292,17 @@ SYNTHETIC = (
         "client backs off and retries twice, then raises ServerError, the class of its status, "
         "with its code, transient_unavailable, and its trace id.",
         _proxy_502,
+    ),
+    Synthetic(
+        "search-proxy-invalid-api-key",
+        "search-place-ambiguous",
+        "The website proxy's own 401 invalid_api_key problem document, retryable false, "
+        "answers the search.",
+        "The proxy refuses a call whose API key is unknown, disabled, expired or malformed "
+        "with a 401 problem document that says retryable false, so the client raises it at "
+        "once, with no wait and no retry: AuthenticationError, the class of its status, with "
+        "its code, invalid_api_key, and its trace id.",
+        _proxy_401,
     ),
     Synthetic(
         "fetch-retry-after-504",
