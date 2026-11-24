@@ -137,7 +137,7 @@ def test_fixture_payload_component_type_matches_its_directory(
 def test_description_freshness_admits_partial_periods(
     partial_periods: list[dict] | None,
 ) -> None:
-    """Catalogue 2026.11.2 admits the optional `description.freshness.partial_periods`."""
+    """The envelope admits the optional `description.freshness.partial_periods`."""
     payload = _load("fixtures/line_chart/payload_description.json")
     payload["description"]["freshness"]["partial_periods"] = partial_periods
     _VALIDATOR.validate(payload)
