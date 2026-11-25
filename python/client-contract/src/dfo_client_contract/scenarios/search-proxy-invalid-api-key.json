@@ -1,0 +1,57 @@
+{
+  "format_version": 1,
+  "name": "search-proxy-invalid-api-key",
+  "description": "The proxy refuses a call whose API key is unknown, disabled, expired or malformed with a 401 problem document that says retryable false, so the client raises it with no retry, and sends the call again only when the key lookup gives another key: AuthenticationError, the class of its status, with its code, invalid_api_key, and its trace id.",
+  "origin": {
+    "kind": "synthetic",
+    "derived_from": "search-place-ambiguous",
+    "edit": "The website proxy's own 401 invalid_api_key problem document, retryable false, answers the search."
+  },
+  "call": [
+    {
+      "op": "search",
+      "question": "ODA disbursements from Germany to Congo in 2018"
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/search/resolve",
+        "json": {
+          "schema_version": 1,
+          "input": {
+            "kind": "raw_text",
+            "query": "ODA disbursements from Germany to Congo in 2018"
+          }
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "content-type": "application/problem+json",
+          "cache-control": "no-cache",
+          "x-dfo-trace-id": "77777777777777777777777777777777"
+        },
+        "json": {
+          "type": "/codes/invalid_api_key",
+          "title": "Unauthorized",
+          "status": 401,
+          "detail": "The API key is not valid. Check the key, or leave it off to call without one.",
+          "code": "invalid_api_key",
+          "trace_id": "77777777777777777777777777777777",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "error": {
+        "class": "AuthenticationError",
+        "code": "invalid_api_key",
+        "trace_id": "77777777777777777777777777777777"
+      }
+    }
+  ]
+}

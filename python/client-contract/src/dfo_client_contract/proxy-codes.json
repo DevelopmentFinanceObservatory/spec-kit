@@ -2,9 +2,14 @@
   "format_version": 1,
   "codes": [
     {
+      "code": "invalid_api_key",
+      "status": 401,
+      "condition": "The API key the caller sent in Authorization: Bearer dfo_... or X-API-Key is unknown, disabled, expired or malformed; the proxy refuses the call and serves it with no anonymous fallback, and the document is not retryable."
+    },
+    {
       "code": "rate_limited",
       "status": 429,
-      "condition": "The website proxy's rate limit for the caller's address is spent; the problem document is retryable and the response carries Retry-After."
+      "condition": "The website proxy's rate limit for the caller's address, or for a keyed call its account, is spent; the problem document is retryable and the response carries Retry-After."
     },
     {
       "code": "transient_unavailable",
