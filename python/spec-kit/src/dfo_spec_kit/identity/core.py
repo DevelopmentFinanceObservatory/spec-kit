@@ -112,8 +112,10 @@ _CURRENCY_ROLES = frozenset({"observationAbout", "origin", "destination"})
 # The two flow roles `open_roles` may name, whose members a source can publish
 # beside a total. The set is closed, and the `entities` keys are open.
 _OPEN_ROLES = frozenset({"origin", "destination"})
-_WINDOW_SIMPLE_KEYS = frozenset({"kind"})
-_WINDOW_RANGE_KEYS = frozenset({"kind", "start_year", "end_year"})
+# `include` opts a window in to row classes a read otherwise holds back.
+_WINDOW_INCLUDE_MEMBERS = frozenset({"partial", "projected"})
+_WINDOW_SIMPLE_KEYS = frozenset({"kind", "include"})
+_WINDOW_RANGE_KEYS = frozenset({"kind", "start_year", "end_year", "include"})
 _SHAPE_STATVAR_SCHEMA_KEYS = frozenset(
     {
         "kind",
@@ -880,8 +882,37 @@ def _build_facets(facets: object) -> dict:
     return result
 
 
+def _build_window_include(include: object) -> list[str]:
+    """Build a window's `include`, sorted and de-duplicated. Members come from
+    the closed set `_WINDOW_INCLUDE_MEMBERS`; the caller drops an empty result."""
+    include = _require_type(include, list, "requested_window.include")
+    if len(include) > _MAX_SET_MEMBERS:
+        raise IdentityError(
+            "input_limit_exceeded",
+            f"requested_window.include has {len(include)} members, exceeding "
+            f"the maximum of {_MAX_SET_MEMBERS}",
+        )
+    for member in include:
+        member = _require_type(member, str, "requested_window.include member")
+        if member not in _WINDOW_INCLUDE_MEMBERS:
+            raise IdentityError(
+                "schema_violation",
+                "requested_window.include member must be one of "
+                f"{sorted(_WINDOW_INCLUDE_MEMBERS)!r}: {member!r}",
+            )
+    return sorted(set(include))
+
+
 def _build_requested_window(window: object) -> dict:
     window = _require_object(window, "requested_window")
+    result = _build_requested_window_core(window)
+    include = _build_window_include(window["include"]) if "include" in window else []
+    if include:
+        result["include"] = include
+    return result
+
+
+def _build_requested_window_core(window: dict) -> dict:
     kind = _require_member(window, "kind", str)
 
     if kind in ("all", "latest"):
