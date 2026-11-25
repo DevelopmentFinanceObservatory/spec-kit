@@ -2499,7 +2499,8 @@ _PROXY_UNAVAILABLE = _proxy_problem(
     "transient_unavailable", 502, "Bad Gateway", "The Search API is unreachable."
 )
 # The proxy's 401 for an API key it refuses, the one proxy refusal that is
-# not retryable, since the same key gets the same answer.
+# not retryable, since the same key gets the same answer: a client spends no
+# retry on it, and re-sends only under the 401 key re-lookup rule.
 _PROXY_INVALID_API_KEY = {
     **_proxy_problem(
         "invalid_api_key",
@@ -4515,9 +4516,10 @@ SYNTHETIC = (
         "The website proxy's own 401 invalid_api_key problem document, retryable false, "
         "answers the search.",
         "The proxy refuses a call whose API key is unknown, disabled, expired or malformed "
-        "with a 401 problem document that says retryable false, so the client raises it at "
-        "once, with no wait and no retry: AuthenticationError, the class of its status, with "
-        "its code, invalid_api_key, and its trace id.",
+        "with a 401 problem document that says retryable false, so the client raises it "
+        "with no retry, and sends the call again only when the key lookup gives "
+        "another key: AuthenticationError, the class of its status, with its code, "
+        "invalid_api_key, and its trace id.",
         _proxy_401,
     ),
     Synthetic(

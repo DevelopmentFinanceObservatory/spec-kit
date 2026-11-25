@@ -1,7 +1,7 @@
 {
   "format_version": 1,
   "name": "search-proxy-invalid-api-key",
-  "description": "The proxy refuses a call whose API key is unknown, disabled, expired or malformed with a 401 problem document that says retryable false, so the client raises it at once, with no wait and no retry: AuthenticationError, the class of its status, with its code, invalid_api_key, and its trace id.",
+  "description": "The proxy refuses a call whose API key is unknown, disabled, expired or malformed with a 401 problem document that says retryable false, so the client raises it with no retry, and sends the call again only when the key lookup gives another key: AuthenticationError, the class of its status, with its code, invalid_api_key, and its trace id.",
   "origin": {
     "kind": "synthetic",
     "derived_from": "search-place-ambiguous",
