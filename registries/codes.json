@@ -311,6 +311,22 @@
       "lifecycle": "active"
     },
     {
+      "code": "caller_over_share",
+      "classification": "refusal",
+      "definition": "The caller already has its share of analysis requests in flight on the instance that answered, so this one is refused while other callers are still admitted. A retry after the response's Retry-After is expected to succeed once one of the caller's own requests ends.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.analysis",
+          "channel": "problem_details",
+          "http_status": 429
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "candidates_collapsed_definite",
       "classification": "warning",
       "definition": "A replayed candidate set collapsed to exactly one survivor, so the part is reported as a definite answer to the replayed selection rather than as the candidate set the caller posted.",
@@ -2378,6 +2394,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "datasets.heads",
+          "channel": "problem_details",
+          "http_status": 500
         }
       ],
       "lifecycle": "active"
@@ -4519,6 +4540,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "datasets.heads",
+          "channel": "problem_details",
+          "http_status": 400
         }
       ],
       "lifecycle": "active"
@@ -5195,6 +5221,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "datasets.heads",
+          "channel": "problem_details",
+          "http_status": 503
         }
       ],
       "lifecycle": "active"

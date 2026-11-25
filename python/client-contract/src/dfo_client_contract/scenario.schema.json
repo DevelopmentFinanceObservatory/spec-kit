@@ -259,6 +259,9 @@
             "$ref": "#/$defs/analysis_step"
           },
           {
+            "$ref": "#/$defs/stored_versions_step"
+          },
+          {
             "$ref": "#/$defs/result_step"
           }
         ]
@@ -517,6 +520,71 @@
         }
       }
     },
+    "stored_versions_step": {
+      "description": "A stored-versions check of `targets`, sent as one `GET /datasets/heads` naming every spec id the targets read, each once, sorted by code point. Targets that read no spec or more than 64, or a tree root naming a frame DFO computed, raise `InvalidRequestError` `invalid_argument` before any request. `built` is an earlier check's saved form, and the outcome then gives the specs changed since it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "targets"
+      ],
+      "properties": {
+        "op": {
+          "const": "stored_versions"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stored_versions_target"
+          }
+        },
+        "built": {
+          "$ref": "stored-versions.schema.json"
+        }
+      }
+    },
+    "stored_versions_target": {
+      "description": "One target of a stored-versions check: a `spec`, which reads its own spec id; a `ref`, whose dataset members read their spec ids and whose derived members read their roots' spec ids; or a recipe `tree`, as an analysis step holds it, whose roots read their spec ids.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "spec"
+          ],
+          "properties": {
+            "spec": {
+              "$ref": "#/$defs/spec"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref"
+          ],
+          "properties": {
+            "ref": {
+              "$ref": "dataset-ref.schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tree"
+          ],
+          "properties": {
+            "tree": {
+              "description": "A recipe tree, as an analysis step's `tree` holds it.",
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
     "exchange": {
       "type": "object",
       "additionalProperties": false,
@@ -709,6 +777,18 @@
           "properties": {
             "analysis": {
               "$ref": "#/$defs/analysis"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stored_versions"
+          ],
+          "properties": {
+            "stored_versions": {
+              "$ref": "#/$defs/stored_versions"
             }
           }
         },
@@ -1137,6 +1217,37 @@
               "type": "null"
             }
           ]
+        },
+        "retry_waits": {
+          "$ref": "#/$defs/retry_waits"
+        },
+        "warnings": {
+          "$ref": "#/$defs/warnings"
+        }
+      }
+    },
+    "stored_versions": {
+      "description": "The outcome of a stored-versions step: one head per spec the check named, sorted by spec_id, and with `built`, the spec ids, sorted, whose head differs from the one `built` records or that `built` does not list.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heads"
+      ],
+      "properties": {
+        "heads": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "stored-versions.schema.json#/$defs/head"
+          }
+        },
+        "changed": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/spec_id"
+          }
         },
         "retry_waits": {
           "$ref": "#/$defs/retry_waits"

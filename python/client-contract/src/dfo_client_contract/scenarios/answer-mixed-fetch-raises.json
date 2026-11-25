@@ -5,8 +5,8 @@
   "origin": {
     "kind": "recorded",
     "base_url": "https://dfo-dev-apis-zms5lj4zhq-nn.a.run.app/api",
-    "dfo_commit": "92e83a3ba99289e8648717b8e85974341f717c81",
-    "recorded_at": "2026-11-21T15:11:51Z"
+    "dfo_commit": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+    "recorded_at": "2026-11-23T16:47:22Z"
   },
   "call": [
     {
@@ -34,7 +34,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json",
-          "x-dfo-trace-id": "244551a0302f43609a0c5a247b70a64b"
+          "x-dfo-trace-id": "179e986400094fdf8ad8f3b6480108bb"
         },
         "json": {
           "schema_version": 1,
@@ -45,15 +45,15 @@
             "extract_skipped": false
           },
           "diagnostics": {
-            "engine_build": "92e83a3ba99289e8648717b8e85974341f717c81",
-            "trace_id": "244551a0302f43609a0c5a247b70a64b",
+            "engine_build": "ce82b4333bb88f069b6519a76b5685675cdbed9c",
+            "trace_id": "179e986400094fdf8ad8f3b6480108bb",
             "warnings": [],
             "timing_ms": {
-              "total": 1852,
+              "total": 2300,
               "by_step": {
                 "coverage": 0,
-                "extract": 947,
-                "exclusion_read": 668,
+                "extract": 1074,
+                "exclusion_read": 721,
                 "cache_lookup": 0
               }
             },
@@ -72,33 +72,33 @@
               "variable_text": "debt service",
               "warnings": [],
               "timing_ms": {
-                "total": 896,
+                "total": 1216,
                 "by_step": {
-                  "recall": 379,
+                  "recall": 540,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
-                  "shape_arcs": 3,
-                  "shape_probe_coverage": 14,
-                  "shape_probe": 86,
-                  "shape_groups": 7,
-                  "shape_labels": 14,
-                  "shape_admission": 1,
+                  "shape_arcs": 4,
+                  "shape_probe_coverage": 12,
+                  "shape_probe": 225,
+                  "shape_groups": 6,
+                  "shape_labels": 12,
+                  "shape_admission": 2,
                   "phase_derive_shapes": 0,
-                  "shape_denominators": 0,
-                  "shape_quantity": 114,
-                  "shape_rank": 2,
-                  "shape": 248,
+                  "shape_denominators": 1,
+                  "shape_quantity": 85,
+                  "shape_rank": 1,
+                  "shape": 356,
                   "phase_prune_and_rank": 0,
-                  "bind": 95,
-                  "phase_bind": 14,
+                  "bind": 89,
+                  "phase_bind": 15,
                   "phase_settle": 16,
-                  "phase_place_bindings": 17,
+                  "phase_place_bindings": 15,
                   "phase_facet_requests": 0,
-                  "materialise": 12,
-                  "phase_materialise": 22,
-                  "answer": 2,
-                  "options": 8,
-                  "phase_outcome": 83
+                  "materialise": 10,
+                  "phase_materialise": 23,
+                  "answer": 3,
+                  "options": 79,
+                  "phase_outcome": 70
                 }
               },
               "restatement": {
@@ -602,7 +602,13 @@
                       "basis": "fallback",
                       "ref": "CurrencyUSD",
                       "label": "US Dollar",
-                      "currency": "USD"
+                      "currency": "USD",
+                      "prices": [
+                        "current"
+                      ],
+                      "stated_prices": [
+                        "current"
+                      ]
                     }
                   },
                   "slot_options": [
@@ -1289,7 +1295,7 @@
                       }
                     ],
                     "query_qualifiers": [],
-                    "capability_version": "cap_347c5393b96434eb",
+                    "capability_version": "cap_b1f3369f84d185f6",
                     "default_reading": {
                       "applied": true,
                       "removed_stat_vars": []
@@ -3268,7 +3274,17 @@
                       "destination": "KES"
                     },
                     "deflation_basis": "recipient"
-                  }
+                  },
+                  "price_bases": [
+                    {
+                      "prices": "current",
+                      "via": "served"
+                    },
+                    {
+                      "prices": "constant",
+                      "via": "unit_request"
+                    }
+                  ]
                 }
               }
             },
@@ -3276,20 +3292,20 @@
               "variable_text": "price of tea",
               "warnings": [],
               "timing_ms": {
-                "total": 467,
+                "total": 862,
                 "by_step": {
-                  "recall": 369,
+                  "recall": 719,
                   "phase_resolve_places": 0,
                   "phase_check_entities": 0,
                   "shape_arcs": 1,
-                  "shape_probe": 87,
+                  "shape_probe": 133,
                   "shape_groups": 1,
                   "shape_labels": 0,
                   "shape_admission": 1,
                   "phase_derive_shapes": 0,
-                  "shape_denominators": 0,
+                  "shape_denominators": 1,
                   "shape_quantity": 0,
-                  "shape": 98,
+                  "shape": 143,
                   "phase_prune_and_rank": 0
                 }
               },
@@ -3675,7 +3691,7 @@
       "error": {
         "class": "IncompleteAnswerError",
         "code": "answer_incomplete",
-        "trace_id": "244551a0302f43609a0c5a247b70a64b"
+        "trace_id": "179e986400094fdf8ad8f3b6480108bb"
       }
     }
   ]
