@@ -886,6 +886,12 @@ def _build_window_include(include: object) -> list[str]:
     """Build a window's `include`, sorted and de-duplicated. Members come from
     the closed set `_WINDOW_INCLUDE_MEMBERS`; the caller drops an empty result."""
     include = _require_type(include, list, "requested_window.include")
+    if len(include) > _MAX_SET_MEMBERS:
+        raise IdentityError(
+            "input_limit_exceeded",
+            f"requested_window.include has {len(include)} members, exceeding "
+            f"the maximum of {_MAX_SET_MEMBERS}",
+        )
     for member in include:
         member = _require_type(member, str, "requested_window.include member")
         if member not in _WINDOW_INCLUDE_MEMBERS:
