@@ -476,6 +476,17 @@ def _proxy_responses(change: Callable[[Any], None]) -> Callable[[Any], None]:
     return edit
 
 
+_PROXY_401 = "scenarios/search-proxy-invalid-api-key.json"
+
+
+def _retried_401(doc: Any) -> None:
+    """The record a client that retries the proxy's 401 makes: the 401
+    answers the search and both retries, and the error carries the backoff
+    waits."""
+    _repeat(0, 2)(doc)
+    doc["expect"][0]["error"]["retry_waits"] = [0.5, 1.0]
+
+
 def _proxy_old_body(doc: Any) -> None:
     """The proxy's 502s carry the `{error, retry, detail}` JSON body it sent
     before its refusals became problem documents, with no trace id, and the
@@ -1493,6 +1504,12 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
             ),
             "a proxy problem document is not application/problem+json",
         ),
+        (_PROXY_401, _retried_401, "the steps never make exchanges 1 to 2"),
+        (
+            _PROXY_401,
+            _proxy_responses(lambda response: response["json"].update(retryable=True)),
+            "a proxy problem document is not retryable: false",
+        ),
         (
             "scenarios/fetch-spec-accepted-running.json",
             _set_body(0, lambda body: body["operation"].update(status="done")),
@@ -2453,6 +2470,8 @@ def _ends_in(error: dict[str, Any], keep: int) -> Callable[[Any], None]:
         "proxy-code-wrong-status",
         "proxy-problem-without-retryable",
         "proxy-problem-in-plain-json",
+        "proxy-invalid-api-key-retried",
+        "proxy-invalid-api-key-retryable",
         "accepted-operation-reads-done",
         "proxy-code-is-a-problem-registry-code",
         "proxy-code-is-a-no-data-registry-code",
