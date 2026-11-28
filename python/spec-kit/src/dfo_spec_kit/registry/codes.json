@@ -1988,7 +1988,7 @@
     {
       "code": "frame_expired",
       "classification": "refusal",
-      "definition": "The frame a reference names was held and has aged out, and the server can still tell that it was.",
+      "definition": "The frame a reference names was held and has aged out, and the server can still tell that it was. On a share slot read, the slot served the frame and its rows are past retention, so they are gone for good.",
       "owning_contract": "mcp",
       "owner": "platform",
       "introduced_in": "v1",
@@ -1996,6 +1996,11 @@
         {
           "endpoint": "mcp.tools",
           "channel": "mcp_refusal"
+        },
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 410
         }
       ],
       "lifecycle": "active"
@@ -2042,6 +2047,22 @@
           "endpoint": "datasets.refresh",
           "channel": "problem_details",
           "http_status": 422
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "code": "frame_not_served",
+      "classification": "refusal",
+      "definition": "A share slot read names a frame, a spec_id and content_version, that the slot's history never recorded.",
+      "owning_contract": "presentation",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "presentation.shares",
+          "channel": "problem_details",
+          "http_status": 404
         }
       ],
       "lifecycle": "active"
