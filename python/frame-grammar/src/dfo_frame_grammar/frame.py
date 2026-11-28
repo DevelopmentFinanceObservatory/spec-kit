@@ -170,14 +170,11 @@ def widen_frame_table(table: pa.Table, *, recipe: bool = False) -> pa.Table:
             the canonical one in anything but the `unit` layout.
     """
     columns = tuple(table.schema.names)
-    roles = [
-        column for column in columns if column not in grammar._RESERVED_COLUMN_NAMES
-    ]
     schema = canonical_frame_schema(columns)
     # A table without the derived columns may lack `unit` (position -1), so
     # no layout is placed for it.
     position = schema.get_field_index(grammar.UNIT_COLUMN)
-    if columns != grammar.derive_columns(roles) or table.schema not in [
+    if not grammar._is_derived_columns(columns) or table.schema not in [
         schema.set(position, pa.field(grammar.UNIT_COLUMN, layout))
         for layout in _STORED_UNIT_TYPES
     ]:
@@ -323,14 +320,12 @@ class Frame:
 
         Raises:
             FrameError: `schema_violation` when `columns` is not what
-                `grammar.derive_columns` gives for its own role columns, or
+                `grammar.derive_columns` gives for its own role columns, with
+                or without `reporting_organisation`, or
                 the table's schema differs from `canonical_frame_schema` in
                 anything but the `unit` layout.
         """
-        roles = [
-            column for column in columns if column not in grammar._RESERVED_COLUMN_NAMES
-        ]
-        if columns != grammar.derive_columns(roles):
+        if not grammar._is_derived_columns(columns):
             raise FrameError(
                 "schema_violation",
                 f"columns {list(columns)!r} are not a derived frame column order",
@@ -361,6 +356,10 @@ class Frame:
     ) -> Frame:
         """Validate mapping rows and finish in the canonical Arrow schema.
 
+        The frame carries the `reporting_organisation` column when any row
+        holds the key, with `None` in the rows that lack it; otherwise its
+        columns are those `grammar.derive_columns(role_keys)` gives.
+
         The rows go into one table as given, which `columnar.collation_sort_keys`
         then sorts and checks for duplicate grains, as in
         `build_frame_from_arrow`.
@@ -371,16 +370,20 @@ class Frame:
         """
         role_keys = tuple(role_keys)
         role_columns = grammar.normalize_role_keys(role_keys)
-        columns = grammar.derive_columns(role_keys)
         required = {
             grammar.STAT_VAR_COLUMN,
             grammar.TIME_PERIOD_COLUMN,
             grammar.VALUE_COLUMN,
             *role_columns,
         }
-        allowed = required | {grammar.UNIT_COLUMN, *grammar.FACET_IDENTITY_COLUMNS}
+        allowed = required | {
+            grammar.UNIT_COLUMN,
+            *grammar.FACET_IDENTITY_COLUMNS,
+            grammar.REPORTING_ORGANISATION_COLUMN,
+        }
 
-        built_rows: list[tuple[object, ...]] = []
+        built_cells: list[dict[str, object]] = []
+        reporting_organisation = False
         for raw_row in rows:
             raw_key_by_norm: dict[str, str] = {}
             row: dict[str, object] = {}
@@ -434,8 +437,20 @@ class Frame:
                 cells[axis] = _normalize_optional_ref(
                     row.get(axis), description=f"facet {axis!r}"
                 )
-            built_rows.append(tuple(cells[column] for column in columns))
+            if grammar.REPORTING_ORGANISATION_COLUMN in row:
+                reporting_organisation = True
+            cells[grammar.REPORTING_ORGANISATION_COLUMN] = _normalize_optional_ref(
+                row.get(grammar.REPORTING_ORGANISATION_COLUMN),
+                description="reporting_organisation",
+            )
+            built_cells.append(cells)
 
+        columns = grammar.derive_columns(
+            role_keys, reporting_organisation=reporting_organisation
+        )
+        built_rows = [
+            tuple(cells[column] for column in columns) for cells in built_cells
+        ]
         table = _table_from_rows(columns=columns, rows=built_rows)
         return cls._from_validated(
             columns=columns, table=_sort_and_check(table, columns=columns)

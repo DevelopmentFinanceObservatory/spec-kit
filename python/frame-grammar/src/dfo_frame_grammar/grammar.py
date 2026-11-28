@@ -36,6 +36,13 @@ VALUE_COLUMN = "value"
 UNIT_COLUMN = "unit"
 STATUS_COLUMN = "status"
 
+# The optional attribute column naming the member provenance a row of a
+# declared dataset comes from, where that dataset groups several publisher
+# provenances. A frame carries it only when its builder is handed it, so a
+# frame without it has the column order and bytes it had before the column
+# existed. It sits outside the grain (see `row_sort_key`).
+REPORTING_ORGANISATION_COLUMN = "reporting_organisation"
+
 # The closed facet axis vocabulary, minus `unit`: the unit axis's own facet
 # identity is the `unit` column itself, so it never gets a facet-identity
 # column of its own (see `derive_columns`). Sorted so the pinned order
@@ -53,8 +60,21 @@ FACET_IDENTITY_COLUMNS: tuple[str, ...] = tuple(
 # `normalize_role_keys` rather than left for a downstream consumer to
 # discover.
 _RESERVED_COLUMN_NAMES: frozenset[str] = frozenset(
-    (STAT_VAR_COLUMN, TIME_PERIOD_COLUMN, VALUE_COLUMN, UNIT_COLUMN, STATUS_COLUMN)
+    (
+        STAT_VAR_COLUMN,
+        TIME_PERIOD_COLUMN,
+        VALUE_COLUMN,
+        UNIT_COLUMN,
+        STATUS_COLUMN,
+        REPORTING_ORGANISATION_COLUMN,
+    )
 ) | frozenset(FACET_IDENTITY_COLUMNS)
+
+# The columns outside the grain: `row_sort_key` skips them, so they neither
+# order rows nor tell two rows apart.
+_NON_GRAIN_COLUMNS: frozenset[str] = frozenset(
+    (VALUE_COLUMN, STATUS_COLUMN, REPORTING_ORGANISATION_COLUMN)
+)
 
 # The domain separator hashed into canonical frame bytes (see
 # `frame.canonical_frame_bytes`). Deliberately not `FRAME_GRAMMAR_VERSION`,
@@ -194,7 +214,7 @@ def normalize_role_keys(role_keys: Iterable[str]) -> tuple[str, ...]:
 
     Also refuses a role key equal to any reserved column name (`stat_var`,
     `time_period`, `value`, `unit`, `measurementMethod`, `provenance`,
-    `status`): a role sharing one of those names would derive a `columns`
+    `reporting_organisation`, `status`): a role sharing one of those names would derive a `columns`
     array with that name in two positions, which any consumer that pairs
     cells with column names by name (rather than by position) would then
     collapse into one.
@@ -222,7 +242,9 @@ def normalize_role_keys(role_keys: Iterable[str]) -> tuple[str, ...]:
     return tuple(sorted(seen))
 
 
-def derive_columns(role_keys: Iterable[str]) -> tuple[str, ...]:
+def derive_columns(
+    role_keys: Iterable[str], *, reporting_organisation: bool = False
+) -> tuple[str, ...]:
     """The pinned column order for a frame declaring `role_keys`, positional
     in every row:
 
@@ -230,7 +252,8 @@ def derive_columns(role_keys: Iterable[str]) -> tuple[str, ...]:
     the shape declares, named by the role property dcid verbatim and
     ordered by Unicode code point of its NFC form; `time_period`; `value`;
     `unit`; the remaining facet-identity columns (`measurementMethod`, then
-    `provenance`); and `status`, the reserved qualification column, last.
+    `provenance`); `reporting_organisation` when `reporting_organisation`
+    is true; and `status`, the reserved qualification column, last.
     """
     roles = normalize_role_keys(role_keys)
     return (
@@ -240,7 +263,17 @@ def derive_columns(role_keys: Iterable[str]) -> tuple[str, ...]:
         VALUE_COLUMN,
         UNIT_COLUMN,
         *FACET_IDENTITY_COLUMNS,
+        *((REPORTING_ORGANISATION_COLUMN,) if reporting_organisation else ()),
         STATUS_COLUMN,
+    )
+
+
+def _is_derived_columns(columns: Sequence[str]) -> bool:
+    """Whether `columns` is a column order `derive_columns` gives for the
+    role columns it holds, with or without `reporting_organisation`."""
+    roles = [column for column in columns if column not in _RESERVED_COLUMN_NAMES]
+    return tuple(columns) == derive_columns(
+        roles, reporting_organisation=REPORTING_ORGANISATION_COLUMN in columns
     )
 
 
@@ -686,18 +719,20 @@ def cell_sort_key(cell: object) -> tuple:
 
 def row_sort_key(columns: Sequence[str], cells: Sequence[object]) -> tuple:
     """The tuple that sorts a frame's rows and detects a duplicate grain:
-    every cell in canonical column order except `value` and `status`, each
-    run through `cell_sort_key`.
+    every cell in canonical column order except `value`, `status` and
+    `reporting_organisation`, each run through `cell_sort_key`.
 
     Excluding `value` keeps a row's own observed number out of what
     identifies its grain -- two rows that differ only in `value` are a
     genuine duplicate, not two distinct observations. Excluding `status`
     does the same for the reserved qualification slot, which is always
     `null` today and would otherwise be redundant with this exclusion
-    reserved for when it starts to vary.
+    reserved for when it starts to vary. `reporting_organisation` is an
+    attribute of an observation, the member provenance that reported it, so
+    two rows that differ only there are also one grain.
     """
     return tuple(
         cell_sort_key(cell)
         for column, cell in zip(columns, cells, strict=True)
-        if column not in (VALUE_COLUMN, STATUS_COLUMN)
+        if column not in _NON_GRAIN_COLUMNS
     )

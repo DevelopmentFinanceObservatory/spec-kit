@@ -341,7 +341,7 @@ def collation_sort_keys(table: pa.Table, columns: Sequence[str]) -> pa.Table:
 
     Sorting ascending by every column of the result, in order, orders rows
     as `grammar.row_sort_key` does when `columns` is the grain (every column
-    except `value` and `status`). To reverse one column, sort both of its
+    except `value`, `status` and `reporting_organisation`). To reverse one column, sort both of its
     arrays descending. The result has as many rows as `table`, and no
     columns when `columns` is empty.
     """
@@ -354,13 +354,9 @@ def collation_sort_keys(table: pa.Table, columns: Sequence[str]) -> pa.Table:
 
 
 def _grain_columns(columns: Sequence[str]) -> list[str]:
-    """The grain: every column of `columns` except `value` and `status`, the
-    columns `grammar.row_sort_key` keys."""
-    return [
-        column
-        for column in columns
-        if column not in (grammar.VALUE_COLUMN, grammar.STATUS_COLUMN)
-    ]
+    """The grain: every column of `columns` except `value`, `status` and
+    `reporting_organisation`, the columns `grammar.row_sort_key` keys."""
+    return [column for column in columns if column not in grammar._NON_GRAIN_COLUMNS]
 
 
 def _sort_and_check(table: pa.Table, *, columns: Sequence[str]) -> pa.Table:
@@ -390,6 +386,7 @@ def _sort_and_check(table: pa.Table, *, columns: Sequence[str]) -> pa.Table:
     if scalar_kernel("any", duplicate).as_py():
         raise FrameError(
             "duplicate_row_key",
-            "two rows share the same grain (every cell except value and status)",
+            "two rows share the same grain (every cell except value, status and "
+            "reporting_organisation)",
         )
     return sorted_table

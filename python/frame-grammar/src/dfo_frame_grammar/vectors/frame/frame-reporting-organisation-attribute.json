@@ -1,0 +1,106 @@
+{
+  "format_version": 2,
+  "name": "frame-reporting-organisation-attribute",
+  "description": "A reporting_organisation column sits after provenance and before status, holds null where a row names no reporter, and leaves row order to the grain: the row reported by Ledger South sorts first by provider.",
+  "kind": "frame",
+  "classification": "positive",
+  "coverage": [
+    "columns.reporting-organisation",
+    "rows.order.attribute-outside-grain"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:Ledger_Disbursements",
+      "provider": "country/GBR",
+      "time_period": "2022",
+      "value": 300,
+      "provenance": "dc/d/Ledger",
+      "reporting_organisation": "dc/d/LedgerNorth"
+    },
+    {
+      "stat_var": "dcid:Ledger_Disbursements",
+      "provider": "country/DEU",
+      "time_period": "2022",
+      "value": 200,
+      "provenance": "dc/d/Ledger",
+      "reporting_organisation": "dc/d/LedgerSouth"
+    },
+    {
+      "stat_var": "dcid:Ledger_Disbursements",
+      "provider": "country/FRA",
+      "time_period": "2022",
+      "value": 500,
+      "provenance": "dc/d/Ledger"
+    }
+  ],
+  "expected_columns": [
+    "stat_var",
+    "provider",
+    "time_period",
+    "value",
+    "unit",
+    "measurementMethod",
+    "provenance",
+    "reporting_organisation",
+    "status"
+  ],
+  "canonical_bytes": "7b22636f6c756d6e73223a5b22737461745f766172222c2270726f7669646572222c2274696d655f706572696f64222c2276616c7565222c22756e6974222c226d6561737572656d656e744d6574686f64222c2270726f76656e616e6365222c227265706f7274696e675f6f7267616e69736174696f6e222c22737461747573225d2c226672616d655f76657273696f6e223a226672616d6531222c22726f7773223a5b5b22646369643a4c65646765725f44697362757273656d656e7473222c22636f756e7472792f444555222c2232303232222c3230302c6e756c6c2c6e756c6c2c2264632f642f4c6564676572222c2264632f642f4c6564676572536f757468222c6e756c6c5d2c5b22646369643a4c65646765725f44697362757273656d656e7473222c22636f756e7472792f465241222c2232303232222c3530302c6e756c6c2c6e756c6c2c2264632f642f4c6564676572222c6e756c6c2c6e756c6c5d2c5b22646369643a4c65646765725f44697362757273656d656e7473222c22636f756e7472792f474252222c2232303232222c3330302c6e756c6c2c6e756c6c2c2264632f642f4c6564676572222c2264632f642f4c65646765724e6f727468222c6e756c6c5d5d7d",
+  "expected_document": {
+    "columns": [
+      "stat_var",
+      "provider",
+      "time_period",
+      "value",
+      "unit",
+      "measurementMethod",
+      "provenance",
+      "reporting_organisation",
+      "status"
+    ],
+    "frame_version": "frame1",
+    "rows": [
+      [
+        "dcid:Ledger_Disbursements",
+        "country/DEU",
+        "2022",
+        200,
+        null,
+        null,
+        "dc/d/Ledger",
+        "dc/d/LedgerSouth",
+        null
+      ],
+      [
+        "dcid:Ledger_Disbursements",
+        "country/FRA",
+        "2022",
+        500,
+        null,
+        null,
+        "dc/d/Ledger",
+        null,
+        null
+      ],
+      [
+        "dcid:Ledger_Disbursements",
+        "country/GBR",
+        "2022",
+        300,
+        null,
+        null,
+        "dc/d/Ledger",
+        "dc/d/LedgerNorth",
+        null
+      ]
+    ]
+  },
+  "expected_frame_sha256": "7e53e15ace12a2a966f2865b28a18440a35963a52403a1416f01a0ca713b8f15",
+  "expected_preimage": {
+    "identity_version": "cv2",
+    "frame_sha256": "7e53e15ace12a2a966f2865b28a18440a35963a52403a1416f01a0ca713b8f15"
+  },
+  "expected_content_version": "cv_27380d3dbf2f5ffdc652109200900ea6"
+}

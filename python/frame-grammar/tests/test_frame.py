@@ -364,6 +364,7 @@ class TestRoleKeyReservedColumnNameCollision:
             "unit",
             "measurementMethod",
             "provenance",
+            "reporting_organisation",
             "status",
         ],
     )
@@ -517,6 +518,40 @@ class TestDuplicateRowKeyRefusal:
             rows=[_row(time_period="2015"), _row(time_period="2016")],
         )
         assert len(frame.rows) == 2
+
+
+class TestReportingOrganisation:
+    """The optional attribute column, which `Frame.from_table` and
+    `widen_frame_table` read back from a stored table."""
+
+    def _frame(self) -> Frame:
+        return Frame.build(
+            role_keys=_ROLE_KEYS,
+            rows=[
+                _row(reporting_organisation="dc/d/LedgerNorth"),
+                _row(time_period="2016"),
+            ],
+        )
+
+    def test_a_stored_table_reads_back_as_the_frame(self):
+        frame = self._frame()
+        read = Frame.from_table(columns=frame.columns, table=frame.table)
+        assert read == frame
+        assert canonical_frame_bytes(read) == canonical_frame_bytes(frame)
+
+    def test_a_table_with_the_column_after_status_refuses(self):
+        frame = self._frame()
+        columns = (
+            *(
+                column
+                for column in frame.columns
+                if column != grammar.REPORTING_ORGANISATION_COLUMN
+            ),
+            grammar.REPORTING_ORGANISATION_COLUMN,
+        )
+        with pytest.raises(FrameError) as excinfo:
+            Frame.from_table(columns=columns, table=frame.table.select(columns))
+        assert excinfo.value.category == "schema_violation"
 
 
 class TestRowOrderInvariance:

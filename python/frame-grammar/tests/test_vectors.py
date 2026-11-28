@@ -257,13 +257,13 @@ def _compute_vector_digest_guard() -> str:
 # expected `canonical_bytes` or `content_version` changed -- the byte-rule
 # regression case this guard exists to catch.
 _VECTOR_DIGEST_GUARD = (
-    "c2e00af8cd6c9cda8ca73bfac6f2bdbad053f19e56881f23e4e358b7079440a2"
+    "ee4a0e43dc22e85c4e9781a855fe720893554ea817256ae05eb5f3ae64e61b4f"
 )
 
 # The FRAME_GRAMMAR_VERSION in effect when _VECTOR_DIGEST_GUARD above was
 # last hand-set. See TestVectorDigestGuard for what asserting equality
 # against the live FRAME_GRAMMAR_VERSION does, and does not, enforce.
-_VECTOR_DIGEST_GUARD_FRAME_GRAMMAR_VERSION = "1.2.0"
+_VECTOR_DIGEST_GUARD_FRAME_GRAMMAR_VERSION = "1.3.0"
 
 
 class TestVectorDigestGuard:
