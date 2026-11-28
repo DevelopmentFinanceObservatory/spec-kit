@@ -476,6 +476,35 @@ class TestSchemaRefusals:
             ],
         )
 
+    def test_null_typed_reporting_organisation_column_is_kept_as_nulls(
+        self,
+    ) -> None:
+        table = pyarrow.table(
+            {
+                "stat_var": ["dcid:X"],
+                "provider": ["country/FRA"],
+                "time_period": ["2015"],
+                "value": [1.0],
+                "reporting_organisation": pyarrow.nulls(1),
+            }
+        )
+
+        frame = build_frame_from_arrow(table, role_keys=["provider"])
+
+        assert frame == Frame.build(
+            role_keys=["provider"],
+            rows=[
+                {
+                    "stat_var": "dcid:X",
+                    "provider": "country/FRA",
+                    "time_period": "2015",
+                    "value": 1.0,
+                    "reporting_organisation": None,
+                }
+            ],
+        )
+        assert grammar.REPORTING_ORGANISATION_COLUMN in frame.columns
+
     @pytest.mark.parametrize(
         ("column", "nested_values"),
         [

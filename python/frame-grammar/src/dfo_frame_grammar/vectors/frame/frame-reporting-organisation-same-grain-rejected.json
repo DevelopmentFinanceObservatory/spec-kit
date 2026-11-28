@@ -1,0 +1,33 @@
+{
+  "format_version": 2,
+  "name": "frame-reporting-organisation-same-grain-rejected",
+  "description": "Two rows that differ only in reporting_organisation share one grain, so they are refused as a duplicate rather than kept as two observations.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "rows.duplicate-key",
+    "columns.reporting-organisation"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:Ledger_Disbursements",
+      "provider": "country/GBR",
+      "time_period": "2022",
+      "value": 300,
+      "provenance": "dc/d/Ledger",
+      "reporting_organisation": "dc/d/LedgerNorth"
+    },
+    {
+      "stat_var": "dcid:Ledger_Disbursements",
+      "provider": "country/GBR",
+      "time_period": "2022",
+      "value": 300,
+      "provenance": "dc/d/Ledger",
+      "reporting_organisation": "dc/d/LedgerSouth"
+    }
+  ],
+  "failure_category": "duplicate_row_key"
+}

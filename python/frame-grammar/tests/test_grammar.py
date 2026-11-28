@@ -60,6 +60,19 @@ class TestDeriveColumns:
             "status",
         )
 
+    def test_reporting_organisation_sits_between_provenance_and_status(self):
+        assert grammar.derive_columns(["provider"], reporting_organisation=True) == (
+            "stat_var",
+            "provider",
+            "time_period",
+            "value",
+            "unit",
+            "measurementMethod",
+            "provenance",
+            "reporting_organisation",
+            "status",
+        )
+
     def test_facet_identity_columns_are_measurement_method_then_provenance(self):
         assert grammar.FACET_IDENTITY_COLUMNS == ("measurementMethod", "provenance")
 

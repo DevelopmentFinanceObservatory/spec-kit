@@ -56,7 +56,10 @@ hash of the frame alone, and adds the optional `recipe` member to the unit
 request object, an additive minor change: a cell without `recipe`
 serialises as it did under `1.0.0`, and a reader on `1.0.0` refuses a cell
 that carries one. `1.2.0` adds the optional `deflation_basis` member to the
-unit request object, an additive minor change of the same kind.
+unit request object, an additive minor change of the same kind. `1.3.0`
+adds the optional `reporting_organisation` column, an additive minor change:
+a frame without the column serialises as it did under `1.2.0`, and a reader
+on `1.2.0` refuses a frame that carries it.
 
 What moves this token, and what deliberately does not
 -------------------------------------------------------
@@ -74,4 +77,4 @@ any function branches on.
 
 from __future__ import annotations
 
-FRAME_GRAMMAR_VERSION = "1.2.0"
+FRAME_GRAMMAR_VERSION = "1.3.0"

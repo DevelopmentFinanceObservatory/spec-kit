@@ -4377,6 +4377,33 @@
       "lifecycle": "active"
     },
     {
+      "code": "reporters_summed",
+      "classification": "warning",
+      "definition": "The figure sums transactions that several reporting organisations each report, so money one organisation disburses to another can be counted again when the second reports spending it.",
+      "owning_contract": "datasets",
+      "owner": "platform",
+      "introduced_in": "v1",
+      "mappings": [
+        {
+          "endpoint": "datasets.mint",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.definition",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.options",
+          "channel": "manifest_warning"
+        },
+        {
+          "endpoint": "datasets.snapshot",
+          "channel": "manifest_warning"
+        }
+      ],
+      "lifecycle": "active"
+    },
+    {
       "code": "request_invalid",
       "classification": "refusal",
       "definition": "The request body is malformed: it uses an unknown input kind, an unknown or extra field, fails schema validation such as a missing shape-declared slot key or a window whose start exceeds its end, omits base_spec_id while carrying removed, or names a part in removed that the posted definition still binds.",

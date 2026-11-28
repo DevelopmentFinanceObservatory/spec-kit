@@ -218,18 +218,30 @@ def _normalise_unit(array: pa.ChunkedArray) -> pa.Array:
 
 
 def build_frame_from_arrow(table: pa.Table, *, role_keys: Iterable[str]) -> Frame:
-    """Validate a table directly into the canonical physical frame table."""
+    """Validate a table directly into the canonical physical frame table.
+
+    The frame carries the `reporting_organisation` column exactly when
+    `table` has one, so a table without it builds the frame it built before
+    the column existed. Its cells are null or non-empty strings.
+    """
     role_keys = tuple(role_keys)
     role_columns = grammar.normalize_role_keys(role_keys)
-    columns = grammar.derive_columns(role_keys)
     required = {
         grammar.STAT_VAR_COLUMN,
         grammar.TIME_PERIOD_COLUMN,
         grammar.VALUE_COLUMN,
         *role_columns,
     }
-    allowed = required | {grammar.UNIT_COLUMN, *grammar.FACET_IDENTITY_COLUMNS}
+    allowed = required | {
+        grammar.UNIT_COLUMN,
+        *grammar.FACET_IDENTITY_COLUMNS,
+        grammar.REPORTING_ORGANISATION_COLUMN,
+    }
     raw_by_norm = _normalize_schema_names(table)
+    reporting_organisation = grammar.REPORTING_ORGANISATION_COLUMN in raw_by_norm
+    columns = grammar.derive_columns(
+        role_keys, reporting_organisation=reporting_organisation
+    )
     if grammar.STATUS_COLUMN in raw_by_norm:
         raise FrameError(
             "schema_violation", "status is reserved and may not be supplied"
@@ -279,6 +291,12 @@ def build_frame_from_arrow(table: pa.Table, *, role_keys: Iterable[str]) -> Fram
             if axis in raw_by_norm
             else pa.nulls(table.num_rows, type=pa.string())
         )
+    if reporting_organisation:
+        arrays[grammar.REPORTING_ORGANISATION_COLUMN] = _normalise_text(
+            table.column(raw_by_norm[grammar.REPORTING_ORGANISATION_COLUMN]),
+            description="reporting_organisation",
+            allow_null=True,
+        )
     arrays[grammar.STATUS_COLUMN] = pa.nulls(table.num_rows)
     recipe = arrays[grammar.UNIT_COLUMN].type == _unit_type(recipe=True)
     canonical = pa.Table.from_arrays(
@@ -299,6 +317,7 @@ def read_frame_csv(csv_bytes: bytes, *, role_keys: Iterable[str]) -> pa.Table:
         grammar.TIME_PERIOD_COLUMN,
         grammar.UNIT_COLUMN,
         *grammar.FACET_IDENTITY_COLUMNS,
+        grammar.REPORTING_ORGANISATION_COLUMN,
     )
     column_types = {name: pa.string() for name in string_columns}
     column_types[grammar.VALUE_COLUMN] = pa.float64()

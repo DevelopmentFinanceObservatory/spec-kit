@@ -9,6 +9,21 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Package scaffolding (uv, ruff, ty, pytest).
+- The optional `reporting_organisation` column (`REPORTING_ORGANISATION_COLUMN`,
+  exported from the package root), between `provenance` and `status`: the
+  member provenance that reported a row of a declared dataset that groups
+  several publisher provenances, null or a non-empty NFC string.
+  `Frame.build` carries it when any row holds the key, `build_frame_from_arrow`
+  and `read_frame_csv` when the table or CSV has the column, and
+  `grammar.derive_columns(role_keys, reporting_organisation=True)` gives the
+  column order. `Frame.from_table` and `widen_frame_table` accept tables with
+  or without it. It is outside the grain: `row_sort_key` and the columnar sort
+  skip it, and two rows that differ only there raise `duplicate_row_key`. A
+  role key named `reporting_organisation` raises `schema_violation`. The frame
+  vector `frame-reporting-organisation-attribute` and three negative vectors
+  pin it. `FRAME_GRAMMAR_VERSION` moves to `1.3.0`, an additive minor change:
+  a frame without the column keeps its bytes, `frame_sha256` and
+  `content_version`, and a reader on `1.2.0` refuses a frame that carries it.
 - The frame grammar implementation: `Frame` construction, canonical frame
   bytes, `content_version` minting and recompute, and collection-level
   `content_version` minting, conformance-tested against its packaged golden

@@ -1,0 +1,24 @@
+{
+  "format_version": 2,
+  "name": "frame-reporting-organisation-empty-string-rejected",
+  "description": "An empty reporting_organisation cell is refused: a row with no reporter holds null.",
+  "kind": "frame",
+  "classification": "negative",
+  "coverage": [
+    "columns.reporting-organisation",
+    "cell-domains.empty-string"
+  ],
+  "role_keys": [
+    "provider"
+  ],
+  "rows": [
+    {
+      "stat_var": "dcid:Ledger_Disbursements",
+      "provider": "country/GBR",
+      "time_period": "2022",
+      "value": 300,
+      "reporting_organisation": ""
+    }
+  ],
+  "failure_category": "schema_violation"
+}
